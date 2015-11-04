@@ -24,6 +24,7 @@ public class FSRGBColor implements FSColor {
     public static final FSRGBColor RED = new FSRGBColor(255, 0, 0);
     public static final FSRGBColor GREEN = new FSRGBColor(0, 255, 0);
     public static final FSRGBColor BLUE = new FSRGBColor(0, 0, 255);
+    public static final FSRGBColor BLACK = new FSRGBColor(0, 0, 0);
     
     private int _red;
     private int _green;

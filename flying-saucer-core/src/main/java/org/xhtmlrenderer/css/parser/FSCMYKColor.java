@@ -73,4 +73,39 @@ public class FSCMYKColor implements FSColor {
                 Math.min(1.0f, _cyan / 0.8f), Math.min(1.0f, _magenta / 0.8f), 
                 Math.min(1.0f, _yellow / 0.8f), _black);
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Float.floatToIntBits(_black);
+		result = prime * result + Float.floatToIntBits(_cyan);
+		result = prime * result + Float.floatToIntBits(_magenta);
+		result = prime * result + Float.floatToIntBits(_yellow);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FSCMYKColor other = (FSCMYKColor) obj;
+		if (Float.floatToIntBits(_black) != Float.floatToIntBits(other._black))
+			return false;
+		if (Float.floatToIntBits(_cyan) != Float.floatToIntBits(other._cyan))
+			return false;
+		if (Float.floatToIntBits(_magenta) != Float
+				.floatToIntBits(other._magenta))
+			return false;
+		if (Float.floatToIntBits(_yellow) != Float
+				.floatToIntBits(other._yellow))
+			return false;
+		return true;
+	}
+    
+    
 }

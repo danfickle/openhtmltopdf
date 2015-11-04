@@ -36,6 +36,18 @@ public class PdfContentStreamAdapter {
         }
     }
 
+    public void addRect(float x, float y, float w, float h) {
+        try {
+            cs.addRect(x, y, w, h);
+        } catch (IOException e) {
+            logAndThrow("addRect", e);
+        }
+    }
+    
+    public void newPath() {
+        // I think PDF-BOX does this automatically.
+    }
+    
     public void setExtGState(PDExtendedGraphicsState gs) {
         try {
             cs.setGraphicsStateParameters(gs);
@@ -262,5 +274,9 @@ public class PdfContentStreamAdapter {
         } catch (IOException e) {
             logAndThrow("drawImage", e);
         }
+    }
+
+    public void setMiterLimit(float miterLimit) {
+        // TODO Not currently supported by PDF-BOX.
     }
 }
