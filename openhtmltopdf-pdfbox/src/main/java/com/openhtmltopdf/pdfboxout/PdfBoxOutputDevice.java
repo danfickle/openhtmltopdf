@@ -98,6 +98,8 @@ import org.xhtmlrenderer.util.Configuration;
 import org.xhtmlrenderer.util.XRLog;
 import org.xhtmlrenderer.util.XRRuntimeException;
 
+import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
+
 public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private static final int FILL = 1;
     private static final int STROKE = 2;
@@ -113,7 +115,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private PdfContentStreamAdapter _cp;
     private float _pageHeight;
 
-    //private ITextFSFont _font;
+    private PdfBoxFSFont _font;
 
     private AffineTransform _transform = new AffineTransform();
 
@@ -438,7 +440,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void setFont(FSFont font) {
-        // TODO: _font = ((ITextFSFont) font);
+        _font = ((PdfBoxFSFont) font);
     }
 
     private AffineTransform normalizeMatrix(AffineTransform current) {
@@ -455,7 +457,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     public void drawString(String s, float x, float y, JustificationInfo info) {
         // TODO: Replace missing characters.
         // TODO: Emulate bold and italic.
-        // TODO: Set font and size.
+        // TODO: Text justification.
         
         if (s.length() == 0)
             return;
@@ -473,7 +475,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         float b = (float) mx[1];
         float c = (float) mx[2];
         
+        FontDescription desc = _font.getFontDescription();
+        float fontSize = _font.getSize2D() / _dotsPerPoint;
+        
         _cp.beginText();
+        _cp.setFont(desc.getFont(), fontSize);
         _cp.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
         _cp.drawString(s);
         _cp.endText();
