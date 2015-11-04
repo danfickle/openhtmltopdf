@@ -15,3 +15,5 @@ release.properties
 .project
 .settings
 tags
+maven-eclipse.xml
+Maven_Ant_Builder.launch

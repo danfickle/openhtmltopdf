@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.xhtmlrenderer</groupId>
+    <artifactId>flying-saucer-parent</artifactId>
+    <version>9.0.9-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>openhtmltopdf-pdfbox</artifactId>
+
+  <packaging>jar</packaging>
+
+  <name>Openhtmltopdf PDF Rendering (Apache PDF-BOX 2)</name>
+  <description>Openhtmltopdf is a CSS 2.1 renderer written in Java. This artifact supports PDF output with Apache PDF-BOX 2.</description>
+
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License (LGPL), version 2.1 or later</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
+    </license>
+  </licenses>
+<!--
+  <distributionManagement>
+    <repository>
+      <id>bintray</id>
+      <url>https://api.bintray.com/maven/flyingsaucerproject/maven/org.xhtmlrenderer:flying-saucer-pdf-itext5</url>
+    </repository>
+  </distributionManagement>
+-->
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>2.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xhtmlrenderer</groupId>
+      <artifactId>flying-saucer-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+  <repositories>
+
+  <repository>
+    <id>ApacheSnapshot</id>
+    <name>Apache Repository</name>
+    <url>https://repository.apache.org/content/groups/snapshots/</url>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+  </repositories>
+
+  <build>
+	  <resources>
+	    <resource>
+	      <directory>../</directory>
+	      <targetPath>${project.build.outputDirectory}/META-INF</targetPath>
+	      <includes>
+	        <include>LICENSE*</include>
+	      </includes>
+	    </resource>
+	  </resources>
+  </build>
+</project>
