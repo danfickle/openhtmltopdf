@@ -149,9 +149,12 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private int _nextFormFieldIndex;
 
     private Set _linkTargetAreas;
+    
+    private final boolean _testMode;
 
-    public PdfBoxOutputDevice(float dotsPerPoint) {
+    public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
+        _testMode = testMode;
     }
 
     public void setWriter(PDDocument writer) {

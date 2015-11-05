@@ -89,18 +89,20 @@ public class PdfBoxRenderer {
 
     // Usually 1.7
     private float _pdfVersion;
+    
+    private boolean _testMode;
 
 
     private PDFCreationListener _listener;
 
-    public PdfBoxRenderer() {
-        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true);
+    public PdfBoxRenderer(boolean testMode) {
+        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode);
     }
 
-    public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets) {
+    public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
-
-        _outputDevice = new PdfBoxOutputDevice(dotsPerPoint);
+        _testMode = testMode;
+        _outputDevice = new PdfBoxOutputDevice(dotsPerPoint, testMode);
 
         // TODO: ITextUserAgent userAgent = new ITextUserAgent(_outputDevice);
         _sharedContext = new SharedContext();
@@ -115,7 +117,7 @@ public class PdfBoxRenderer {
         // TODO: ITextReplacedElementFactory replacedElementFactory = new ITextReplacedElementFactory(_outputDevice);
         //_sharedContext.setReplacedElementFactory(replacedElementFactory);
 
-        // TODO: _sharedContext.setTextRenderer(new ITextTextRenderer());
+        _sharedContext.setTextRenderer(new PdfBoxTextRenderer());
         _sharedContext.setDPI(72 * _dotsPerPoint);
         _sharedContext.setDotsPerPixel(dotsPerPixel);
         _sharedContext.setPrint(true);
@@ -327,7 +329,7 @@ public class PdfBoxRenderer {
         _outputDevice.start(_doc);
         
         PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
-        PDPageContentStream cs = new PDPageContentStream(doc, page, false, false);
+        PDPageContentStream cs = new PDPageContentStream(doc, page, false, !_testMode);
         _outputDevice.initializePage(cs, (float) firstPageSize.getHeight());
 
         _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
@@ -346,7 +348,7 @@ public class PdfBoxRenderer {
                 Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
                         nextPage.getHeight(c) / _dotsPerPoint);
                 PDPage pageNext = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
-                PDPageContentStream csNext = new PDPageContentStream(doc, page, false, false);
+                PDPageContentStream csNext = new PDPageContentStream(doc, page, false, !_testMode);
                 doc.addPage(pageNext);
                 _outputDevice.initializePage(csNext, (float) nextPageSize.getHeight());
             }
