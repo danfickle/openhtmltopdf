@@ -114,8 +114,8 @@ public class PdfBoxRenderer {
         PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, useSubsets);
         _sharedContext.setFontResolver(fontResolver);
 
-        // TODO: ITextReplacedElementFactory replacedElementFactory = new ITextReplacedElementFactory(_outputDevice);
-        //_sharedContext.setReplacedElementFactory(replacedElementFactory);
+        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice);
+        _sharedContext.setReplacedElementFactory(replacedElementFactory);
 
         _sharedContext.setTextRenderer(new PdfBoxTextRenderer());
         _sharedContext.setDPI(72 * _dotsPerPoint);

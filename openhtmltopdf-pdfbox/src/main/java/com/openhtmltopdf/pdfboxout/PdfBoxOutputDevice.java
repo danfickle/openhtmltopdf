@@ -197,9 +197,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void paintReplacedElement(RenderingContext c, BlockBox box) {
-        // TODO: Replaced elements.
-        //        ITextReplacedElement element = (ITextReplacedElement) box.getReplacedElement();
-        //        element.paint(c, this, box);
+        PdfBoxReplacedElement element = (PdfBoxReplacedElement) box.getReplacedElement();
+        element.paint(c, this, box);
     }
 
     public void paintBackground(RenderingContext c, Box box) {
