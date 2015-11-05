@@ -35,6 +35,8 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Float;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,11 +54,17 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
+
 import org.apache.pdfbox.contentstream.PDContentStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.graphics.PDXObject;
+import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
@@ -390,7 +398,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         } else if (color instanceof FSCMYKColor) {
             _color = color;
         } else {
-            // TODO: Logging
             assert(_color instanceof FSRGBColor || _color instanceof FSCMYKColor);
         }
     }
@@ -607,7 +614,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                 _cp.setFillColor(cmyk.getCyan(), cmyk.getMagenta(), cmyk.getYellow(), cmyk.getBlack());
             }
             else {
-                // TODO: Logging
                 assert(_fillColor instanceof FSRGBColor || _fillColor instanceof FSCMYKColor);
             }
         }
@@ -625,7 +631,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                 _cp.setStrokingColor(cmyk.getCyan(), cmyk.getMagenta(), cmyk.getYellow(), cmyk.getBlack());
             }
             else {
-                // TODO: Logging
                 assert(_strokeColor instanceof FSRGBColor || _strokeColor instanceof FSCMYKColor);
             }
         }
@@ -849,35 +854,23 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void drawImage(FSImage fsImage, int x, int y) {
- /* TODO
-        if (fsImage instanceof PDFAsImage) {
-            drawPDFAsImage((PDFAsImage) fsImage, x, y);
-        } else {
-            Image image = ((ITextFSImage) fsImage).getImage();
-
-            if (fsImage.getHeight() <= 0 || fsImage.getWidth() <= 0) {
-                return;
+        PdfBoxImage img = (PdfBoxImage) fsImage;
+        
+        try {
+            if (img.isJpeg()) {
+                PDImageXObject xobject = JPEGFactory.createFromStream(_writer,
+                        new ByteArrayInputStream(img.getBytes()));
+                _cp.drawImage(xobject, x, y, img.getWidth(), img.getHeight());
+            } else {
+                BufferedImage buffered = ImageIO.read(new ByteArrayInputStream(
+                        img.getBytes()));
+                PDImageXObject xobject = LosslessFactory.createFromImage(
+                        _writer, buffered);
+                _cp.drawImage(xobject, x, y, img.getWidth(), img.getHeight());
             }
-
-            AffineTransform at = AffineTransform.getTranslateInstance(x, y);
-            at.translate(0, fsImage.getHeight());
-            at.scale(fsImage.getWidth(), fsImage.getHeight());
-
-            AffineTransform inverse = normalizeMatrix(_transform);
-            AffineTransform flipper = AffineTransform.getScaleInstance(1, -1);
-            inverse.concatenate(at);
-            inverse.concatenate(flipper);
-
-            double[] mx = new double[6];
-            inverse.getMatrix(mx);
-
-            try {
-                _currentPage.addImage(image, (float) mx[0], (float) mx[1], (float) mx[2], (float) mx[3], (float) mx[4], (float) mx[5]);
-            } catch (DocumentException e) {
-                throw new XRRuntimeException(e.getMessage(), e);
-            }
+        } catch (IOException e) {
+            throw new PdfContentStreamAdapter.PdfException("drawImage", e);
         }
-        */
     }
 /*
     private void drawPDFAsImage(PDFAsImage image, int x, int y) {

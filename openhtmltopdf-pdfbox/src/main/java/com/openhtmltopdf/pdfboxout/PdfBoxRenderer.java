@@ -104,11 +104,11 @@ public class PdfBoxRenderer {
         _testMode = testMode;
         _outputDevice = new PdfBoxOutputDevice(dotsPerPoint, testMode);
 
-        // TODO: ITextUserAgent userAgent = new ITextUserAgent(_outputDevice);
+        PdfBoxUserAgent userAgent = new PdfBoxUserAgent(_outputDevice);
         _sharedContext = new SharedContext();
-        //_sharedContext.setUserAgentCallback(userAgent);
-        //_sharedContext.setCss(new StyleReference(userAgent));
-        //userAgent.setSharedContext(_sharedContext);
+        _sharedContext.setUserAgentCallback(userAgent);
+        _sharedContext.setCss(new StyleReference(userAgent));
+        userAgent.setSharedContext(_sharedContext);
         _outputDevice.setSharedContext(_sharedContext);
 
         PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, useSubsets);
