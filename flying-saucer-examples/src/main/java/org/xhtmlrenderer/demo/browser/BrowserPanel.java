@@ -34,6 +34,8 @@ import org.xhtmlrenderer.util.GeneralUtil;
 import org.xhtmlrenderer.util.Uu;
 import org.xhtmlrenderer.util.XRLog;
 import org.xhtmlrenderer.util.XRRuntimeException;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 
@@ -384,6 +386,16 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 
                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                DocumentBuilder db = dbf.newDocumentBuilder();
+               
+               db.setEntityResolver(new EntityResolver() {
+            	    @Override
+            	        public InputSource resolveEntity(String publicId, String systemId) {
+            	            // it might be a good idea to insert a trace logging here that you are ignoring publicId/systemId
+            	    	 	// Returns a valid dummy source        
+            	    		return new InputSource(new StringReader(""));
+            	        }
+            	    });
+               
                Document doc =  db.parse(manager.getBaseURL());
 
                // TODO
@@ -424,6 +436,16 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 
                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                DocumentBuilder db = dbf.newDocumentBuilder();
+               
+               db.setEntityResolver(new EntityResolver() {
+           	    @Override
+           	        public InputSource resolveEntity(String publicId, String systemId) {
+           	            // it might be a good idea to insert a trace logging here that you are ignoring publicId/systemId
+           	    	 	// Returns a valid dummy source        
+           	    		return new InputSource(new StringReader(""));
+           	        }
+           	    });
+               
                Document doc =  db.parse(manager.getBaseURL());
 
                PDFCreationListener pdfCreationListener = new XHtmlMetaToPdfInfoAdapter( doc );
