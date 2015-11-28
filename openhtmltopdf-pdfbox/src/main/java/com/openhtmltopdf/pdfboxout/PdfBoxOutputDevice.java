@@ -695,19 +695,30 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void drawImage(FSImage fsImage, int x, int y) {
         PdfBoxImage img = (PdfBoxImage) fsImage;
-        
+
         try {
+            PDImageXObject xobject;
             if (img.isJpeg()) {
-                PDImageXObject xobject = JPEGFactory.createFromStream(_writer,
+                xobject = JPEGFactory.createFromStream(_writer,
                         new ByteArrayInputStream(img.getBytes()));
-                _cp.drawImage(xobject, x, y, img.getWidth(), img.getHeight());
             } else {
                 BufferedImage buffered = ImageIO.read(new ByteArrayInputStream(
                         img.getBytes()));
-                PDImageXObject xobject = LosslessFactory.createFromImage(
+                
+                xobject = LosslessFactory.createFromImage(
                         _writer, buffered);
-                _cp.drawImage(xobject, x, y, img.getWidth(), img.getHeight());
             }
+            
+            AffineTransform transformer = (AffineTransform) getTransform().clone();
+            transformer.translate(x, y);
+            transformer.translate(0, img.getHeight());
+            AffineTransform normalized = normalizeMatrix(transformer);
+            normalized.scale(img.getWidth(), -img.getHeight());
+                
+            double[] mx = new double[6];
+            normalized.getMatrix(mx);
+                
+            _cp.drawImage(xobject, (float) mx[4], (float) mx[5], (float) mx[0], (float) mx[3]);
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("drawImage", e);
         }

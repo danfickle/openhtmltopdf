@@ -51,11 +51,9 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                     if (cssWidth != -1 || cssHeight != -1) {
                         fsImage.scale(cssWidth, cssHeight);
                     }
-                    // TODO return new PdfBoxImageElement(fsImage);
-                    return null;
-                }                    
+                    return new PdfBoxImageElement(fsImage);
+                }
             }
-
         } else if (nodeName.equals("input")) {
             String type = e.getAttribute("type");
 // TODO: Implement form fields.
