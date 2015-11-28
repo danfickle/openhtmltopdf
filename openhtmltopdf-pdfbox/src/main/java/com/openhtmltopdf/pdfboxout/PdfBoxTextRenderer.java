@@ -74,13 +74,49 @@ public class PdfBoxTextRenderer implements TextRenderer {
         return result;
     }
 
+    private float getStringWidthSlow(PDFont bf, String str) {
+        
+        float res = 0;
+        float space = 0;
+        try {
+            // TODO: Let user configure replacement character.
+            space = bf.getStringWidth(" ");
+        } catch (IOException e1) {
+            throw new PdfContentStreamAdapter.PdfException("getStringWidthSlow", e1);
+        }
+        
+        for (int i = 0; i < str.length(); ) {
+            int unicode = str.codePointAt(i);
+            i += Character.charCount(unicode);
+            String ch = String.valueOf(Character.toChars(unicode));
+            
+            try {
+                res += bf.getStringWidth(ch);
+            }
+            catch (IllegalArgumentException e2) {
+                // Font does not support this character. Bad luck. Use replacement character width.
+                // TODO: Log missing characters.
+                res += space;
+            } catch (IOException e) {
+                throw new PdfContentStreamAdapter.PdfException("getStringWidthSlow", e);
+            }
+        }
+        
+        return res;
+    }
+    
     public int getWidth(FontContext context, FSFont font, String string) {
         PDFont bf = ((PdfBoxFSFont)font).getFontDescription().getFont();
 
         float result = 0f;
         try {
             result = bf.getStringWidth(string) / 1000f * font.getSize2D();
-        } catch (IOException e) {
+        } catch (IllegalArgumentException e2) {
+            // PDFont::getStringWidth throws an IllegalArgumentException if the character doesn't exist in the font.
+            // So we do it one character by character instead.
+            result = getStringWidthSlow(bf, string) / 1000f * font.getSize2D();
+        }
+        catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("getWidth", e);
         }
 
