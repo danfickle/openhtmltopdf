@@ -100,10 +100,13 @@ public class PdfBoxRenderer {
     }
 
     public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode) {
+        _pdfDoc = new PDDocument();
+        
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
         _outputDevice = new PdfBoxOutputDevice(dotsPerPoint, testMode);
-
+        _outputDevice.setWriter(_pdfDoc);
+        
         PdfBoxUserAgent userAgent = new PdfBoxUserAgent(_outputDevice);
         _sharedContext = new SharedContext();
         _sharedContext.setUserAgentCallback(userAgent);
@@ -285,23 +288,21 @@ public class PdfBoxRenderer {
         Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0, firstPage.getWidth(c) / _dotsPerPoint,
                 firstPage.getHeight(c) / _dotsPerPoint);
 
-        PDDocument doc = new PDDocument();
         if (_pdfVersion != 0f) {
-            doc.setVersion(_pdfVersion);
+            _pdfDoc.setVersion(_pdfVersion);
         }
         if (_pdfEncryption != null) {
-            doc.setEncryptionDictionary(_pdfEncryption);
+            _pdfDoc.setEncryptionDictionary(_pdfEncryption);
         }
-        _pdfDoc = doc;
 
         firePreOpen();
 
-        writePDF(pages, c, firstPageSize, doc);
+        writePDF(pages, c, firstPageSize, _pdfDoc);
 
         if (finish) {
             fireOnClose();
-            doc.save(os);
-            doc.close();
+            _pdfDoc.save(os);
+            _pdfDoc.close();
         }
     }
 
@@ -325,7 +326,6 @@ public class PdfBoxRenderer {
 
     private void writePDF(List pages, RenderingContext c, Rectangle2D firstPageSize, PDDocument doc) throws IOException {
         _outputDevice.setRoot(_root);
-        _outputDevice.setWriter(doc);
         _outputDevice.start(_doc);
         
         PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));

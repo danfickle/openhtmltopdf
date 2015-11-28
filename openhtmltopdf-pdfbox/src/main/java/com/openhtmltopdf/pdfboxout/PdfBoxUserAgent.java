@@ -57,51 +57,61 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
     }
     
     public ImageResource getImageResource(String uriStr) {
-        ImageResource resource = null;
+        String uriResolved = resolveURI(uriStr);
+        ImageResource resource = (ImageResource) _imageCache.get(uriResolved);
+
+        if (resource != null && resource.getImage() instanceof PdfBoxImage) {
+            // Make copy of PdfBoxImage so we don't stuff up the cache.
+            PdfBoxImage original = (PdfBoxImage) resource.getImage();
+            PdfBoxImage copy = new PdfBoxImage(original.getBytes(), original.getUri(), original.getWidth(), original.getHeight(), original.isJpeg(), original.getXObject());
+            return new ImageResource(resource.getImageUri(), copy);
+        }
+        
         if (ImageUtil.isEmbeddedBase64Image(uriStr)) {
             resource = loadEmbeddedBase64ImageResource(uriStr);
+            _outputDevice.realizeImage((PdfBoxImage) resource.getImage());
+            _imageCache.put(uriResolved, resource);
         } else {
-            uriStr = resolveURI(uriStr);
-            resource = (ImageResource) _imageCache.get(uriStr);
-            if (resource == null) {
-                InputStream is = resolveAndOpenStream(uriStr);
-                if (is != null) {
+            InputStream is = resolveAndOpenStream(uriStr);
+            
+            if (is != null) {
+                try {
+                    URI uri = new URI(uriStr);
+                    if (uri.getPath() != null
+                        && uri.getPath().toLowerCase(Locale.US)
+                                    .endsWith(".pdf")) {
+                        // TODO: Implement PDF AS IMAGE
+                        // PdfReader reader = _outputDevice.getReader(uri);
+                        // PDFAsImage image = new PDFAsImage(uri);
+                        // Rectangle rect = reader.getPageSizeWithRotation(1);
+                        // image.setInitialWidth(rect.getWidth() *
+                        // _outputDevice.getDotsPerPoint());
+                        // image.setInitialHeight(rect.getHeight() *
+                        // _outputDevice.getDotsPerPoint());
+                        // resource = new ImageResource(uriStr, image);
+                    } else {
+                        byte[] imgBytes = readStream(is);
+                        PdfBoxImage fsImage = new PdfBoxImage(imgBytes, uriStr);
+                        scaleToOutputResolution(fsImage);
+                        _outputDevice.realizeImage(fsImage);
+                        resource = new ImageResource(uriStr, fsImage);
+                    }
+                    _imageCache.put(uriStr, resource);
+                } catch (Exception e) {
+                    XRLog.exception(
+                            "Can't read image file; unexpected problem for URI '"
+                                    + uriStr + "'", e);
+                } finally {
                     try {
-                        URI uri = new URI(uriStr);
-                        if (uri.getPath() != null && uri.getPath().toLowerCase(Locale.US).endsWith(".pdf")) {
-                            // TODO: Implement PDF AS IMAGE
-//                            PdfReader reader = _outputDevice.getReader(uri);
-//                            PDFAsImage image = new PDFAsImage(uri);
-//                            Rectangle rect = reader.getPageSizeWithRotation(1);
-//                            image.setInitialWidth(rect.getWidth() * _outputDevice.getDotsPerPoint());
-//                            image.setInitialHeight(rect.getHeight() * _outputDevice.getDotsPerPoint());
-//                            resource = new ImageResource(uriStr, image);
-                        } else {
-                            byte[] imgBytes = readStream(is);
-                            PdfBoxImage fsImage = new PdfBoxImage(imgBytes, uriStr);
-                            scaleToOutputResolution(fsImage);
-                            resource = new ImageResource(uriStr, fsImage);
-                         }
-                        _imageCache.put(uriStr, resource);
-                    } catch (Exception e) {
-                        XRLog.exception("Can't read image file; unexpected problem for URI '" + uriStr + "'", e);
-                    } finally {
-                        try {
-                            is.close();
-                        } catch (IOException e) {
-                            // ignore
-                        }
+                        is.close();
+                    } catch (IOException e) {
+                        // ignore
                     }
                 }
             }
 
             if (resource != null) {
-                FSImage image = resource.getImage();
-                if (image instanceof PdfBoxImage) {
-                    // TODO: Make PdfBoxImage immutable so we don't stuff up the cache.
-                    image = (PdfBoxImage) resource.getImage();
-                }
-                resource = new ImageResource(resource.getImageUri(), image);
+                resource = new ImageResource(resource.getImageUri(), resource.getImage());
             } else {
                 resource = new ImageResource(uriStr, null);
             }

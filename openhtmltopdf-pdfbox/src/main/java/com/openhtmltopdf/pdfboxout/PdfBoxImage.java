@@ -8,10 +8,11 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.xhtmlrenderer.extend.FSImage;
 
 public class PdfBoxImage implements FSImage {
-    private final byte[] _bytes;
+    private byte[] _bytes;
     private final String _uri;
 
     private float _intrinsicWidth;
@@ -19,6 +20,8 @@ public class PdfBoxImage implements FSImage {
 
     private final boolean _isJpeg;
 
+    private PDImageXObject _xobject;
+    
     public PdfBoxImage(byte[] image, String uri) throws IOException {
         _bytes = image;
         _uri = uri;
@@ -51,12 +54,13 @@ public class PdfBoxImage implements FSImage {
     }
 
     public PdfBoxImage(byte[] bytes, String uri, float width, float height,
-            boolean isJpeg) {
+            boolean isJpeg, PDImageXObject xobject) {
         this._bytes = bytes;
         this._uri = uri;
         this._intrinsicWidth = width;
         this._intrinsicHeight = height;
         this._isJpeg = isJpeg;
+        this._xobject = xobject;
     }
 
     public FSImage scaleToOutputResolution(float dotsPerPixel) {
@@ -69,7 +73,7 @@ public class PdfBoxImage implements FSImage {
             height *= factor;
         }
 
-        return new PdfBoxImage(_bytes, _uri, width, height, _isJpeg);
+        return new PdfBoxImage(_bytes, _uri, width, height, _isJpeg, _xobject);
     }
 
     @Override
@@ -118,6 +122,18 @@ public class PdfBoxImage implements FSImage {
         return _bytes;
     }
 
+    public void clearBytes() {
+        _bytes = null;
+    }
+    
+    public PDImageXObject getXObject() {
+        return _xobject;
+    }
+    
+    public void setXObject(PDImageXObject xobject) {
+        _xobject = xobject;
+    }
+    
     public String getUri() {
         return _uri;
     }
