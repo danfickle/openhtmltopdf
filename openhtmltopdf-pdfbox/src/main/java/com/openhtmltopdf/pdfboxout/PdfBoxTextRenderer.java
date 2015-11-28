@@ -57,7 +57,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
         
         try {
             result.setAscent(bf.getBoundingBox().getUpperRightY() / 1000f * size);
-            result.setDescent(bf.getBoundingBox().getLowerLeftY() / 1000f * size);
+            result.setDescent(-bf.getBoundingBox().getLowerLeftY() / 1000f * size);
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("getFSFontMetrics", e);
         }

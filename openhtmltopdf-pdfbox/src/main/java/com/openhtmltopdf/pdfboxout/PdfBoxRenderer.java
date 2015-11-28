@@ -349,7 +349,7 @@ public class PdfBoxRenderer {
                 Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
                         nextPage.getHeight(c) / _dotsPerPoint);
                 PDPage pageNext = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
-                PDPageContentStream csNext = new PDPageContentStream(doc, page, false, !_testMode);
+                PDPageContentStream csNext = new PDPageContentStream(doc, pageNext, false, !_testMode);
                 doc.addPage(pageNext);
                 _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
             }

@@ -156,10 +156,10 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private int _startPageNo;
 
     private int _nextFormFieldIndex;
-
-    private Set _linkTargetAreas;
     
     private final boolean _testMode;
+    
+    private PdfBoxLinkManager _linkManager;
 
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
@@ -180,6 +180,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void initializePage(PDPageContentStream currentPage, PDPage page, float height) {
         _cp = new PdfContentStreamAdapter(currentPage);
+        _page = page;
         _pageHeight = height;
 
         _cp.saveGraphics();
@@ -197,8 +198,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             PDPageFitHeightDestination dest = new PDPageFitHeightDestination();
             dest.setPage(page);
         }
-
-        _linkTargetAreas = new HashSet();
     }
 
     public void finishPage() {
@@ -214,181 +213,15 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     public void paintBackground(RenderingContext c, Box box) {
         super.paintBackground(c, box);
 
-        processLink(c, box);
+        _linkManager.processLinkLater(c, box, _page, _pageHeight, _transform);
     }
 
-    private Rectangle2D calcTotalLinkArea(RenderingContext c, Box box) {
-        Box current = box;
-        while (true) {
-            Box prev = current.getPreviousSibling();
-            if (prev == null || prev.getElement() != box.getElement()) {
-                break;
-            }
 
-            current = prev;
-        }
-
-        Rectangle2D result = createLocalTargetArea(c, current, true);
-
-        current = current.getNextSibling();
-        while (current != null && current.getElement() == box.getElement()) {
-            result = add(result, createLocalTargetArea(c, current, true));
-
-            current = current.getNextSibling();
-        }
-
-        return result;
-    }
-
-    private Rectangle2D add(Rectangle2D r1, Rectangle2D r2) {
-        float llx = (float) Math.min(r1.getMinX(), r2.getMinX());
-        float urx = (float) Math.max(r1.getMaxX(), r2.getMaxX());
-        float lly = (float) Math.min(r1.getMaxY(), r2.getMaxY());
-        float ury = (float) Math.max(r1.getMinY(), r2.getMinY());
-
-        return new Rectangle2D.Float(llx, lly, urx, ury);
-    }
-
-    private String createRectKey(Rectangle2D rect) {
-        return rect.getMinX() + ":" + rect.getMaxY() + ":" + rect.getMaxX() + ":" + rect.getMinY();
-    }
-
-    private Rectangle2D checkLinkArea(RenderingContext c, Box box) {
-        Rectangle2D targetArea = calcTotalLinkArea(c, box);
-        String key = createRectKey(targetArea);
-        if (_linkTargetAreas.contains(key)) {
-            return null;
-        }
-        _linkTargetAreas.add(key);
-        return targetArea;
-    }
-
-    private void processLink(RenderingContext c, Box box) {
-        Element elem = box.getElement();
-        if (elem != null) {
-            NamespaceHandler handler = _sharedContext.getNamespaceHandler();
-            String uri = handler.getLinkUri(elem);
-            if (uri != null) {
-                if (uri.length() > 1 && uri.charAt(0) == '#') {
-                    String anchor = uri.substring(1);
-                    Box target = _sharedContext.getBoxById(anchor);
-                    if (target != null) {
-                        PDPageXYZDestination dest = createDestination(c, target);
-
-                        PDAction action;
-                        if (!"".equals(handler.getAttributeValue(elem, "onclick"))) {
-                            action = new PDActionJavaScript(handler.getAttributeValue(elem, "onclick"));
-                        } else {
-                            PDActionGoTo go = new PDActionGoTo();
-                            go.setDestination(dest);
-                            action = go;
-                        }
-
-                        Rectangle2D targetArea = checkLinkArea(c, box);
-                        if (targetArea == null) {
-                            return;
-                        }
-
-                        PDAnnotationLink annot = new PDAnnotationLink();
-                        annot.setAction(action);
-                        annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(), (float) targetArea.getWidth(), (float) targetArea.getHeight()));
-                        
-                        PDBorderStyleDictionary styleDict = new PDBorderStyleDictionary();
-                        styleDict.setWidth(0);
-                        styleDict.setStyle(PDBorderStyleDictionary.STYLE_SOLID);
-                        annot.setBorderStyle(styleDict);
-                        
-                        try {
-                            _page.getAnnotations().add(annot);
-                        } catch (IOException e) {
-                            throw new PdfContentStreamAdapter.PdfException("processLink", e);
-                        }
-                    }
-                } else if (uri.indexOf("://") != -1) {
-                    PDActionURI uriAct = new PDActionURI();
-                    uriAct.setURI(uri);
-
-                    Rectangle2D targetArea = checkLinkArea(c, box);
-                    if (targetArea == null) {
-                        return;
-                    }
-                    PDAnnotationLink annot = new PDAnnotationLink();
-                    annot.setAction(uriAct);
-                    annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(), (float) targetArea.getWidth(), (float) targetArea.getHeight()));
-                    
-                    PDBorderStyleDictionary styleDict = new PDBorderStyleDictionary();
-                    styleDict.setWidth(0);
-                    styleDict.setStyle(PDBorderStyleDictionary.STYLE_SOLID);
-                    annot.setBorderStyle(styleDict);
-                    
-                    try {
-                        _page.getAnnotations().add(annot);
-                    } catch (IOException e) {
-                        throw new PdfContentStreamAdapter.PdfException("processLink", e);
-                    }
-                }
-            }
-        }
-    }
-
-    public Rectangle2D createLocalTargetArea(RenderingContext c, Box box) {
-        return createLocalTargetArea(c, box, false);
-    }
-
-    private Rectangle2D createLocalTargetArea(RenderingContext c, Box box, boolean useAggregateBounds) {
-        Rectangle bounds;
-        if (useAggregateBounds && box.getPaintingInfo() != null) {
-            bounds = box.getPaintingInfo().getAggregateBounds();
-        } else {
-            bounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), c);
-        }
-
-        Point2D docCorner = new Point2D.Double(bounds.x, bounds.y + bounds.height);
-        Point2D pdfCorner = new Point.Double();
-        _transform.transform(docCorner, pdfCorner);
-        pdfCorner.setLocation(pdfCorner.getX(), normalizeY((float) pdfCorner.getY()));
-
-        Rectangle2D result = new Rectangle2D.Float((float) pdfCorner.getX(), (float) pdfCorner.getY(),
-                (float) pdfCorner.getX() + getDeviceLength(bounds.width), (float) pdfCorner.getY() + getDeviceLength(bounds.height));
-        return result;
-    }
-
-    public Rectangle2D createTargetArea(RenderingContext c, Box box) {
-        PageBox current = c.getPage();
-        boolean inCurrentPage = box.getAbsY() > current.getTop() && box.getAbsY() < current.getBottom();
-
-        if (inCurrentPage || box.isContainedInMarginBox()) {
-            return createLocalTargetArea(c, box);
-        } else {
-            Rectangle bounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), c);
-            PageBox page = _root.getLayer().getPage(c, bounds.y);
-
-            float bottom = getDeviceLength(page.getBottom() - (bounds.y + bounds.height)
-                    + page.getMarginBorderPadding(c, CalculatedStyle.BOTTOM));
-            float left = getDeviceLength(page.getMarginBorderPadding(c, CalculatedStyle.LEFT) + bounds.x);
-
-            Rectangle2D result = new Rectangle2D.Float(left, bottom, left + getDeviceLength(bounds.width), bottom
-                    + getDeviceLength(bounds.height));
-            return result;
-        }
-    }
 
     public float getDeviceLength(float length) {
         return length / _dotsPerPoint;
     }
 
-    private PDPageXYZDestination createDestination(RenderingContext c, Box box) {
-        PDPageXYZDestination result = new PDPageXYZDestination();
-
-        PageBox page = _root.getLayer().getPage(c, getPageRefY(box));
-        int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
-        distanceFromTop += box.getAbsY() + box.getMargin(c).top() - page.getTop();
-
-        result.setTop((int) (page.getHeight(c) / _dotsPerPoint - distanceFromTop / _dotsPerPoint));
-        result.setPage(_writer.getPage(_startPageNo + page.getPageNo()));
-
-        return result;
-    }
 
     public void drawBorderLine(Shape bounds, int side, int lineWidth, boolean solid) {
         draw(bounds);
@@ -926,11 +759,13 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void start(Document doc) {
+        _linkManager = new PdfBoxLinkManager(_sharedContext, _dotsPerPoint, _root, this);
         loadBookmarks(doc);
         loadMetadata(doc);
     }
 
     public void finish(RenderingContext c, Box root) {
+        _linkManager.processLinks();
         writeOutline(c, root);
     }
 
@@ -952,7 +787,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
 
-    private int getPageRefY(Box box) {
+    int getPageRefY(Box box) {
         if (box instanceof InlineLayoutBox) {
             InlineLayoutBox iB = (InlineLayoutBox) box;
             return iB.getAbsY() + iB.getBaseline();
