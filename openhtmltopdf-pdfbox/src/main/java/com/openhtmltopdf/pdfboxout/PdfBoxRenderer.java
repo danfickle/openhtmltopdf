@@ -325,7 +325,7 @@ public class PdfBoxRenderer {
 
     private void writePDF(List pages, RenderingContext c, Rectangle2D firstPageSize, PDDocument doc) throws IOException {
         _outputDevice.setRoot(_root);
-
+        _outputDevice.setWriter(doc);
         _outputDevice.start(_doc);
         
         PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));

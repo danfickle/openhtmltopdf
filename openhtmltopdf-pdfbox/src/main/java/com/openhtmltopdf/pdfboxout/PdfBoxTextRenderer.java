@@ -30,6 +30,7 @@ import org.xhtmlrenderer.extend.TextRenderer;
 import org.xhtmlrenderer.render.FSFont;
 import org.xhtmlrenderer.render.FSFontMetrics;
 import org.xhtmlrenderer.render.JustificationInfo;
+import org.xhtmlrenderer.util.Configuration;
 
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 
@@ -79,8 +80,8 @@ public class PdfBoxTextRenderer implements TextRenderer {
         float res = 0;
         float space = 0;
         try {
-            // TODO: Let user configure replacement character.
-            space = bf.getStringWidth(" ");
+            char replacement = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
+            space = bf.getStringWidth(String.valueOf(replacement));
         } catch (IOException e1) {
             throw new PdfContentStreamAdapter.PdfException("getStringWidthSlow", e1);
         }

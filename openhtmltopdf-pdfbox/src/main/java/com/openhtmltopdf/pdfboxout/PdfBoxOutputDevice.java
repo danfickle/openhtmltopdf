@@ -61,6 +61,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
@@ -465,7 +466,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void drawString(String s, float x, float y, JustificationInfo info) {
-        // TODO: Replace missing characters.
         // TODO: Emulate bold and italic.
         // TODO: Text justification.
         
@@ -491,8 +491,41 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _cp.beginText();
         _cp.setFont(desc.getFont(), fontSize);
         _cp.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
-        _cp.drawString(s);
+        
+        try {
+            _cp.drawString(s);
+        } catch (IllegalArgumentException e) {
+            String processed = replaceCharacters(desc.getFont(), s);
+            _cp.drawString(processed);
+        }
+        
         _cp.endText();
+    }
+
+    private String replaceCharacters(PDFont font, String str) {
+        
+        StringBuilder sb = new StringBuilder(str.length());
+        char replacementCharacter = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
+        
+        for (int i = 0; i < str.length(); ) {
+            int unicode = str.codePointAt(i);
+            i += Character.charCount(unicode);
+            String ch = String.valueOf(Character.toChars(unicode));
+            
+            try {
+                font.getStringWidth(ch);
+                // If the previous line doesn't throw, we've got the character.
+                sb.append(ch);
+            }
+            catch (IllegalArgumentException e2) {
+                // Font does not support this character. Bad luck. Use replacement character instead.
+                sb.append(replacementCharacter);
+            } catch (IOException e) {
+                throw new PdfContentStreamAdapter.PdfException("replaceCharacters", e);
+            }
+        }
+        
+        return sb.toString();
     }
     
     /*
@@ -550,33 +583,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             cb.setLineWidth(1);
         }
         _cp.endText();
-    }
-    */
-/*
-    private String replaceMissingCharacters(String string) {
-        char[] charArr = string.toCharArray();
-        char replacementCharacter = Configuration.valueAsChar("xr.renderer.missing-character-replacement", '#');
-
-        // first check to see if the replacement character even exists in the
-        // given font. If not, then do nothing.
-        if (!_font.getFontDescription().getFont().charExists(replacementCharacter)) {
-            XRLog.render(Level.INFO, "Missing replacement character [" + replacementCharacter + ":" + (int) replacementCharacter
-                    + "]. No replacement will occur.");
-            return string;
-        }
-
-        // iterate through each character in the string and make an appropriate
-        // replacement
-        for (int i = 0; i < charArr.length; i++) {
-            if (!(charArr[i] == ' ' || charArr[i] == '\u00a0' || charArr[i] == '\u3000' || _font.getFontDescription().getFont()
-                    .charExists(charArr[i]))) {
-                XRLog.render(Level.INFO, "Missing character [" + charArr[i] + ":" + (int) charArr[i] + "] in string [" + string
-                        + "]. Replacing with '" + replacementCharacter + "'");
-                charArr[i] = replacementCharacter;
-            }
-        }
-
-        return String.valueOf(charArr);
     }
     */
 /*
