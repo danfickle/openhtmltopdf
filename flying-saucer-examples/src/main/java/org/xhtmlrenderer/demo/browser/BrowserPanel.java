@@ -35,9 +35,12 @@ import org.xhtmlrenderer.util.Uu;
 import org.xhtmlrenderer.util.XRLog;
 import org.xhtmlrenderer.util.XRRuntimeException;
 
+import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
+
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -367,6 +370,46 @@ public class BrowserPanel extends JPanel implements DocumentListener {
 			XRLog.general(Level.SEVERE, "Could not load page for display.", ex);
 			ex.printStackTrace();
 		}
+	}
+	
+	public void exportToPdfBox( String path )
+	{
+       if (manager.getBaseURL() != null) {
+           setStatus( "Exporting to " + path + "..." );
+           OutputStream os = null;
+           try {
+               os = new FileOutputStream(path);
+               try {
+               PdfBoxRenderer renderer = new PdfBoxRenderer(true);
+
+               DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+               DocumentBuilder db = dbf.newDocumentBuilder();
+               Document doc =  db.parse(manager.getBaseURL());
+
+               // TODO
+               //PDFCreationListener pdfCreationListener = new XHtmlMetaToPdfInfoAdapter( doc );
+               //renderer.setListener( pdfCreationListener );
+                              
+               renderer.setDocument(manager.getBaseURL());
+               renderer.layout();
+
+               renderer.createPDF(os);
+               setStatus( "Done export." );
+            } catch (Exception e) {
+                XRLog.general(Level.SEVERE, "Could not export PDF.", e);
+                e.printStackTrace();
+                setStatus( "Error exporting to PDF." );
+               } finally {
+                   try {
+                       os.close();
+                   } catch (IOException e) {
+                       // swallow
+            }
+        }
+           } catch (Exception e) {
+               e.printStackTrace();
+	}
+       }
 	}
 	
 	public void exportToPdf( String path )

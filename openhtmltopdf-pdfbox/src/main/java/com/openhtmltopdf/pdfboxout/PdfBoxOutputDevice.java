@@ -177,7 +177,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         return ++_nextFormFieldIndex;
     }
 
-    public void initializePage(PDPageContentStream currentPage, float height) {
+    public void initializePage(PDPageContentStream currentPage, PDPage page, float height) {
         _cp = new PdfContentStreamAdapter(currentPage);
         _pageHeight = height;
 
@@ -194,7 +194,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
         if (_defaultDestination == null) {
             PDPageFitHeightDestination dest = new PDPageFitHeightDestination();
-            dest.setPage(getWriter().getPage(0));
+            dest.setPage(page);
         }
 
         _linkTargetAreas = new HashSet();
@@ -202,6 +202,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void finishPage() {
         _cp.restoreGraphics();
+        _cp.closeContent();
     }
 
     public void paintReplacedElement(RenderingContext c, BlockBox box) {

@@ -300,8 +300,8 @@ public class PdfBoxRenderer {
 
         if (finish) {
             fireOnClose();
-            doc.close();
             doc.save(os);
+            doc.close();
         }
     }
 
@@ -330,7 +330,8 @@ public class PdfBoxRenderer {
         
         PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
         PDPageContentStream cs = new PDPageContentStream(doc, page, false, !_testMode);
-        _outputDevice.initializePage(cs, (float) firstPageSize.getHeight());
+        doc.addPage(page);
+        _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
 
         _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
 
@@ -350,7 +351,7 @@ public class PdfBoxRenderer {
                 PDPage pageNext = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
                 PDPageContentStream csNext = new PDPageContentStream(doc, page, false, !_testMode);
                 doc.addPage(pageNext);
-                _outputDevice.initializePage(csNext, (float) nextPageSize.getHeight());
+                _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
             }
         }
 
