@@ -22,9 +22,6 @@ package org.xhtmlrenderer.demo.browser;
 import org.w3c.dom.Document;
 import org.xhtmlrenderer.event.DocumentListener;
 import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.pdf.ITextRenderer;
-import org.xhtmlrenderer.pdf.PDFCreationListener;
-import org.xhtmlrenderer.pdf.util.XHtmlMetaToPdfInfoAdapter;
 import org.xhtmlrenderer.resource.XMLResource;
 import org.xhtmlrenderer.simple.FSScrollPane;
 import org.xhtmlrenderer.swing.ImageResourceLoader;
@@ -401,55 +398,6 @@ public class BrowserPanel extends JPanel implements DocumentListener {
                // TODO
                //PDFCreationListener pdfCreationListener = new XHtmlMetaToPdfInfoAdapter( doc );
                //renderer.setListener( pdfCreationListener );
-                              
-               renderer.setDocument(manager.getBaseURL());
-               renderer.layout();
-
-               renderer.createPDF(os);
-               setStatus( "Done export." );
-            } catch (Exception e) {
-                XRLog.general(Level.SEVERE, "Could not export PDF.", e);
-                e.printStackTrace();
-                setStatus( "Error exporting to PDF." );
-               } finally {
-                   try {
-                       os.close();
-                   } catch (IOException e) {
-                       // swallow
-            }
-        }
-           } catch (Exception e) {
-               e.printStackTrace();
-	}
-       }
-	}
-	
-	public void exportToPdf( String path )
-	{
-       if (manager.getBaseURL() != null) {
-           setStatus( "Exporting to " + path + "..." );
-           OutputStream os = null;
-           try {
-               os = new FileOutputStream(path);
-               try {
-               ITextRenderer renderer = new ITextRenderer();
-
-               DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-               DocumentBuilder db = dbf.newDocumentBuilder();
-               
-               db.setEntityResolver(new EntityResolver() {
-           	    @Override
-           	        public InputSource resolveEntity(String publicId, String systemId) {
-           	            // it might be a good idea to insert a trace logging here that you are ignoring publicId/systemId
-           	    	 	// Returns a valid dummy source        
-           	    		return new InputSource(new StringReader(""));
-           	        }
-           	    });
-               
-               Document doc =  db.parse(manager.getBaseURL());
-
-               PDFCreationListener pdfCreationListener = new XHtmlMetaToPdfInfoAdapter( doc );
-               renderer.setListener( pdfCreationListener );
                               
                renderer.setDocument(manager.getBaseURL());
                renderer.layout();

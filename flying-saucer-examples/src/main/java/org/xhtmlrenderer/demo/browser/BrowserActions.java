@@ -372,9 +372,7 @@ public class BrowserActions {
             fd.setVisible( true );
             if (fd.getFile() != null) {
                 File outTarget = new File(fd.getDirectory(), fd.getFile());
-                // TODO: Remove export to Itext.
-                root.panel.exportToPdf(outTarget.getAbsolutePath());
-                root.panel.exportToPdfBox(outTarget.getAbsolutePath() + ".2.pdf");
+                root.panel.exportToPdfBox(outTarget.getAbsolutePath());
             }
         } catch (Exception ex) {
             logger.info("error:" + ex);

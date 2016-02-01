@@ -17,12 +17,8 @@
  */
 
 
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.BaseFont;
 import org.w3c.dom.Document;
 import org.xhtmlrenderer.event.DefaultDocumentListener;
-import org.xhtmlrenderer.pdf.ITextFontResolver;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 import org.xhtmlrenderer.resource.FSEntityResolver;
 import org.xhtmlrenderer.resource.XMLResource;
 import org.xhtmlrenderer.simple.FSScrollPane;
@@ -242,10 +238,10 @@ public class FontGlyphTableRender {
     }
 
     private String getITextFontFamilyName(File selFile) {
-        Set set = ITextFontResolver.getDistinctFontFamilyNames(
+        Set set = null; /* TODO ITextFontResolver.getDistinctFontFamilyNames(
                 selFile.getPath(),
                 BaseFont.IDENTITY_H,
-                BaseFont.EMBEDDED);
+                BaseFont.EMBEDDED); */
         System.out.println("All family names reported by iText for " + selFile.getPath() + ": " + set.toString());
         return (String) set.iterator().next();
     }
@@ -357,26 +353,24 @@ public class FontGlyphTableRender {
             JOptionPane.showMessageDialog(frame, "Can't create temp file for PDF output, err: " + e.getMessage());
             return;
         }
-        final ITextRenderer renderer = new ITextRenderer();
+//        final ITextRenderer renderer = new ITextRenderer();
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(f);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
-            renderer.setDocument(doc, null, new XhtmlNamespaceHandler());
-            ITextFontResolver resolver = renderer.getFontResolver();
-            // TODO: encoding is hard-coded as IDENTITY_H; maybe give user option to override
-            resolver.addFont(
-                    fontPathTF.getText(),
-                    BaseFont.IDENTITY_H,
-                    BaseFont.EMBEDDED
-            );
-            renderer.layout();
-            renderer.createPDF(bos);
+//            renderer.setDocument(doc, null, new XhtmlNamespaceHandler());
+//            ITextFontResolver resolver = renderer.getFontResolver();
+//            // TODO: encoding is hard-coded as IDENTITY_H; maybe give user option to override
+//            resolver.addFont(
+//                    fontPathTF.getText(),
+//                    BaseFont.IDENTITY_H,
+//                    BaseFont.EMBEDDED
+//            );
+//            renderer.layout();
+//            renderer.createPDF(bos);
 
             msgToUser = "Rendered PDF: " + f.getCanonicalPath();
         } catch (FileNotFoundException e) {
-            msgToUser = "Can't create PDF, err: " + e.getMessage();
-        } catch (DocumentException e) {
             msgToUser = "Can't create PDF, err: " + e.getMessage();
         } catch (IOException e) {
             msgToUser = "Can't create PDF, err: " + e.getMessage();

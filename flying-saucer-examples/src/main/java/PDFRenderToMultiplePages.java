@@ -19,8 +19,6 @@
  */
 
 
-import org.xhtmlrenderer.pdf.ITextRenderer;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -45,23 +43,23 @@ public class PDFRenderToMultiplePages {
             final File outputFile = File.createTempFile("FlyingSacuer.PDFRenderToMultiplePages", ".pdf");
             os = new FileOutputStream(outputFile);
 
-            ITextRenderer renderer = new ITextRenderer();
+//            ITextRenderer renderer = new ITextRenderer();
 
             // we need to create the target PDF
             // we'll create one page per input string, but we call layout for the first
-            renderer.setDocumentFromString(inputs[0]);
-            renderer.layout();
-            renderer.createPDF(os, false);
-
-            // each page after the first we add using layout() followed by writeNextDocument()
-            for (int i = 1; i < inputs.length; i++) {
-                renderer.setDocumentFromString(inputs[i]);
-                renderer.layout();
-                renderer.writeNextDocument();
-            }
+//            renderer.setDocumentFromString(inputs[0]);
+//            renderer.layout();
+//            renderer.createPDF(os, false);
+//
+//            // each page after the first we add using layout() followed by writeNextDocument()
+//            for (int i = 1; i < inputs.length; i++) {
+//                renderer.setDocumentFromString(inputs[i]);
+//                renderer.layout();
+//                renderer.writeNextDocument();
+//            }
 
             // complete the PDF
-            renderer.finishPDF();
+//            renderer.finishPDF();
 
             System.out.println("Sample file with " + inputs.length + " documents rendered as PDF to " + outputFile);
         }

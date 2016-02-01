@@ -1,6 +1,3 @@
-import com.lowagie.text.pdf.BaseFont;
-import org.xhtmlrenderer.pdf.ITextFontResolver;
-
 import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -43,7 +40,7 @@ public class ListFontFamilyNames {
             }
             Set set;
             try {
-                set = ITextFontResolver.getDistinctFontFamilyNames(f.getAbsolutePath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                set = null; // TODO ITextFontResolver.getDistinctFontFamilyNames(f.getAbsolutePath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
                 System.out.println(
                         "Font located at " + f.getPath() + "\n" +
                                 "  family name (reported by AWT): " + awtf.getFamily() + "\n" +

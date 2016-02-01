@@ -36,11 +36,6 @@
     </dependency>
     <dependency>
       <groupId>org.xhtmlrenderer</groupId>
-      <artifactId>flying-saucer-pdf</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.xhtmlrenderer</groupId>
       <artifactId>openhtmltopdf-pdfbox</artifactId>
       <version>${project.version}</version>
     </dependency>
