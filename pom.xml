@@ -22,7 +22,7 @@
   </licenses>
 
   <modules>
-    <module>flying-saucer-core</module>
+    <module>openhtmltopdf-core</module>
     <module>openhtmltopdf-log4j</module>
     <module>openhtmltopdf-swt</module>
     <module>openhtmltopdf-swt-examples</module>

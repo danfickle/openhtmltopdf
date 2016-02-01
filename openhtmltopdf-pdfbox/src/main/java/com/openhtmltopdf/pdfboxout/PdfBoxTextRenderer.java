@@ -23,16 +23,16 @@ import java.awt.Rectangle;
 import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.xhtmlrenderer.extend.FSGlyphVector;
-import org.xhtmlrenderer.extend.FontContext;
-import org.xhtmlrenderer.extend.OutputDevice;
-import org.xhtmlrenderer.extend.TextRenderer;
-import org.xhtmlrenderer.render.FSFont;
-import org.xhtmlrenderer.render.FSFontMetrics;
-import org.xhtmlrenderer.render.JustificationInfo;
-import org.xhtmlrenderer.util.Configuration;
 
+import com.openhtmltopdf.extend.FSGlyphVector;
+import com.openhtmltopdf.extend.FontContext;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
+import com.openhtmltopdf.render.FSFont;
+import com.openhtmltopdf.render.FSFontMetrics;
+import com.openhtmltopdf.render.JustificationInfo;
+import com.openhtmltopdf.util.Configuration;
 
 public class PdfBoxTextRenderer implements TextRenderer {
     private static float TEXT_MEASURING_DELTA = 0.01f;

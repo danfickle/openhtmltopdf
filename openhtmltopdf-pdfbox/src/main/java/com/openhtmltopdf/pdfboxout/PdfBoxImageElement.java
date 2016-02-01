@@ -22,11 +22,11 @@ package com.openhtmltopdf.pdfboxout;
 import java.awt.Point;
 import java.awt.Rectangle;
 
-import org.xhtmlrenderer.extend.FSImage;
-import org.xhtmlrenderer.extend.ReplacedElement;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.render.BlockBox;
-import org.xhtmlrenderer.render.RenderingContext;
+import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.RenderingContext;
 
 public class PdfBoxImageElement implements PdfBoxReplacedElement {
     private FSImage _image;

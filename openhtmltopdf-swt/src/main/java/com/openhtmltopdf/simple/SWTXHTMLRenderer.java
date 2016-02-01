@@ -26,17 +26,17 @@ import java.net.MalformedURLException;
 import org.eclipse.swt.widgets.Composite;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.extend.ReplacedElementFactory;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.simple.xhtml.XhtmlForm;
-import org.xhtmlrenderer.simple.xhtml.XhtmlNamespaceHandler;
-import org.xhtmlrenderer.util.Configuration;
 
+import com.openhtmltopdf.extend.ReplacedElementFactory;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.simple.xhtml.XhtmlForm;
+import com.openhtmltopdf.simple.xhtml.XhtmlNamespaceHandler;
 import com.openhtmltopdf.simple.xhtml.swt.SWTXhtmlReplacedElementFactory;
 import com.openhtmltopdf.swt.BasicRenderer;
 import com.openhtmltopdf.swt.CursorListener;
 import com.openhtmltopdf.swt.HoverListener;
 import com.openhtmltopdf.swt.LinkListener;
+import com.openhtmltopdf.util.Configuration;
 
 /**
  * Simplified {@link BasicRenderer}, for use with XHTML documents.

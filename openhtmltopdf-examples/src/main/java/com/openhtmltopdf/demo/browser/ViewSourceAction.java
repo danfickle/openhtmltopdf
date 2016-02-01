@@ -1,6 +1,7 @@
 package com.openhtmltopdf.demo.browser;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.*;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -10,7 +11,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.simple.XHTMLPanel;
+
+import com.openhtmltopdf.simple.XHTMLPanel;
 
 /**
  * @author pwright

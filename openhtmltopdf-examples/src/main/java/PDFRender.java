@@ -17,9 +17,10 @@
  */
 
 
-import org.xhtmlrenderer.resource.XMLResource;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+
+import com.openhtmltopdf.resource.XMLResource;
 
 import java.io.*;
 

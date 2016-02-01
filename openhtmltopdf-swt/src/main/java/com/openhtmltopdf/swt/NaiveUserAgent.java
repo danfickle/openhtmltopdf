@@ -30,12 +30,13 @@ import java.util.LinkedHashMap;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.resource.CSSResource;
-import org.xhtmlrenderer.resource.ImageResource;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.util.ImageUtil;
-import org.xhtmlrenderer.util.XRLog;
+
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.resource.CSSResource;
+import com.openhtmltopdf.resource.ImageResource;
+import com.openhtmltopdf.resource.XMLResource;
+import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.XRLog;
 
 /**
  * Naive user agent, copy of org.xhtmlrenderer.swing.NaiveUserAgent (but

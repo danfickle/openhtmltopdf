@@ -20,7 +20,8 @@
 package com.openhtmltopdf.simple.xhtml.swt;
 
 import org.eclipse.swt.widgets.Control;
-import org.xhtmlrenderer.simple.xhtml.FormControl;
+
+import com.openhtmltopdf.simple.xhtml.FormControl;
 
 public interface SWTFormControl {
     FormControl getFormControl();

@@ -26,10 +26,10 @@ import java.io.InputStream;
 
 import javax.swing.*;
 
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.swing.SelectionHighlighter;
-import org.xhtmlrenderer.swing.SelectionHighlighter.CopyAction;
+import com.openhtmltopdf.simple.FSScrollPane;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.swing.SelectionHighlighter;
+import com.openhtmltopdf.swing.SelectionHighlighter.CopyAction;
 
 /**
  * Sample for text selection in a rendered document; allows you to select text in the document

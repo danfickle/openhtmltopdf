@@ -19,11 +19,10 @@
  */
 package com.openhtmltopdf.demo.browser;
 
-import org.xhtmlrenderer.swing.*;
-import org.xhtmlrenderer.util.Configuration;
-import org.xhtmlrenderer.util.Uu;
-
 import com.openhtmltopdf.demo.browser.actions.ZoomAction;
+import com.openhtmltopdf.swing.*;
+import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.Uu;
 
 import javax.swing.*;
 

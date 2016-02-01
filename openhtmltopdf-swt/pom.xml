@@ -33,7 +33,7 @@
   <dependencies>
     <dependency>
       <groupId>org.xhtmlrenderer</groupId>
-      <artifactId>flying-saucer-core</artifactId>
+      <artifactId>openhtmltopdf-core</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

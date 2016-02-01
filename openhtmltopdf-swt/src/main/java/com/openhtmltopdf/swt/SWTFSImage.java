@@ -21,8 +21,9 @@ package com.openhtmltopdf.swt;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.xhtmlrenderer.extend.FSImage;
-import org.xhtmlrenderer.extend.UserAgentCallback;
+
+import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.extend.UserAgentCallback;
 
 /**
  * 

@@ -19,7 +19,7 @@
  */
 package com.openhtmltopdf.demo.browser;
 
-import org.xhtmlrenderer.util.GeneralUtil;
+import com.openhtmltopdf.util.GeneralUtil;
 
 import java.io.File;
 import java.net.MalformedURLException;

@@ -24,16 +24,18 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.xhtmlrenderer.css.constants.CSSName;
-import org.xhtmlrenderer.css.constants.IdentValue;
-import org.xhtmlrenderer.css.sheet.FontFaceRule;
-import org.xhtmlrenderer.css.style.CalculatedStyle;
-import org.xhtmlrenderer.css.style.FSDerivedValue;
-import org.xhtmlrenderer.css.value.FontSpecification;
-import org.xhtmlrenderer.extend.FontResolver;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.render.FSFont;
-import org.xhtmlrenderer.util.XRLog;
+
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.sheet.FontFaceRule;
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.FSDerivedValue;
+import com.openhtmltopdf.css.value.FontSpecification;
+import com.openhtmltopdf.extend.FontResolver;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.FSFont;
+import com.openhtmltopdf.util.XRLog;
+
 import java.io.*;
 import java.util.*;
 

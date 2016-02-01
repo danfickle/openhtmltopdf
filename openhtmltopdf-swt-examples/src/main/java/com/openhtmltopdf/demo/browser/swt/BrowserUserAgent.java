@@ -33,19 +33,19 @@ import java.util.logging.Level;
 import javax.xml.transform.sax.SAXSource;
 
 import org.eclipse.swt.graphics.Device;
-import org.xhtmlrenderer.resource.CSSResource;
-import org.xhtmlrenderer.resource.ImageResource;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.util.GeneralUtil;
-import org.xhtmlrenderer.util.XRLog;
-import org.xhtmlrenderer.util.Uu;
 import org.xml.sax.InputSource;
 
 import com.openhtmltopdf.demo.browser.DemoMarker;
 import com.openhtmltopdf.demo.browser.DirectoryLister;
 import com.openhtmltopdf.demo.browser.PlainTextXMLReader;
 import com.openhtmltopdf.demo.browser.swt.DemosNavigation.Demo;
+import com.openhtmltopdf.resource.CSSResource;
+import com.openhtmltopdf.resource.ImageResource;
+import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.swt.NaiveUserAgent;
+import com.openhtmltopdf.util.GeneralUtil;
+import com.openhtmltopdf.util.Uu;
+import com.openhtmltopdf.util.XRLog;
 
 public class BrowserUserAgent extends NaiveUserAgent {
 

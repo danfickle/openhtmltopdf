@@ -20,7 +20,8 @@
 package com.openhtmltopdf.swt;
 
 import org.eclipse.swt.graphics.Font;
-import org.xhtmlrenderer.render.FSFont;
+
+import com.openhtmltopdf.render.FSFont;
 
 /**
  * 

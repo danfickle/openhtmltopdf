@@ -1,11 +1,10 @@
 package com.openhtmltopdf.demo.browser.actions;
 
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.render.Box;
-import org.xhtmlrenderer.render.LineBox;
-import org.xhtmlrenderer.swing.BasicPanel;
-
 import com.openhtmltopdf.demo.browser.BrowserStartup;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.LineBox;
+import com.openhtmltopdf.swing.BasicPanel;
 
 import javax.swing.*;
 

@@ -22,11 +22,12 @@ package com.openhtmltopdf.demo.browser;
 import java.awt.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 
-import org.xhtmlrenderer.util.GeneralUtil;
-import org.xhtmlrenderer.util.XRLog;
+import com.openhtmltopdf.util.GeneralUtil;
+import com.openhtmltopdf.util.XRLog;
 
 /**
  * Description of the Class

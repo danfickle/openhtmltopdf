@@ -18,21 +18,23 @@
 
 
 import org.w3c.dom.Document;
-import org.xhtmlrenderer.event.DefaultDocumentListener;
-import org.xhtmlrenderer.resource.FSEntityResolver;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.simple.extend.XhtmlNamespaceHandler;
-import org.xhtmlrenderer.swing.FSMouseListener;
-import org.xhtmlrenderer.swing.LinkListener;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import com.openhtmltopdf.event.DefaultDocumentListener;
+import com.openhtmltopdf.resource.FSEntityResolver;
+import com.openhtmltopdf.resource.XMLResource;
+import com.openhtmltopdf.simple.FSScrollPane;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
+import com.openhtmltopdf.swing.FSMouseListener;
+import com.openhtmltopdf.swing.LinkListener;
+
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

@@ -23,10 +23,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Cursor;
-import org.xhtmlrenderer.css.constants.CSSName;
-import org.xhtmlrenderer.css.constants.IdentValue;
-import org.xhtmlrenderer.css.style.FSDerivedValue;
-import org.xhtmlrenderer.render.Box;
+
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.style.FSDerivedValue;
+import com.openhtmltopdf.render.Box;
 
 /**
  * Listener to change cursor according to css style.

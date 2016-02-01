@@ -25,9 +25,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
-import org.xhtmlrenderer.extend.*;
-import org.xhtmlrenderer.render.*;
-import org.xhtmlrenderer.util.Configuration;
+
+import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.util.Configuration;
 
 /**
  * Render text with SWT.

@@ -21,9 +21,9 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.awt.Point;
 
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.render.BlockBox;
-import org.xhtmlrenderer.render.RenderingContext;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.RenderingContext;
 
 public class BookmarkElement implements PdfBoxReplacedElement {
     private Point _location = new Point(0, 0);

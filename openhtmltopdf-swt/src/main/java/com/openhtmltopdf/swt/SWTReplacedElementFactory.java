@@ -24,16 +24,17 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.extend.FSImage;
-import org.xhtmlrenderer.extend.ReplacedElement;
-import org.xhtmlrenderer.extend.ReplacedElementFactory;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.render.BlockBox;
-import org.xhtmlrenderer.util.XRLog;
-import org.xhtmlrenderer.simple.extend.FormSubmissionListener;
-import org.xhtmlrenderer.simple.extend.DefaultFormSubmissionListener;
-import org.xhtmlrenderer.util.ImageUtil;
+
+import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.extend.ReplacedElementFactory;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.simple.extend.DefaultFormSubmissionListener;
+import com.openhtmltopdf.simple.extend.FormSubmissionListener;
+import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.XRLog;
 
 /**
  * 

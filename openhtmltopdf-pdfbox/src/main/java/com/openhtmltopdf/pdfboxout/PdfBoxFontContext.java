@@ -19,7 +19,7 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import org.xhtmlrenderer.extend.FontContext;
+import com.openhtmltopdf.extend.FontContext;
 
 public class PdfBoxFontContext implements FontContext {
 

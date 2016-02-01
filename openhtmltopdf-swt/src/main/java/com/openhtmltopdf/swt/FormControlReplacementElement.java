@@ -21,10 +21,9 @@ package com.openhtmltopdf.swt;
 
 import java.awt.Point;
 
-import org.xhtmlrenderer.css.style.CalculatedStyle;
-import org.xhtmlrenderer.extend.ReplacedElement;
-import org.xhtmlrenderer.layout.LayoutContext;
-
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.simple.xhtml.swt.SWTFormControl;
 
 /**

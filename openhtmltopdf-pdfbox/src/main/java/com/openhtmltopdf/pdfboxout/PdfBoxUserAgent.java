@@ -26,12 +26,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Locale;
 
-import org.xhtmlrenderer.extend.FSImage;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.resource.ImageResource;
-import org.xhtmlrenderer.swing.NaiveUserAgent;
-import org.xhtmlrenderer.util.XRLog;
-import org.xhtmlrenderer.util.ImageUtil;
+import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.resource.ImageResource;
+import com.openhtmltopdf.swing.NaiveUserAgent;
+import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxUserAgent extends NaiveUserAgent {
     private static final int IMAGE_CACHE_CAPACITY = 32;

@@ -17,11 +17,11 @@
  */
 
 
-import org.xhtmlrenderer.event.DocumentListener;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.swing.Java2DRenderer;
-import org.xhtmlrenderer.swing.NaiveUserAgent;
+import com.openhtmltopdf.event.DocumentListener;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.swing.Java2DRenderer;
+import com.openhtmltopdf.swing.NaiveUserAgent;
 
 import javax.print.*;
 import javax.print.attribute.Attribute;
@@ -33,6 +33,7 @@ import javax.print.attribute.standard.OrientationRequested;
 import javax.print.attribute.standard.PrintQuality;
 import javax.print.event.PrintJobEvent;
 import javax.print.event.PrintJobListener;
+
 import java.awt.*;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;

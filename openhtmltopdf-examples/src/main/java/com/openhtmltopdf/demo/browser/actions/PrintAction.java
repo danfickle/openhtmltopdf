@@ -1,9 +1,8 @@
 package com.openhtmltopdf.demo.browser.actions;
 
-import org.xhtmlrenderer.simple.XHTMLPrintable;
-import org.xhtmlrenderer.util.Uu;
-
 import com.openhtmltopdf.demo.browser.BrowserStartup;
+import com.openhtmltopdf.simple.XHTMLPrintable;
+import com.openhtmltopdf.util.Uu;
 
 import javax.swing.*;
 

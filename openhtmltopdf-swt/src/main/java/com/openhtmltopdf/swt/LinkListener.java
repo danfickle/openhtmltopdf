@@ -23,7 +23,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xhtmlrenderer.render.Box;
+
+import com.openhtmltopdf.render.Box;
 
 /**
  * Listener to handle links.

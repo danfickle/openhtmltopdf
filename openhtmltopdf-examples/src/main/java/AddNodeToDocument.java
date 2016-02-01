@@ -20,11 +20,13 @@
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.simple.extend.XhtmlNamespaceHandler;
+
+import com.openhtmltopdf.simple.FSScrollPane;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;

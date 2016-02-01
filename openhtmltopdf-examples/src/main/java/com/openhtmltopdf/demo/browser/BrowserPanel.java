@@ -20,21 +20,21 @@
 package com.openhtmltopdf.demo.browser;
 
 import org.w3c.dom.Document;
-import org.xhtmlrenderer.event.DocumentListener;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.swing.ImageResourceLoader;
-import org.xhtmlrenderer.swing.ScalableXHTMLPanel;
-import org.xhtmlrenderer.swing.SwingReplacedElementFactory;
-import org.xhtmlrenderer.util.GeneralUtil;
-import org.xhtmlrenderer.util.Uu;
-import org.xhtmlrenderer.util.XRLog;
-import org.xhtmlrenderer.util.XRRuntimeException;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 
+import com.openhtmltopdf.event.DocumentListener;
+import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
+import com.openhtmltopdf.resource.XMLResource;
+import com.openhtmltopdf.simple.FSScrollPane;
+import com.openhtmltopdf.swing.ImageResourceLoader;
+import com.openhtmltopdf.swing.ScalableXHTMLPanel;
+import com.openhtmltopdf.swing.SwingReplacedElementFactory;
+import com.openhtmltopdf.util.GeneralUtil;
+import com.openhtmltopdf.util.Uu;
+import com.openhtmltopdf.util.XRLog;
+import com.openhtmltopdf.util.XRRuntimeException;
 
 import javax.swing.*;
 import javax.xml.parsers.DocumentBuilder;

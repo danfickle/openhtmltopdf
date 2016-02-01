@@ -1,9 +1,8 @@
 package com.openhtmltopdf.demo.browser.actions;
 
-import org.xhtmlrenderer.test.DocumentDiffTest;
-import org.xhtmlrenderer.util.Uu;
-
 import com.openhtmltopdf.demo.browser.BrowserStartup;
+import com.openhtmltopdf.test.DocumentDiffTest;
+import com.openhtmltopdf.util.Uu;
 
 import javax.swing.*;
 

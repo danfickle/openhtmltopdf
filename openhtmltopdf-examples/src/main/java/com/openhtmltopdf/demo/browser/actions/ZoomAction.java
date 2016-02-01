@@ -1,8 +1,7 @@
 package com.openhtmltopdf.demo.browser.actions;
 
-import org.xhtmlrenderer.swing.ScalableXHTMLPanel;
-
 import com.openhtmltopdf.demo.browser.ScaleFactor;
+import com.openhtmltopdf.swing.ScalableXHTMLPanel;
 
 import javax.swing.*;
 

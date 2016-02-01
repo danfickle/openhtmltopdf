@@ -20,12 +20,13 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.css.style.CalculatedStyle;
-import org.xhtmlrenderer.extend.NamespaceHandler;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.render.Box;
-import org.xhtmlrenderer.render.PageBox;
-import org.xhtmlrenderer.render.RenderingContext;
+
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.NamespaceHandler;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.PageBox;
+import com.openhtmltopdf.render.RenderingContext;
 
 public class PdfBoxLinkManager {
     

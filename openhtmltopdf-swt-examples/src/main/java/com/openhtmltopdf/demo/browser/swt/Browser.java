@@ -35,10 +35,10 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
-import org.xhtmlrenderer.event.DocumentListener;
 
 import com.openhtmltopdf.demo.browser.swt.DemosNavigation.Demo;
 import com.openhtmltopdf.demo.browser.swt.actions.*;
+import com.openhtmltopdf.event.DocumentListener;
 import com.openhtmltopdf.simple.SWTXHTMLRenderer;
 
 public class Browser implements DisposeListener, DocumentListener {

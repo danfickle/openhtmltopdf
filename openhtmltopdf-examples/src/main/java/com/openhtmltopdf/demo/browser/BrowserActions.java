@@ -19,13 +19,12 @@
  */
 package com.openhtmltopdf.demo.browser;
 
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.util.Uu;
-
 import com.openhtmltopdf.demo.browser.actions.CopySelectionAction;
 import com.openhtmltopdf.demo.browser.actions.FontSizeAction;
 import com.openhtmltopdf.demo.browser.actions.GenerateDiffAction;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.util.Uu;
 
 import javax.swing.*;
 

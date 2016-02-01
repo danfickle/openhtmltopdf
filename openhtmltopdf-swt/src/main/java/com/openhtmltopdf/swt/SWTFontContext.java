@@ -20,7 +20,8 @@
 package com.openhtmltopdf.swt;
 
 import org.eclipse.swt.graphics.GC;
-import org.xhtmlrenderer.extend.FontContext;
+
+import com.openhtmltopdf.extend.FontContext;
 
 /**
  * 

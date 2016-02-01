@@ -19,11 +19,12 @@
  */
 
 
-import org.xhtmlrenderer.event.DefaultDocumentListener;
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.util.XRLog;
+import com.openhtmltopdf.event.DefaultDocumentListener;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.util.XRLog;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.io.File;
 import java.util.logging.Level;

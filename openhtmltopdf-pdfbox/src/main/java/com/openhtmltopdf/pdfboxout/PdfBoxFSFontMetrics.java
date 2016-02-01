@@ -19,7 +19,7 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import org.xhtmlrenderer.render.FSFontMetrics;
+import com.openhtmltopdf.render.FSFontMetrics;
 
 public class PdfBoxFSFontMetrics implements FSFontMetrics {
     private float _ascent;

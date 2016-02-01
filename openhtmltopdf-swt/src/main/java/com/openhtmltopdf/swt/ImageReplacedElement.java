@@ -21,8 +21,8 @@ package com.openhtmltopdf.swt;
 
 import java.awt.Point;
 
-import org.xhtmlrenderer.extend.ReplacedElement;
-import org.xhtmlrenderer.layout.LayoutContext;
+import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.layout.LayoutContext;
 
 /**
  * ReplacedElement for <code>&lt;img&gt;</code> tags.

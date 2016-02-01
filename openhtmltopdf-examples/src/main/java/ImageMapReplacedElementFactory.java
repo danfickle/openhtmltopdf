@@ -22,18 +22,20 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xhtmlrenderer.extend.FSImage;
-import org.xhtmlrenderer.extend.ReplacedElement;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.extend.FSCanvas;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.render.BlockBox;
-import org.xhtmlrenderer.swing.AWTFSImage;
-import org.xhtmlrenderer.swing.SwingReplacedElement;
-import org.xhtmlrenderer.swing.SwingReplacedElementFactory;
-import org.xhtmlrenderer.util.XRLog;
+
+import com.openhtmltopdf.extend.FSCanvas;
+import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.swing.AWTFSImage;
+import com.openhtmltopdf.swing.SwingReplacedElement;
+import com.openhtmltopdf.swing.SwingReplacedElementFactory;
+import com.openhtmltopdf.util.XRLog;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;

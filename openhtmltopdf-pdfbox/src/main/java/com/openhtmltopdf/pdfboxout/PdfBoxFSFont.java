@@ -19,9 +19,8 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import org.xhtmlrenderer.render.FSFont;
-
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
+import com.openhtmltopdf.render.FSFont;
 
 public class PdfBoxFSFont implements FSFont {
     private FontDescription _font;

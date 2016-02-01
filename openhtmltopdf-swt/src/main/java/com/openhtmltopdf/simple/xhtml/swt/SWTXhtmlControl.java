@@ -22,14 +22,14 @@ package com.openhtmltopdf.simple.xhtml.swt;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.widgets.Control;
-import org.xhtmlrenderer.css.style.CalculatedStyle;
-import org.xhtmlrenderer.css.parser.FSColor;
-import org.xhtmlrenderer.css.parser.FSRGBColor;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.simple.xhtml.FormControl;
-import org.xhtmlrenderer.simple.xhtml.FormControlAdapter;
 
+import com.openhtmltopdf.css.parser.FSColor;
+import com.openhtmltopdf.css.parser.FSRGBColor;
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.simple.xhtml.FormControl;
+import com.openhtmltopdf.simple.xhtml.FormControlAdapter;
 import com.openhtmltopdf.swt.BasicRenderer;
 import com.openhtmltopdf.swt.SWTFSFont;
 

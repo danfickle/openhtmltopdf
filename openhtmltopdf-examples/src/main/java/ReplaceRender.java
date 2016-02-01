@@ -17,13 +17,14 @@
  */
 
 
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.extend.ReplacedElementFactory;
-import org.xhtmlrenderer.test.DelegatingReplacedElementFactory;
-import org.xhtmlrenderer.test.SwingImageReplacer;
+import com.openhtmltopdf.extend.ReplacedElementFactory;
+import com.openhtmltopdf.simple.FSScrollPane;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.test.DelegatingReplacedElementFactory;
+import com.openhtmltopdf.test.SwingImageReplacer;
 
 import javax.swing.*;
+
 import java.io.File;
 import java.awt.*;
 import java.awt.event.ActionEvent;

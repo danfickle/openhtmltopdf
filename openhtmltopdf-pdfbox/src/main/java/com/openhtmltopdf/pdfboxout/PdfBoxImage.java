@@ -9,7 +9,8 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.xhtmlrenderer.extend.FSImage;
+
+import com.openhtmltopdf.extend.FSImage;
 
 public class PdfBoxImage implements FSImage {
     private byte[] _bytes;

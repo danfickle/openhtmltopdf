@@ -32,21 +32,22 @@ import org.eclipse.swt.printing.PrinterData;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.css.style.CalculatedStyle;
-import org.xhtmlrenderer.extend.NamespaceHandler;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.extend.UserInterface;
-import org.xhtmlrenderer.layout.BoxBuilder;
-import org.xhtmlrenderer.layout.Layer;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.render.BlockBox;
-import org.xhtmlrenderer.render.PageBox;
-import org.xhtmlrenderer.render.RenderingContext;
-import org.xhtmlrenderer.render.ViewportBox;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.util.Configuration;
-import org.xhtmlrenderer.util.XRLog;
+
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.NamespaceHandler;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.extend.UserInterface;
+import com.openhtmltopdf.layout.BoxBuilder;
+import com.openhtmltopdf.layout.Layer;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.PageBox;
+import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.render.ViewportBox;
+import com.openhtmltopdf.resource.XMLResource;
+import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.XRLog;
 
 /**
  * A renderer for a SWT Printer. Instances must be disposed with

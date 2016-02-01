@@ -21,7 +21,8 @@ package com.openhtmltopdf.swt;
 
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
-import org.xhtmlrenderer.render.FSFontMetrics;
+
+import com.openhtmltopdf.render.FSFontMetrics;
 
 /**
  * Adapt SWT's font metrics to Flying Saucer's ones.

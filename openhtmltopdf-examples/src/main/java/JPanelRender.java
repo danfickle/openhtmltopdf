@@ -17,10 +17,11 @@
  */
 
 
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.simple.XHTMLPanel;
+import com.openhtmltopdf.simple.FSScrollPane;
+import com.openhtmltopdf.simple.XHTMLPanel;
 
 import javax.swing.*;
+
 import java.io.File;
 
 /**

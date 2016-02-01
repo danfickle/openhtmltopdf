@@ -14,12 +14,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.swing.Java2DTextRenderer;
-import org.xhtmlrenderer.swing.NaiveUserAgent;
-import org.xhtmlrenderer.util.XRLog;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.simple.FSScrollPane;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.swing.Java2DTextRenderer;
+import com.openhtmltopdf.swing.NaiveUserAgent;
+import com.openhtmltopdf.util.XRLog;
 
 /**
  *

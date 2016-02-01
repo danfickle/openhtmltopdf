@@ -34,13 +34,13 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.resource.CSSResource;
-import org.xhtmlrenderer.resource.ImageResource;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.swing.AWTFSImage;
-import org.xhtmlrenderer.util.Uu;
-import org.xhtmlrenderer.util.XRLog;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.resource.CSSResource;
+import com.openhtmltopdf.resource.ImageResource;
+import com.openhtmltopdf.resource.XMLResource;
+import com.openhtmltopdf.swing.AWTFSImage;
+import com.openhtmltopdf.util.Uu;
+import com.openhtmltopdf.util.XRLog;
 
 
 /**

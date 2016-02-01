@@ -18,8 +18,8 @@
  * }}}
  */
 
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.simple.XHTMLPrintable;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.simple.XHTMLPrintable;
 
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
@@ -31,7 +31,7 @@ import java.net.URISyntaxException;
 
 /**
  * Example of how to print an XHTMLPanel; the heart of the code is in the
- * {@link #printPanel(org.xhtmlrenderer.simple.XHTMLPanel)} method.
+ * {@link #printPanel(com.openhtmltopdf.simple.XHTMLPanel)} method.
  *
  * @author Patrick Wright
  */

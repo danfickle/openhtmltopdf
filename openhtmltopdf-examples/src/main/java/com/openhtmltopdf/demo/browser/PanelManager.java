@@ -19,14 +19,16 @@
  */
 package com.openhtmltopdf.demo.browser;
 
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.swing.DelegatingUserAgent;
-import org.xhtmlrenderer.util.Uu;
-import org.xhtmlrenderer.util.XRLog;
-import org.xhtmlrenderer.util.GeneralUtil;
 import org.xml.sax.InputSource;
 
+import com.openhtmltopdf.resource.XMLResource;
+import com.openhtmltopdf.swing.DelegatingUserAgent;
+import com.openhtmltopdf.util.GeneralUtil;
+import com.openhtmltopdf.util.Uu;
+import com.openhtmltopdf.util.XRLog;
+
 import javax.xml.transform.sax.SAXSource;
+
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;

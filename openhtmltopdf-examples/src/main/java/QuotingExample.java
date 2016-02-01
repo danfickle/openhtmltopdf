@@ -1,8 +1,8 @@
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.util.XMLUtil;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.util.XMLUtil;
 
 
 public class QuotingExample extends JFrame {

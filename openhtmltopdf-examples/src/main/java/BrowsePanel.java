@@ -18,17 +18,19 @@
 
 
 import org.w3c.dom.Document;
-import org.xhtmlrenderer.event.DefaultDocumentListener;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.simple.FSScrollPane;
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.swing.DelegatingUserAgent;
-import org.xhtmlrenderer.swing.ImageResourceLoader;
-import org.xhtmlrenderer.swing.SwingReplacedElementFactory;
-import org.xhtmlrenderer.util.GeneralUtil;
+
+import com.openhtmltopdf.event.DefaultDocumentListener;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.resource.XMLResource;
+import com.openhtmltopdf.simple.FSScrollPane;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.swing.DelegatingUserAgent;
+import com.openhtmltopdf.swing.ImageResourceLoader;
+import com.openhtmltopdf.swing.SwingReplacedElementFactory;
+import com.openhtmltopdf.util.GeneralUtil;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.io.File;
 import java.io.StringReader;

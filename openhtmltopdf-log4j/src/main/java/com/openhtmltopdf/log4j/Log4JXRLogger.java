@@ -24,8 +24,9 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import org.apache.log4j.Logger;
-import org.xhtmlrenderer.util.XRLog;
-import org.xhtmlrenderer.util.XRLogger;
+
+import com.openhtmltopdf.util.XRLog;
+import com.openhtmltopdf.util.XRLogger;
 
 public class Log4JXRLogger implements XRLogger {
     private static final String DEFAULT_LOGGER_NAME = "org.xhtmlrenderer.other";

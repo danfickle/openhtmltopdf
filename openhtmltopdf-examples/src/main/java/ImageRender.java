@@ -23,9 +23,9 @@ import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
 
-import org.xhtmlrenderer.swing.Java2DRenderer;
-import org.xhtmlrenderer.simple.Graphics2DRenderer;
-import org.xhtmlrenderer.util.FSImageWriter;
+import com.openhtmltopdf.simple.Graphics2DRenderer;
+import com.openhtmltopdf.swing.Java2DRenderer;
+import com.openhtmltopdf.util.FSImageWriter;
 
 /**
  */

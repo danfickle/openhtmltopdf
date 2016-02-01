@@ -41,25 +41,26 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xhtmlrenderer.css.style.CalculatedStyle;
-import org.xhtmlrenderer.css.style.derived.RectPropertySet;
-import org.xhtmlrenderer.event.DocumentListener;
-import org.xhtmlrenderer.extend.*;
-import org.xhtmlrenderer.layout.BoxBuilder;
-import org.xhtmlrenderer.layout.Layer;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.render.BlockBox;
-import org.xhtmlrenderer.render.Box;
-import org.xhtmlrenderer.render.PageBox;
-import org.xhtmlrenderer.render.RenderingContext;
-import org.xhtmlrenderer.render.ViewportBox;
-import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.simple.NoNamespaceHandler;
-import org.xhtmlrenderer.util.Configuration;
-import org.xhtmlrenderer.util.Uu;
-import org.xhtmlrenderer.util.XRLog;
 import org.xml.sax.InputSource;
+
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.derived.RectPropertySet;
+import com.openhtmltopdf.event.DocumentListener;
+import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.layout.BoxBuilder;
+import com.openhtmltopdf.layout.Layer;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.PageBox;
+import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.render.ViewportBox;
+import com.openhtmltopdf.resource.XMLResource;
+import com.openhtmltopdf.simple.NoNamespaceHandler;
+import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.Uu;
+import com.openhtmltopdf.util.XRLog;
 
 /**
  * Renders XML+CSS using SWT in a widget (a Composite). Scrollbars are handled

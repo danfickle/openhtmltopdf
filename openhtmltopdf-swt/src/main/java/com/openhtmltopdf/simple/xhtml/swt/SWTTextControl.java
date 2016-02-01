@@ -24,13 +24,13 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
-import org.xhtmlrenderer.css.style.CalculatedStyle;
-import org.xhtmlrenderer.extend.UserAgentCallback;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.simple.xhtml.FormControl;
-import org.xhtmlrenderer.simple.xhtml.FormControlAdapter;
-import org.xhtmlrenderer.simple.xhtml.controls.TextControl;
 
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.simple.xhtml.FormControl;
+import com.openhtmltopdf.simple.xhtml.FormControlAdapter;
+import com.openhtmltopdf.simple.xhtml.controls.TextControl;
 import com.openhtmltopdf.swt.BasicRenderer;
 
 public class SWTTextControl extends SWTXhtmlControl {

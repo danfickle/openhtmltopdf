@@ -30,13 +30,13 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Color;
-import org.xhtmlrenderer.extend.FSImage;
-import org.xhtmlrenderer.extend.OutputDevice;
-import org.xhtmlrenderer.extend.ReplacedElement;
-import org.xhtmlrenderer.render.*;
-import org.xhtmlrenderer.css.parser.FSColor;
-import org.xhtmlrenderer.css.parser.FSRGBColor;
 
+import com.openhtmltopdf.css.parser.FSColor;
+import com.openhtmltopdf.css.parser.FSRGBColor;
+import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.simple.xhtml.swt.SWTFormControl;
 
 /**

@@ -19,10 +19,11 @@
  */
 
 
-import org.xhtmlrenderer.simple.XHTMLPanel;
-import org.xhtmlrenderer.simple.extend.XhtmlNamespaceHandler;
+import com.openhtmltopdf.simple.XHTMLPanel;
+import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;

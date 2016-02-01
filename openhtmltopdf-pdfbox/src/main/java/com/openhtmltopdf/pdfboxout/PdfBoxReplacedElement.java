@@ -19,9 +19,9 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import org.xhtmlrenderer.extend.ReplacedElement;
-import org.xhtmlrenderer.render.BlockBox;
-import org.xhtmlrenderer.render.RenderingContext;
+import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.RenderingContext;
 
 public interface PdfBoxReplacedElement extends ReplacedElement
 {

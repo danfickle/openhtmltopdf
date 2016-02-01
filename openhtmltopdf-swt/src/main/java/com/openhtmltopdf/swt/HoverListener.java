@@ -25,10 +25,11 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.xhtmlrenderer.context.StyleReference;
-import org.xhtmlrenderer.layout.LayoutContext;
-import org.xhtmlrenderer.layout.PaintingInfo;
-import org.xhtmlrenderer.render.Box;
+
+import com.openhtmltopdf.context.StyleReference;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.layout.PaintingInfo;
+import com.openhtmltopdf.render.Box;
 
 /**
  * Listener implementing css :hover class.
