@@ -9,12 +9,12 @@
     <version>9.0.9-SNAPSHOT</version>
   </parent>
 
-  <artifactId>flying-saucer-log4j</artifactId>
+  <artifactId>openhtmltopdf-log4j</artifactId>
 
   <packaging>jar</packaging>
 
-  <name>Flying Saucer log4j Support</name>
-  <description>Flying Saucer is a CSS 2.1 renderer written in Java.  This artifact supports sending Flying Output log output to log4j.</description>
+  <name>Openhtmltopdf log4j Support</name>
+  <description>Open HTML to PDF is a CSS 2.1 renderer written in Java.  This artifact supports sending Open HTML to PDF log output to log4j.</description>
 
   <licenses>
     <license>

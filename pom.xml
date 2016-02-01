@@ -23,7 +23,7 @@
 
   <modules>
     <module>flying-saucer-core</module>
-    <module>flying-saucer-log4j</module>
+    <module>openhtmltopdf-log4j</module>
     <module>openhtmltopdf-swt</module>
     <module>openhtmltopdf-swt-examples</module>
     <module>flying-saucer-examples</module>
