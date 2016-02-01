@@ -300,7 +300,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void drawString(String s, float x, float y, JustificationInfo info) {
         // TODO: Emulate bold and italic.
-        // TODO: Text justification.
         
         if (s.length() == 0)
             return;
@@ -324,6 +323,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _cp.beginText();
         _cp.setFont(desc.getFont(), fontSize);
         _cp.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
+        
+        if (info != null) {
+            _cp.setTextSpacing(info.getNonSpaceAdjust());
+            _cp.setSpaceSpacing(info.getSpaceAdjust());
+        }
         
         try {
             _cp.drawString(s);

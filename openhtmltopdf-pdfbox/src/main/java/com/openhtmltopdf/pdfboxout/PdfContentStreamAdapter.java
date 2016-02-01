@@ -279,4 +279,12 @@ public class PdfContentStreamAdapter {
     public void setMiterLimit(float miterLimit) {
         // TODO Not currently supported by PDF-BOX.
     }
+
+    public void setTextSpacing(float nonSpaceAdjust) {
+        // TODO Not currently supported in PDF-BOX.
+    }
+
+    public void setSpaceSpacing(float spaceAdjust) {
+        // TODO Not currently supported in PDF-BOX.
+    }
 }
