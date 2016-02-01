@@ -26,7 +26,7 @@
     <module>openhtmltopdf-log4j</module>
     <module>openhtmltopdf-swt</module>
     <module>openhtmltopdf-swt-examples</module>
-    <module>flying-saucer-examples</module>
+    <module>openhtmltopdf-examples</module>
     <module>openhtmltopdf-pdfbox</module>
   </modules>
 

@@ -36,7 +36,7 @@
     </dependency>
     <dependency>
       <groupId>org.xhtmlrenderer</groupId>
-      <artifactId>flying-saucer-examples</artifactId>
+      <artifactId>openhtmltopdf-examples</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -57,7 +57,7 @@
           <version>3.6</version>
           <type>jar</type>
           <scope>system</scope>
-          <systemPath>${basedir}/../flying-saucer-swt/lib/swt/swt-3.6-win32.jar</systemPath>
+          <systemPath>${basedir}/../openhtmltopdf-swt/lib/swt/swt-3.6-win32.jar</systemPath>
           <optional>true</optional>
         </dependency>
       </dependencies>
@@ -96,7 +96,7 @@
             <version>3.6</version>
             <type>jar</type>
             <scope>system</scope>
-            <systemPath>${basedir}/../flying-saucer-swt/lib/swt/swt-3.6-linux.jar</systemPath>
+            <systemPath>${basedir}/../openhtmltopdf-swt/lib/swt/swt-3.6-linux.jar</systemPath>
             <optional>true</optional>
           </dependency>
         </dependencies>

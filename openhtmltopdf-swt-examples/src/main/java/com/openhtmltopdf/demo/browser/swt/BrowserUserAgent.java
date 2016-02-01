@@ -33,9 +33,6 @@ import java.util.logging.Level;
 import javax.xml.transform.sax.SAXSource;
 
 import org.eclipse.swt.graphics.Device;
-import org.xhtmlrenderer.demo.browser.DirectoryLister;
-import org.xhtmlrenderer.demo.browser.PlainTextXMLReader;
-import org.xhtmlrenderer.demo.browser.DemoMarker;
 import org.xhtmlrenderer.resource.CSSResource;
 import org.xhtmlrenderer.resource.ImageResource;
 import org.xhtmlrenderer.resource.XMLResource;
@@ -44,6 +41,9 @@ import org.xhtmlrenderer.util.XRLog;
 import org.xhtmlrenderer.util.Uu;
 import org.xml.sax.InputSource;
 
+import com.openhtmltopdf.demo.browser.DemoMarker;
+import com.openhtmltopdf.demo.browser.DirectoryLister;
+import com.openhtmltopdf.demo.browser.PlainTextXMLReader;
 import com.openhtmltopdf.demo.browser.swt.DemosNavigation.Demo;
 import com.openhtmltopdf.swt.NaiveUserAgent;
 
