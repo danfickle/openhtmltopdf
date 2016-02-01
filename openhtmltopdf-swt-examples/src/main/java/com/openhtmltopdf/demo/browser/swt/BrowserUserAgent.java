@@ -39,13 +39,13 @@ import org.xhtmlrenderer.demo.browser.DemoMarker;
 import org.xhtmlrenderer.resource.CSSResource;
 import org.xhtmlrenderer.resource.ImageResource;
 import org.xhtmlrenderer.resource.XMLResource;
-import org.xhtmlrenderer.swt.NaiveUserAgent;
 import org.xhtmlrenderer.util.GeneralUtil;
 import org.xhtmlrenderer.util.XRLog;
 import org.xhtmlrenderer.util.Uu;
 import org.xml.sax.InputSource;
 
 import com.openhtmltopdf.demo.browser.swt.DemosNavigation.Demo;
+import com.openhtmltopdf.swt.NaiveUserAgent;
 
 public class BrowserUserAgent extends NaiveUserAgent {
 

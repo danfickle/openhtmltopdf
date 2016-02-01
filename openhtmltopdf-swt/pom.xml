@@ -9,13 +9,13 @@
     <version>9.0.9-SNAPSHOT</version>
   </parent>
 
-  <artifactId>openhtmltopdf-swt-examples</artifactId>
+  <artifactId>openhtmltopdf-swt</artifactId>
 
   <packaging>jar</packaging>
 
-  <name>Openhtmltopdf SWT Examples</name>
-  <description>Examples that use SWT.  It is not deployed with a release.</description>
-  
+  <name>Openhtmltopdf SWT Support</name>
+  <description>Open HTML to PDF is a CSS 2.1 renderer written in Java.  This artifact supports SWT output.</description>
+
   <licenses>
     <license>
       <name>GNU Lesser General Public License (LGPL), version 2.1 or later</name>
@@ -23,20 +23,17 @@
     </license>
   </licenses>
 
+  <distributionManagement>
+    <repository>
+      <id>bintray</id>
+      <url>https://api.bintray.com/maven/flyingsaucerproject/maven/org.xhtmlrenderer:flying-saucer-swt</url>
+    </repository>
+  </distributionManagement>
+
   <dependencies>
     <dependency>
       <groupId>org.xhtmlrenderer</groupId>
       <artifactId>flying-saucer-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.xhtmlrenderer</groupId>
-      <artifactId>openhtmltopdf-swt</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.xhtmlrenderer</groupId>
-      <artifactId>flying-saucer-examples</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -57,7 +54,7 @@
           <version>3.6</version>
           <type>jar</type>
           <scope>system</scope>
-          <systemPath>${basedir}/../flying-saucer-swt/lib/swt/swt-3.6-win32.jar</systemPath>
+          <systemPath>${basedir}/lib/swt/swt-3.6-win32.jar</systemPath>
           <optional>true</optional>
         </dependency>
       </dependencies>
@@ -77,7 +74,7 @@
           <version>3.6</version>
           <type>jar</type>
           <scope>system</scope>
-          <systemPath>${basedir}/../openhtmltopdf-swt/lib/swt/swt-3.6-osx.jar</systemPath>
+          <systemPath>${basedir}/lib/swt/swt-3.6-osx.jar</systemPath>
           <optional>true</optional>
         </dependency>
       </dependencies>
@@ -96,7 +93,7 @@
             <version>3.6</version>
             <type>jar</type>
             <scope>system</scope>
-            <systemPath>${basedir}/../flying-saucer-swt/lib/swt/swt-3.6-linux.jar</systemPath>
+            <systemPath>${basedir}/lib/swt/swt-3.6-linux.jar</systemPath>
             <optional>true</optional>
           </dependency>
         </dependencies>
@@ -104,16 +101,7 @@
   </profiles>
 
   <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-    </plugins>
-	<resources>
+	  <resources>
 	    <resource>
 	      <directory>../</directory>
 	      <targetPath>${project.build.outputDirectory}/META-INF</targetPath>
@@ -121,6 +109,6 @@
 	        <include>LICENSE*</include>
 	      </includes>
 	    </resource>
-	 </resources>
+	  </resources>
   </build>
 </project>

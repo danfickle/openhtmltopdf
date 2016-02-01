@@ -29,10 +29,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.xhtmlrenderer.simple.SWTXHTMLRenderer;
 
 import com.openhtmltopdf.demo.browser.swt.Browser;
 import com.openhtmltopdf.demo.browser.swt.BrowserUserAgent;
+import com.openhtmltopdf.simple.SWTXHTMLRenderer;
 
 public class AboutAction extends AbstractAction {
 
