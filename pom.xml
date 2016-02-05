@@ -25,7 +25,6 @@
     <module>openhtmltopdf-core</module>
     <module>openhtmltopdf-log4j</module>
     <module>openhtmltopdf-swt</module>
-    <module>openhtmltopdf-swt-examples</module>
     <module>openhtmltopdf-examples</module>
     <module>openhtmltopdf-pdfbox</module>
   </modules>
