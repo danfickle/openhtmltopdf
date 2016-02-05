@@ -4,9 +4,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.xhtmlrenderer</groupId>
-    <artifactId>flying-saucer-parent</artifactId>
-    <version>9.0.9-SNAPSHOT</version>
+    <groupId>com.openhtmltopdf</groupId>
+    <artifactId>openhtmltopdf-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>openhtmltopdf-examples</artifactId>
@@ -25,12 +25,12 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.xhtmlrenderer</groupId>
+      <groupId>com.openhtmltopdf</groupId>
       <artifactId>openhtmltopdf-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.xhtmlrenderer</groupId>
+      <groupId>com.openhtmltopdf</groupId>
       <artifactId>openhtmltopdf-pdfbox</artifactId>
       <version>${project.version}</version>
     </dependency>

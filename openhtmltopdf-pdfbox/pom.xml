@@ -4,9 +4,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.xhtmlrenderer</groupId>
-    <artifactId>flying-saucer-parent</artifactId>
-    <version>9.0.9-SNAPSHOT</version>
+    <groupId>com.openhtmltopdf</groupId>
+    <artifactId>openhtmltopdf-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>openhtmltopdf-pdfbox</artifactId>
@@ -22,14 +22,12 @@
       <url>http://www.gnu.org/licenses/lgpl.html</url>
     </license>
   </licenses>
-<!--
   <distributionManagement>
     <repository>
       <id>bintray</id>
-      <url>https://api.bintray.com/maven/flyingsaucerproject/maven/org.xhtmlrenderer:flying-saucer-pdf-itext5</url>
+      <url>https://api.bintray.com/maven/danfickle/maven/com.openhtmltopdf:openhtmltopdf-pdfbox</url>
     </repository>
   </distributionManagement>
--->
   <dependencies>
     <dependency>
     	<groupId>org.apache.pdfbox</groupId>
@@ -37,7 +35,7 @@
     	<version>2.0.0-RC3</version>
     </dependency>
     <dependency>
-      <groupId>org.xhtmlrenderer</groupId>
+      <groupId>com.openhtmltopdf</groupId>
       <artifactId>openhtmltopdf-core</artifactId>
       <version>${project.version}</version>
     </dependency>
