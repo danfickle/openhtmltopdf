@@ -34,18 +34,18 @@ import java.util.logging.Level;
  */
 public class XRLog {
     private static final List LOGGER_NAMES = new ArrayList(20);
-    public final static String CONFIG = registerLoggerByName("org.xhtmlrenderer.config");
-    public final static String EXCEPTION = registerLoggerByName("org.xhtmlrenderer.exception");
-    public final static String GENERAL = registerLoggerByName("org.xhtmlrenderer.general");
-    public final static String INIT = registerLoggerByName("org.xhtmlrenderer.init");
-    public final static String JUNIT = registerLoggerByName("org.xhtmlrenderer.junit");
-    public final static String LOAD = registerLoggerByName("org.xhtmlrenderer.load");
-    public final static String MATCH = registerLoggerByName("org.xhtmlrenderer.match");
-    public final static String CASCADE = registerLoggerByName("org.xhtmlrenderer.cascade");
-    public final static String XML_ENTITIES = registerLoggerByName("org.xhtmlrenderer.load.xml-entities");
-    public final static String CSS_PARSE = registerLoggerByName("org.xhtmlrenderer.css-parse");
-    public final static String LAYOUT = registerLoggerByName("org.xhtmlrenderer.layout");
-    public final static String RENDER = registerLoggerByName("org.xhtmlrenderer.render");
+    public final static String CONFIG = registerLoggerByName("com.openhtmltopdf.config");
+    public final static String EXCEPTION = registerLoggerByName("com.openhtmltopdf.exception");
+    public final static String GENERAL = registerLoggerByName("com.openhtmltopdf.general");
+    public final static String INIT = registerLoggerByName("com.openhtmltopdf.init");
+    public final static String JUNIT = registerLoggerByName("com.openhtmltopdf.junit");
+    public final static String LOAD = registerLoggerByName("com.openhtmltopdf.load");
+    public final static String MATCH = registerLoggerByName("com.openhtmltopdf.match");
+    public final static String CASCADE = registerLoggerByName("com.openhtmltopdf.cascade");
+    public final static String XML_ENTITIES = registerLoggerByName("com.openhtmltopdf.load.xml-entities");
+    public final static String CSS_PARSE = registerLoggerByName("com.openhtmltopdf.css-parse");
+    public final static String LAYOUT = registerLoggerByName("com.openhtmltopdf.layout");
+    public final static String RENDER = registerLoggerByName("com.openhtmltopdf.render");
 
     private static String registerLoggerByName(final String loggerName) {
         LOGGER_NAMES.add(loggerName);

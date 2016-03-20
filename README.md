@@ -31,20 +31,26 @@ SIMPLE USAGE
 ========
 Add these to your maven dependencies section:
 ````xml
+  	<properties>
+  		<!-- Define the version of OPEN HTML TO PDF in the properties section of your POM. -->  	       
+  		<openhtml.version>0.0.1-SNAPSHOT</openhtml.version>
+  	</properties>
+
   	<dependency>
   		<groupId>com.openhtmltopdf</groupId>
   		<artifactId>openhtmltopdf-core</artifactId>
-  		<version>0.0.1-SNAPSHOT</version>
+  		<version>${openhtml.version}</version>
   	</dependency>
   	<dependency>
   		<groupId>com.openhtmltopdf</groupId>
   		<artifactId>openhtmltopdf-pdfbox</artifactId>
-  		<version>0.0.1-SNAPSHOT</version>
+  		<version>${openhtml.version}</version>
   	</dependency>
   	<dependency>
+  		<!-- Optional, leave out if you do not need right-to-left or bi-directional text support. -->
   		<groupId>com.openhtmltopdf</groupId>
   		<artifactId>openhtmltopdf-rtl-support</artifactId>
-  		<version>0.0.1-SNAPSHOT</version>
+  		<version>${openhtml.version}</version>
   	</dependency>
   ````
   Then you can use this code:
@@ -100,15 +106,48 @@ public class SimpleUsage
 }
 ````
 
+LOGGING
+=======
+Three options are provided by Open HTML to PDF. The default is to use java.util.logging. If you prefer to output using log4j or slf4j, adapters are provided:
+````xml
+  	<!-- Use one of these, not both. --> 
+  	<dependency>
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-slf4j</artifactId>
+  		<version>${openhtml.version}</version>
+  	</dependency>
+  	
+  	<dependency>
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-log4j</artifactId>
+  		<version>${openhtml.version}</version>
+  	</dependency>
+````
+Then at the start of your code, before calling any Open HTML to PDF methods, use this code:
+````java
+  XRLog.setLoggingEnabled(true);
+
+  // For slf4j:
+  XRLog.setLoggerImpl(new Slf4jLogger());
+  // or for log4j 1.2.17:
+  XRLog.setLoggerImpl(new Log4JXRLogger());    
+````  	
+
 CREDITS
 ========
-Open HTML to PDF is based on Flying-saucer. Credit goes to the contributors of that project. Code will also be used from neoFlyingSaucer.
+Open HTML to PDF is based on Flying-saucer. Credit goes to the contributors of that project. Code will also be used from [neoFlyingSaucer](https://github.com/danfickle/neoflyingsaucer)
+
+FAQ
+===
++ No, you can not use it on Android or Google App Engine.
++ Flowing columns are not implemented.
 
 CHANGELOG
 ========
 
 head
 ========
++ [Added slf4j logging facade adapter](https://github.com/danfickle/openhtmltopdf/issues/11)
 + [Added right-to-left(RTL) and bi-directional text support](https://github.com/danfickle/openhtmltopdf/issues/9)
 + [Added output device using PDF-BOX 2.0.0 release candidate](https://github.com/danfickle/openhtmltopdf/issues/1)
 + [Make sure XML Document Builder doesn't resolve external DTDs](https://github.com/danfickle/openhtmltopdf/issues/2)
