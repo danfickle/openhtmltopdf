@@ -27,6 +27,8 @@ import java.util.List;
 
 import org.w3c.dom.css.CSSPrimitiveValue;
 
+import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSColor;
@@ -41,6 +43,7 @@ import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.swing.Java2DOutputDevice;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.Uu;
 
@@ -58,6 +61,12 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         InlineLayoutBox iB = inlineText.getParent();
         String text = inlineText.getSubstring();
 
+        // We reorder text here for RTL.
+        if (inlineText.getTextDirection() == BidiSplitter.RTL) {
+        	BidiReorderer bidi = c.getBidiReorderer();
+        	text = bidi.reorderRTLTextToLTR(text);
+        }
+       
         if (text != null && text.length() > 0) {
             setColor(iB.getStyle().getColor());
             setFont(iB.getStyle().getFSFont(c));

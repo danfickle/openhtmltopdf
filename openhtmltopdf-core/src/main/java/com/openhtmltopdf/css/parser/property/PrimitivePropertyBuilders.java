@@ -1410,7 +1410,7 @@ public class PrimitivePropertyBuilders {
         private static final BitSet ALLOWED = setFor(
                 new IdentValue[] {
                         IdentValue.LEFT, IdentValue.RIGHT,
-                        IdentValue.CENTER, IdentValue.JUSTIFY });
+                        IdentValue.CENTER, IdentValue.JUSTIFY, IdentValue.START });
 
         protected BitSet getAllowed() {
             return ALLOWED;

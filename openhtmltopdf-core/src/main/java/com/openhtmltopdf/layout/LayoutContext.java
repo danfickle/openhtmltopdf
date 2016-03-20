@@ -27,6 +27,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.bidi.BidiSplitter;
+import com.openhtmltopdf.bidi.BidiSplitterFactory;
+import com.openhtmltopdf.bidi.ParagraphSplitter;
+import com.openhtmltopdf.bidi.SimpleBidiReorderer;
+import com.openhtmltopdf.bidi.SimpleBidiSplitterFactory;
 import com.openhtmltopdf.context.ContentFunctionFactory;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.constants.CSSName;
@@ -105,7 +111,57 @@ public class LayoutContext implements CssContext {
     public NamespaceHandler getNamespaceHandler() {
         return _sharedContext.getNamespaceHandler();
     }
-
+    
+    private final ParagraphSplitter _splitter = new ParagraphSplitter();
+    private BidiSplitterFactory _bidiSplitterFactory = new SimpleBidiSplitterFactory();
+    private byte _defaultTextDirection = BidiSplitter.LTR;
+    
+    /**
+     * The paragraph splitter splits the document into paragraphs for the purpose of bi-directional
+     * text analysis.
+     */
+    public ParagraphSplitter getParagraphSplitter() {
+    	return _splitter;
+    }
+    
+    private BidiReorderer _bidiReorderer = new SimpleBidiReorderer();
+    
+    public void setBidiReorderer(BidiReorderer reorderer) {
+    	_bidiReorderer = reorderer;
+    }
+    
+    public BidiReorderer getBidiReorderer() {
+    	return _bidiReorderer;
+    }
+    
+    /**
+     * The bidi splitter is used to split text runs into LTR and RTL visual ordering.
+     */
+    public BidiSplitterFactory getBidiSplitterFactory() {
+    	return this._bidiSplitterFactory;
+    }
+    
+    /**
+     * The bidi splitter is used to split text runs into LTR and RTL visual ordering.
+     */
+    public void setBidiSplitterFactory(BidiSplitterFactory factory) {
+    	this._bidiSplitterFactory = factory;
+    }
+    
+    /**
+     * @return the default text direction for a document.
+     */
+    public byte getDefaultTextDirection() {
+    	return _defaultTextDirection;
+    }
+    
+    /**
+     * @param direction either BidiSplitter.LTR or BidiSplitter.RTL.
+     */
+    public void setDefaultTextDirection(byte direction) {
+    	this._defaultTextDirection = direction;
+    }
+    
     //the stuff that needs to have a separate instance for each run.
     LayoutContext(SharedContext sharedContext) {
         _sharedContext = sharedContext;

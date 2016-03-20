@@ -186,7 +186,7 @@ public class InlineBoxing {
                     if (needFirstLetter && !lbContext.isFinished()) {
                         InlineLayoutBox firstLetter =
                             addFirstLetterBox(c, currentLine, currentIB, lbContext,
-                                    maxAvailableWidth, remainingWidth);
+                                    maxAvailableWidth, remainingWidth, iB.getTextDirection());
                         remainingWidth -= firstLetter.getInlineWidth();
 
                         if (currentIB.isStartsHere()) {
@@ -198,7 +198,7 @@ public class InlineBoxing {
                     } else {
                         lbContext.saveEnd();
                         InlineText inlineText = layoutText(
-                                c, iB.getStyle(), remainingWidth - fit, lbContext, false);
+                                c, iB.getStyle(), remainingWidth - fit, lbContext, false, iB.getTextDirection());
                         if (lbContext.isUnbreakable() && ! currentLine.isContainsContent()) {
                             int delta = c.getBlockFormattingContext().getNextLineBoxDelta(c, currentLine, maxAvailableWidth);
                             if (delta > 0) {
@@ -372,7 +372,7 @@ public class InlineBoxing {
 
     private static InlineLayoutBox addFirstLetterBox(LayoutContext c, LineBox current,
             InlineLayoutBox currentIB, LineBreakContext lbContext, int maxAvailableWidth,
-            int remainingWidth) {
+            int remainingWidth, byte textDirection) {
         CalculatedStyle previous = currentIB.getStyle();
 
         currentIB.setStyle(c.getFirstLettersTracker().deriveAll(currentIB.getStyle()));
@@ -384,7 +384,7 @@ public class InlineBoxing {
         currentIB.addInlineChild(c, iB);
         current.setContainsContent(true);
 
-        InlineText text = layoutText(c, iB.getStyle(), remainingWidth, lbContext, true);
+        InlineText text = layoutText(c, iB.getStyle(), remainingWidth, lbContext, true, textDirection);
         iB.addInlineChild(c, text);
         iB.setInlineWidth(text.getWidth());
 
@@ -404,6 +404,94 @@ public class InlineBoxing {
         inlineBlock.calcCanvasLocation();
         inlineBlock.layout(c);
     }
+    
+    /**
+     * Attempts to layout inline boxes from right to left.
+     * @param start should be the right edge of the line
+     * @param current should be the line box.
+     * @return width of line.
+     */
+    public static int positionHorizontallyRTL(CssContext c, Box current, int start, int width) {
+    	int x = start;
+    	
+    	InlineLayoutBox currentIB = null;
+    	
+    	if (current instanceof InlineLayoutBox) {
+    		currentIB = (InlineLayoutBox) current;
+    		x -= currentIB.getRightMarginPaddingBorder(c);
+    	}
+    	
+    	for (int i = 0; i < current.getChildCount(); i++) {
+    		Box b = current.getChild(i);
+    		
+    		if (b instanceof InlineLayoutBox) {
+    			InlineLayoutBox iB = (InlineLayoutBox) b;
+    			int w = positionHorizontallyRTL(c, iB, x, width);
+    			x -= w;
+    			iB.setX(x);
+    			positionHorizontallyRTL(c, iB, x, w);
+    		}
+    		else {
+    			x -= b.getWidth();
+    			b.setX(x);
+    		}
+    	}
+
+    	if (currentIB != null) {
+    		x -= currentIB.getLeftMarginBorderPadding(c);
+    		currentIB.setInlineWidth((start - x));
+    	}
+    	
+    	return (start - x);
+    }
+    
+    private static int positionHorizontallyRTL(CssContext c, InlineLayoutBox current, int start, int width) {
+    	// WARNING: This function was created mostly by trial and error!
+    	
+        int xAbs = start;
+        int xRel = width;
+        int w;
+        
+        w = current.getRightMarginPaddingBorder(c);
+        xAbs -= w;
+        xRel -= w;
+        
+        for (int i = 0; i < current.getInlineChildCount(); i++) {
+        	
+            Object child = current.getInlineChild(i);
+            
+            if (child instanceof InlineLayoutBox) {
+            	InlineLayoutBox iB = (InlineLayoutBox) child;
+                
+            	// FIXME: Inefficient, but we need to call once to get the width and then the
+            	// second time to do the actual layout.
+            	w = positionHorizontallyRTL(c, iB, xAbs, width);
+                w = positionHorizontallyRTL(c, iB, xAbs - w, w);
+                xAbs -= w;
+                xRel -= w;
+                iB.setX(xRel);
+            } else if (child instanceof InlineText) {
+                InlineText iT = (InlineText) child;
+                xAbs -= iT.getWidth();
+                xRel -= iT.getWidth();
+                iT.setX(xRel);
+            } else if (child instanceof Box) {
+                Box b = (Box) child;
+                b.setX(xAbs);
+                xAbs -= b.getWidth();
+                xRel -= b.getWidth();
+            }
+        }
+
+        w = current.getLeftMarginBorderPadding(c);
+        xAbs -= w;
+        xRel -= w;
+        
+        current.setInlineWidth(start - xAbs);
+
+        return start - xAbs;
+    }
+    
 
     public static int positionHorizontally(CssContext c, Box current, int start) {
         int x = start;
@@ -752,7 +840,16 @@ public class InlineBoxing {
         current.setContentStart(contentStart);
         current.prunePendingInlineBoxes();
 
-        int totalLineWidth = positionHorizontally(c, current, 0);
+        int totalLineWidth;
+        
+        if (current.isHeuristicallyRTL()) {
+        	totalLineWidth = positionHorizontallyRTL(c, current, 0, 0);
+        	positionHorizontallyRTL(c, current, totalLineWidth, totalLineWidth);
+        }
+        else {
+            totalLineWidth = positionHorizontally(c, current, 0);
+        }
+        
         current.setContentWidth(totalLineWidth);
 
         positionVertically(c, block, current, markerData);
@@ -830,7 +927,7 @@ public class InlineBoxing {
     }
 
     private static InlineText layoutText(LayoutContext c, CalculatedStyle style, int remainingWidth,
-                                         LineBreakContext lbContext, boolean needFirstLetter) {
+                                         LineBreakContext lbContext, boolean needFirstLetter, byte textDirection) {
         InlineText result = new InlineText();
         String masterText = lbContext.getMaster();
         if (needFirstLetter) {
@@ -845,6 +942,7 @@ public class InlineBoxing {
         result.setTextNode(lbContext.getTextNode());
         result.setSubstring(lbContext.getStart(), lbContext.getEnd());
         result.setWidth(lbContext.getWidth());
+        result.setTextDirection(textDirection);
 
         return result;
     }

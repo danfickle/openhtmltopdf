@@ -23,6 +23,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 
+import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
+import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.event.DocumentListener;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
@@ -381,6 +383,10 @@ public class BrowserPanel extends JPanel implements DocumentListener {
                try {
                PdfBoxRenderer renderer = new PdfBoxRenderer(true);
 
+               renderer.setBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+               renderer.setDefaultTextDirection(false);
+               renderer.setBidiReorderer(new ICUBidiReorderer());
+               
                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                DocumentBuilder db = dbf.newDocumentBuilder();
                

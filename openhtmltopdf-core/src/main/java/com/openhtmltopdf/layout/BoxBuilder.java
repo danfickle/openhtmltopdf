@@ -34,6 +34,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.w3c.dom.css.CSSPrimitiveValue;
 
+import com.openhtmltopdf.bidi.BidiSplitter;
+import com.openhtmltopdf.bidi.BidiTextRun;
+import com.openhtmltopdf.bidi.ParagraphSplitter.Paragraph;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.constants.MarginBoxName;
@@ -79,7 +82,20 @@ public class BoxBuilder {
     private static final int CONTENT_LIST_DOCUMENT = 1;
     private static final int CONTENT_LIST_MARGIN_BOX = 2;
 
+    /**
+     * Split the document into paragraphs for use in analyzing bi-directional text runs.
+     * @param c
+     * @param document
+     */
+    private static void splitParagraphs(LayoutContext c, Document document) {
+        c.getParagraphSplitter().splitRoot(c, document);
+        c.getParagraphSplitter().runBidiOnParagraphs(c);
+    }
+    
     public static BlockBox createRootBox(LayoutContext c, Document document) {
+        
+    	splitParagraphs(c, document);
+    	
         Element root = document.getDocumentElement();
 
         CalculatedStyle style = c.getSharedContext().getStyle(root);
@@ -1186,42 +1202,10 @@ public class BoxBuilder {
                     needStartText = false;
                     needEndText = false;
 
-                    Text textNode = (Text)working;
+                    Text textNode = (Text) working;
 
-                    /*
-                    StringBuffer text = new StringBuffer(textNode.getData());
-
-                    Node maybeText = textNode;
-                    while (true) {
-                        maybeText = textNode.getNextSibling();
-                        if (maybeText != null) {
-                            short maybeNodeType = maybeText.getNodeType();
-                            if (maybeNodeType == Node.TEXT_NODE ||
-                                    maybeNodeType == Node.CDATA_SECTION_NODE) {
-                                textNode = (Text)maybeText;
-                                text.append(textNode.getData());
-                            } else {
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-
-                    working = textNode;
-                    child = createInlineBox(text.toString(), parent, parentStyle, textNode);
-                    */
-
-                    child = createInlineBox(textNode.getData(), parent, parentStyle, textNode);
-
-                    InlineBox iB = (InlineBox) child;
-                    iB.setEndsHere(true);
-                    if (previousIB == null) {
-                        iB.setStartsHere(true);
-                    } else {
-                        previousIB.setEndsHere(false);
-                    }
-                    previousIB = iB;
+                    previousIB = doBidi(c, textNode, parent, parentStyle, previousIB, children);
+                    child = null;
                 }
 
                 if (child != null) {
@@ -1238,6 +1222,113 @@ public class BoxBuilder {
         insertGeneratedContent(c, parent, parentStyle, "after", children, info);
     }
 
+    private static InlineBox setupInlineChild(InlineBox child, InlineBox previousIB) {
+        child.setEndsHere(true);
+        
+        if (previousIB == null) {
+            child.setStartsHere(true);
+        } else {
+            previousIB.setEndsHere(false);
+        }
+        
+        return child;
+    }
+    
+    /**
+     * Attempts to divide a Text node further into directional text runs, either LTR or RTL. 
+     * @param c
+     * @param textNode
+     * @param parent
+     * @param parentStyle
+     * @return the previousIB.
+     */
+    private static InlineBox doBidi(LayoutContext c, Text textNode, Element parent, CalculatedStyle parentStyle, InlineBox previousIB, List children) {
+    	
+        Paragraph para = c.getParagraphSplitter().lookupParagraph(textNode);
+        assert(para != null);
+        
+        int startIndex = para.getFirstCharIndexInParagraph(textNode); // Index into the paragraph.
+        int nodeIndex = 0;                                            // Index into the text node.
+        String runText;                                               // Calculated text for the directional run.
+        
+        BidiTextRun prevSplit = para.prevSplit(startIndex); // Get directional run at or before startIndex.
+        	
+        assert(prevSplit != null);                  // There should always be a split at zero (start of paragraph) to fall back on. 
+        assert(prevSplit.getStart() <= startIndex); // Split should always be before or at the start of this text node.
+
+        // When calculating length, remember that it may overlap the start and/or end of the text node.
+        int maxRunLength = prevSplit.getLength() - (startIndex - prevSplit.getStart());
+       	int splitLength = Math.min(maxRunLength, textNode.getLength());
+        
+       	// Advance char indexes.
+       	nodeIndex += splitLength;
+       	startIndex += splitLength;
+       	
+       	assert(prevSplit.getDirection() == BidiSplitter.LTR || prevSplit.getDirection() == BidiSplitter.RTL);
+
+       	if (splitLength == textNode.getLength()) {
+       		// The simple case: the entire text node is part of a single direction run.
+       		runText = textNode.getData();
+       	}
+       	else {
+       		// The complex case: the first directional run only encompasses part of the text node. 
+       		runText = textNode.getData().substring(0, nodeIndex);
+       	}
+       	
+       	InlineBox child = createInlineBox(runText, parent, parentStyle, textNode);
+       	child.setTextDirection(prevSplit.getDirection());
+       	previousIB = setupInlineChild(child, previousIB);
+       	children.add(child);
+       	
+       	if (splitLength != textNode.getLength()) {
+       		// We have more directional runs to extract.
+       		
+       		do {
+        		BidiTextRun newSplit = para.nextSplit(startIndex);
+        		assert(newSplit != null); // There should always be enough splits to completely cover the text node.
+        		
+        		int newLength;
+        		
+        		if (newSplit != null) {
+        			// When calculating length, remember that it may overlap the start and/or end of the text node.
+        			int newMaxRunLength = newSplit.getLength() - (startIndex - newSplit.getStart());
+        			newLength = Math.min(newMaxRunLength, textNode.getLength() - nodeIndex);
+        			
+        			runText = textNode.getData().substring(nodeIndex, nodeIndex + newLength);
+        			
+        			// Shape here, so the layout will get the right visual length for the run.
+        			if (newSplit.getDirection() == BidiSplitter.RTL) {
+        				runText = c.getBidiReorderer().shapeText(runText);
+        			}
+        			
+        			startIndex += newLength;
+        			nodeIndex += newLength;
+        			
+        			child = createInlineBox(runText, parent, parentStyle, textNode);
+        			child.setTextDirection(newSplit.getDirection());
+        	       	previousIB = setupInlineChild(child, previousIB);
+        	       	children.add(child);
+        		}
+        		else {
+        			// We should never get here, but handle it just in case.
+        			
+        			newLength = textNode.getLength() - nodeIndex;
+        			runText = textNode.getData().substring(nodeIndex, newLength);
+        			
+        			child = createInlineBox(runText, parent, parentStyle, textNode);
+        			child.setTextDirection(c.getDefaultTextDirection());
+        	       	previousIB = setupInlineChild(child, previousIB);
+        	       	children.add(child);
+
+        			startIndex += newLength;
+        			nodeIndex += newLength;
+        		}
+        	} while(nodeIndex < textNode.getLength());
+        }
+       	
+       	return previousIB;
+    }
+    
     private static void insertAnonymousBlocks(
             SharedContext c, Box parent, List children, boolean layoutRunningBlocks) {
         List inline = new ArrayList();

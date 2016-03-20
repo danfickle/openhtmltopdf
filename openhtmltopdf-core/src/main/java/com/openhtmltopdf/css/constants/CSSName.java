@@ -957,7 +957,7 @@ public final class CSSName implements Comparable {
             addProperty(
                     "text-align",
                     PRIMITIVE,
-                    "left",
+                    "start",
                     INHERITS,
                     new PrimitivePropertyBuilders.TextAlign()
             );

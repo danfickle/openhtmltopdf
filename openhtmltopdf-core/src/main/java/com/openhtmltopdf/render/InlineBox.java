@@ -23,6 +23,7 @@ import java.text.BreakIterator;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.extend.ContentFunction;
 import com.openhtmltopdf.css.parser.FSFunction;
@@ -32,6 +33,7 @@ import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.Styleable;
 import com.openhtmltopdf.layout.TextUtil;
 import com.openhtmltopdf.layout.WhitespaceStripper;
+import com.openhtmltopdf.render.LineBox.LTRvsRTL;
 
 /**
  * A class which reprsents a portion of an inline element. If an inline element
@@ -78,6 +80,22 @@ public class InlineBox implements Styleable {
         _textNode = textNode;
     }
 
+    private byte _textDirection;
+    
+    /**
+     * @param direction either LTR or RTL from BidiSplitter interface.
+     */
+    public void setTextDirection(byte direction) {
+    	this._textDirection = direction;
+    }
+    
+    /**
+     * @return either LTR or RTL from BidiSplitter interface.
+     */
+    public byte getTextDirection() {
+    	return this._textDirection;
+    }
+    
     public String getText() {
         return _text;
     }
@@ -469,4 +487,18 @@ public class InlineBox implements Styleable {
     public Text getTextNode() {
         return this._textNode;
     }
+
+    /**
+     * Counts the RTL chars vs LTR chars in this inline box. This is used by line box to know whether to align right
+     * or left given a predominantly left-to-right line or a predominantly right-to-left line.
+     * @param result
+     */
+	public void countRtlVsLtrChars(LTRvsRTL result) {
+		if (getTextDirection() == BidiSplitter.LTR) {
+			result.ltr += _text.length();
+		}
+		else {
+			result.rtl += _text.length();
+		}
+	}
 }

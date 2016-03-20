@@ -54,6 +54,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.bidi.BidiSplitter;
+import com.openhtmltopdf.bidi.BidiSplitterFactory;
+import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.NamespaceHandler;
@@ -132,6 +136,26 @@ public class PdfBoxRenderer {
         return _doc;
     }
 
+    private BidiSplitterFactory _splitterFactory;
+    private byte _defaultTextDirection = BidiSplitter.LTR;
+    private BidiReorderer _reorderer;
+    
+    public void setBidiSplitter(BidiSplitterFactory splitterFactory) {
+        this._splitterFactory = splitterFactory;
+    }
+
+    public void setBidiReorderer(BidiReorderer reorderer) {
+        this._reorderer = reorderer;
+    }
+    
+    public void setDefaultTextDirection(boolean rtl) {
+        if (rtl)
+            _defaultTextDirection = BidiSplitter.RTL;
+        else
+            _defaultTextDirection = BidiSplitter.LTR;
+    }
+    
+    
     public PdfBoxFontResolver getFontResolver() {
         return (PdfBoxFontResolver) _sharedContext.getFontResolver();
     }
@@ -221,6 +245,11 @@ public class PdfBoxRenderer {
         result.setFontContext(new PdfBoxFontContext());
 
         result.setOutputDevice(_outputDevice);
+        
+        if (_reorderer != null)
+            result.setBidiReorderer(_reorderer);
+        
+        _outputDevice.setRenderingContext(result);
 
         _sharedContext.getTextRenderer().setup(result.getFontContext());
 
@@ -232,8 +261,16 @@ public class PdfBoxRenderer {
     private LayoutContext newLayoutContext() {
         LayoutContext result = _sharedContext.newLayoutContextInstance();
         result.setFontContext(new PdfBoxFontContext());
+        
+        if (_splitterFactory != null)
+            result.setBidiSplitterFactory(_splitterFactory);
+        
+        if (_reorderer != null)
+        	result.setBidiReorderer(_reorderer);
 
-        _sharedContext.getTextRenderer().setup(result.getFontContext());
+        result.setDefaultTextDirection(_defaultTextDirection);
+
+        ((PdfBoxTextRenderer) _sharedContext.getTextRenderer()).setup(result.getFontContext(), _reorderer != null ? _reorderer : new SimpleBidiReorderer());
 
         return result;
     }

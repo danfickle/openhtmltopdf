@@ -32,6 +32,7 @@ import java.util.logging.Level;
 
 import org.w3c.dom.Element;
 
+import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
@@ -114,7 +115,14 @@ public class LineBox extends Box implements InlinePaintable {
         
         if (isContainsDynamicFunction()) {
             lookForDynamicFunctions(c);
-            int totalLineWidth = InlineBoxing.positionHorizontally(c, this, 0);
+            int totalLineWidth;
+            
+            if (isHeuristicallyRTL()) {
+            	totalLineWidth = InlineBoxing.positionHorizontallyRTL(c, this, 0, 0);
+            }
+            else {
+                totalLineWidth = InlineBoxing.positionHorizontally(c, this, 0);
+            }
             setContentWidth(totalLineWidth);
             calcChildLocations();
             align(true);
@@ -170,12 +178,46 @@ public class LineBox extends Box implements InlinePaintable {
         _containsContent = containsContent;
     }
     
+    public static class LTRvsRTL {
+    	public int ltr;
+    	public int rtl;
+    }
+    
+    public boolean isHeuristicallyRTL() {
+    	LTRvsRTL result = countRtlVsLtrChars();
+    	return (result.rtl > result.ltr);
+    }
+    
+    /**
+     * Counts the LTR vs RTL chars in this line box so we know to align left or right when <code>text-align: start</code>.
+     * @return
+     */
+    public LTRvsRTL countRtlVsLtrChars() {
+    	LTRvsRTL result = new LTRvsRTL();
+    	
+        for (Iterator i = getChildIterator(); i.hasNext(); ) {
+            Box b = (Box) i.next();
+            if (b instanceof InlineLayoutBox) {
+                ((InlineLayoutBox)b).countRtlVsLtrChars(result);
+            }
+        }
+        
+        return result;
+    }
+    
     public void align(boolean dynamic) {
         IdentValue align = getParent().getStyle().getIdent(CSSName.TEXT_ALIGN);
         
         int calcX = 0;
+        byte direction = -1;
         
-        if (align == IdentValue.LEFT || align == IdentValue.JUSTIFY) {
+        if (align == IdentValue.START) {
+        	// text-align: start means right align when text is mostly RTL and left align
+        	// when text is mostly LTR.
+        	direction = isHeuristicallyRTL() ? BidiSplitter.RTL : BidiSplitter.LTR; 
+        }
+        
+        if (align == IdentValue.LEFT || align == IdentValue.JUSTIFY || direction == BidiSplitter.LTR) {
             int floatDistance = getFloatDistances().getLeftFloatDistance();
             calcX = getContentStart() + floatDistance;
             if (align == IdentValue.JUSTIFY && dynamic) {
@@ -189,7 +231,7 @@ public class LineBox extends Box implements InlinePaintable {
                 (getParent().getContentWidth() - leftFloatDistance - rightFloatDistance) / 2;
             
             calcX = midpoint - (getContentWidth() + getContentStart()) / 2;
-        } else if (align == IdentValue.RIGHT) {
+        } else if (align == IdentValue.RIGHT || direction == BidiSplitter.RTL) {
             int floatDistance = getFloatDistances().getRightFloatDistance();
             calcX = getParent().getContentWidth() - floatDistance - getContentWidth();
         }

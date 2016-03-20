@@ -58,6 +58,22 @@ public class InlineText {
     private boolean _trimmedLeadingSpace;
     private boolean _trimmedTrailingSpace;
     private Text _textNode;
+    private byte _textDirection;
+    
+    /**
+     * @param direction either LTR or RTL from BidiSplitter interface.
+     */
+    public void setTextDirection(byte direction) {
+    	this._textDirection = direction;
+    }
+    
+    /**
+     * @return either LTR or RTL from BidiSplitter interface.
+     */
+    public byte getTextDirection() {
+    	return this._textDirection;
+    }
+    
     public void trimTrailingSpace(LayoutContext c) {
         if (! isEmpty() && _masterText.charAt(_end-1) == ' ') {
             _end--;

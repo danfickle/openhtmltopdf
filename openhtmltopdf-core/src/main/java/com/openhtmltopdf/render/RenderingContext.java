@@ -21,13 +21,14 @@ package com.openhtmltopdf.render;
 
 import java.awt.Rectangle;
 
+import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.SharedContext;
-import com.openhtmltopdf.swing.RootPanel;
 
 /**
  * Supplies information about the context in which rendering will take place
@@ -97,6 +98,16 @@ public class RenderingContext implements CssContext {
         return sharedContext.getTextRenderer();
     }
 
+    private BidiReorderer _bidi = new SimpleBidiReorderer();
+    
+    public void setBidiReorderer(BidiReorderer bidi) {
+    	this._bidi = bidi;
+    }
+    
+    public BidiReorderer getBidiReorderer() {
+    	return this._bidi;
+    }
+    
     /**
      * Returns true if the currently set media type is paged. Currently returns
      * true only for <i>print</i> , <i>projection</i> , and <i>embossed</i> ,

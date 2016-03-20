@@ -13,7 +13,7 @@ public class PdfContentStreamAdapter {
     public static class PdfException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
-        public PdfException(String method, IOException cause) {
+        public PdfException(String method, Exception cause) {
             super(method, cause);
         }
     }

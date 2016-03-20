@@ -34,6 +34,11 @@
       <artifactId>openhtmltopdf-pdfbox</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.openhtmltopdf</groupId>
+      <artifactId>openhtmltopdf-rtl-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

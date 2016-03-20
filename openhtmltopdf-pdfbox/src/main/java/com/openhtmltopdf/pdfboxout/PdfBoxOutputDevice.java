@@ -83,6 +83,7 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlin
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
@@ -160,6 +161,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private final boolean _testMode;
     
     private PdfBoxLinkManager _linkManager;
+    
+    private RenderingContext _renderingContext;
 
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
@@ -338,28 +341,52 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         
         _cp.endText();
     }
+    
+    static String replaceCharacter(PDFont font, int unicode, BidiReorderer reorderer, char replacementChar) {
+        String ch = String.valueOf(Character.toChars(unicode));
+        
+        try {
+            font.getStringWidth(ch);
+            // If the previous line doesn't throw, we've got the character.
+            return ch;
+        }
+        catch (IllegalArgumentException e2) {
+            // Try deshaping the text to use isolate form (for Arabic, etc).
+            String charStr = reorderer.deshapeText(String.valueOf(ch));
+            if (charStr.length() > 0) {
+                try {
+                    font.getStringWidth(charStr);
+                    // We didn't throw so the isolate should work.
+                    return charStr;
+                } catch (Exception e) {
+                    // TODO: Fallback fonts.
+                    // Font does not support this character. Bad luck. Use replacement character instead.
+                    return String.valueOf(replacementChar);
+                }
+            }
+        } catch (IOException e) {
+            throw new PdfContentStreamAdapter.PdfException("replaceCharacters", e);
+        }
+
+        return "";
+    }
 
     private String replaceCharacters(PDFont font, String str) {
         
         StringBuilder sb = new StringBuilder(str.length());
         char replacementCharacter = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
         
+        try {
+            font.getStringWidth(String.valueOf(replacementCharacter));
+        } catch (Exception e1) {
+            // We don't have the replacement character in this font. Try using space.
+            replacementCharacter = ' ';
+        }
+        
         for (int i = 0; i < str.length(); ) {
             int unicode = str.codePointAt(i);
             i += Character.charCount(unicode);
-            String ch = String.valueOf(Character.toChars(unicode));
-            
-            try {
-                font.getStringWidth(ch);
-                // If the previous line doesn't throw, we've got the character.
-                sb.append(ch);
-            }
-            catch (IllegalArgumentException e2) {
-                // Font does not support this character. Bad luck. Use replacement character instead.
-                sb.append(replacementCharacter);
-            } catch (IOException e) {
-                throw new PdfContentStreamAdapter.PdfException("replaceCharacters", e);
-            }
+            sb.append(replaceCharacter(font, unicode, _renderingContext.getBidiReorderer(), replacementCharacter));
         }
         
         return sb.toString();
@@ -1168,5 +1195,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         result.setHeight(box.getHeight() / _dotsPerPoint);
 
         return result;
+    }
+
+    public void setRenderingContext(RenderingContext result) {
+        _renderingContext = result;
     }
 }

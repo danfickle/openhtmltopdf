@@ -24,6 +24,7 @@ import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.font.PDFont;
 
+import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.extend.FSGlyphVector;
 import com.openhtmltopdf.extend.FontContext;
 import com.openhtmltopdf.extend.OutputDevice;
@@ -37,7 +38,10 @@ import com.openhtmltopdf.util.Configuration;
 public class PdfBoxTextRenderer implements TextRenderer {
     private static float TEXT_MEASURING_DELTA = 0.01f;
     
-    public void setup(FontContext context) {
+    private BidiReorderer _reorderer;
+    
+    public void setup(FontContext context, BidiReorderer reorderer) {
+        this._reorderer = reorderer;
     }
 
     public void drawString(OutputDevice outputDevice, String string, float x, float y) {
@@ -79,22 +83,31 @@ public class PdfBoxTextRenderer implements TextRenderer {
         
         float res = 0;
         float space = 0;
+        char replacement;
         try {
-            char replacement = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
+            replacement = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
             space = bf.getStringWidth(String.valueOf(replacement));
-        } catch (IOException e1) {
-            throw new PdfContentStreamAdapter.PdfException("getStringWidthSlow", e1);
+        } catch (Exception e1) {
+            // TODO: LOG missing replacement character.
+            replacement = ' ';
+            try {
+                space = bf.getStringWidth(" ");
+            } catch (Exception e) {
+                space = 0;
+            }
         }
         
         for (int i = 0; i < str.length(); ) {
             int unicode = str.codePointAt(i);
             i += Character.charCount(unicode);
-            String ch = String.valueOf(Character.toChars(unicode));
             
+            String ch = PdfBoxOutputDevice.replaceCharacter(bf, unicode, _reorderer, replacement);
+
             try {
                 res += bf.getStringWidth(ch);
             }
             catch (IllegalArgumentException e2) {
+                // This shouldn't happen because we replace missing characters in replaceCharacter above.
                 // Font does not support this character. Bad luck. Use replacement character width.
                 // TODO: Log missing characters.
                 res += space;
@@ -161,5 +174,10 @@ public class PdfBoxTextRenderer implements TextRenderer {
 
     public void drawGlyphVector(OutputDevice outputDevice, FSGlyphVector vector, float x, float y) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setup(FontContext context) {
+        
     }
 }

@@ -46,6 +46,7 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.Styleable;
+import com.openhtmltopdf.render.LineBox.LTRvsRTL;
 import com.openhtmltopdf.util.XRLog;
 
 public abstract class Box implements Styleable {
@@ -1125,6 +1126,17 @@ public abstract class Box implements Styleable {
     protected boolean isInitialContainingBlock() {
         return false;
     }
+
+    /**
+     * Counts the RTL chars vs LTR chars in this box. This is used by line box to know whether to align right
+     * or left given a predominantly left-to-right line or a predominantly right-to-left line.
+     * @param result
+     */
+	public void countRtlVsLtrChars(LTRvsRTL result) {
+		for (int i = 0; i < getChildCount(); i++) {
+			getChild(i).countRtlVsLtrChars(result);
+		}
+	}
 }
 
 /*
