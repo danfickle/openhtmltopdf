@@ -19,13 +19,86 @@ Open HTML to PDF uses a couple of FOSS packages to get the job done. A list
 of these, along with the license they each have, is listed in the 
 LICENSE file in our distribution.   
 
-GETTING FLYING SAUCER
+GETTING OPEN HTML TO PDF
 ========
-New releases of Open HTML to PDF will be distributed through Maven.  Search maven for com.openhtmltopdf.
+New releases of Open HTML to PDF will be distributed through Maven.  Search maven for com.openhtmltopdf. Coming soon!
 
 GETTING STARTED
 ========
 There is a large amount of sample code under the openhtmltopdf-examples directory (integration guide and template guide to come).
+
+SIMPLE USAGE
+========
+Add these to your maven dependencies section:
+````xml
+  	<dependency>
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-core</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-pdfbox</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-rtl-support</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  	</dependency>
+  ````
+  Then you can use this code:
+  ````java
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
+import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
+
+public class SimpleUsage 
+{
+	public static void main(String[] args)
+	{
+		new SimpleUsage().exportToPdfBox("file:///Users/user/path-to/document.xhtml", "/Users/user/path-to/output.pdf");
+	}
+	
+	public void exportToPdfBox(String url, String out)
+	{
+            OutputStream os = null;
+       
+              try {
+               os = new FileOutputStream(out);
+       
+               try {
+                     PdfBoxRenderer renderer = new PdfBoxRenderer(/* testMode = */ false);
+
+                     // The following three lines are optional. Leave them out if you do not need
+                     // RTL or bi-directional text layout.
+                     renderer.setBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+                     renderer.setDefaultTextDirection(false);
+                     renderer.setBidiReorderer(new ICUBidiReorderer());
+               
+                     renderer.setDocument(url);
+                     renderer.layout();
+
+                     renderer.createPDF(os);
+               } catch (Exception e) {
+                     // LOG exception
+               } finally {
+                     try {
+                            os.close();
+                     } catch (IOException e) {
+                            // swallow
+                     }
+               }
+              }
+              catch (IOException e1) {
+                     // LOG exception.
+              }
+	}
+}
+````
 
 CREDITS
 ========
@@ -36,6 +109,7 @@ CHANGELOG
 
 head
 ========
++ [Added right-to-left(RTL) and bi-directional text support](https://github.com/danfickle/openhtmltopdf/issues/9)
 + [Added output device using PDF-BOX 2.0.0 release candidate](https://github.com/danfickle/openhtmltopdf/issues/1)
 + [Make sure XML Document Builder doesn't resolve external DTDs](https://github.com/danfickle/openhtmltopdf/issues/2)
 + [Removed obsolete ITEXT based output devices](https://github.com/danfickle/openhtmltopdf/issues/4)
