@@ -112,10 +112,22 @@ public class BorderPainter {
         }
         Path2D path = new Path2D.Float();
         
-        float angle = 90 * props.getTop() / (props.getTop() + props.getLeft());
+        float angle = 90;
+        float widthSum = props.getTop() + props.getLeft();
+        
+        if (widthSum != 0f) {
+            angle = angle * props.getTop() / widthSum;
+        }
+        
         appendPath(path, 0-props.getLeft(), 0-props.getTop(), props.getLeftCorner().left(), props.getLeftCorner().right(), 90+angle, -angle-1, props.getTop(), props.getLeft(), scaledOffset, true, widthScale);
         
-        angle = 90 * props.getTop() / (props.getTop() + props.getRight());
+        angle = 90;
+        widthSum = props.getTop() + props.getRight();
+        
+        if (widthSum != 0f) {
+        	angle = angle * props.getTop() / widthSum;
+        }
+        
         appendPath(path, sideWidth+props.getRight(), 0-props.getTop(), props.getRightCorner().right(), props.getRightCorner().left(), 90, -angle-1, props.getTop(), props.getRight(), scaledOffset, false, widthScale);
         
         
@@ -125,7 +137,13 @@ public class BorderPainter {
             
             appendPath(path, sideWidth, 0, props.getRightCorner().right(), props.getRightCorner().left(), 90-angle, angle+1, props.getTop(), props.getRight(), scaledOffset+1, false, widthScale);
             
-            angle = 90 * props.getTop() / (props.getTop() + props.getLeft());
+            angle = 90;
+            widthSum = props.getTop() + props.getLeft();
+            
+            if (widthSum != 0f) {
+            	angle = angle * props.getTop() / widthSum;
+            }
+            
             appendPath(path, 0, 0, props.getLeftCorner().left(), props.getLeftCorner().right(), 90, angle+1, props.getTop(), props.getLeft(), scaledOffset+1, true, widthScale);
             
             path.closePath();

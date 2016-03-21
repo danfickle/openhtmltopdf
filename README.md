@@ -26,6 +26,7 @@ New releases of Open HTML to PDF will be distributed through Maven.  Search mave
 GETTING STARTED
 ========
 There is a large amount of sample code under the openhtmltopdf-examples directory (integration guide and template guide to come).
+You could try the browser example at ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/demo/browser/BrowserStartup.java````
 
 SIMPLE USAGE
 ========
@@ -90,6 +91,7 @@ public class SimpleUsage
 
                      renderer.createPDF(os);
                } catch (Exception e) {
+                     e.printStackTrace();
                      // LOG exception
                } finally {
                      try {
@@ -100,6 +102,7 @@ public class SimpleUsage
                }
               }
               catch (IOException e1) {
+                     e.printStackTrace();
                      // LOG exception.
               }
 	}
@@ -141,12 +144,14 @@ FAQ
 ===
 + No, you can not use it on Android or Google App Engine.
 + Flowing columns are not implemented.
++ No, it's not a web browser, although the 'browser' example is pretty impressive.
 
 CHANGELOG
 ========
 
 head
 ========
++ Fixed divide-by-zero error in BorderPainter class. Thanks @fenrhil
 + [Added slf4j logging facade adapter](https://github.com/danfickle/openhtmltopdf/issues/11)
 + [Added right-to-left(RTL) and bi-directional text support](https://github.com/danfickle/openhtmltopdf/issues/9)
 + [Added output device using PDF-BOX 2.0.0 release candidate](https://github.com/danfickle/openhtmltopdf/issues/1)
