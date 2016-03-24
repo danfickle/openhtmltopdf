@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.openhtmltopdf</groupId>
+    <artifactId>openhtmltopdf-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>openhtmltopdf-jsoup-dom-converter</artifactId>
+
+  <packaging>jar</packaging>
+
+  <name>Openhtmltopdf Jsoup to DOM Converter</name>
+  <description>Open HTML to PDF is a CSS 2.1 renderer written in Java.  This artifact supports converting a Jsoup HTML5 instance into a DOM supported by Open HTML to PDF.</description>
+
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License (LGPL), version 2.1 or later</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
+    </license>
+  </licenses>
+
+  <distributionManagement>
+    <repository>
+      <id>bintray</id>
+      <url>https://api.bintray.com/maven/danfickle/maven/com.openhtmltopdf:openhtmltopdf-jsoup-dom-converter</url>
+    </repository>
+  </distributionManagement>
+
+  <dependencies>
+    <dependency>
+	<groupId>org.jsoup</groupId>
+	<artifactId>jsoup</artifactId>
+	<version>1.8.3</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+	  <resources>
+	    <resource>
+	      <directory>../</directory>
+	      <targetPath>${project.build.outputDirectory}/META-INF</targetPath>
+	      <includes>
+	        <include>LICENSE*</include>
+	      </includes>
+	    </resource>
+	  </resources>
+  </build>
+</project>

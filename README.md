@@ -109,6 +109,37 @@ public class SimpleUsage
 }
 ````
 
+HTML5 PARSER
+============
+While Open HTML to PDF works with a standard w3c DOM, the project provides a converter from the Jsoup HTML5 parser provided Document to
+a w3c DOM Document. This allows you to parse and use HTML5, rather than the default strict XML required by the project. To use the converter, add this 
+dependency:
+````xml
+  	<dependency>
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-jsoup-dom-converter</artifactId>
+  		<version>${openhtml.version}</version>
+  	</dependency>
+````
+Then you can use one of the ````Jsoup.parse```` methods to parse HTML5 and ````DOMBuilder.jsoup2DOM```` to convert the Jsoup document to a w3c DOM one.
+````java
+	public org.w3c.dom.Document html5ParseDocument(String urlStr, int timeoutMs) throws IOException 
+	{
+		URL url = new URL(urlStr);
+		org.jsoup.nodes.Document doc;
+		
+		if (url.getProtocol().equalsIgnoreCase("file")) {
+			doc = Jsoup.parse(new File(url.getPath()), "UTF-8");
+		}
+		else {
+			doc = Jsoup.parse(url, timeoutMs);	
+		}
+		
+		return DOMBuilder.jsoup2DOM(doc);
+	}
+````
+Then you can set the renderer document with ````renderer.setDocument(doc, url)```` in place of ````renderer.setDocument(url)````.
+
 LOGGING
 =======
 Three options are provided by Open HTML to PDF. The default is to use java.util.logging. If you prefer to output using log4j or slf4j, adapters are provided:
@@ -138,7 +169,7 @@ Then at the start of your code, before calling any Open HTML to PDF methods, use
 
 CREDITS
 ========
-Open HTML to PDF is based on Flying-saucer. Credit goes to the contributors of that project. Code will also be used from [neoFlyingSaucer](https://github.com/danfickle/neoflyingsaucer)
+Open HTML to PDF is based on [Flying-saucer](https://github.com/flyingsaucerproject/flyingsaucer). Credit goes to the contributors of that project. Code will also be used from [neoFlyingSaucer](https://github.com/danfickle/neoflyingsaucer)
 
 FAQ
 ===
@@ -151,6 +182,7 @@ CHANGELOG
 
 head
 ========
++ [Added Jsoup HTML5 to DOM converter module](https://github.com/danfickle/openhtmltopdf/issues/12)
 + Fixed divide-by-zero error in BorderPainter class. Thanks @fenrhil
 + [Added slf4j logging facade adapter](https://github.com/danfickle/openhtmltopdf/issues/11)
 + [Added right-to-left(RTL) and bi-directional text support](https://github.com/danfickle/openhtmltopdf/issues/9)
