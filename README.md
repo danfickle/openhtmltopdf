@@ -186,7 +186,7 @@ head
 + Fixed divide-by-zero error in BorderPainter class. Thanks @fenrhil
 + [Added slf4j logging facade adapter](https://github.com/danfickle/openhtmltopdf/issues/11)
 + [Added right-to-left(RTL) and bi-directional text support](https://github.com/danfickle/openhtmltopdf/issues/9)
-+ [Added output device using PDF-BOX 2.0.0 release candidate](https://github.com/danfickle/openhtmltopdf/issues/1)
++ [Added output device using PDF-BOX 2.0.0](https://github.com/danfickle/openhtmltopdf/issues/1)
 + [Make sure XML Document Builder doesn't resolve external DTDs](https://github.com/danfickle/openhtmltopdf/issues/2)
 + [Removed obsolete ITEXT based output devices](https://github.com/danfickle/openhtmltopdf/issues/4)
 + [Removed SWT support](https://github.com/danfickle/openhtmltopdf/issues/6)
