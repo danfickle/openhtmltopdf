@@ -31,4 +31,9 @@ public class SimpleBidiReorderer implements BidiReorderer {
 	public String deshapeText(String text) {
 		return text;
 	}
+
+	@Override
+	public boolean isLiveImplementation() {
+		return false;
+	}
 }

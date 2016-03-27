@@ -146,6 +146,7 @@ public class PdfBoxRenderer {
 
     public void setBidiReorderer(BidiReorderer reorderer) {
         this._reorderer = reorderer;
+        this._outputDevice.setBidiReorderer(reorderer);
     }
     
     public void setDefaultTextDirection(boolean rtl) {

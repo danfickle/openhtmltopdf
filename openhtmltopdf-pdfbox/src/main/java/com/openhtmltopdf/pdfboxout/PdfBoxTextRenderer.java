@@ -21,6 +21,7 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.awt.Rectangle;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.pdfbox.pdmodel.font.PDFont;
 
@@ -54,81 +55,178 @@ public class PdfBoxTextRenderer implements TextRenderer {
     }
 
     public FSFontMetrics getFSFontMetrics(FontContext context, FSFont font, String string) {
-        FontDescription descr = ((PdfBoxFSFont)font).getFontDescription();
-        PDFont bf = descr.getFont();
+        List<FontDescription> descrs = ((PdfBoxFSFont) font).getFontDescription();
         float size = font.getSize2D();
         PdfBoxFSFontMetrics result = new PdfBoxFSFontMetrics();
         
         try {
-            result.setAscent(bf.getBoundingBox().getUpperRightY() / 1000f * size);
-            result.setDescent(-bf.getBoundingBox().getLowerLeftY() / 1000f * size);
+            float largestAscent = Float.MIN_VALUE;
+            float largestDescent = Float.MIN_VALUE;
+            float largestStrikethroughOffset = Float.MIN_VALUE;
+            float largestStrikethroughThickness = Float.MIN_VALUE;
+            float largestUnderlinePosition = Float.MIN_VALUE;
+            float largestUnderlineThickness = Float.MIN_VALUE;
+            
+            for (FontDescription des : descrs) {
+                float loopAscent = des.getFont().getBoundingBox().getUpperRightY();
+                float loopDescent = -des.getFont().getBoundingBox().getLowerLeftY();
+                float loopStrikethroughOffset = -des.getYStrikeoutPosition();
+                float loopStrikethroughThickness = des.getYStrikeoutSize();
+                float loopUnderlinePosition = -des.getUnderlinePosition();
+                float loopUnderlineThickness = des.getUnderlineThickness();
+                
+                if (loopAscent > largestAscent) {
+                    largestAscent = loopAscent;
+                }
+                
+                if (loopDescent > largestDescent) {
+                    largestDescent = loopDescent; 
+                }
+                
+                if (loopStrikethroughOffset > largestStrikethroughOffset) {
+                    largestStrikethroughOffset = loopStrikethroughOffset;
+                }
+                
+                if (loopStrikethroughThickness > largestStrikethroughThickness) {
+                    largestStrikethroughThickness = loopStrikethroughThickness;
+                }
+                
+                if (loopUnderlinePosition > largestUnderlinePosition) {
+                    largestUnderlinePosition = loopUnderlinePosition;
+                }
+                
+                if (loopUnderlineThickness > largestUnderlineThickness) {
+                    largestUnderlineThickness = loopUnderlineThickness;
+                }
+            }
+            
+            result.setAscent(largestAscent / 1000f * size);
+            result.setDescent(largestDescent / 1000f * size);
+            result.setStrikethroughOffset(largestStrikethroughOffset / 1000f * size);
+            
+            if (largestStrikethroughThickness > 0) {
+                result.setStrikethroughThickness(largestStrikethroughThickness / 1000f * size);
+            } else {
+                result.setStrikethroughThickness(size / 12.0f);
+            }
+            
+            result.setUnderlineOffset(largestUnderlinePosition / 1000f * size);
+            result.setUnderlineThickness(largestUnderlineThickness / 1000f * size);
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("getFSFontMetrics", e);
         }
-                
-        result.setStrikethroughOffset(-descr.getYStrikeoutPosition() / 1000f * size);
-        if (descr.getYStrikeoutSize() != 0) {
-            result.setStrikethroughThickness(descr.getYStrikeoutSize() / 1000f * size);
-        } else {
-            result.setStrikethroughThickness(size / 12.0f);
-        }
-        
-        result.setUnderlineOffset(-descr.getUnderlinePosition() / 1000f * size);
-        result.setUnderlineThickness(descr.getUnderlineThickness() / 1000f * size);
-        
+
         return result;
     }
 
-    private float getStringWidthSlow(PDFont bf, String str) {
-        
-        float res = 0;
-        float space = 0;
+    static class ReplacementChar {
         char replacement;
-        try {
-            replacement = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
-            space = bf.getStringWidth(String.valueOf(replacement));
-        } catch (Exception e1) {
-            // TODO: LOG missing replacement character.
-            replacement = ' ';
+        FontDescription fontDescription;
+        float width;
+    }
+    
+    
+    static ReplacementChar getReplacementChar(FSFont font) {
+        char replacement = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
+        String replaceStr = String.valueOf(replacement);
+        List<FontDescription> descriptions = ((PdfBoxFSFont) font).getFontDescription();
+        
+        for (FontDescription des : descriptions) {
             try {
-                space = bf.getStringWidth(" ");
-            } catch (Exception e) {
-                space = 0;
+                float width = des.getFont().getStringWidth(replaceStr);
+
+                // Got here without throwing, so the char exists in font.
+                ReplacementChar replace = new ReplacementChar();
+                replace.replacement = replacement;
+                replace.fontDescription = des;
+                replace.width = width;
+                return replace;
+            } catch (Exception e)
+            {
+                // Could not use replacement character in this font.
             }
         }
-        
+
+        // Still haven't found a font supporting our replacement character, try space character.
+        replaceStr = " ";
+        for (FontDescription des : descriptions) {
+            try {
+                float width = des.getFont().getStringWidth(replaceStr);
+
+                // Got here without throwing, so the char exists in font.
+                ReplacementChar replace = new ReplacementChar();
+                replace.replacement = ' ';
+                replace.fontDescription = des;
+                replace.width = width;
+                return replace;
+            } catch (Exception e)
+            {
+                // Could not use replacement character in this font.
+            }
+        }
+    
+        // Really?, no font support for either replacement character or space!
+        ReplacementChar replace = new ReplacementChar();
+        replace.replacement = ' ';
+        replace.fontDescription = descriptions.get(0);
+        replace.width = 0;
+        return replace;
+    }
+    
+    
+    private float getStringWidthSlow(FSFont bf, String str) {
+        ReplacementChar replace = getReplacementChar(bf);
+        List<FontDescription> fonts = ((PdfBoxFSFont) bf).getFontDescription();
+        float strWidthResult = 0;
+
         for (int i = 0; i < str.length(); ) {
             int unicode = str.codePointAt(i);
             i += Character.charCount(unicode);
+            String ch = String.valueOf(Character.toChars(unicode));
+            boolean gotWidth = false;
             
-            String ch = PdfBoxOutputDevice.replaceCharacter(bf, unicode, _reorderer, replacement);
-
-            try {
-                res += bf.getStringWidth(ch);
+            FONT_LOOP:
+            for (FontDescription des : fonts) {
+                try {
+                    strWidthResult += des.getFont().getStringWidth(ch);
+                    gotWidth = true;
+                    break;
+                }
+                catch (Exception e1) {
+                    if (_reorderer.isLiveImplementation()) {
+                        // Character is not in font! Next, we try deshaping.
+                        String deshaped = _reorderer.deshapeText(ch);
+                        try {
+                            strWidthResult += des.getFont().getStringWidth(deshaped);
+                            gotWidth = true;
+                            break FONT_LOOP;
+                        }
+                        catch (Exception e2) {
+                            // Keep trying with next font.
+                        }
+                    }
+                }
             }
-            catch (IllegalArgumentException e2) {
-                // This shouldn't happen because we replace missing characters in replaceCharacter above.
-                // Font does not support this character. Bad luck. Use replacement character width.
-                // TODO: Log missing characters.
-                res += space;
-            } catch (IOException e) {
-                throw new PdfContentStreamAdapter.PdfException("getStringWidthSlow", e);
+            
+            if (!gotWidth) {
+                // We still don't have the character after all that. So use replacement character.
+                strWidthResult += replace.width;
             }
         }
         
-        return res;
+        return strWidthResult;
     }
     
     public int getWidth(FontContext context, FSFont font, String string) {
-        PDFont bf = ((PdfBoxFSFont)font).getFontDescription().getFont();
-
         float result = 0f;
+
         try {
-            result = bf.getStringWidth(string) / 1000f * font.getSize2D();
+            // First try using the first given font in the list.
+            result = ((PdfBoxFSFont) font).getFontDescription().get(0).getFont().getStringWidth(string) / 1000f * font.getSize2D();
         } catch (IllegalArgumentException e2) {
             // PDFont::getStringWidth throws an IllegalArgumentException if the character doesn't exist in the font.
             // So we do it one character by character instead.
-            result = getStringWidthSlow(bf, string) / 1000f * font.getSize2D();
+            result = getStringWidthSlow(font, string) / 1000f * font.getSize2D();
         }
         catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("getWidth", e);

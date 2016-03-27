@@ -40,8 +40,8 @@ import java.io.*;
 import java.util.*;
 
 public class PdfBoxFontResolver implements FontResolver {
-    private Map _fontFamilies = createInitialFontMap();
-    private Map _fontCache = new HashMap();
+    private Map<String, FontFamily> _fontFamilies = createInitialFontMap();
+    private Map<String, FontDescription> _fontCache = new HashMap<String, FontDescription>();
     private final PDDocument _doc;
     
     // TODO: Let them configure this in font-face rules.
@@ -265,7 +265,7 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     public FontFamily getFontFamily(String fontFamilyName) {
-        FontFamily fontFamily = (FontFamily)_fontFamilies.get(fontFamilyName);
+        FontFamily fontFamily = _fontFamilies.get(fontFamilyName);
         if (fontFamily == null) {
             fontFamily = new FontFamily();
             fontFamily.setName(fontFamilyName);
@@ -279,16 +279,23 @@ public class PdfBoxFontResolver implements FontResolver {
                 || style == IdentValue.ITALIC)) {
             style = IdentValue.NORMAL;
         }
+
+        List<FontDescription> fonts = new ArrayList<FontDescription>(3);
+        
         if (families != null) {
             for (int i = 0; i < families.length; i++) {
-                FSFont font = resolveFont(ctx, families[i], size, weight, style, variant);
+                FontDescription font = resolveFont(ctx, families[i], size, weight, style, variant);
                 if (font != null) {
-                    return font;
+                    fonts.add(font);
                 }
             }
         }
 
-        return resolveFont(ctx, "Serif", size, weight, style, variant);
+        // For now, we end up with "Serif" built-in font.
+        // Q: Should this change?
+        // Q: Should we have a final automatically added font?
+        fonts.add(resolveFont(ctx, "Serif", size, weight, style, variant));
+        return new PdfBoxFSFont(fonts, size);
     }
 
     private String normalizeFontFamily(String fontFamily) {
@@ -315,21 +322,23 @@ public class PdfBoxFontResolver implements FontResolver {
         return result;
     }
 
-    private FSFont resolveFont(SharedContext ctx, String fontFamily, float size, IdentValue weight, IdentValue style, IdentValue variant) {
+    private FontDescription resolveFont(SharedContext ctx, String fontFamily, float size, IdentValue weight, IdentValue style, IdentValue variant) {
         String normalizedFontFamily = normalizeFontFamily(fontFamily);
-
         String cacheKey = getHashName(normalizedFontFamily, weight, style);
-        FontDescription result = (FontDescription)_fontCache.get(cacheKey);
+        FontDescription result = _fontCache.get(cacheKey);
+
         if (result != null) {
-            return new PdfBoxFSFont(result, size);
+            return result;
         }
 
         FontFamily family = (FontFamily)_fontFamilies.get(normalizedFontFamily);
+
         if (family != null) {
             result = family.match(convertWeightToInt(weight), style);
+
             if (result != null) {
                 _fontCache.put(cacheKey, result);
-                return new PdfBoxFSFont(result, size);
+                return result;
             }
         }
 
@@ -374,8 +383,8 @@ public class PdfBoxFontResolver implements FontResolver {
         return name + "-" + weight + "-" + style;
     }
 
-    private static Map createInitialFontMap() {
-        HashMap result = new HashMap();
+    private static Map<String, FontFamily> createInitialFontMap() {
+        HashMap<String, FontFamily> result = new HashMap<String, FontFamily>();
 
         try {
             addCourier(result);

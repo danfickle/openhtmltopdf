@@ -17,6 +17,16 @@ public interface BidiReorderer {
 	 */
 	public String shapeText(String text);
 	
-	
+	/**
+	 * Deshape text, for use if the shaped character is not in a font.
+	 * @param text
+	 * @return
+	 */
 	public String deshapeText(String text);
+
+	/**
+	 * Useful for optimization.
+	 * @return
+	 */
+	public boolean isLiveImplementation();
 }

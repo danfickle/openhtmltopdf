@@ -84,6 +84,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
@@ -96,6 +97,7 @@ import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
+import com.openhtmltopdf.pdfboxout.PdfBoxTextRenderer.ReplacementChar;
 import com.openhtmltopdf.render.AbstractOutputDevice;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.BorderPainter;
@@ -163,6 +165,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private PdfBoxLinkManager _linkManager;
     
     private RenderingContext _renderingContext;
+    
+    private BidiReorderer _reorderer = new SimpleBidiReorderer();
 
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
@@ -302,6 +306,33 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void drawString(String s, float x, float y, JustificationInfo info) {
+        PDFont firstFont = _font.getFontDescription().get(0).getFont();
+        
+        // First check if the string will print with the current font entirely.
+        try {
+            firstFont.getStringWidth(s);
+            // We got here, so all is good.
+            drawStringFast(s, x, y, info, _font.getFontDescription().get(0), _font.getSize2D());
+            return;
+        } 
+        catch (Exception e) {
+            // Fallthrough, we'll have to process the string into font runs.
+        }
+        
+        List<FontRun> fontRuns = replaceCharacters(_font, s, _reorderer);
+        float xOffset = 0f;
+        
+        for (FontRun run : fontRuns) {
+            drawStringFast(run.str, x + xOffset, y, info, run.des, _font.getSize2D());
+            try {
+                xOffset += (run.des.getFont().getStringWidth(run.str) / 1000f) * _font.getSize2D();
+            } catch (Exception e) {
+                XRLog.render(Level.WARNING, "BUG. Font didn't contain expected character.", e);
+            }
+        }
+    }
+    
+    public void drawStringFast(String s, float x, float y, JustificationInfo info, FontDescription desc, float fontSize) {
         // TODO: Emulate bold and italic.
         
         if (s.length() == 0)
@@ -320,8 +351,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         float b = (float) mx[1];
         float c = (float) mx[2];
         
-        FontDescription desc = _font.getFontDescription();
-        float fontSize = _font.getSize2D() / _dotsPerPoint;
+        fontSize = fontSize / _dotsPerPoint;
         
         _cp.beginText();
         _cp.setFont(desc.getFont(), fontSize);
@@ -332,64 +362,105 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             _cp.setSpaceSpacing(info.getSpaceAdjust());
         }
         
-        try {
-            _cp.drawString(s);
-        } catch (IllegalArgumentException e) {
-            String processed = replaceCharacters(desc.getFont(), s);
-            _cp.drawString(processed);
-        }
-        
+        _cp.drawString(s);
         _cp.endText();
     }
     
-    static String replaceCharacter(PDFont font, int unicode, BidiReorderer reorderer, char replacementChar) {
-        String ch = String.valueOf(Character.toChars(unicode));
-        
-        try {
-            font.getStringWidth(ch);
-            // If the previous line doesn't throw, we've got the character.
-            return ch;
-        }
-        catch (IllegalArgumentException e2) {
-            // Try deshaping the text to use isolate form (for Arabic, etc).
-            String charStr = reorderer.deshapeText(String.valueOf(ch));
-            if (charStr.length() > 0) {
-                try {
-                    font.getStringWidth(charStr);
-                    // We didn't throw so the isolate should work.
-                    return charStr;
-                } catch (Exception e) {
-                    // TODO: Fallback fonts.
-                    // Font does not support this character. Bad luck. Use replacement character instead.
-                    return String.valueOf(replacementChar);
-                }
-            }
-        } catch (IOException e) {
-            throw new PdfContentStreamAdapter.PdfException("replaceCharacters", e);
-        }
-
-        return "";
+    static class FontRun {
+        String str;
+        FontDescription des;
     }
-
-    private String replaceCharacters(PDFont font, String str) {
-        
-        StringBuilder sb = new StringBuilder(str.length());
-        char replacementCharacter = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
-        
-        try {
-            font.getStringWidth(String.valueOf(replacementCharacter));
-        } catch (Exception e1) {
-            // We don't have the replacement character in this font. Try using space.
-            replacementCharacter = ' ';
-        }
+    
+    private List<FontRun> replaceCharacters(FSFont font, String str, BidiReorderer reorderer) {
+        StringBuilder sb = new StringBuilder();
+        ReplacementChar replace = PdfBoxTextRenderer.getReplacementChar(font);
+        List<FontDescription> fonts = ((PdfBoxFSFont) font).getFontDescription();
+        List<FontRun> runs = new ArrayList<FontRun>();
+        FontRun current = new FontRun();
         
         for (int i = 0; i < str.length(); ) {
             int unicode = str.codePointAt(i);
             i += Character.charCount(unicode);
-            sb.append(replaceCharacter(font, unicode, _renderingContext.getBidiReorderer(), replacementCharacter));
+            String ch = String.valueOf(Character.toChars(unicode));
+            boolean gotChar = false;
+            
+            FONT_LOOP:
+            for (FontDescription des : fonts) {
+                try {
+                    des.getFont().getStringWidth(ch);
+                    // We got here, so this font has this character.
+                    if (current.des == null) {
+                        // First character of run.
+                        current.des = des;
+                    }
+                    else if (des != current.des) {
+                        // We have changed font, so we'll start a new font run.
+                        current.str = sb.toString();
+                        runs.add(current);
+                        current = new FontRun();
+                        current.des = des;
+                        sb = new StringBuilder();
+                    }
+
+                    sb.append(ch);
+                    gotChar = true;
+                    break;
+                }
+                catch (Exception e1) {
+                    if (reorderer.isLiveImplementation()) {
+                        // Character is not in font! Next, we try deshaping.
+                        String deshaped = reorderer.deshapeText(ch);
+                        try {
+                            des.getFont().getStringWidth(deshaped);
+                            // We got here, so this font has this deshaped character.
+                            if (current.des == null) {
+                                // First character of run.
+                                current.des = des;
+                            }
+                            else if (des != current.des) {
+                                // We have changed font, so we'll start a new font run.
+                                current.str = sb.toString();
+                                runs.add(current);
+                                current = new FontRun();
+                                current.des = des;
+                                sb = new StringBuilder();
+                            }
+                            sb.append(deshaped);
+                            gotChar = true;
+                            break FONT_LOOP;
+                        }
+                        catch (Exception e2) {
+                            // Keep trying with next font.
+                        }
+                    }
+                }
+            }
+            
+            if (!gotChar) {
+                // We still don't have the character after all that. So use replacement character.
+                if (current.des == null) {
+                    // First character of run.
+                    current.des = replace.fontDescription;
+                }
+                else if (replace.fontDescription != current.des) {
+                    // We have changed font, so we'll start a new font run.
+                    current.str = sb.toString();
+                    runs.add(current);
+                    current = new FontRun();
+                    current.des = replace.fontDescription;
+                    sb = new StringBuilder();
+                }
+                
+                sb.append(replace.replacement);
+            }
+        }
+
+        if (sb.length() > 0) {
+            current.str = sb.toString();
+            runs.add(current);
         }
         
-        return sb.toString();
+        return runs;
     }
     
     /*
@@ -1199,5 +1270,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void setRenderingContext(RenderingContext result) {
         _renderingContext = result;
+    }
+
+    public void setBidiReorderer(BidiReorderer reorderer) {
+        _reorderer = reorderer;
     }
 }
