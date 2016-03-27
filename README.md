@@ -61,7 +61,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
-import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 
 public class SimpleUsage 
 {
@@ -78,18 +79,19 @@ public class SimpleUsage
                os = new FileOutputStream(out);
        
                try {
-                     PdfBoxRenderer renderer = new PdfBoxRenderer(/* testMode = */ false);
+                     // There are more options on the builder than shown below.
+                     PdfRendererBuilder builder = new PdfRendererBuilder();
 
                      // The following three lines are optional. Leave them out if you do not need
                      // RTL or bi-directional text layout.
-                     renderer.setBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
-                     renderer.setDefaultTextDirection(false);
-                     renderer.setBidiReorderer(new ICUBidiReorderer());
-               
-                     renderer.setDocument(url);
-                     renderer.layout();
-
-                     renderer.createPDF(os);
+                     builder.useBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+                     builder.useBidiReorderer(new ICUBidiReorderer());
+                     builder.defaultTextDirection(TextDirection.LTR);
+        	 
+                     builder.withUri(url);
+                     builder.toStream(os);
+                     builder.run();
+                     
                } catch (Exception e) {
                      e.printStackTrace();
                      // LOG exception
@@ -138,7 +140,47 @@ Then you can use one of the ````Jsoup.parse```` methods to parse HTML5 and ````D
 		return DOMBuilder.jsoup2DOM(doc);
 	}
 ````
-Then you can set the renderer document with ````renderer.setDocument(doc, url)```` in place of ````renderer.setDocument(url)````.
+Then you can set the renderer document with ````builder.withW3cDocument(doc, url)```` in place of ````builder.withUri(url)````.
+
+PLUGGABLE HTTP CLIENT
+=================
+Open HTML to PDF makes it simple to plugin an external client for HTTP and HTTPS requests. In fact this is recommended if you are using
+HTTP/HTTPS resources, as the built-in Java client is showing its age. For example, to use the excellent [OkHttp](http://square.github.io/okhttp/) library is
+as simple as adding the following code:
+````java
+     public static class OkHttpStreamFactory implements HttpStreamFactory {
+           private final OkHttpClient client = new OkHttpClient();
+		
+            @Override
+            public HttpStream getUrl(String url) {
+               Request request = new Request.Builder()
+                 .url(url)
+                 .build();
+
+             try {
+              final Response response = client.newCall(request).execute();
+
+              return new HttpStream() {
+                  @Override
+                  public InputStream getStream() {
+                      return response.body().byteStream();
+                  }
+
+                  @Override
+                  public Reader getReader() {
+                      return response.body().charStream();
+                  }
+             };
+           }
+           catch (IOException e) {
+               e.printStackTrace();
+           }
+
+           return null;
+	  }
+     }
+````
+Then use ````builder.useHttpStreamImplementation(new OkHttpStreamFactory())````.
 
 LOGGING
 =======
@@ -182,6 +224,8 @@ CHANGELOG
 
 head
 ========
++ [Added fluent builder style API for PDF conversion](https://github.com/danfickle/openhtmltopdf/issues/14)
++ [Added ability to plugin external HTTP/HTTPS implementation](https://github.com/danfickle/openhtmltopdf/issues/13)
 + [Added Jsoup HTML5 to DOM converter module](https://github.com/danfickle/openhtmltopdf/issues/12)
 + Fixed divide-by-zero error in BorderPainter class. Thanks @fenrhil
 + [Added slf4j logging facade adapter](https://github.com/danfickle/openhtmltopdf/issues/11)

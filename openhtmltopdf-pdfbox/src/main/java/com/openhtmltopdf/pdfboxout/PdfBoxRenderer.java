@@ -23,14 +23,12 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Float;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -99,6 +97,8 @@ public class PdfBoxRenderer {
     private boolean _testMode;
 
     private PDFCreationListener _listener;
+    
+    private OutputStream _os;
 
     public PdfBoxRenderer(boolean testMode) {
         this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode, null);
@@ -135,6 +135,41 @@ public class PdfBoxRenderer {
         _sharedContext.setDotsPerPixel(dotsPerPixel);
         _sharedContext.setPrint(true);
         _sharedContext.setInteractive(false);
+    }
+
+    public PdfBoxRenderer(boolean textDirection, boolean testMode,
+            boolean useSubsets, HttpStreamFactory httpStreamFactory,
+            BidiSplitterFactory splitterFactory, BidiReorderer reorderer, String html,
+            Document document, String baseUri, String uri, File file,
+            OutputStream os) {
+        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, useSubsets, testMode, httpStreamFactory);
+        
+        if (splitterFactory != null) {
+            this.setBidiSplitter(splitterFactory);
+        }
+        
+        if (reorderer != null) {
+            this.setBidiReorderer(reorderer);
+        }
+        
+        if (html != null) {
+            this.setDocumentFromString(html, baseUri);
+        }
+        else if (document != null) {
+            this.setDocument(document, baseUri);
+        }
+        else if (uri != null) {
+            this.setDocument(uri);
+        }
+        else if (file != null) {
+            try {
+                this.setDocument(file);
+            } catch (IOException e) {
+                throw new RuntimeException("File IO problem", e);
+            }
+        }
+        
+        this._os = os;
     }
 
     public Document getDocument() {
@@ -280,6 +315,10 @@ public class PdfBoxRenderer {
         return result;
     }
 
+    public void createPDF() throws IOException {
+        createPDF(_os);
+    }
+    
     public void createPDF(OutputStream os) throws IOException {
         createPDF(os, true, 0);
     }
