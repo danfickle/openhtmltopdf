@@ -20,13 +20,8 @@
 package com.openhtmltopdf.context;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
-
-import org.xml.sax.InputSource;
 
 import com.openhtmltopdf.css.extend.StylesheetFactory;
 import com.openhtmltopdf.css.parser.CSSErrorHandler;
@@ -90,25 +85,22 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
      */
     private Stylesheet parse(StylesheetInfo info) {
         CSSResource cr = _userAgentCallback.getCSSResource(info.getUri());
-        if (cr==null) return null;  
-        // Whether by accident or design, InputStream will never be null
-        // since the null resource stream is wrapped in a BufferedInputStream
-        InputSource inputSource=cr.getResourceInputSource();
-        if (inputSource==null) return null;
-        InputStream is = inputSource.getByteStream();
-        if (is==null) return null;
+        if (cr == null) {
+        	return null;
+        }
+        
+        Reader reader = cr.getResourceReader();
+        if (reader == null) {
+        	return null;
+        }
+        
         try {
-            return parse(new InputStreamReader(is, "UTF-8"), info);
-        } catch (UnsupportedEncodingException e) {
-            // Shouldn't happen
-            throw new RuntimeException(e.getMessage(), e);
+            return parse(reader, info);
         } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    // ignore
-                }
+            try {
+               reader.close();
+            } catch (IOException e) {
+               // ignore
             }
         }
     }

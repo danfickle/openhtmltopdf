@@ -39,6 +39,7 @@ import com.openhtmltopdf.resource.CSSResource;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.swing.AWTFSImage;
+import com.openhtmltopdf.swing.NaiveUserAgent;
 import com.openhtmltopdf.util.Uu;
 import com.openhtmltopdf.util.XRLog;
 
@@ -50,138 +51,19 @@ import com.openhtmltopdf.util.XRLog;
  * Time: 07:38:59
  * To change this template use File | Settings | File Templates.
  */
-public class DemoUserAgent implements UserAgentCallback {
+public class DemoUserAgent extends NaiveUserAgent {
     private String baseUrl;
     private int index = -1;
-    private ArrayList history = new ArrayList();
+    private ArrayList<String> history = new ArrayList<String>();
 
-    /**
-     * an LRU cache
-     */
-    private int imageCacheCapacity = 16;
-    private java.util.LinkedHashMap imageCache =
-            new java.util.LinkedHashMap(imageCacheCapacity, 0.75f, true) {
-                protected boolean removeEldestEntry(java.util.Map.Entry eldest) {
-                    return size() > imageCacheCapacity;
-                }
-            };
-
-    public CSSResource getCSSResource(String uri) {
-        InputStream is = null;
-        uri = resolveURI(uri);
-        try {
-            URLConnection uc = new URL(uri).openConnection();
-            uc.connect();
-            is = uc.getInputStream();
-        } catch (MalformedURLException e) {
-            XRLog.exception("bad URL given: " + uri, e);
-        } catch (IOException e) {
-            XRLog.exception("IO problem for " + uri, e);
-        }
-        return new CSSResource(is);
-    }
-
-    public ImageResource getImageResource(String uri) {
-        ImageResource ir = null;
-        uri = resolveURI(uri);
-        ir = (ImageResource) imageCache.get(uri);
-        //TODO: check that cached image is still valid
-        if (ir == null) {
-            InputStream is = null;
-            try {
-                URLConnection uc = new URL(uri).openConnection();
-                uc.connect();
-                is = uc.getInputStream();
-            } catch (MalformedURLException e1) {
-                XRLog.exception("bad URL given: " + uri, e1);
-            } catch (IOException e11) {
-                XRLog.exception("IO problem for " + uri, e11);
-            }
-            if (is != null) {
-                try {
-                    BufferedImage img = ImageIO.read(is);
-                    ir = new ImageResource(uri, AWTFSImage.createImage(img));
-                    imageCache.put(uri, ir);
-                } catch (IOException e) {
-                    XRLog.exception("Can't read image file; unexpected problem for URI '" + uri + "'", e);
-                }
-            }
-        }
-        if (ir == null) ir = new ImageResource(uri, null);
-        return ir;
-    }
-    
-    public byte[] getBinaryResource(String uri) {
-        InputStream is = null;
-        try {
-            URL url = new URL(uri);
-            URLConnection conn = url.openConnection();
-            is = conn.getInputStream();
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            byte[] buf = new byte[10240];
-            int i;
-            while ( (i = is.read(buf)) != -1) {
-                result.write(buf, 0, i);
-            }
-            is.close();
-            is = null;
-            
-            return result.toByteArray();
-        } catch (IOException e) {
-            return null;
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-        }
-    }    
-
-    public XMLResource getXMLResource(String uri) {
-        uri = resolveURI(uri);
-        if (uri != null && uri.startsWith("file:")) {
-            File file = null;
-            try {
-                file = new File(new URI(uri));
-            } catch (URISyntaxException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-        }
-        XMLResource xr = null;
-        InputStream inputStream = null;
-        try {
-            URLConnection uc = new URL(uri).openConnection();
-            uc.connect();
-            // TODO: String contentType = uc.getContentType(); Maybe should popup a choice when content/unknown!
-            inputStream = uc.getInputStream();
-            xr = XMLResource.load(inputStream);
-        } catch (MalformedURLException e) {
-            XRLog.exception("bad URL given: " + uri, e);
-        } catch (IOException e) {
-            XRLog.exception("IO problem for " + uri, e);
-        } finally {
-            if ( inputStream != null ) try {
-                inputStream.close();
-            } catch (IOException e) {
-                // swallow
-            }
-        }
-        if (xr == null) {
-            String notFound = "<h1>Document not found</h1>";
-            xr = XMLResource.load(new StringReader(notFound));
-        }
-        return xr;
-    }
-
+    @Override
     public boolean isVisited(String uri) {
         if (uri == null) return false;
         uri = resolveURI(uri);
         return history.contains(uri);
     }
 
+    @Override
     public void setBaseURL(String url) {
         baseUrl = resolveURI(url);
         if (baseUrl == null) baseUrl = "error:FileNotFound";
@@ -195,6 +77,7 @@ public class DemoUserAgent implements UserAgentCallback {
         history.add(index, baseUrl);
     }
 
+    @Override
     public String resolveURI(String uri) {
         URL ref = null;
         if (uri == null) return baseUrl;
@@ -228,10 +111,10 @@ public class DemoUserAgent implements UserAgentCallback {
             return ref.toExternalForm();
     }
 
+    @Override
     public String getBaseURL() {
         return baseUrl;
     }
-
 
     public String getForward() {
         index++;

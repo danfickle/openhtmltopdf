@@ -21,37 +21,76 @@ package com.openhtmltopdf.resource;
 
 import org.xml.sax.InputSource;
 
+import com.openhtmltopdf.util.XRLog;
+
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 
 /**
  * @author Patrick Wright
  */
 public abstract class AbstractResource implements Resource {
-    private InputSource inputSource;
+	private static enum StreamType { READER, STREAM, INPUT_SOURCE; }
+	private final StreamType streamType;
+	
+	private InputSource inputSource;
+	private InputStream inputStream;
+	private Reader inputReader;
+	
     private long createTimeStamp;
     private long elapsedLoadTime;
 
-    private AbstractResource() {
+    private AbstractResource(StreamType streamType) {
         this.createTimeStamp = System.currentTimeMillis();
+        this.streamType = streamType;
     }
 
     /**
      * Creates a new instance of AbstractResource
      */
     public AbstractResource(InputSource source) {
-        this();
+        this(StreamType.INPUT_SOURCE);
         this.inputSource = source;
     }
-
+    
+    public AbstractResource(Reader reader) {
+    	this(StreamType.READER);
+    	this.inputReader = reader;
+    }
+    
     public AbstractResource(InputStream is) {
-        this(is==null?(InputSource)null:new InputSource(new BufferedInputStream(is)));
+    	this(StreamType.STREAM);
+    	this.inputStream = is;
     }
 
     public InputSource getResourceInputSource() {
-        return this.inputSource;
+    	if (streamType == StreamType.STREAM &&
+    		this.inputSource == null) {
+    		this.inputSource = new InputSource(new BufferedInputStream(this.inputStream));
+    	}
+    	return this.inputSource;
     }
 
+    public Reader getResourceReader() {
+    	if (streamType == StreamType.STREAM &&
+        	this.inputReader == null) {
+        	try {
+				this.inputReader = new InputStreamReader(this.inputStream, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				XRLog.exception("Could not create reader for stream", e);
+			}
+        }
+        return this.inputReader;
+    }
+    
+    
+    public InputStream getResourceInputStream() {
+    	return this.inputStream;
+    }
+    
     public long getResourceLoadTimeStamp() {
         return this.createTimeStamp;
     }

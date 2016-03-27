@@ -26,6 +26,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,6 +39,8 @@ import java.util.LinkedHashMap;
 import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.event.DocumentListener;
+import com.openhtmltopdf.extend.HttpStreamFactory;
+import com.openhtmltopdf.extend.HttpStream;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.resource.CSSResource;
 import com.openhtmltopdf.resource.ImageResource;
@@ -66,10 +71,53 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     /**
      * a (simple) LRU cache
      */
-    protected LinkedHashMap _imageCache;
+    protected LinkedHashMap<String, ImageResource> _imageCache;
     private int _imageCacheCapacity;
     private String _baseURL;
+    private HttpStreamFactory _streamFactory = new DefaultHttpStreamFactory();
 
+    public static class DefaultHttpStream implements HttpStream {
+    	private InputStream strm;
+    	
+    	public DefaultHttpStream(InputStream strm) {
+    		this.strm = strm;
+    	}
+    	
+    	@Override
+    	public InputStream getStream() {
+    		return this.strm;
+    	}
+
+		@Override
+		public Reader getReader() {
+			try {
+				return new InputStreamReader(this.strm, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				XRLog.exception("Exception when creating stream reader", e);
+			}
+			return null;
+		}
+    }
+    
+    public static class DefaultHttpStreamFactory implements HttpStreamFactory {
+
+		@Override
+		public HttpStream getUrl(String uri) {
+			InputStream is = null;
+			
+	        try {
+	            is = new URL(uri).openStream();
+	        } catch (java.net.MalformedURLException e) {
+	            XRLog.exception("bad URL given: " + uri, e);
+	        } catch (java.io.FileNotFoundException e) {
+	            XRLog.exception("item at URI " + uri + " not found");
+	        } catch (java.io.IOException e) {
+	            XRLog.exception("IO problem for " + uri, e);
+	        }
+	        return new DefaultHttpStream(is);
+		}
+    }
+    
     /**
      * Creates a new instance of NaiveUserAgent with a max image cache of 16 images.
      */
@@ -87,16 +135,20 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
         // note we do *not* override removeEldestEntry() here--users of this class must call shrinkImageCache().
         // that's because we don't know when is a good time to flush the cache
-        this._imageCache = new java.util.LinkedHashMap(_imageCacheCapacity, 0.75f, true);
+        this._imageCache = new java.util.LinkedHashMap<String, ImageResource>(_imageCacheCapacity, 0.75f, true);
     }
 
+    public void setHttpStreamFactory(HttpStreamFactory factory) {
+    	this._streamFactory = factory;
+    }
+    
     /**
      * If the image cache has more items than the limit specified for this class, the least-recently used will
      * be dropped from cache until it reaches the desired size.
      */
     public void shrinkImageCache() {
         int ovr = _imageCache.size() - _imageCacheCapacity;
-        Iterator it = _imageCache.keySet().iterator();
+        Iterator<String> it = _imageCache.keySet().iterator();
         while (it.hasNext() && ovr-- > 0) {
             it.next();
             it.remove();
@@ -111,42 +163,94 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
 
     /**
-     * Gets a Reader for the resource identified
-     *
-     * @param uri PARAM
-     * @return The stylesheet value
+     * Gets a InputStream for the resource identified
      */
-    //TOdO:implement this with nio.
     protected InputStream resolveAndOpenStream(String uri) {
         java.io.InputStream is = null;
         uri = resolveURI(uri);
+        
         try {
-            is = new URL(uri).openStream();
-        } catch (java.net.MalformedURLException e) {
-            XRLog.exception("bad URL given: " + uri, e);
-        } catch (java.io.FileNotFoundException e) {
-            XRLog.exception("item at URI " + uri + " not found");
-        } catch (java.io.IOException e) {
-            XRLog.exception("IO problem for " + uri, e);
+			URL urlObj = new URL(uri);
+
+			if (urlObj.getProtocol().equalsIgnoreCase("http") ||
+				urlObj.getProtocol().equalsIgnoreCase("https")) {
+				return _streamFactory.getUrl(uri).getStream();
+			}
+			else {
+		        try {
+		            is = new URL(uri).openStream();
+		        } catch (java.net.MalformedURLException e) {
+		            XRLog.exception("bad URL given: " + uri, e);
+		        } catch (java.io.FileNotFoundException e) {
+		            XRLog.exception("item at URI " + uri + " not found");
+		        } catch (java.io.IOException e) {
+		            XRLog.exception("IO problem for " + uri, e);
+		        }
+			}
+        } catch (MalformedURLException e2) {
+        	XRLog.exception("bad URL given: " + uri, e2);
         }
+
         return is;
     }
 
     /**
+     * Gets a reader for the identified resource.
+     */
+    protected Reader resolveAndOpenReader(String uri) {
+    	InputStream is = null;
+    	uri = resolveURI(uri);
+    	
+        try {
+			URL urlObj = new URL(uri);
+
+			if (urlObj.getProtocol().equalsIgnoreCase("http") ||
+				urlObj.getProtocol().equalsIgnoreCase("https")) {
+				return _streamFactory.getUrl(uri).getReader();
+			}
+			else {
+		        try {
+		            is = new URL(uri).openStream();
+		        } catch (java.net.MalformedURLException e) {
+		            XRLog.exception("bad URL given: " + uri, e);
+		        } catch (java.io.FileNotFoundException e) {
+		            XRLog.exception("item at URI " + uri + " not found");
+		        } catch (java.io.IOException e) {
+		            XRLog.exception("IO problem for " + uri, e);
+		        }
+			}
+        } catch (MalformedURLException e2) {
+        	XRLog.exception("bad URL given: " + uri, e2);
+        }
+    	
+    	try {
+			return is == null ? null : new InputStreamReader(is, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			XRLog.exception("Failed to create stream reader", e);
+		}
+    	
+    	return null;
+    }
+    
+    
+    
+    
+    /**
      * Retrieves the CSS located at the given URI.  It's assumed the URI does point to a CSS file--the URI will
-     * be accessed (using java.io or java.net), opened, read and then passed into the CSS parser.
+     * be accessed (using the set HttpStreamFactory or URL::openStream), opened, read and then passed into the CSS parser.
      * The result is packed up into an CSSResource for later consumption.
      *
      * @param uri Location of the CSS source.
      * @return A CSSResource containing the parsed CSS.
      */
+    @Override
     public CSSResource getCSSResource(String uri) {
-        return new CSSResource(resolveAndOpenStream(uri));
+        return new CSSResource(resolveAndOpenReader(uri));
     }
 
     /**
      * Retrieves the image located at the given URI. It's assumed the URI does point to an image--the URI will
-     * be accessed (using java.io or java.net), opened, read and then passed into the JDK image-parsing routines.
+     * be accessed (using the set HttpStreamFactory or URL::openStream), opened, read and then passed into the JDK image-parsing routines.
      * The result is packed up into an ImageResource for later consumption.
      *
      * @param uri Location of the image source.
@@ -154,12 +258,13 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     public ImageResource getImageResource(String uri) {
         ImageResource ir;
+        
         if (ImageUtil.isEmbeddedBase64Image(uri)) {
             BufferedImage image = ImageUtil.loadEmbeddedBase64Image(uri);
             ir = createImageResource(null, image);
         } else {
             uri = resolveURI(uri);
-            ir = (ImageResource) _imageCache.get(uri);
+            ir = _imageCache.get(uri);
             //TODO: check that cached image is still valid
             if (ir == null) {
                 InputStream is = resolveAndOpenStream(uri);
@@ -205,21 +310,22 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
     /**
      * Retrieves the XML located at the given URI. It's assumed the URI does point to a XML--the URI will
-     * be accessed (using java.io or java.net), opened, read and then passed into the XML parser (XMLReader)
+     * be accessed (using the set HttpStreamFactory or URL::openStream), opened, read and then passed into the XML parser (XMLReader)
      * configured for Flying Saucer. The result is packed up into an XMLResource for later consumption.
      *
      * @param uri Location of the XML source.
      * @return An XMLResource containing the image.
      */
     public XMLResource getXMLResource(String uri) {
-        InputStream inputStream = resolveAndOpenStream(uri);
+        Reader inputReader = resolveAndOpenReader(uri);
         XMLResource xmlResource;
+
         try {
-            xmlResource = XMLResource.load(inputStream);
+            xmlResource = XMLResource.load(inputReader);
         } finally {
-            if (inputStream != null) {
+            if (inputReader != null) {
                 try {
-                    inputStream.close();
+                    inputReader.close();
                 } catch (IOException e) {
                     // swallow
                 }

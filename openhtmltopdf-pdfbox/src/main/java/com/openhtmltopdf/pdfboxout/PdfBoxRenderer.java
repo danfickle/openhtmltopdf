@@ -60,6 +60,7 @@ import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.UserInterface;
 import com.openhtmltopdf.layout.BoxBuilder;
@@ -97,14 +98,13 @@ public class PdfBoxRenderer {
     
     private boolean _testMode;
 
-
     private PDFCreationListener _listener;
 
     public PdfBoxRenderer(boolean testMode) {
-        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode);
+        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode, null);
     }
 
-    public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode) {
+    public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode, HttpStreamFactory factory) {
         _pdfDoc = new PDDocument();
         
         _dotsPerPoint = dotsPerPoint;
@@ -113,6 +113,11 @@ public class PdfBoxRenderer {
         _outputDevice.setWriter(_pdfDoc);
         
         PdfBoxUserAgent userAgent = new PdfBoxUserAgent(_outputDevice);
+        if (factory != null) {
+            userAgent.setHttpStreamFactory(factory);
+        }
+        
+        
         _sharedContext = new SharedContext();
         _sharedContext.setUserAgentCallback(userAgent);
         _sharedContext.setCss(new StyleReference(userAgent));
@@ -155,7 +160,6 @@ public class PdfBoxRenderer {
         else
             _defaultTextDirection = BidiSplitter.LTR;
     }
-    
     
     public PdfBoxFontResolver getFontResolver() {
         return (PdfBoxFontResolver) _sharedContext.getFontResolver();

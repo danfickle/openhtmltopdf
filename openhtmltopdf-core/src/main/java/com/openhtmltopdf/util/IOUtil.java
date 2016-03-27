@@ -60,6 +60,7 @@ public class IOUtil {
      * and reading from it. will return the stream, or null if unable to open or read or a timeout occurred. Does not
      * buffer the stream.
      */
+    @Deprecated
     public static InputStream openStreamAtUrl(String uri) {
         InputStream is = null;
         try {

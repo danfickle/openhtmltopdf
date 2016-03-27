@@ -19,7 +19,7 @@
  */
 package com.openhtmltopdf.resource;
 
-import java.io.InputStream;
+import java.io.Reader;
 
 /**
  * @author Administrator
@@ -29,8 +29,8 @@ public class CSSResource extends AbstractResource {
     /**
      * Creates a new instance of CSSResource
      */
-    public CSSResource(InputStream stream) {
-        super(stream);
+    public CSSResource(Reader reader) {
+        super(reader);
     }
 
 }
