@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -125,7 +126,8 @@ public class ParagraphSplitter {
         }
         
     	do {
-            if (node.getNodeType() == Node.TEXT_NODE) {
+            if (node.getNodeType() == Node.TEXT_NODE
+		            || node.getNodeType() == Node.CDATA_SECTION_NODE) {
                 String text = ((Text) node).getData();
             	nearestBlock.add(text, (Text) node);
             	paragraphs.put((Text) node, nearestBlock);
