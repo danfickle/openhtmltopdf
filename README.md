@@ -21,7 +21,7 @@ LICENSE file in our distribution.
 
 GETTING OPEN HTML TO PDF
 ========
-New releases of Open HTML to PDF will be distributed through Maven.  Search maven for com.openhtmltopdf. Coming soon!
+New releases of Open HTML to PDF will be distributed through Maven.  Search maven for com.openhtmltopdf. [Coming very soon](https://github.com/danfickle/openhtmltopdf/issues/7)!
 
 GETTING STARTED
 ========
@@ -34,7 +34,7 @@ Add these to your maven dependencies section:
 ````xml
   	<properties>
   		<!-- Define the version of OPEN HTML TO PDF in the properties section of your POM. -->  	       
-  		<openhtml.version>0.0.1-SNAPSHOT</openhtml.version>
+  		<openhtml.version>0.0.1-RC2</openhtml.version>
   	</properties>
 
   	<dependency>
@@ -222,8 +222,13 @@ FAQ
 CHANGELOG
 ========
 
-head
+head - 0.0.1-RC3-SNAPSHOT
 ========
++ [Fixed crash issue when document contained CDATA sections](https://github.com/danfickle/openhtmltopdf/issues/16) Thanks @hiddendog
+
+0.0.1-RC2
+========
++ [Added support for font fallback for PDFs](https://github.com/danfickle/openhtmltopdf/issues/10)
 + [Added fluent builder style API for PDF conversion](https://github.com/danfickle/openhtmltopdf/issues/14)
 + [Added ability to plugin external HTTP/HTTPS implementation](https://github.com/danfickle/openhtmltopdf/issues/13)
 + [Added Jsoup HTML5 to DOM converter module](https://github.com/danfickle/openhtmltopdf/issues/12)
