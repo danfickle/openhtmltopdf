@@ -21,7 +21,7 @@ LICENSE file in our distribution.
 
 GETTING OPEN HTML TO PDF
 ========
-New releases of Open HTML to PDF will be distributed through Maven.  Search maven for com.openhtmltopdf. [Coming very soon](https://github.com/danfickle/openhtmltopdf/issues/7)!
+New releases of Open HTML to PDF will be distributed through Maven.  Search maven for [com.openhtmltopdf](http://mvnrepository.com/artifact/com.openhtmltopdf). Current maven release is ````0.0.1-RC2````.
 
 GETTING STARTED
 ========
@@ -224,6 +224,7 @@ CHANGELOG
 
 head - 0.0.1-RC3-SNAPSHOT
 ========
++ [Added support for font fallback for Java2D](https://github.com/danfickle/openhtmltopdf/issues/10) Thanks @willamette
 + [Fixed crash issue when document contained CDATA sections](https://github.com/danfickle/openhtmltopdf/issues/16) Thanks @hiddendog
 
 0.0.1-RC2
