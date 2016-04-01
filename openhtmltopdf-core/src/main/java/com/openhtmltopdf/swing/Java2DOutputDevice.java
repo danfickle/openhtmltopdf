@@ -49,7 +49,8 @@ import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.render.RenderingContext;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
-    private Graphics2D _graphics;
+    private final Graphics2D _graphics;
+    private AWTFSFont _font;
 
     public Java2DOutputDevice(Graphics2D graphics) {
         _graphics = graphics;
@@ -251,10 +252,16 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
         _graphics.setRenderingHint(key, value);
     }
     
+    @Override
     public void setFont(FSFont font) {
-        _graphics.setFont(((AWTFSFont)font).getAWTFont());
+        this._font = (AWTFSFont) font;
+        _graphics.setFont(this._font.getAWTFonts().get(0));
     }
 
+    public AWTFSFont getFont() {
+    	return this._font;
+    }
+    
     public void setStroke(Stroke s) {
         _graphics.setStroke(s);
     }

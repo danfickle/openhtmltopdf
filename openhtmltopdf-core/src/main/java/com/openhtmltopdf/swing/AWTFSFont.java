@@ -20,21 +20,24 @@
 package com.openhtmltopdf.swing;
 
 import java.awt.Font;
+import java.util.List;
 
 import com.openhtmltopdf.render.FSFont;
 
 public class AWTFSFont implements FSFont {
-    private Font _font;
+    private final List<Font> _fonts;
+    private final float _size;
     
-    public AWTFSFont(Font font) {
-        _font = font;
+    public AWTFSFont(List<Font> fonts, float size) {
+        _fonts = fonts;
+        _size = size;
     }
     
     public float getSize2D() {
-        return _font.getSize2D();
+        return _size;
     }
     
-    public Font getAWTFont() {
-        return _font;
+    public List<Font> getAWTFonts() {
+        return _fonts;
     }
 }

@@ -31,7 +31,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.openhtmltopdf.context.AWTFontResolver;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.EmptyStyle;
@@ -48,6 +47,7 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.simple.extend.FormSubmissionListener;
+import com.openhtmltopdf.swing.AWTFontResolver;
 import com.openhtmltopdf.swing.Java2DTextRenderer;
 import com.openhtmltopdf.swing.SwingReplacedElementFactory;
 import com.openhtmltopdf.util.XRLog;

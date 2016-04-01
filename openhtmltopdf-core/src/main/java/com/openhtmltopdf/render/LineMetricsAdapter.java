@@ -19,7 +19,11 @@
  */
 package com.openhtmltopdf.render;
 
+import java.awt.Font;
+import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -31,33 +35,72 @@ import java.awt.font.LineMetrics;
  * value for getAscent()).  So... for now we use LineMetrics for font metrics.
  */
 public class LineMetricsAdapter implements FSFontMetrics {
-    private LineMetrics _lineMetrics;
+    private final List<LineMetrics> _lineMetrics;
     
-    public LineMetricsAdapter(LineMetrics lineMetrics) {
-        _lineMetrics = lineMetrics;
+    public LineMetricsAdapter(List<Font> fonts, String str, FontRenderContext ctx) {
+        _lineMetrics = new ArrayList<LineMetrics>(fonts.size());
+    	for (Font fnt : fonts) {
+        	_lineMetrics.add(fnt.getLineMetrics(str, ctx));
+        }
     }
 
     public float getAscent() {
-        return _lineMetrics.getAscent();
+    	float maxAscent = Float.MIN_VALUE;
+    	
+    	for (LineMetrics met : _lineMetrics) {
+    		maxAscent = Math.max(maxAscent, met.getAscent());
+    	}
+    	
+        return maxAscent;
     }
 
     public float getDescent() {
-        return _lineMetrics.getDescent();
+    	float maxDescent = Float.MIN_VALUE;
+    	
+    	for (LineMetrics met : _lineMetrics) {
+    		maxDescent = Math.max(maxDescent, met.getDescent());
+    	}
+
+    	return maxDescent;
     }
 
     public float getStrikethroughOffset() {
-        return _lineMetrics.getStrikethroughOffset();
+    	float max = Float.MIN_VALUE;
+    	
+    	for (LineMetrics met : _lineMetrics) {
+    		max = Math.max(max, met.getStrikethroughOffset());
+    	}
+    	
+    	return max;
     }
 
     public float getStrikethroughThickness() {
-        return _lineMetrics.getStrikethroughThickness();
+    	float max = Float.MIN_VALUE;
+    	
+    	for (LineMetrics met : _lineMetrics) {
+    		max = Math.max(max, met.getStrikethroughThickness());
+    	}
+    	
+    	return max;
     }
 
     public float getUnderlineOffset() {
-        return _lineMetrics.getUnderlineOffset();
+    	float max = Float.MIN_VALUE;
+    	
+    	for (LineMetrics met : _lineMetrics) {
+    		max = Math.max(max, met.getUnderlineOffset());
+    	}
+    	
+    	return max;
     }
 
     public float getUnderlineThickness() {
-        return _lineMetrics.getUnderlineThickness();
+    	float max = Float.MIN_VALUE;
+    	
+    	for (LineMetrics met : _lineMetrics) {
+    		max = Math.max(max, met.getUnderlineThickness());
+    	}
+    	
+    	return max;
     }
 }

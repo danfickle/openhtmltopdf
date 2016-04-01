@@ -212,7 +212,7 @@ public abstract class FormField {
     public Font getFont() {
         FSFont font = getStyle().getFSFont(getContext());
         if (font instanceof AWTFSFont) {
-            return ((AWTFSFont) font).getAWTFont();
+            return ((AWTFSFont) font).getAWTFonts().get(0);
         }
         return null;
     }
