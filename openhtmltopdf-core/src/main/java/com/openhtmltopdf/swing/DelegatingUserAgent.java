@@ -40,7 +40,6 @@ public class DelegatingUserAgent extends NaiveUserAgent {
      * If the image cache has more items than the limit specified for this class, the least-recently used will
      * be dropped from cache until it reaches the desired size.
      */
-    @Override
     public void shrinkImageCache() {
         _imageResourceLoader.shrink();
     }

@@ -28,6 +28,8 @@ import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.event.DocumentListener;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.FSScrollPane;
 import com.openhtmltopdf.swing.ImageResourceLoader;
@@ -381,35 +383,14 @@ public class BrowserPanel extends JPanel implements DocumentListener {
            try {
                os = new FileOutputStream(path);
                try {
-               PdfBoxRenderer renderer = new PdfBoxRenderer(true);
-
-               renderer.setBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
-               renderer.setDefaultTextDirection(false);
-               renderer.setBidiReorderer(new ICUBidiReorderer());
-               
-               DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-               DocumentBuilder db = dbf.newDocumentBuilder();
-               
-               db.setEntityResolver(new EntityResolver() {
-            	    @Override
-            	        public InputSource resolveEntity(String publicId, String systemId) {
-            	            // it might be a good idea to insert a trace logging here that you are ignoring publicId/systemId
-            	    	 	// Returns a valid dummy source        
-            	    		return new InputSource(new StringReader(""));
-            	        }
-            	    });
-               
-               Document doc =  db.parse(manager.getBaseURL());
-
-               // TODO
-               //PDFCreationListener pdfCreationListener = new XHtmlMetaToPdfInfoAdapter( doc );
-               //renderer.setListener( pdfCreationListener );
-                              
-               renderer.setDocument(manager.getBaseURL());
-               renderer.layout();
-
-               renderer.createPDF(os);
-               setStatus( "Done export." );
+            	   PdfRendererBuilder builder = new PdfRendererBuilder();
+            	   builder.useBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+            	   builder.defaultTextDirection(TextDirection.LTR);
+                   builder.useBidiReorderer(new ICUBidiReorderer());
+                   builder.withUri(manager.getBaseURL());
+                   builder.toStream(os);
+                   builder.run();
+                   setStatus( "Done export." );
             } catch (Exception e) {
                 XRLog.general(Level.SEVERE, "Could not export PDF.", e);
                 e.printStackTrace();

@@ -154,6 +154,7 @@ public class SwingReplacedElementFactory implements ReplacedElementFactory {
         } else {
             // lookup in cache, or instantiate
             String ruri = uac.resolveURI(imageSrc);
+
             re = lookupImageReplacedElement(elem, ruri, cssWidth, cssHeight);
             if (re == null) {
                 XRLog.load(Level.FINE, "Swing: Image " + ruri + " requested at "+ " to " + cssWidth + ", " + cssHeight);

@@ -28,8 +28,9 @@ public class ShowDocBookPage {
     public JFrame frame;
     
     private static class ResourceLoadingUserAgent extends NaiveUserAgent {
-        protected InputStream resolveAndOpenStream(String uri) {
-        	InputStream result = super.resolveAndOpenStream(uri);
+        @Override
+    	protected InputStream openStream(String uri) {
+        	InputStream result = super.openStream(uri);
         	if (result == null && uri != null && uri.startsWith("file:")) {
         		return ShowDocBookPage.class.getResourceAsStream(uri.substring("file:".length()));
         	} else {

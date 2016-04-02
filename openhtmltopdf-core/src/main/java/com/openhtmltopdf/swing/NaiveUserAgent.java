@@ -19,7 +19,6 @@
  */
 package com.openhtmltopdf.swing;
 
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -33,12 +32,14 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.event.DocumentListener;
+import com.openhtmltopdf.extend.FSCache;
+import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.HttpStream;
 import com.openhtmltopdf.extend.UserAgentCallback;
@@ -67,15 +68,19 @@ import com.openhtmltopdf.util.XRLog;
  */
 public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
-    private static final int DEFAULT_IMAGE_CACHE_SIZE = 16;
     /**
-     * a (simple) LRU cache
+     * a (simple) cache
+     * This is only useful for the one run. For more than one run, set an external cache with
+     * setFSCache.
      */
-    protected LinkedHashMap<String, ImageResource> _imageCache;
-    private int _imageCacheCapacity;
-    private String _baseURL;
-    private HttpStreamFactory _streamFactory = new DefaultHttpStreamFactory();
+    protected final LinkedHashMap<String, ImageResource> _imageCache = new LinkedHashMap<String, ImageResource>();
+    private final FSUriResolver DEFAULT_URI_RESOLVER = new DefaultUriResolver(this); 
 
+    private String _baseURL;
+    protected HttpStreamFactory _streamFactory = new DefaultHttpStreamFactory();
+    protected FSCache _externalCache = new NullFSCache(false);
+    protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
+    
     public static class DefaultHttpStream implements HttpStream {
     	private InputStream strm;
     	
@@ -118,43 +123,49 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		}
     }
     
-    /**
-     * Creates a new instance of NaiveUserAgent with a max image cache of 16 images.
-     */
-    public NaiveUserAgent() {
-        this(DEFAULT_IMAGE_CACHE_SIZE);
+    public static class NullFSCache implements FSCache {
+    	
+    	private final boolean _log;
+    	
+    	public NullFSCache(boolean log) {
+    		this._log = log;
+    	}
+    	
+		@Override
+		public Object get(FSCacheKey cacheKey) {
+			if (_log) {
+				XRLog.load(Level.INFO, "Trying to retrieve object from cache: " + cacheKey.toString());
+			}
+			return null;
+		}
+
+		@Override
+		public void put(FSCacheKey cacheKey, Object obj) {
+			if (_log) {
+				XRLog.load(Level.INFO, "Trying to put object in cache: " + cacheKey.toString());
+			}
+		}
     }
-
-    /**
-     * Creates a new NaiveUserAgent with a cache of a specific size.
-     *
-     * @param imgCacheSize Number of images to hold in cache before LRU images are released.
-     */
-    public NaiveUserAgent(final int imgCacheSize) {
-        this._imageCacheCapacity = imgCacheSize;
-
-        // note we do *not* override removeEldestEntry() here--users of this class must call shrinkImageCache().
-        // that's because we don't know when is a good time to flush the cache
-        this._imageCache = new java.util.LinkedHashMap<String, ImageResource>(_imageCacheCapacity, 0.75f, true);
+    
+    public NaiveUserAgent() {
     }
 
     public void setHttpStreamFactory(HttpStreamFactory factory) {
     	this._streamFactory = factory;
     }
     
-    /**
-     * If the image cache has more items than the limit specified for this class, the least-recently used will
-     * be dropped from cache until it reaches the desired size.
-     */
-    public void shrinkImageCache() {
-        int ovr = _imageCache.size() - _imageCacheCapacity;
-        Iterator<String> it = _imageCache.keySet().iterator();
-        while (it.hasNext() && ovr-- > 0) {
-            it.next();
-            it.remove();
-        }
+    public void setExternalCache(FSCache cache) {
+    	this._externalCache = cache;
     }
 
+    public void setUriResolver(FSUriResolver resolver) {
+    	this._resolver = resolver;
+    }
+    
+    public FSUriResolver getDefaultUriResolver() {
+    	return DEFAULT_URI_RESOLVER;
+    }
+    
     /**
      * Empties the image cache entirely.
      */
@@ -163,11 +174,10 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
 
     /**
-     * Gets a InputStream for the resource identified
+     * Gets a InputStream for the resource identified by a resolved URI.
      */
-    protected InputStream resolveAndOpenStream(String uri) {
+    protected InputStream openStream(String uri) {
         java.io.InputStream is = null;
-        uri = resolveURI(uri);
         
         try {
 			URL urlObj = new URL(uri);
@@ -195,11 +205,10 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
 
     /**
-     * Gets a reader for the identified resource.
+     * Gets a reader for the identified resource by a resolved URI.
      */
-    protected Reader resolveAndOpenReader(String uri) {
+    protected Reader openReader(String uri) {
     	InputStream is = null;
-    	uri = resolveURI(uri);
     	
         try {
 			URL urlObj = new URL(uri);
@@ -232,9 +241,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	return null;
     }
     
-    
-    
-    
     /**
      * Retrieves the CSS located at the given URI.  It's assumed the URI does point to a CSS file--the URI will
      * be accessed (using the set HttpStreamFactory or URL::openStream), opened, read and then passed into the CSS parser.
@@ -245,7 +251,17 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     @Override
     public CSSResource getCSSResource(String uri) {
-        return new CSSResource(resolveAndOpenReader(uri));
+    	String resolved = _resolver.resolveURI(uri);
+    	FSCacheKey cacheKey = new FSCacheKey(resolved, CSSResource.class);
+    	CSSResource res = (CSSResource) _externalCache.get(cacheKey);
+    	
+    	if (res != null) {
+    		return res;
+    	}
+    	
+        CSSResource res2 = new CSSResource(openReader(resolved));
+        _externalCache.put(cacheKey, res2);
+        return res2;
     }
 
     /**
@@ -256,30 +272,50 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * @param uri Location of the image source.
      * @return An ImageResource containing the image.
      */
+    @Override
     public ImageResource getImageResource(String uri) {
+    	System.out.println("Getting image: " + uri);
         ImageResource ir;
         
         if (ImageUtil.isEmbeddedBase64Image(uri)) {
             BufferedImage image = ImageUtil.loadEmbeddedBase64Image(uri);
-            ir = createImageResource(null, image);
+            return new ImageResource(null, AWTFSImage.createImage(image));
         } else {
-            uri = resolveURI(uri);
-            ir = _imageCache.get(uri);
-            //TODO: check that cached image is still valid
-            if (ir == null) {
-                InputStream is = resolveAndOpenStream(uri);
-                if (is != null) {
+            String resolved = _resolver.resolveURI(uri);
+            
+            // First, we check the internal per run cache.
+            ir = _imageCache.get(resolved);
+            if (ir != null) {
+            	return ir;
+            }
+            
+           	// Then check the external multi run cache.
+            AWTFSImage fsImage = (AWTFSImage) _externalCache.get(new FSCacheKey(resolved, AWTFSImage.class));
+            if (fsImage != null) {
+            	return new ImageResource(resolved, fsImage);
+            }
+            
+            // Finally we fetch from the network or file, etc.
+            InputStream is = openStream(resolved);
+
+            if (is != null) {
                     try {
                         BufferedImage img = ImageIO.read(is);
                         if (img == null) {
                             throw new IOException("ImageIO.read() returned null");
                         }
-                        ir = createImageResource(uri, img);
-                        _imageCache.put(uri, ir);
+                        
+                        AWTFSImage fsImage2 = (AWTFSImage) AWTFSImage.createImage(img);
+                        _externalCache.put(new FSCacheKey(resolved, AWTFSImage.class), fsImage2);
+                        
+                        ir = new ImageResource(resolved, fsImage2);
+                        _imageCache.put(resolved, ir);
+                        
+                        return ir;
                     } catch (FileNotFoundException e) {
-                        XRLog.exception("Can't read image file; image at URI '" + uri + "' not found");
+                        XRLog.exception("Can't read image file; image at URI '" + resolved + "' not found");
                     } catch (IOException e) {
-                        XRLog.exception("Can't read image file; unexpected problem for URI '" + uri + "'", e);
+                        XRLog.exception("Can't read image file; unexpected problem for URI '" + resolved + "'", e);
                     } finally {
                         try {
                             is.close();
@@ -288,24 +324,9 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
                         }
                     }
                 }
-            }
-            if (ir == null) {
-                ir = createImageResource(uri, null);
-            }
+            
+            	return new ImageResource(resolved, null);
         }
-        return ir;
-    }
-
-    /**
-     * Factory method to generate ImageResources from a given Image. May be overridden in subclass. 
-     *
-     * @param uri The URI for the image, resolved to an absolute URI.
-     * @param img The image to package; may be null (for example, if image could not be loaded).
-     *
-     * @return An ImageResource containing the image.
-     */
-    protected ImageResource createImageResource(String uri, Image img) {
-        return new ImageResource(uri, AWTFSImage.createImage(img));
     }
 
     /**
@@ -316,8 +337,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * @param uri Location of the XML source.
      * @return An XMLResource containing the image.
      */
+    @Override
     public XMLResource getXMLResource(String uri) {
-        Reader inputReader = resolveAndOpenReader(uri);
+    	String resolved = _resolver.resolveURI(uri);
+    	XMLResource res = (XMLResource) _externalCache.get(new FSCacheKey(resolved, XMLResource.class));
+    	if (res != null) {
+    		return res;
+    	}
+    	
+        Reader inputReader = openReader(resolved);
         XMLResource xmlResource;
 
         try {
@@ -331,12 +359,23 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
                 }
             }
         }
+        _externalCache.put(new FSCacheKey(resolved, XMLResource.class), xmlResource);
         return xmlResource;
     }
 
+    @Override
     public byte[] getBinaryResource(String uri) {
-        InputStream is = resolveAndOpenStream(uri);
-        if (is==null) return null;
+    	String resolved = _resolver.resolveURI(uri);
+    	byte[] bytes = (byte[]) _externalCache.get(new FSCacheKey(resolved, byte[].class));
+    	if (bytes != null) {
+    		return bytes;
+    	}
+    	
+        InputStream is = openStream(resolved);
+        if (is == null) {
+        	return null;
+        }
+        
         try {
             ByteArrayOutputStream result = new ByteArrayOutputStream();
             byte[] buf = new byte[10240];
@@ -347,7 +386,9 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             is.close();
             is = null;
 
-            return result.toByteArray();
+            byte[] bytes2 = result.toByteArray();
+            _externalCache.put(new FSCacheKey(resolved, byte[].class), bytes2);
+            return bytes2;
         } catch (IOException e) {
             return null;
         } finally {
@@ -367,6 +408,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * @param uri A URI which might have been visited.
      * @return Always false; visits are not tracked in the NaiveUserAgent.
      */
+    @Override
     public boolean isVisited(String uri) {
         return false;
     }
@@ -376,67 +418,104 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      *
      * @param url A URI which anchors other, possibly relative URIs.
      */
+    @Override
     public void setBaseURL(String url) {
         _baseURL = url;
     }
 
-    /**
-     * Resolves the URI; if absolute, leaves as is, if relative, returns an absolute URI based on the baseUrl for
-     * the agent.
-     *
-     * @param uri A URI, possibly relative.
-     *
-     * @return A URI as String, resolved, or null if there was an exception (for example if the URI is malformed).
-     */
-    public String resolveURI(String uri) {
-        if (uri == null) return null;
-        String ret = null;
-        if (_baseURL == null) {//first try to set a base URL
-            try {
-                URI result = new URI(uri);
-                if (result.isAbsolute()) setBaseURL(result.toString());
-            } catch (URISyntaxException e) {
-                XRLog.exception("The default NaiveUserAgent could not use the URL as base url: " + uri, e);
-            }
-            if (_baseURL == null) { // still not set -> fallback to current working directory
-                try {
-                    setBaseURL(new File(".").toURI().toURL().toExternalForm());
-                } catch (Exception e1) {
-                    XRLog.exception("The default NaiveUserAgent doesn't know how to resolve the base URL for " + uri);
-                    return null;
-                }
-            }
-        }
-        // test if the URI is valid; if not, try to assign the base url as its parent
-        try {
-            URI result = new URI(uri);
-            if (!result.isAbsolute()) {
-                XRLog.load(uri + " is not a URL; may be relative. Testing using parent URL " + _baseURL);
-                result=new URI(_baseURL).resolve(result);
-            }
-            ret = result.toString();
-        } catch (URISyntaxException e) {
-            XRLog.exception("The default NaiveUserAgent cannot resolve the URL " + uri + " with base URL " + _baseURL);
-        }
-        return ret;
-    }
+    public static class DefaultUriResolver implements FSUriResolver {
+
+    	private final NaiveUserAgent _agent;
+    	
+    	private DefaultUriResolver(NaiveUserAgent agent) {
+    		this._agent = agent;
+    	}
+    	
+		/**
+		 * Resolves the URI; if absolute, leaves as is, if relative, returns an
+		 * absolute URI based on the baseUrl for the agent.
+		 *
+		 * @param uri
+		 *            A URI, possibly relative.
+		 *
+		 * @return A URI as String, resolved, or null if there was an exception
+		 *         (for example if the URI is malformed).
+		 */
+    	@Override
+		public String resolveURI(String uri) {
+			if (uri == null)
+				return null;
+			
+			String ret = null;
+			
+			if (_agent.getBaseURL() == null) {// first try to set a base URL
+
+				try {
+					URI result = new URI(uri);
+					if (result.isAbsolute())
+						_agent.setBaseURL(result.toString());
+				} catch (URISyntaxException e) {
+					XRLog.exception(
+							"The default NaiveUserAgent could not use the URL as base url: " + uri, e);
+				}
+
+				if (_agent.getBaseURL() == null) { // still not set -> fallback to current working directory
+					try {
+						XRLog.load(Level.WARNING, "Using current working directiory as base uri.");
+						_agent.setBaseURL(new File(".").toURI().toURL().toExternalForm());
+					} catch (Exception e1) {
+						XRLog.exception("The default NaiveUserAgent doesn't know how to resolve the base URL for " + uri);
+						return null;
+					}
+				}
+			}
+			
+			// test if the URI is valid; if not, try to assign the base url as
+			// its parent
+			try {
+				URI result = new URI(uri);
+				if (!result.isAbsolute()) {
+					XRLog.load(uri
+							+ " is not a URL; may be relative. Testing using parent URL "
+							+ _agent._baseURL);
+					result = new URI(_agent.getBaseURL()).resolve(result);
+				}
+				ret = result.toString();
+			} catch (URISyntaxException e) {
+				XRLog.exception("The default NaiveUserAgent cannot resolve the URL "
+						+ uri + " with base URL " + _agent._baseURL);
+			}
+
+			return ret;
+		}
+	}
 
     /**
      * Returns the current baseUrl for this class.
      */
+    @Override
     public String getBaseURL() {
         return _baseURL;
     }
 
+    @Override
     public void documentStarted() {
-        shrinkImageCache();
+        clearImageCache();
     }
 
+    @Override
     public void documentLoaded() { /* ignore*/ }
 
+    @Override
     public void onLayoutException(Throwable t) { /* ignore*/ }
 
+    @Override
     public void onRenderException(Throwable t) { /* ignore*/ }
+
+	@Override
+	public String resolveURI(String uri) {
+		return _resolver.resolveURI(uri);
+	}
 }
 
 /*

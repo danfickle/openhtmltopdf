@@ -29,6 +29,7 @@ import java.util.Locale;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.resource.ImageResource;
+import com.openhtmltopdf.swing.FSCacheKey;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 import com.openhtmltopdf.util.ImageUtil;
 import com.openhtmltopdf.util.XRLog;
@@ -41,7 +42,7 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
     private final PdfBoxOutputDevice _outputDevice;
 
     public PdfBoxUserAgent(PdfBoxOutputDevice outputDevice) {
-		super(IMAGE_CACHE_CAPACITY);
+		super();
 		_outputDevice = outputDevice;
     }
 
@@ -58,7 +59,11 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
     
     public ImageResource getImageResource(String uriStr) {
         String uriResolved = resolveURI(uriStr);
-        ImageResource resource = (ImageResource) _imageCache.get(uriResolved);
+        ImageResource resource = _imageCache.get(uriResolved);
+        
+        if (resource == null) {
+            resource = (ImageResource) _externalCache.get(new FSCacheKey(uriResolved, PdfBoxImage.class));
+        }
 
         if (resource != null && resource.getImage() instanceof PdfBoxImage) {
             // Make copy of PdfBoxImage so we don't stuff up the cache.
@@ -72,7 +77,7 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
             _outputDevice.realizeImage((PdfBoxImage) resource.getImage());
             _imageCache.put(uriResolved, resource);
         } else {
-            InputStream is = resolveAndOpenStream(uriStr);
+            InputStream is = openStream(uriResolved);
             
             if (is != null) {
                 try {
@@ -94,9 +99,10 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
                         PdfBoxImage fsImage = new PdfBoxImage(imgBytes, uriStr);
                         scaleToOutputResolution(fsImage);
                         _outputDevice.realizeImage(fsImage);
-                        resource = new ImageResource(uriStr, fsImage);
+                        resource = new ImageResource(uriResolved, fsImage);
                     }
-                    _imageCache.put(uriStr, resource);
+                    _imageCache.put(uriResolved, resource);
+                    _externalCache.put(new FSCacheKey(uriResolved, PdfBoxImage.class), resource);
                 } catch (Exception e) {
                     XRLog.exception(
                             "Can't read image file; unexpected problem for URI '"

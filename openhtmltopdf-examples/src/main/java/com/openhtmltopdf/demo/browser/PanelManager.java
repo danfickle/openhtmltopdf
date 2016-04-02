@@ -53,7 +53,6 @@ public class PanelManager extends DelegatingUserAgent {
      */
     public String resolveURI(String uri) {
         final String burl = getBaseURL();
-
         URL ref = null;
 
         if (uri == null) return burl;

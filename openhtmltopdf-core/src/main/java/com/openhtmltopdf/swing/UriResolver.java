@@ -14,7 +14,8 @@ public class UriResolver {
         if (uri == null) return null;
         String ret = null;
         if (_baseUri == null) {//first try to set a base URL
-            try {
+            XRLog.load(Level.WARNING, "Base url is null, trying to configure one now.");
+        	try {
                 URL result = new URL(uri);
                 setBaseUri(result.toExternalForm());
             } catch (MalformedURLException e) {
@@ -39,6 +40,7 @@ public class UriResolver {
                 XRLog.exception("The default NaiveUserAgent cannot resolve the URL " + uri + " with base URL " + _baseUri);
             }
         }
+
         return ret;
 
     }
