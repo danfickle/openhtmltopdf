@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Locale;
 
-import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.swing.FSCacheKey;
@@ -35,8 +34,6 @@ import com.openhtmltopdf.util.ImageUtil;
 import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxUserAgent extends NaiveUserAgent {
-    private static final int IMAGE_CACHE_CAPACITY = 32;
-
     private SharedContext _sharedContext;
 
     private final PdfBoxOutputDevice _outputDevice;

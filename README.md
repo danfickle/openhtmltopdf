@@ -182,6 +182,37 @@ as simple as adding the following code:
 ````
 Then use ````builder.useHttpStreamImplementation(new OkHttpStreamFactory())````.
 
+CACHE BETWEEN RUNS - INTRODUCED IN RC3
+=======
+By default, Open HTML to PDF should not cache anything between runs. However, it allows the user to plugin an external cache. It should
+be noted that the URI received by the cache is already resolved (see below). Here is a simple external cache:
+````java
+	public static class SimpleCache implements FSCache {
+		private final Map<FSCacheKey, Object> cache = new HashMap<>();
+		
+		@Override
+		public Object get(FSCacheKey cacheKey) {
+			Object obj = cache.get(cacheKey);
+			System.out.println("Requesting: " + cacheKey.getUri() + " of type: " + cacheKey.getClazz().getName() + ", got it: " + (obj != null));
+			return obj;
+		}
+
+		@Override
+		public void put(FSCacheKey cacheKey, Object obj)  {
+			System.out.println("Putting: " + cacheKey.getUri() + " of type: " + cacheKey.getClazz().getName());
+			cache.put(cacheKey, obj);
+		}
+	}
+````
+Of course, you may want to customize your cache by inspecting the URI or class name contained by cache key. Once you have a cache, you can set it
+on the builder with ````builder.useCache(cache)````.
+
+URI RESOLVER - INTRODUCED IN RC3
+=======
+By default, the code attempts to resolve relative URIs by using the document URI as a base URI. Absolute URIs are returned unchanged. If you wish to plugin your
+own resolver, you can. This can not only resolve relative URIs but also resolve URIs in a private address space or even reject a URI. To use an external resolver 
+implement ````FSUriResolver```` and use it with ````builder.useUriResolver(new MyResolver())````.
+
 LOGGING
 =======
 Three options are provided by Open HTML to PDF. The default is to use java.util.logging. If you prefer to output using log4j or slf4j, adapters are provided:
@@ -224,6 +255,8 @@ CHANGELOG
 
 head - 0.0.1-RC3-SNAPSHOT
 ========
++ [Added support for plugging in an external URI resolver](https://github.com/danfickle/openhtmltopdf/issues/18)
++ [Added support for plugging in an external cache](https://github.com/danfickle/openhtmltopdf/issues/18)
 + [Added support for font fallback for Java2D](https://github.com/danfickle/openhtmltopdf/issues/10) Thanks @willamette
 + [Fixed crash issue when document contained CDATA sections](https://github.com/danfickle/openhtmltopdf/issues/16) Thanks @hiddendog
 

@@ -76,7 +76,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     protected final LinkedHashMap<String, ImageResource> _imageCache = new LinkedHashMap<String, ImageResource>();
     private final FSUriResolver DEFAULT_URI_RESOLVER = new DefaultUriResolver(this); 
 
-    private String _baseURL;
     protected HttpStreamFactory _streamFactory = new DefaultHttpStreamFactory();
     protected FSCache _externalCache = new NullFSCache(false);
     protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
@@ -420,12 +419,13 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     @Override
     public void setBaseURL(String url) {
-        _baseURL = url;
+        _resolver.setBaseURL(url);
     }
 
     public static class DefaultUriResolver implements FSUriResolver {
 
     	private final NaiveUserAgent _agent;
+    	private String _baseURI;
     	
     	private DefaultUriResolver(NaiveUserAgent agent) {
     		this._agent = agent;
@@ -477,16 +477,26 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 				if (!result.isAbsolute()) {
 					XRLog.load(uri
 							+ " is not a URL; may be relative. Testing using parent URL "
-							+ _agent._baseURL);
+							+ _agent.getBaseURL());
 					result = new URI(_agent.getBaseURL()).resolve(result);
 				}
 				ret = result.toString();
 			} catch (URISyntaxException e) {
 				XRLog.exception("The default NaiveUserAgent cannot resolve the URL "
-						+ uri + " with base URL " + _agent._baseURL);
+						+ uri + " with base URL " + _agent.getBaseURL());
 			}
 
 			return ret;
+		}
+
+		@Override
+		public void setBaseURL(String uri) {
+			this._baseURI = uri;
+		}
+
+		@Override
+		public String getBaseURL() {
+			return this._baseURI;
 		}
 	}
 
@@ -495,7 +505,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     @Override
     public String getBaseURL() {
-        return _baseURL;
+        return _resolver.getBaseURL();
     }
 
     @Override

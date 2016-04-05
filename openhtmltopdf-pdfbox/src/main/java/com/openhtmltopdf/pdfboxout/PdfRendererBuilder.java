@@ -7,6 +7,8 @@ import org.w3c.dom.Document;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
+import com.openhtmltopdf.extend.FSCache;
+import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 
@@ -26,6 +28,8 @@ public class PdfRendererBuilder
     private String _uri;
     private File _file;
     private OutputStream _os;
+    private FSUriResolver _resolver;
+    private FSCache _cache;
     
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
@@ -42,7 +46,7 @@ public class PdfRendererBuilder
      * @return
      */
     public PdfBoxRenderer buildPdfRenderer() {
-        return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer, _html, _document, _baseUri, _uri, _file, _os);
+        return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer, _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache);
     }
     
     /**
@@ -83,6 +87,27 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder useHttpStreamImplementation(HttpStreamFactory factory) {
         this._httpStreamFactory = factory;
+        return this;
+    }
+    
+    /**
+     * Provides a uri resolver to resolve relative uris or private uri schemes.
+     * @param resolver
+     * @return
+     */
+    public PdfRendererBuilder useUriResolver(FSUriResolver resolver) {
+        this._resolver = resolver;
+        return this;
+    }
+    
+    /**
+     * Provides an external cache which can choose to cache items between runs,
+     * such as fonts or logo images.
+     * @param cache
+     * @return
+     */
+    public PdfRendererBuilder useCache(FSCache cache) {
+        this._cache = cache;
         return this;
     }
     

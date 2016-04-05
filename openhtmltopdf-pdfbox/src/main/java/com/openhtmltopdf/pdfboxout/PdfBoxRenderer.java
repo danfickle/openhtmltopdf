@@ -58,6 +58,8 @@ import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.FSCache;
+import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.UserInterface;
@@ -101,10 +103,10 @@ public class PdfBoxRenderer {
     private OutputStream _os;
 
     public PdfBoxRenderer(boolean testMode) {
-        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode, null);
+        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode, null, null, null);
     }
 
-    public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode, HttpStreamFactory factory) {
+    public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode, HttpStreamFactory factory, FSUriResolver _resolver, FSCache _cache) {
         _pdfDoc = new PDDocument();
         
         _dotsPerPoint = dotsPerPoint;
@@ -113,10 +115,18 @@ public class PdfBoxRenderer {
         _outputDevice.setWriter(_pdfDoc);
         
         PdfBoxUserAgent userAgent = new PdfBoxUserAgent(_outputDevice);
+
         if (factory != null) {
             userAgent.setHttpStreamFactory(factory);
         }
         
+        if (_resolver != null) {
+            userAgent.setUriResolver(_resolver);
+        }
+        
+        if (_cache != null) {
+            userAgent.setExternalCache(_cache);
+        }
         
         _sharedContext = new SharedContext();
         _sharedContext.setUserAgentCallback(userAgent);
@@ -141,8 +151,8 @@ public class PdfBoxRenderer {
             boolean useSubsets, HttpStreamFactory httpStreamFactory,
             BidiSplitterFactory splitterFactory, BidiReorderer reorderer, String html,
             Document document, String baseUri, String uri, File file,
-            OutputStream os) {
-        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, useSubsets, testMode, httpStreamFactory);
+            OutputStream os, FSUriResolver _resolver, FSCache _cache) {
+        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, useSubsets, testMode, httpStreamFactory, _resolver, _cache);
         
         if (splitterFactory != null) {
             this.setBidiSplitter(splitterFactory);
