@@ -1,0 +1,462 @@
+<html>
+<head>
+	<style type="text/css">
+		* {
+			box-sizing: border-box;
+			font-family: "Helvetica Neue", Helvetica, Arial,
+			sans-serif;
+		}
+
+		div.header {
+			display: block;
+			text-align: left;
+			position: running(header);
+		}
+
+		.header {
+			font-size: 6pt;
+		}
+
+		div.footer {
+			display: block;
+			text-align: center;
+			position: running(footer);
+		}
+
+		.fmi {
+			/*page-break-after: always;*/
+			/*page-break-inside: avoid;*/
+		}
+
+		.fmi table {
+			page-break-inside: avoid;
+			border-collapse: separate;
+			width: 100%;
+			table-layout: fixed;
+		}
+
+		.line {
+			border-top: 1px solid #000000;
+		}
+
+		.titlefont {
+			font-size: 12pt;
+			font-weight: 700;
+		}
+
+		.subtitle {
+			font-weight: 700;
+		}
+
+		.heading {
+			padding-top: 0.3cm;
+		}
+
+		.gray {
+			background-color: #e3e3e5;
+		}
+
+		.blue {
+			background-color: #a5bde3;
+		}
+
+		.white {
+			background-color: #fff;
+		}
+
+		.clear {
+			clear: both;
+		}
+
+		body, div, span {
+			margin: 0;
+			padding: 0;
+			font-size: 10pt;
+		}
+
+		ul, ol {
+			padding: 0;
+		}
+
+		.ulPfeil {
+			list-style: none;
+			padding-left: 5px;
+			/*position: relative;*/
+			margin-left: 16px;
+			page-break-inside: avoid;
+		}
+
+		.uiPfeilImg {
+			font-family: Helvetica, Arial, "Noto Sans", serif;
+			font-size: 9px;
+			padding-top: 3px;
+			padding-left: 10px;
+			vertical-align: top;
+		}
+
+		.liTable {
+			border: none;
+			page-break-inside: avoid;
+			position: relative;
+			left: -22px;
+			table-layout: fixed;
+		}
+
+		.liTable tr {
+			position: relative;
+		}
+
+		.ulPfeilContent {
+		}
+
+		table.blueBox table.liTable td {
+			border: none;
+			page-break-inside: avoid;
+			page-break-before: avoid;
+		}
+
+		/*
+		 * Styling einzelnen Blöcke
+		 */
+		.SpnDbContentUrsachen + .SpnDbContentUrsachen,
+		.SpnDbContentPruefschritte + .SpnDbContentPruefschritte,
+		.SpnDbContentAbhilfen + .SpnDbContentAbhilfen,
+		.SpnDbContentRichtext + .SpnDbContentFolgefehler {
+
+			margin-top: 0.2cm;
+			border-top: 3px solid #a5bde3;
+			padding-top: 0.2cm;
+
+			/*page-break-inside: avoid;*/
+			/*page-break-before: avoid;*/
+			/*page-break-after: avoid;*/
+		}
+
+		.SpnDbContentRichtext {
+		}
+
+		table.blueBox {
+			table-layout: fixed;
+			-fs-table-paginate: paginate;
+			-fs-keep-with-inline: keep;
+			/*position: relative;*/
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+
+		.aufzaehlung {
+			margin-left: 2em;
+		}
+
+		.aufzaehlung li {
+			margin-left: 5px;
+		}
+
+		td.white div.SpnDbContentRichtext:first-child,
+		td.white div.SpnDbContentUrsachen b,
+		td.white div.SpnDbContentAbhilfen b,
+		td.white div.SpnDbContentPruefschritte b {
+			padding-left: 5px;
+		}
+
+		td.blueBoxWhiteContent {
+			margin: 0;
+			padding: 0.2cm;
+			background-color: #ffffff;
+		}
+
+		table.blueBox td.blueBoxWhiteContent {
+			padding: 5px 0;
+		}
+
+		table.blueBox td.blueBoxWhiteContent li {
+			padding-right: 5px;
+		}
+
+		table.blueBox td,
+		table.blueBox th,
+		table.blueBox .whiteInfoCell {
+			border: 3px solid #a5bde3;
+		}
+
+		.fmiText {
+			width: 100%;
+			text-align: center;
+			background-color: #eee;
+		}
+
+		td.whiteInfoCell {
+			background-color: #fff;
+			text-align: center;
+			padding: 0.2cm;
+		}
+
+		.tblSpnDbContentTable {
+			width: 100%;
+			table-layout: fixed;
+			margin-top: 0.4cm;
+		}
+
+		table.tblSpnDbContentTable td,
+		table.tblSpnDbContentTable th {
+			border: 1px solid black;
+			word-break: break-all;
+		}
+
+		.blueBox .heading {
+			width: 100%;
+			background-color: #e3e3e5;
+		}
+
+		.blueBox tr.blueBoxHeader {
+			display: table-header-group;
+			background-color: #e3e3e5;
+		}
+
+		.blueBoxHeaderSubtitle {
+			background-color: #a5bde3;
+			padding-left: 0.1cm;
+		}
+
+		.blueBoxHeader th {
+			text-align: left;
+		}
+
+		table.blueBox th.blueBoxHeaderTd {
+			padding: 0;
+			margin: 0;
+			border: none;
+		}</style>
+	<style type="text/css" media="print">
+		@font-face {
+			font-family: "Noto Sans";
+			src: url("NotoSans-Regular.ttf") format("truetype");
+			-fs-pdf-font-embed: embed;
+		}
+
+		@page {
+			size: a4;
+			margin: 1.5cm 1cm 1cm 2cm;
+			-fs-flow-top: "header";
+			-fs-flow-bottom: "footer";
+		}
+
+		.pagebreak {
+			page-break-before: always;
+		}
+
+		.tblSpnDbContentTable {
+			page-break-inside: avoid;
+		}
+
+		@page {
+			@top-left {
+				content: element(header)
+			}
+		}
+
+		@page {
+			@bottom-center {
+				content: element(footer)
+			}
+		}
+
+		#pagenumber:before {
+			content: counter(page);
+		}
+
+		#pagecount:before {
+			content: counter(pages);
+		}
+
+		.uiPfeilImg {
+			padding-top: 0;
+		}</style>
+	<style type="text/css" media="screen">
+		.content, .header, .footer {
+			max-width: 1000px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+	</style>
+	<meta charset="utf-8"/>
+	<title></title></head>
+<body>
+<div id="header" class="header">
+	<table>
+		<tr>
+			<td style="width:10cm;text-align:left;">
+				Some Document ...
+			</td>
+			<td style="width: 4cm;">Version: 2016-02-01</td>
+			<td style="width: 3cm;">Page<span id="pagenumber"></span>/<span id="pagecount"></span></td>
+			<td></td>
+		</tr>
+	</table>
+</div>
+<div id="footer" class="footer"></div>
+<div class="content"><br/>
+	<div style="height:18.0cm">&#160;</div>
+	<br/><br/>
+	<div class="gray" style="padding:0.3cm;display:block;">
+		<table class="blue"
+			   style="padding:0.2cm;width=100%;display:block;">
+			<tr>
+				<td class="subtitle" style="padding-right: 2cm;">ABC</td>
+				<td class="whiteInfoCell"
+					style="width: 1cm;text-align:center;">5
+				</td>
+				<td style="padding-left: 2cm;">
+				</td>
+				<td class="fmiText">Lorem ipsum dolor site</td>
+			</tr>
+		</table>
+		<table class="gray">
+			<tr>
+				<td style="width: 1cm;">&#160;</td>
+				<td style="width: 100%;">
+					<div>
+						<table class="blueBox" style="width:100%;"
+							   cellspacing="0" cellpadding="0">
+							<thead class="blueBoxHeader">
+							<tr>
+								<th class="blueBoxHeaderTd">
+									<div class="heading"><span class="subtitle">Aliquyam</span></div>
+								</th>
+							</tr>
+							<tr class="blue">
+								<th>
+									<div class="subtitle blueBoxHeaderSubtitle">
+										Voluptua aliquyam
+									</div>
+								</th>
+							</tr>
+							</thead>
+							<tbody>
+							<tr>
+								<td class="white blueBoxWhiteContent">
+									<div
+											class="SpnDbContentUrsachen SpnDbContent"><b>Stet clita kasd gubergren, no
+										sea takimata sanctus est Lorem ipsum dolor sit amet:</b>
+										<div
+												class="SpnDbContentUrsache SpnDbContent">
+											<ul class="ulPfeil">
+												<li class="ulPfeilLI">
+													<table border="0" cellspacing="0"
+														   cellpadding="0" class="liTable">
+														<tr>
+															<td class="uiPfeilImg">►</td>
+															<td class="ulPfeilContent">
+																<div class="SpnDbContentRichtext SpnDbContent">Lorem
+																	ipsum dolor sit amet, consetetur sadipscing elitr,
+																	sed diam nonumy eirmod tempor invidunt ut labore et
+																	dolore magna aliquyam erat, sed diam voluptua. At
+																	vero eos et accusam et justo duo dolores et ea
+																	rebum. Stet clita kasd gubergren, no sea takimata
+																	sanctus est Lorem ipsum dolor sit amet.
+																</div>
+															</td>
+														</tr>
+													</table>
+												</li>
+											</ul>
+										</div>
+										<div
+												class="SpnDbContentUrsache SpnDbContent">
+											<ul class="ulPfeil">
+												<li class="ulPfeilLI">
+													<table border="0" cellspacing="0"
+														   cellpadding="0" class="liTable">
+														<tr>
+															<td class="uiPfeilImg">►</td>
+															<td class="ulPfeilContent">
+																<div
+																		class="SpnDbContentRichtext SpnDbContent">Bacon
+																	ipsum dolor amet beef ribs bacon short ribs ribeye
+																	prosciutto cow biltong tri-tip capicola fatback
+																	short loin. Pork chop tongue sirloin picanha ribeye
+																	ham hock. Short loin prosciutto ground round
+																	meatball tri-tip, shank venison chicken pork loin
+																	tongue fatback ham hock bresaola leberkas pastrami.
+																	Hamburger t-bone cow ball tip beef turducken.
+																</div>
+															</td>
+														</tr>
+													</table>
+												</li>
+											</ul>
+										</div>
+									</div>
+									<div
+											class="SpnDbContentUrsachen SpnDbContent"><b>Does your lorem ipsum text long
+										for something a little meatier? Give our generator a try… it’s tasty!</b>
+										<div
+												class="SpnDbContentUrsache SpnDbContent">
+											<ul class="ulPfeil">
+												<li class="ulPfeilLI">
+													<table border="0" cellspacing="0"
+														   cellpadding="0" class="liTable">
+														<tr>
+															<td class="uiPfeilImg">►</td>
+															<td class="ulPfeilContent">
+																<div
+																		class="SpnDbContentRichtext SpnDbContent">Beef
+																	ribs boudin tri-tip landjaeger, tail picanha spare
+																	ribs turkey frankfurter flank cow meatloaf rump.
+																	Tail beef ribs short ribs pastrami boudin, porchetta
+																	meatloaf biltong. Tenderloin pork loin cow corned
+																	beef, brisket prosciutto porchetta ham hock
+																	turducken kevin hamburger pancetta ribeye shankle
+																	bresaola. Andouille t-bone corned beef ground round
+																	meatloaf.
+																</div>
+															</td>
+														</tr>
+													</table>
+												</li>
+											</ul>
+										</div>
+										<div
+												class="SpnDbContentUrsache SpnDbContent">
+											<ul class="ulPfeil">
+												<li class="ulPfeilLI">
+													<table border="0" cellspacing="0"
+														   cellpadding="0" class="liTable">
+														<tr>
+															<td class="uiPfeilImg">►</td>
+															<td class="ulPfeilContent">
+																<div
+																		class="SpnDbContentRichtext SpnDbContent">
+																	Bresaola turkey pig chuck, cupim turducken filet
+																	mignon kielbasa t-bone shankle alcatra landjaeger
+																	pork belly doner. Beef ribs prosciutto jowl,
+																	frankfurter meatball biltong hamburger short loin
+																	picanha. Beef pork belly salami kevin, ham hock
+																	brisket tongue landjaeger strip steak pork chop
+																	sausage jowl meatloaf venison prosciutto. Cupim
+																	flank beef porchetta short loin prosciutto tri-tip
+																	hamburger picanha ham swine spare ribs tenderloin
+																	pork loin corned beef.
+																</div>
+															</td>
+														</tr>
+													</table>
+												</li>
+											</ul>
+										</div>
+									</div>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<br/><!-- <div class="pagebreak"></div> -->
+	<div style="text-align: center;">End of Document</div>
+</div>
+</body>
+</html>
+
