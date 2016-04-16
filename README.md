@@ -250,6 +250,13 @@ FAQ
 + Flowing columns are not implemented.
 + No, it's not a web browser, although the 'browser' example is pretty impressive.
 
+TEST CASES
+========
+Test cases, failing or working are welcome, please place them
+in ````/openhtmltopdf-examples/src/main/resources/testcases/````
+and run them
+from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/TestcaseRunner.java````.
+
 CHANGELOG
 ========
 
