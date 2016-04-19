@@ -19,6 +19,8 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
+import org.apache.fontbox.ttf.TTFParser;
+import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
@@ -156,36 +158,40 @@ public class PdfBoxFontResolver implements FontResolver {
 
     public void addFont(String path, String fontFamilyNameOverride) throws IOException {
         String lower = path.toLowerCase(Locale.US);
-        
+
         if (lower.endsWith(".otf") || lower.endsWith(".ttf")) {
-            PDType0Font font = PDType0Font.load(_doc, new FileInputStream(path), _useSubsets); 
-                    
-            String[] fontFamilyNames;
-            if (fontFamilyNameOverride != null) {
-                fontFamilyNames = new String[] { fontFamilyNameOverride };
-            } else {
-                fontFamilyNames = new String[] { font.getFontDescriptor().getFontFamily() }; 
-            }
-
-            for (int i = 0; i < fontFamilyNames.length; i++) {
-                String fontFamilyName = fontFamilyNames[i];
-                FontFamily fontFamily = getFontFamily(fontFamilyName);
-
-                FontDescription descr = new FontDescription(font);
-                PDFontDescriptor descriptor = font.getFontDescriptor();
-                descr.setUnderlinePosition(descriptor.getDescent());
-                descr.setWeight((int) descriptor.getFontWeight());
-                descr.setStyle(descriptor.getItalicAngle() != 0 ? IdentValue.ITALIC : IdentValue.NORMAL); 
-                // TODO: Check if we can get anything better for measurements below.
-                descr.setYStrikeoutPosition(descriptor.getFontBoundingBox().getUpperRightY() / 3f);
-                descr.setYStrikeoutSize(100f);
-                descr.setUnderlineThickness(50f);
-                
-                fontFamily.addFontDescription(descr);
-            }
+            addFont(new TTFParser().parse(new FileInputStream(path)), fontFamilyNameOverride);
         } else {
             // TODO: Logging.
             throw new IOException("Unsupported font type");
+        }
+    }
+
+    public void addFont(TrueTypeFont trueTypeFont, String fontFamilyNameOverride) throws IOException {
+        PDType0Font font = PDType0Font.load(_doc, trueTypeFont, _useSubsets); 
+
+        String[] fontFamilyNames;
+        if (fontFamilyNameOverride != null) {
+            fontFamilyNames = new String[] { fontFamilyNameOverride };
+        } else {
+            fontFamilyNames = new String[] { font.getFontDescriptor().getFontFamily() }; 
+        }
+
+        for (int i = 0; i < fontFamilyNames.length; i++) {
+            String fontFamilyName = fontFamilyNames[i];
+            FontFamily fontFamily = getFontFamily(fontFamilyName);
+
+            FontDescription descr = new FontDescription(font);
+            PDFontDescriptor descriptor = font.getFontDescriptor();
+            descr.setUnderlinePosition(descriptor.getDescent());
+            descr.setWeight((int) descriptor.getFontWeight());
+            descr.setStyle(descriptor.getItalicAngle() != 0 ? IdentValue.ITALIC : IdentValue.NORMAL); 
+            // TODO: Check if we can get anything better for measurements below.
+            descr.setYStrikeoutPosition(descriptor.getFontBoundingBox().getUpperRightY() / 3f);
+            descr.setYStrikeoutSize(100f);
+            descr.setUnderlineThickness(50f);
+
+            fontFamily.addFontDescription(descr);
         }
     }
 
