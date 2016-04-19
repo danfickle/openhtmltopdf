@@ -155,37 +155,41 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     public void addFont(String path, String fontFamilyNameOverride) throws IOException {
-        String lower = path.toLowerCase(Locale.US);
+        InputStream is = new FileInputStream(path);
         
-        if (lower.endsWith(".otf") || lower.endsWith(".ttf")) {
-            PDType0Font font = PDType0Font.load(_doc, new FileInputStream(path), _useSubsets); 
-                    
-            String[] fontFamilyNames;
-            if (fontFamilyNameOverride != null) {
-                fontFamilyNames = new String[] { fontFamilyNameOverride };
-            } else {
-                fontFamilyNames = new String[] { font.getFontDescriptor().getFontFamily() }; 
-            }
+        try {
+            addFont(is, fontFamilyNameOverride);
+        } finally {
+            is.close();
+        }
+    }
+    
+    public void addFont(InputStream is, String fontFamilyNameOverride) throws IOException {
+        PDType0Font font = PDType0Font.load(_doc, is, _useSubsets);
 
-            for (int i = 0; i < fontFamilyNames.length; i++) {
-                String fontFamilyName = fontFamilyNames[i];
-                FontFamily fontFamily = getFontFamily(fontFamilyName);
-
-                FontDescription descr = new FontDescription(font);
-                PDFontDescriptor descriptor = font.getFontDescriptor();
-                descr.setUnderlinePosition(descriptor.getDescent());
-                descr.setWeight((int) descriptor.getFontWeight());
-                descr.setStyle(descriptor.getItalicAngle() != 0 ? IdentValue.ITALIC : IdentValue.NORMAL); 
-                // TODO: Check if we can get anything better for measurements below.
-                descr.setYStrikeoutPosition(descriptor.getFontBoundingBox().getUpperRightY() / 3f);
-                descr.setYStrikeoutSize(100f);
-                descr.setUnderlineThickness(50f);
-                
-                fontFamily.addFontDescription(descr);
-            }
+        String[] fontFamilyNames;
+        
+        if (fontFamilyNameOverride != null) {
+            fontFamilyNames = new String[] { fontFamilyNameOverride };
         } else {
-            // TODO: Logging.
-            throw new IOException("Unsupported font type");
+            fontFamilyNames = new String[] { font.getFontDescriptor().getFontFamily() };
+        }
+
+        for (int i = 0; i < fontFamilyNames.length; i++) {
+            String fontFamilyName = fontFamilyNames[i];
+            FontFamily fontFamily = getFontFamily(fontFamilyName);
+
+            FontDescription descr = new FontDescription(font);
+            PDFontDescriptor descriptor = font.getFontDescriptor();
+            descr.setUnderlinePosition(descriptor.getDescent());
+            descr.setWeight((int) descriptor.getFontWeight());
+            descr.setStyle(descriptor.getItalicAngle() != 0 ? IdentValue.ITALIC : IdentValue.NORMAL);
+            // TODO: Check if we can get anything better for measurements below.
+            descr.setYStrikeoutPosition(descriptor.getFontBoundingBox().getUpperRightY() / 3f);
+            descr.setYStrikeoutSize(100f);
+            descr.setUnderlineThickness(50f);
+
+            fontFamily.addFontDescription(descr);
         }
     }
 
@@ -231,36 +235,6 @@ public class PdfBoxFontResolver implements FontResolver {
         } else {
             // TODO: Logging
             throw new IOException("Unsupported font type");
-        }
-    }
-
-    private byte[] readFile(String path) throws IOException {
-        File f = new File(path);
-        if (f.exists()) {
-            ByteArrayOutputStream result = new ByteArrayOutputStream((int)f.length());
-            InputStream is = null;
-            try {
-                is = new FileInputStream(path);
-                byte[] buf = new byte[10240];
-                int i;
-                while ( (i = is.read(buf)) != -1) {
-                    result.write(buf, 0, i);
-                }
-                is.close();
-                is = null;
-
-                return result.toByteArray();
-            } finally {
-                if (is != null) {
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        // ignore
-                    }
-                }
-            }
-        } else {
-            throw new IOException("File " + path + " does not exist or is not accessible");
         }
     }
 
