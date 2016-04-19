@@ -262,6 +262,7 @@ CHANGELOG
 
 head - 0.0.1-RC3-SNAPSHOT
 ========
++ [Replaced non-breaking spaces - and other unusual spaces - with normal space if font does not support them](https://github.com/danfickle/openhtmltopdf/issues/21) Thanks @rototor
 + [Added a method for adding a PDF font using an input stream](https://github.com/danfickle/openhtmltopdf/issues/20) Thanks @aleksandr-m
 + [Added support for plugging in an external URI resolver](https://github.com/danfickle/openhtmltopdf/issues/18)
 + [Added support for plugging in an external cache](https://github.com/danfickle/openhtmltopdf/issues/18)

@@ -451,7 +451,12 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                     sb = new StringBuilder();
                 }
                 
-                sb.append(replace.replacement);
+                if (Character.isSpaceChar(unicode)) {
+                    sb.append(' ');
+                }
+                else {
+                    sb.append(replace.replacement);
+                }
             }
         }
 
