@@ -10,6 +10,7 @@ import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.extend.FSCache;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
+import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 
 public class PdfRendererBuilder
@@ -30,6 +31,7 @@ public class PdfRendererBuilder
     private OutputStream _os;
     private FSUriResolver _resolver;
     private FSCache _cache;
+    private SVGDrawer _svgImpl;
     
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
@@ -46,7 +48,7 @@ public class PdfRendererBuilder
      * @return
      */
     public PdfBoxRenderer buildPdfRenderer() {
-        return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer, _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache);
+        return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer, _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache, _svgImpl);
     }
     
     /**
@@ -183,6 +185,11 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder toStream(OutputStream out) {
         this._os = out;
+        return this;
+    }
+    
+    public PdfRendererBuilder useSVGDrawer(SVGDrawer svgImpl) {
+        this._svgImpl = svgImpl;
         return this;
     }
 }

@@ -21,7 +21,7 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Point;
+import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
@@ -32,49 +32,30 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Float;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
-import org.apache.pdfbox.contentstream.PDContentStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
-import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
-import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
-import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitHeightDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
@@ -85,22 +66,18 @@ import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
-import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
-import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
-import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 import com.openhtmltopdf.pdfboxout.PdfBoxTextRenderer.ReplacementChar;
 import com.openhtmltopdf.render.AbstractOutputDevice;
 import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.render.BorderPainter;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.InlineLayoutBox;
@@ -110,7 +87,6 @@ import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
-import com.openhtmltopdf.util.XRRuntimeException;
 
 public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private static final int FILL = 1;
@@ -545,7 +521,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         return array;
     }
 */
-    private AffineTransform getTransform() {
+    public AffineTransform getTransform() {
         return _transform;
     }
 
@@ -1279,5 +1255,63 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void setBidiReorderer(BidiReorderer reorderer) {
         _reorderer = reorderer;
+    }
+
+    @Override
+    public void drawText(RenderingContext c, String text, float x, float y) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void saveState() {
+        _cp.saveGraphics();
+    }
+
+    @Override
+    public void restoreState() {
+        _cp.restoreGraphics();
+    }
+
+    @Override
+    public void setTransform(AffineTransform transform) {
+        _transform = transform;
+        
+    }
+
+    @Override
+    public void setPaint(Paint paint) {
+        if (paint instanceof Color) {
+            Color c = (Color) paint;
+            this.setColor(new FSRGBColor(c.getRed(), c.getGreen(), c.getBlue()));
+        }
+        else {
+            XRLog.render(Level.WARNING, "Unknown paint");
+        }
+    }
+
+    @Override
+    public void setAlpha(int alpha) {
+        
+    }
+
+    @Override
+    public void setRawClip(Shape s) {
+        _clip = new Area(s);
+        followPath(s, CLIP);
+    }
+
+    @Override
+    public void rawClip(Shape s) {
+        if (_clip == null)
+            _clip = new Area(s);
+        else
+            _clip.intersect(new Area(s));
+        followPath(s, CLIP);
+    }
+    
+    @Override
+    public Shape getRawClip() {
+        return _clip;
     }
 }

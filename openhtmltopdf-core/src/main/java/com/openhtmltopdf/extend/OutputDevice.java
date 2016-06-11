@@ -19,10 +19,12 @@
  */
 package com.openhtmltopdf.extend;
 
+import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.RenderingHints.Key;
+import java.awt.geom.AffineTransform;
 
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
@@ -37,6 +39,24 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.TextDecoration;
 
 public interface OutputDevice {
+
+	// Required for SVG output.
+	public void drawText(RenderingContext c, String text, float x, float y);
+	
+	public void saveState();
+	public void restoreState();
+	
+	public void setTransform(AffineTransform transform);
+	public AffineTransform getTransform();
+	
+	public void setPaint(Paint paint);
+	public void setAlpha(int alpha);
+	
+	public void setRawClip(Shape s);
+	public void rawClip(Shape s);
+	public Shape getRawClip();
+	
+	// And the rest.
     public void drawText(RenderingContext c, InlineText inlineText);
     public void drawSelection(RenderingContext c, InlineText inlineText);
     
@@ -91,4 +111,7 @@ public interface OutputDevice {
     public boolean isSupportsSelection();
     
     public boolean isSupportsCMYKColors();
+	
+	
+	
 }

@@ -62,6 +62,7 @@ import com.openhtmltopdf.extend.FSCache;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.NamespaceHandler;
+import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.extend.UserInterface;
 import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
@@ -103,10 +104,10 @@ public class PdfBoxRenderer {
     private OutputStream _os;
 
     public PdfBoxRenderer(boolean testMode) {
-        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode, null, null, null);
+        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode, null, null, null, null);
     }
 
-    public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode, HttpStreamFactory factory, FSUriResolver _resolver, FSCache _cache) {
+    public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode, HttpStreamFactory factory, FSUriResolver _resolver, FSCache _cache, SVGDrawer svgImpl) {
         _pdfDoc = new PDDocument();
         
         _dotsPerPoint = dotsPerPoint;
@@ -137,7 +138,7 @@ public class PdfBoxRenderer {
         PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, useSubsets);
         _sharedContext.setFontResolver(fontResolver);
 
-        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice);
+        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, svgImpl);
         _sharedContext.setReplacedElementFactory(replacedElementFactory);
 
         _sharedContext.setTextRenderer(new PdfBoxTextRenderer());
@@ -151,8 +152,8 @@ public class PdfBoxRenderer {
             boolean useSubsets, HttpStreamFactory httpStreamFactory,
             BidiSplitterFactory splitterFactory, BidiReorderer reorderer, String html,
             Document document, String baseUri, String uri, File file,
-            OutputStream os, FSUriResolver _resolver, FSCache _cache) {
-        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, useSubsets, testMode, httpStreamFactory, _resolver, _cache);
+            OutputStream os, FSUriResolver _resolver, FSCache _cache, SVGDrawer svgImpl) {
+        this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, useSubsets, testMode, httpStreamFactory, _resolver, _cache, svgImpl);
         
         if (splitterFactory != null) {
             this.setBidiSplitter(splitterFactory);

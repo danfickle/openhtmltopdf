@@ -29,6 +29,7 @@
     <module>openhtmltopdf-pdfbox</module>
     <module>openhtmltopdf-rtl-support</module>
     <module>openhtmltopdf-jsoup-dom-converter</module>
+    <module>openhtmltopdf-svg-support</module>
   </modules>
 
   <scm>

@@ -22,12 +22,14 @@ package com.openhtmltopdf.swing;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.RenderingHints.Key;
 import java.awt.font.GlyphVector;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
@@ -41,7 +43,6 @@ import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.render.AbstractOutputDevice;
 import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.render.BorderPainter;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.InlineLayoutBox;
 import com.openhtmltopdf.render.InlineText;
@@ -289,4 +290,64 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     public boolean isSupportsCMYKColors() {
         return true;
     }
+
+	@Override
+	public void drawText(RenderingContext c, String text, float x, float y) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void saveState() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void restoreState() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setTransform(AffineTransform transform) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public AffineTransform getTransform() {
+		// TODO
+		return null;
+	}
+	
+	@Override
+	public void setPaint(Paint paint) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setAlpha(int alpha) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setRawClip(Shape s) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void rawClip(Shape s) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Shape getRawClip() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

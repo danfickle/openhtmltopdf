@@ -24,16 +24,20 @@ import org.w3c.dom.Element;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.extend.ReplacedElementFactory;
+import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.simple.extend.FormSubmissionListener;
 
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
-    private PdfBoxOutputDevice _outputDevice;
+    private final PdfBoxOutputDevice _outputDevice;
+    private final SVGDrawer _svgImpl;
 
-    public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice) {
+    public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice, SVGDrawer svgImpl) {
         _outputDevice = outputDevice;
+        _svgImpl = svgImpl;
     }
 
     public ReplacedElement createReplacedElement(LayoutContext c, BlockBox box,
@@ -44,7 +48,13 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
         }
 
         String nodeName = e.getNodeName();
-        if (nodeName.equals("img")) {
+
+        if (nodeName.equals("svg") &&
+            _svgImpl != null) {
+            // TODO: Correct width and height
+            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight);
+        }
+        else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");
             if (srcAttr != null && srcAttr.length() > 0) {
                 FSImage fsImage = uac.getImageResource(srcAttr).getImage();
