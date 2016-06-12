@@ -21,6 +21,7 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.LinearGradientPaint;
 import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -1284,9 +1285,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         if (paint instanceof Color) {
             Color c = (Color) paint;
             this.setColor(new FSRGBColor(c.getRed(), c.getGreen(), c.getBlue()));
-        }
-        else {
-            XRLog.render(Level.WARNING, "Unknown paint");
+        } else {
+            XRLog.render(Level.WARNING, "Unknown paint: " + paint.getClass().getCanonicalName());
         }
     }
 

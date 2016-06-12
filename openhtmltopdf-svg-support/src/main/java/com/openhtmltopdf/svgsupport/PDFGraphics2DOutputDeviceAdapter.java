@@ -14,7 +14,6 @@ import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
-import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -24,6 +23,7 @@ import java.awt.image.renderable.RenderableImage;
 import java.text.AttributedCharacterIterator;
 
 import org.apache.batik.ext.awt.g2d.AbstractGraphics2D;
+import org.apache.batik.ext.awt.g2d.GraphicContext;
 
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.extend.OutputDevice;
@@ -64,6 +64,8 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 		
 		BufferedImage img = new BufferedImage(BufferedImage.TYPE_INT_ARGB, 1, 1);
 		g2d2 = img.createGraphics();
+		
+		this.gc = new GraphicContext();
 	}
 
 	@Override
@@ -80,9 +82,6 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 	public void clip(Shape arg0) {
 		od.rawClip(arg0);
 	}
-
-	@Override
-	public void setRenderingHint(Key arg0, Object arg1) { }
 	
 	@Override
 	public AffineTransform getTransform() {
@@ -125,8 +124,14 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 	}
 	
 	@Override
-	public void setPaint(Paint arg0) {
-		_paint = arg0;
+	public void setPaint(Paint in) {
+		if (in instanceof org.apache.batik.ext.awt.LinearGradientPaint) {
+			org.apache.batik.ext.awt.LinearGradientPaint lg = (org.apache.batik.ext.awt.LinearGradientPaint) in;
+			in = lg.getColors()[0];
+			// TODO: Proper handling of linear gradients
+		}
+		
+		_paint = in;
 	}
 	
 	@Override
