@@ -53,6 +53,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDFontFactory;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -1260,8 +1262,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     @Override
     public void drawText(RenderingContext c, String text, float x, float y) {
-        // TODO Auto-generated method stub
-        
     }
 
     @Override

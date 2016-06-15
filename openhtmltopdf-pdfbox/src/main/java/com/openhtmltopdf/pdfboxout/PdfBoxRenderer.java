@@ -102,6 +102,7 @@ public class PdfBoxRenderer {
     private PDFCreationListener _listener;
     
     private OutputStream _os;
+    private SVGDrawer _svgImpl;
 
     public PdfBoxRenderer(boolean testMode) {
         this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, true, testMode, null, null, null, null);
@@ -109,7 +110,7 @@ public class PdfBoxRenderer {
 
     public PdfBoxRenderer(float dotsPerPoint, int dotsPerPixel, boolean useSubsets, boolean testMode, HttpStreamFactory factory, FSUriResolver _resolver, FSCache _cache, SVGDrawer svgImpl) {
         _pdfDoc = new PDDocument();
-        
+        _svgImpl = svgImpl;
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
         _outputDevice = new PdfBoxOutputDevice(dotsPerPoint, testMode);
@@ -255,6 +256,10 @@ public class PdfBoxRenderer {
         _sharedContext.setNamespaceHandler(nsh);
         _sharedContext.getCss().setDocumentContext(_sharedContext, _sharedContext.getNamespaceHandler(), doc, new NullUserInterface());
         getFontResolver().importFontFaces(_sharedContext.getCss().getFontFaceRules());
+        
+        if (_svgImpl != null) {
+            _svgImpl.importFontFaceRules(_sharedContext.getCss().getFontFaceRules());
+        }
     }
 
     public PDEncryption getPDFEncryption() {

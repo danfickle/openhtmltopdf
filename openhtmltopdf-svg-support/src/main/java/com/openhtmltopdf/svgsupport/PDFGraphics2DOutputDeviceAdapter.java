@@ -170,13 +170,13 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 
 	@Override
 	public void drawString(String str, float x, float y) {
-		System.out.println("DRAW STRING");
+		this.od.setColor(new FSRGBColor(128, 128, 128));
+		this.od.drawText(this.ctx, str, x, y);
 	}
 
 	@Override
 	public void drawString(AttributedCharacterIterator iterator, float x, float y) {
-		System.out.println("DRAW STRING");
-		
+System.out.println("DRAWING STRING");
 	}
 
 	@Override

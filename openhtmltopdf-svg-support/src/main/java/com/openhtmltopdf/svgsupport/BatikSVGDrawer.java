@@ -1,5 +1,7 @@
 package com.openhtmltopdf.svgsupport;
 
+import java.util.List;
+
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -8,8 +10,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.openhtmltopdf.css.sheet.FontFaceRule;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.SVGDrawer;
+import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.XRLog;
 
@@ -17,11 +21,18 @@ public class BatikSVGDrawer implements SVGDrawer {
 
 	private static final String DEFAULT_VP_WIDTH = "400";
 	private static final String DEFAULT_VP_HEIGHT = "400";
+	private List<FontFaceRule> rules;
 	
 	@Override
-	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y) {
-		PDFTranscoder transcoder = new PDFTranscoder(outputDevice, ctx, x, y);
-
+	public void importFontFaceRules(List<FontFaceRule> fontFaces) {
+		this.rules = fontFaces;
+	}
+	
+	@Override
+	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y, SharedContext shared) {
+		PDFTranscoder transcoder = new PDFTranscoder(outputDevice, ctx, x, y, shared);
+		transcoder.fontResolver.importFontFaces(rules);
+		
 		try {
 			DOMImplementation impl = SVGDOMImplementation.getDOMImplementation();
 			Document newDocument = impl.createDocument(SVGDOMImplementation.SVG_NAMESPACE_URI, "svg", null);
