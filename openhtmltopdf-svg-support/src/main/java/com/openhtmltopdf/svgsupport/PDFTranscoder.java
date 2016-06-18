@@ -29,21 +29,16 @@ import com.openhtmltopdf.util.XRLog;
 public class PDFTranscoder extends SVGAbstractTranscoder {
 
 	private final PDFGraphics2DOutputDeviceAdapter od;
-	public final OpenHtmlFontResolver fontResolver;
+	private final OpenHtmlFontResolver fontResolver;
 	
-	public PDFTranscoder(OutputDevice od, RenderingContext ctx, double x, double y, SharedContext shared) {
+	public PDFTranscoder(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver) {
 		this.od = new PDFGraphics2DOutputDeviceAdapter(ctx, od, x, y);
-		this.fontResolver = new OpenHtmlFontResolver(shared);
+		this.fontResolver = fontResolver;
 	}
 
 	public static class OpenHtmlFontResolver implements FontFamilyResolver {
 		private final Map<String, OpenHtmlGvtFontFamily> families = new HashMap<String, OpenHtmlGvtFontFamily>(4);
-		private final SharedContext ctx;
-		
-		public OpenHtmlFontResolver(SharedContext ctx) {
-			this.ctx = ctx;
-		}
-		
+
 		@Override
 		public GVTFontFamily resolve(String arg0, FontFace arg1) {
 			return null;
@@ -134,7 +129,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	    }
 		
 		
-		public void importFontFaces(List<FontFaceRule> fontFaces) {
+		public void importFontFaces(List<FontFaceRule> fontFaces, SharedContext ctx) {
 			 for (FontFaceRule rule : fontFaces) {
 	            CalculatedStyle style = rule.getCalculatedStyle();
 

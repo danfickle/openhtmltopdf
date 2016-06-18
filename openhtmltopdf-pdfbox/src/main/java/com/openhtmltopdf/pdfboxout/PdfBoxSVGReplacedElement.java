@@ -15,24 +15,38 @@ public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement {
     private Point point = new Point(0, 0);
     private final int width;
     private final int height;
+    private final int dotsPerPixel;
     
-    public PdfBoxSVGReplacedElement(Element e, SVGDrawer svgImpl, int cssWidth, int cssHeight) {
+    public PdfBoxSVGReplacedElement(Element e, SVGDrawer svgImpl, int cssWidth, int cssHeight, int dotsPerPixel) {
         this.e = e;
         this.svg = svgImpl;
         this.width = cssWidth;
         this.height = cssHeight;
+        this.dotsPerPixel = dotsPerPixel;
     }
 
     @Override
     public int getIntrinsicWidth() {
-        // TODO Auto-generated method stub
-        return 10000; // TOTAL GUESS.
+        if (this.width >= 0) {
+            // CSS takes precedence over width and height defined on element.
+            return this.width;
+        }
+        else {
+            // Seems to need dots rather than pixels.
+            return this.svg.getSVGWidth(e) * this.dotsPerPixel;
+        }
     }
 
     @Override
     public int getIntrinsicHeight() {
-        // TODO Auto-generated method stub
-        return 10000; // TOTAL GUESS.
+        if (this.height >= 0) {
+            // CSS takes precedence over width and height defined on element.
+            return this.height;
+        }
+        else {
+            // Seems to need dots rather than pixels.
+            return this.svg.getSVGHeight(e) * this.dotsPerPixel;
+        }
     }
 
     @Override
@@ -47,8 +61,6 @@ public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement {
 
     @Override
     public void detach(LayoutContext c) {
-        // TODO Auto-generated method stub
-        
     }
 
     @Override
@@ -68,7 +80,6 @@ public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement {
 
     @Override
     public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice, BlockBox box) {
-        svg.drawSVG(e, outputDevice, c, point.getX(), point.getY(), ((PdfBoxOutputDevice) outputDevice).getSharedContext());
+        svg.drawSVG(e, outputDevice, c, point.getX(), point.getY());
     }
-
 }

@@ -258,7 +258,7 @@ public class PdfBoxRenderer {
         getFontResolver().importFontFaces(_sharedContext.getCss().getFontFaceRules());
         
         if (_svgImpl != null) {
-            _svgImpl.importFontFaceRules(_sharedContext.getCss().getFontFaceRules());
+            _svgImpl.importFontFaceRules(_sharedContext.getCss().getFontFaceRules(), _sharedContext);
         }
     }
 

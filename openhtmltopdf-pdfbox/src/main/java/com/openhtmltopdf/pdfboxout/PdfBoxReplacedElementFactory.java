@@ -28,7 +28,6 @@ import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.simple.extend.FormSubmissionListener;
 
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
@@ -51,8 +50,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
 
         if (nodeName.equals("svg") &&
             _svgImpl != null) {
-            // TODO: Correct width and height
-            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight);
+            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, c.getSharedContext().getDotsPerPixel());
         }
         else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");
