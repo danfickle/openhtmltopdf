@@ -292,12 +292,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
 	@Override
-	public void drawText(RenderingContext c, String text, float x, float y) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void saveState() {
 		// TODO Auto-generated method stub
 		
@@ -310,13 +304,12 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	}
 
 	@Override
-	public void setTransform(AffineTransform transform) {
+	public void setDeviceTransform(AffineTransform transform) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
-	public AffineTransform getTransform() {
+	public AffineTransform getDeviceTransform() {
 		// TODO
 		return null;
 	}

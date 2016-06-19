@@ -12,6 +12,9 @@ import java.text.AttributedCharacterIterator;
 import org.apache.batik.gvt.font.GVTFont;
 import org.apache.batik.gvt.font.GVTGlyphMetrics;
 import org.apache.batik.gvt.font.GVTGlyphVector;
+import org.apache.batik.gvt.text.TextPaintInfo;
+import org.apache.batik.gvt.text.GVTAttributedCharacterIterator.TextAttribute;
+
 
 public class OpenHtmlGvtGlyphVector implements GVTGlyphVector {
 
@@ -27,6 +30,12 @@ public class OpenHtmlGvtGlyphVector implements GVTGlyphVector {
 	
 	@Override
 	public void draw(Graphics2D g2d, AttributedCharacterIterator arg1) {
+		if (arg1.getAttribute(TextAttribute.PAINT_INFO) != null) {
+			TextPaintInfo info = (TextPaintInfo) arg1.getAttribute(TextAttribute.PAINT_INFO);
+			// TODO: Rest of stuff in info.
+			g2d.setPaint(info.fillPaint);
+		}
+		
 		g2d.fill(this.vec.getOutline());
 	}
 

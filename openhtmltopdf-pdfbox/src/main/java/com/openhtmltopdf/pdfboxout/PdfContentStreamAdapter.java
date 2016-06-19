@@ -1,11 +1,15 @@
 package com.openhtmltopdf.pdfboxout;
 
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
+
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.apache.pdfbox.util.Matrix;
+
+import com.openhtmltopdf.util.XRLog;
 
 public class PdfContentStreamAdapter {
     private final PDPageContentStream cs;
@@ -19,7 +23,7 @@ public class PdfContentStreamAdapter {
     }
 
     private void logAndThrow(String method, IOException e) {
-        // TODO: Logging
+        XRLog.exception("Exception in PDF writing method: " + method, e);
         throw new PdfException(method, e);
     }
 
@@ -286,5 +290,13 @@ public class PdfContentStreamAdapter {
 
     public void setSpaceSpacing(float spaceAdjust) {
         // TODO Not currently supported in PDF-BOX.
+    }
+
+    public void setPdfMatrix(AffineTransform transform) {
+        try {
+           cs.transform(new Matrix(transform));
+        } catch (IOException e) {
+            logAndThrow("setPdfMatrix", e);
+        }
     }
 }

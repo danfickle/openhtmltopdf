@@ -41,13 +41,12 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 	private final AffineTransform defaultTransform;
 
 	private Color _c = Color.BLACK;
-	private AffineTransform _transform;
 	private Stroke _stroke;
-	private Paint _paint;
-	private Composite _composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
+	private Paint _paint = Color.BLACK;
+	private Composite _composite = AlphaComposite.getInstance(AlphaComposite.SRC);
 	private Color _background = Color.WHITE;
-	
-	
+	private final AffineTransform scaleToPdf;
+
 	public PDFGraphics2DOutputDeviceAdapter(RenderingContext ctx, OutputDevice od, double x, double y) {
 		super(false);
 		
@@ -58,9 +57,10 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 		
 		AffineTransform locate = AffineTransform.getTranslateInstance(x, y);
 		AffineTransform scale = AffineTransform.getScaleInstance(DEFAULT_DOTS_PER_PIXEL, DEFAULT_DOTS_PER_PIXEL);
+		scaleToPdf = new AffineTransform(); // I belive both SVG Batik and our PDFs use 96 dpi.
 		locate.concatenate(scale);
+		locate.concatenate(scaleToPdf);
 		defaultTransform = locate;
-		this.setTransform(locate);
 		
 		BufferedImage img = new BufferedImage(BufferedImage.TYPE_INT_ARGB, 1, 1);
 		g2d2 = img.createGraphics();
@@ -81,21 +81,6 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 	@Override
 	public void clip(Shape arg0) {
 		od.rawClip(arg0);
-	}
-	
-	@Override
-	public AffineTransform getTransform() {
-		return _transform;
-	}
-	
-	@Override
-	public void setTransform(AffineTransform arg0) {
-		_transform = arg0;
-	}
-	
-	@Override
-	public void transform(AffineTransform arg0) {
-		_transform.concatenate(arg0);
 	}
 	
 	@Override
@@ -130,7 +115,7 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 			in = lg.getColors()[0];
 			// TODO: Proper handling of linear gradients
 		}
-		
+
 		_paint = in;
 	}
 	
@@ -170,58 +155,49 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 
 	@Override
 	public void drawString(String str, float x, float y) {
-		this.od.setColor(new FSRGBColor(128, 128, 128));
-		this.od.drawText(this.ctx, str, x, y);
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void drawString(AttributedCharacterIterator iterator, float x, float y) {
-System.out.println("DRAWING STRING");
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void draw(Shape s) {
-        od.saveState();
-        
-        AffineTransform oldTransform = od.getTransform();
-        AffineTransform newTransform = (AffineTransform) oldTransform.clone();
-        newTransform.concatenate(getTransform());
-        
-        od.setTransform(newTransform);
-        //od.setClip(getClip());
-        od.setStroke(getStroke());
-       
         Color c = getColor();
         od.setColor(new FSRGBColor(c.getRed(), c.getGreen(), c.getBlue()));
         od.setAlpha(c.getAlpha());
+
+        if (!getTransform().isIdentity()) {
+         	// TODO: Transform origin.
+        	//od.setDeviceTransform(getTransform());
+        }
         
+        od.setStroke(getStroke());
         od.setPaint(getPaint());
-        od.draw(s);
         
-        od.setTransform(oldTransform);
-		od.restoreState();
+        od.saveState();
+        od.draw(defaultTransform.createTransformedShape(s));
+        od.restoreState();
 	}
 	
 	@Override
 	public void fill(Shape s) {
-        od.saveState();
-
-        AffineTransform oldTransform = od.getTransform();
-        AffineTransform newTransform = (AffineTransform) oldTransform.clone();
-        newTransform.concatenate(getTransform());
-        
-        od.setTransform(newTransform);
-        od.setStroke(getStroke());
-        
-        Color c = getColor();
+		Color c = getColor();
         od.setColor(new FSRGBColor(c.getRed(), c.getGreen(), c.getBlue()));
         od.setAlpha(c.getAlpha());
-
+        
+        if (!getTransform().isIdentity()) {
+         	// TODO: Transform origin.
+        	//od.setDeviceTransform(getTransform());
+        }
+        
         od.setPaint(getPaint());
-        od.fill(s);
 
-        od.setTransform(oldTransform);
-		od.restoreState();
+        od.saveState();
+        od.fill(defaultTransform.createTransformedShape(s));
+        od.restoreState();
 	}
 
 	@Override
@@ -230,19 +206,17 @@ System.out.println("DRAWING STRING");
 			
 			@Override
 			public AffineTransform getNormalizingTransform() {
-				// TODO Auto-generated method stub
 				return null;
 			}
 			
 			@Override
 			public GraphicsDevice getDevice() {
-				// TODO Auto-generated method stub
 				return null;
 			}
 			
 			@Override
 			public AffineTransform getDefaultTransform() {
-				return PDFGraphics2DOutputDeviceAdapter.this.defaultTransform;
+				return null;
 			}
 			
 			@Override
@@ -257,7 +231,6 @@ System.out.println("DRAWING STRING");
 			
 			@Override
 			public Rectangle getBounds() {
-				// TODO Auto-generated method stub
 				return null;
 			}
 		};
@@ -269,7 +242,8 @@ System.out.println("DRAWING STRING");
 	}
 
 	@Override
-	public void setXORMode(Color c1) { }
+	public void setXORMode(Color c1) {
+	}
 
 	@Override
 	public FontMetrics getFontMetrics(Font f) {
@@ -288,7 +262,7 @@ System.out.println("DRAWING STRING");
 	public boolean drawImage(Image img, int x, int y, int width, int height, ImageObserver observer) {
 		return false;
 	}
-
+	
 	@Override
 	public void dispose() { }
 }

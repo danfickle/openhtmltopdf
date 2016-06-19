@@ -37,6 +37,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -64,6 +65,7 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
+import org.apache.pdfbox.util.Matrix;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -146,6 +148,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private RenderingContext _renderingContext;
     
     private BidiReorderer _reorderer = new SimpleBidiReorderer();
+    
+    private AffineTransform _deviceTransform;
+    private AffineTransform _setDeviceTransform = new AffineTransform();
 
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
@@ -215,7 +220,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void setColor(FSColor color) {
         if (color instanceof FSRGBColor) {
-            _color = color;
+             _color = color;
         } else if (color instanceof FSCMYKColor) {
             _color = color;
         } else {
@@ -524,7 +529,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         return array;
     }
 */
-    public AffineTransform getTransform() {
+    private AffineTransform getTransform() {
         return _transform;
     }
 
@@ -542,7 +547,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             else {
                 assert(_fillColor instanceof FSRGBColor || _fillColor instanceof FSCMYKColor);
             }
-        }
+       }
     }
 
     private void ensureStrokeColor() {
@@ -569,7 +574,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private void followPath(Shape s, int drawType) {
         if (s == null)
             return;
-
+        
         if (drawType == STROKE) {
             if (!(_stroke instanceof BasicStroke)) {
                 s = _stroke.createStrokedShape(s);
@@ -585,6 +590,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             ensureFillColor();
         }
 
+        ensureDeviceTransform();
+        
         PathIterator points;
         if (drawType == CLIP) {
             points = s.getPathIterator(IDENTITY);
@@ -620,7 +627,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             }
             points.next();
         }
-
+        
         switch (drawType) {
         case FILL:
             if (traces > 0) {
@@ -770,6 +777,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             _clip = new Area(s);
             followPath(s, CLIP);
         }
+
         _fillColor = null;
         _strokeColor = null;
         _oldStroke = null;
@@ -1261,10 +1269,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     @Override
-    public void drawText(RenderingContext c, String text, float x, float y) {
-    }
-
-    @Override
     public void saveState() {
         _cp.saveGraphics();
     }
@@ -1274,10 +1278,32 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _cp.restoreGraphics();
     }
 
+    /**
+     * This converts the x and y translate variables to pdf device units.
+     * Remember, PDFs use a bottom to top coordinate system.
+     */
+    private AffineTransform normalizeDeviceMatrix(AffineTransform current) {
+        double[] mx = new double[6];
+        current.getMatrix(mx);
+        mx[5] *= -1;
+        return new AffineTransform(mx);
+    }
+    
+    private void ensureDeviceTransform() {
+        if (!(_deviceTransform == null || _deviceTransform.isIdentity())) {
+            _setDeviceTransform = _deviceTransform;
+            _cp.setPdfMatrix(normalizeDeviceMatrix(_setDeviceTransform));
+        }
+    }
+    
     @Override
-    public void setTransform(AffineTransform transform) {
-        _transform = transform;
-        
+    public AffineTransform getDeviceTransform() {
+        return _deviceTransform;
+    }
+    
+    @Override
+    public void setDeviceTransform(AffineTransform transform) {
+        _deviceTransform = transform;
     }
 
     @Override

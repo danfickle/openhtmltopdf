@@ -41,13 +41,11 @@ import com.openhtmltopdf.render.TextDecoration;
 public interface OutputDevice {
 
 	// Required for SVG output.
-	public void drawText(RenderingContext c, String text, float x, float y);
-	
 	public void saveState();
 	public void restoreState();
 	
-	public void setTransform(AffineTransform transform);
-	public AffineTransform getTransform();
+	public void setDeviceTransform(AffineTransform transform);
+	public AffineTransform getDeviceTransform();
 	
 	public void setPaint(Paint paint);
 	public void setAlpha(int alpha);
@@ -111,7 +109,4 @@ public interface OutputDevice {
     public boolean isSupportsSelection();
     
     public boolean isSupportsCMYKColors();
-	
-	
-	
 }
