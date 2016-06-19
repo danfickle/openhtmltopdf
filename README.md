@@ -21,7 +21,7 @@ LICENSE file in our distribution.
 
 GETTING OPEN HTML TO PDF
 ========
-New releases of Open HTML to PDF will be distributed through Maven.  Search maven for [com.openhtmltopdf](http://mvnrepository.com/artifact/com.openhtmltopdf). Current maven release is ````0.0.1-RC2````.
+New releases of Open HTML to PDF will be distributed through Maven.  Search maven for [com.openhtmltopdf](http://mvnrepository.com/artifact/com.openhtmltopdf). Current maven release is ````0.0.1-RC3````.
 
 GETTING STARTED
 ========
@@ -34,7 +34,7 @@ Add these to your maven dependencies section:
 ````xml
   	<properties>
   		<!-- Define the version of OPEN HTML TO PDF in the properties section of your POM. -->  	       
-  		<openhtml.version>0.0.1-RC2</openhtml.version>
+  		<openhtml.version>0.0.1-RC3</openhtml.version>
   	</properties>
 
   	<dependency>
@@ -182,7 +182,7 @@ as simple as adding the following code:
 ````
 Then use ````builder.useHttpStreamImplementation(new OkHttpStreamFactory())````.
 
-CACHE BETWEEN RUNS - INTRODUCED IN RC3
+CACHE BETWEEN RUNS
 =======
 By default, Open HTML to PDF should not cache anything between runs. However, it allows the user to plugin an external cache. It should
 be noted that the URI received by the cache is already resolved (see below). Here is a simple external cache:
@@ -207,7 +207,7 @@ be noted that the URI received by the cache is already resolved (see below). Her
 Of course, you may want to customize your cache by inspecting the URI or class name contained by cache key. Once you have a cache, you can set it
 on the builder with ````builder.useCache(cache)````.
 
-URI RESOLVER - INTRODUCED IN RC3
+URI RESOLVER
 =======
 By default, the code attempts to resolve relative URIs by using the document URI as a base URI. Absolute URIs are returned unchanged. If you wish to plugin your
 own resolver, you can. This can not only resolve relative URIs but also resolve URIs in a private address space or even reject a URI. To use an external resolver 
@@ -260,8 +260,12 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC3-SNAPSHOT
+head - 0.0.1-RC4-SNAPSHOT
 ========
+
+0.0.1-RC3
+========
++ [Experimental and unstable SVG support - early prototype](https://github.com/danfickle/openhtmltopdf/issues/23)
 + [Replaced non-breaking spaces - and other unusual spaces - with normal space if font does not support them](https://github.com/danfickle/openhtmltopdf/issues/21) Thanks @rototor
 + [Added a method for adding a PDF font using an input stream](https://github.com/danfickle/openhtmltopdf/issues/20) Thanks @aleksandr-m
 + [Added support for plugging in an external URI resolver](https://github.com/danfickle/openhtmltopdf/issues/18)
