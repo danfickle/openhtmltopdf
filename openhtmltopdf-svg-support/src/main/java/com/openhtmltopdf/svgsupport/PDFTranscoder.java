@@ -31,8 +31,8 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	private final PDFGraphics2DOutputDeviceAdapter od;
 	private final OpenHtmlFontResolver fontResolver;
 	
-	public PDFTranscoder(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver) {
-		this.od = new PDFGraphics2DOutputDeviceAdapter(ctx, od, x, y);
+	public PDFTranscoder(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver, float dotsPerInch) {
+		this.od = new PDFGraphics2DOutputDeviceAdapter(ctx, od, x, y, dotsPerInch);
 		this.fontResolver = fontResolver;
 	}
 

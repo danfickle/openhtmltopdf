@@ -31,36 +31,31 @@ import com.openhtmltopdf.render.RenderingContext;
 
 public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 
-	private static final int DEFAULT_DOTS_PER_PIXEL = 20;
-
 	private final RenderingContext ctx;
 	private final OutputDevice od;
 	private final Graphics2D g2d2;
 	private final double x;
 	private final double y;
 	private final AffineTransform defaultTransform;
+	private final float dotsPerPoint;
 
 	private Color _c = Color.BLACK;
 	private Stroke _stroke;
 	private Paint _paint = Color.BLACK;
 	private Composite _composite = AlphaComposite.getInstance(AlphaComposite.SRC);
 	private Color _background = Color.WHITE;
-	private final AffineTransform scaleToPdf;
 
-	public PDFGraphics2DOutputDeviceAdapter(RenderingContext ctx, OutputDevice od, double x, double y) {
+	public PDFGraphics2DOutputDeviceAdapter(RenderingContext ctx, OutputDevice od, double x, double y, float dotsPerInch) {
 		super(false);
 		
 		this.od = od;
 		this.ctx = ctx;
 		this.x = x;
 		this.y = y;
+		this.dotsPerPoint = dotsPerInch / 96f;
 		
-		AffineTransform locate = AffineTransform.getTranslateInstance(x, y);
-		AffineTransform scale = AffineTransform.getScaleInstance(DEFAULT_DOTS_PER_PIXEL, DEFAULT_DOTS_PER_PIXEL);
-		scaleToPdf = new AffineTransform(); // I belive both SVG Batik and our PDFs use 96 dpi.
-		locate.concatenate(scale);
-		locate.concatenate(scaleToPdf);
-		defaultTransform = locate;
+		AffineTransform scale = AffineTransform.getScaleInstance(dotsPerPoint, dotsPerPoint);
+		defaultTransform = scale;
 		
 		BufferedImage img = new BufferedImage(BufferedImage.TYPE_INT_ARGB, 1, 1);
 		g2d2 = img.createGraphics();
@@ -166,37 +161,35 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 	@Override
 	public void draw(Shape s) {
         Color c = getColor();
+
         od.setColor(new FSRGBColor(c.getRed(), c.getGreen(), c.getBlue()));
         od.setAlpha(c.getAlpha());
-
-        if (!getTransform().isIdentity()) {
-         	// TODO: Transform origin.
-        	//od.setDeviceTransform(getTransform());
-        }
-        
         od.setStroke(getStroke());
         od.setPaint(getPaint());
         
+        AffineTransform offsetTransform = new AffineTransform(defaultTransform);
+        offsetTransform.translate(this.x / this.dotsPerPoint, this.y / this.dotsPerPoint);
+        offsetTransform.concatenate(getTransform());
+        
         od.saveState();
-        od.draw(defaultTransform.createTransformedShape(s));
+        od.draw(offsetTransform.createTransformedShape(s));
         od.restoreState();
 	}
 	
 	@Override
 	public void fill(Shape s) {
 		Color c = getColor();
-        od.setColor(new FSRGBColor(c.getRed(), c.getGreen(), c.getBlue()));
+
+		od.setColor(new FSRGBColor(c.getRed(), c.getGreen(), c.getBlue()));
         od.setAlpha(c.getAlpha());
-        
-        if (!getTransform().isIdentity()) {
-         	// TODO: Transform origin.
-        	//od.setDeviceTransform(getTransform());
-        }
-        
         od.setPaint(getPaint());
+        
+        AffineTransform offsetTransform = new AffineTransform(defaultTransform);
+        offsetTransform.translate(this.x / this.dotsPerPoint, this.y / this.dotsPerPoint);
+        offsetTransform.concatenate(getTransform());
 
         od.saveState();
-        od.fill(defaultTransform.createTransformedShape(s));
+        od.fill(offsetTransform.createTransformedShape(s));
         od.restoreState();
 	}
 
@@ -238,7 +231,7 @@ public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 
 	@Override
 	public Graphics create() {
-		return new PDFGraphics2DOutputDeviceAdapter(ctx, od, x, y);
+		return new PDFGraphics2DOutputDeviceAdapter(ctx, od, x, y, this.dotsPerPoint * 96f);
 	}
 
 	@Override

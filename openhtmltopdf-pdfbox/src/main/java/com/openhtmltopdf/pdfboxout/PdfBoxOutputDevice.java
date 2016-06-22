@@ -148,9 +148,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private RenderingContext _renderingContext;
     
     private BidiReorderer _reorderer = new SimpleBidiReorderer();
-    
-    private AffineTransform _deviceTransform;
-    private AffineTransform _setDeviceTransform = new AffineTransform();
 
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
@@ -589,8 +586,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         } else if (drawType == FILL) {
             ensureFillColor();
         }
-
-        ensureDeviceTransform();
         
         PathIterator points;
         if (drawType == CLIP) {
@@ -1276,34 +1271,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     @Override
     public void restoreState() {
         _cp.restoreGraphics();
-    }
-
-    /**
-     * This converts the x and y translate variables to pdf device units.
-     * Remember, PDFs use a bottom to top coordinate system.
-     */
-    private AffineTransform normalizeDeviceMatrix(AffineTransform current) {
-        double[] mx = new double[6];
-        current.getMatrix(mx);
-        mx[5] *= -1;
-        return new AffineTransform(mx);
-    }
-    
-    private void ensureDeviceTransform() {
-        if (!(_deviceTransform == null || _deviceTransform.isIdentity())) {
-            _setDeviceTransform = _deviceTransform;
-            _cp.setPdfMatrix(normalizeDeviceMatrix(_setDeviceTransform));
-        }
-    }
-    
-    @Override
-    public AffineTransform getDeviceTransform() {
-        return _deviceTransform;
-    }
-    
-    @Override
-    public void setDeviceTransform(AffineTransform transform) {
-        _deviceTransform = transform;
     }
 
     @Override

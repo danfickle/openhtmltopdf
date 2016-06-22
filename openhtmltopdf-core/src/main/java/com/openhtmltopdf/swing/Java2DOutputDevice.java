@@ -29,7 +29,6 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.RenderingHints.Key;
 import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
@@ -303,17 +302,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 		
 	}
 
-	@Override
-	public void setDeviceTransform(AffineTransform transform) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public AffineTransform getDeviceTransform() {
-		// TODO
-		return null;
-	}
-	
 	@Override
 	public void setPaint(Paint paint) {
 		// TODO Auto-generated method stub

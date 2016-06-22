@@ -24,8 +24,6 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.RenderingHints.Key;
-import java.awt.geom.AffineTransform;
-
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
@@ -43,9 +41,6 @@ public interface OutputDevice {
 	// Required for SVG output.
 	public void saveState();
 	public void restoreState();
-	
-	public void setDeviceTransform(AffineTransform transform);
-	public AffineTransform getDeviceTransform();
 	
 	public void setPaint(Paint paint);
 	public void setAlpha(int alpha);

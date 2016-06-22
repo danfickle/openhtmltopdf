@@ -32,14 +32,14 @@ public class BatikSVGDrawer implements SVGDrawer {
 	}
 	
 	@Override
-	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y) {
+	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y, float dotsPerInch) {
 
 		if (this.fontResolver == null) {
 			XRLog.general(Level.INFO, "importFontFaceRules has not been called for this pdf transcoder");
 			this.fontResolver = new OpenHtmlFontResolver();
 		}
 		
-		PDFTranscoder transcoder = new PDFTranscoder(outputDevice, ctx, x, y, this.fontResolver);
+		PDFTranscoder transcoder = new PDFTranscoder(outputDevice, ctx, x, y, this.fontResolver, dotsPerInch);
 		
 		try {
 			DOMImplementation impl = SVGDOMImplementation.getDOMImplementation();

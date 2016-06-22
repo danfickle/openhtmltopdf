@@ -80,6 +80,6 @@ public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement {
 
     @Override
     public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice, BlockBox box) {
-        svg.drawSVG(e, outputDevice, c, point.getX(), point.getY());
+        svg.drawSVG(e, outputDevice, c, point.getX(), point.getY(), this.dotsPerPixel * 96f);
     }
 }

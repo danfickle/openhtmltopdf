@@ -9,7 +9,7 @@ import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.render.RenderingContext;
 
 public interface SVGDrawer {
-	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y);
+	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y, float dotsPerInch);
 
 	public void importFontFaceRules(List<FontFaceRule> fontFaces, SharedContext shared);
 
