@@ -91,6 +91,7 @@ import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDevice {
@@ -432,8 +433,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                     sb = new StringBuilder();
                 }
                 
-                if (Character.isSpaceChar(unicode)) {
+                if (Character.isSpaceChar(unicode) || Character.isWhitespace(unicode)) {
                     sb.append(' ');
+                }
+                else if (!OpenUtil.isCodePointPrintable(unicode)) {
+                    // Do nothing
                 }
                 else {
                     sb.append(replace.replacement);

@@ -35,6 +35,8 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.OpenUtil;
+import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxTextRenderer implements TextRenderer {
     private static float TEXT_MEASURING_DELTA = 0.01f;
@@ -178,7 +180,14 @@ public class PdfBoxTextRenderer implements TextRenderer {
         ReplacementChar replace = getReplacementChar(bf);
         List<FontDescription> fonts = ((PdfBoxFSFont) bf).getFontDescription();
         float strWidthResult = 0;
-
+        float strWidthSpace = 0;
+        
+        try {
+            strWidthSpace = fonts.get(0).getFont().getStringWidth(" ");
+        } catch (Exception e) {
+            XRLog.general("Font doesn't contain a space character!");
+        }
+        
         for (int i = 0; i < str.length(); ) {
             int unicode = str.codePointAt(i);
             i += Character.charCount(unicode);
@@ -209,8 +218,16 @@ public class PdfBoxTextRenderer implements TextRenderer {
             }
             
             if (!gotWidth) {
-                // We still don't have the character after all that. So use replacement character.
-                strWidthResult += replace.width;
+                
+                if (Character.isSpaceChar(unicode) || Character.isWhitespace(unicode)) {
+                    strWidthResult += strWidthSpace;
+                }
+                else if (!OpenUtil.isCodePointPrintable(unicode)) {
+                    // Do nothing
+                } else {
+                    // We still don't have the character after all that. So use replacement character.
+                    strWidthResult += replace.width;
+                }
             }
         }
         

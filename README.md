@@ -262,7 +262,9 @@ CHANGELOG
 
 head - 0.0.1-RC4-SNAPSHOT
 ========
-
++ [Silently discard control characters, etc at the rendering stage](https://github.com/danfickle/openhtmltopdf/issues/21#issuecomment-227850449) Thanks @scoldwell
++ [Fixed incorrect spacing when characters are replaced](https://github.com/danfickle/openhtmltopdf/issues/26) Thanks @scoldwell
+ 
 0.0.1-RC3
 ========
 + [Experimental and unstable SVG support - early prototype](https://github.com/danfickle/openhtmltopdf/issues/23)
