@@ -86,7 +86,7 @@ public abstract class BasicPanel extends RootPanel implements FormSubmissionList
 
     public BasicPanel(UserAgentCallback uac) {
         sharedContext = new SharedContext(uac);
-        ThreadCtx.get().setSharedContext(sharedContext);
+        sharedContext.registerWithThread();
         
         mouseTracker = new MouseTracker(this);
         formSubmissionListener = new FormSubmissionListener() {

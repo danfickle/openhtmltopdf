@@ -50,6 +50,7 @@ import com.openhtmltopdf.simple.extend.FormSubmissionListener;
 import com.openhtmltopdf.swing.AWTFontResolver;
 import com.openhtmltopdf.swing.Java2DTextRenderer;
 import com.openhtmltopdf.swing.SwingReplacedElementFactory;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
 /**
@@ -124,7 +125,6 @@ public class SharedContext {
 	private Float defaultPageWidth;
 	private boolean defaultPageSizeIsInches;
     
-    @Deprecated
     public SharedContext() {
     }
 
@@ -617,6 +617,22 @@ public class SharedContext {
 		this.defaultPageWidth = pageWidth;
 		this.defaultPageHeight = pageHeight;
 		this.defaultPageSizeIsInches = isInches;
+	}
+	
+	/**
+	 * This registers the shared context with a thread local so it
+	 * can be used anywhere. It should be matched with a call to 
+	 * {@link #removeFromThread()} when the run is complete.
+	 */
+	public void registerWithThread() {
+		ThreadCtx.get().setSharedContext(this);
+	}
+	
+	/**
+	 * This removes the shared context from a thread local to avoid memory leaks.
+	 */
+	public void removeFromThread() {
+		ThreadCtx.get().setSharedContext(null);
 	}
 }
 

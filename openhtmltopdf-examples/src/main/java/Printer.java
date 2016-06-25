@@ -153,8 +153,10 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
                     }
 
                     Doc sdoc = new SimpleDoc(this, flavor, null);
+                    
                     SharedContext ctx = new SharedContext(uac);
-                    ThreadCtx.get().setSharedContext(ctx);
+                    ctx.registerWithThread();
+                    
                     ctx.setBaseURL(base);
 
                     // print the doc as specified

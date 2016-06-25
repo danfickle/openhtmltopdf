@@ -331,7 +331,7 @@ public class BoxRenderer {
 
     private SharedContext newSharedContext(int dotsPerPixel, UserAgentCallback userAgent) {
         SharedContext context = new SharedContext(userAgent);
-        ThreadCtx.get().setSharedContext(context);
+        context.registerWithThread();
 
         AWTFontResolver fontResolver = new AWTFontResolver();
         context.setFontResolver(fontResolver);

@@ -25,7 +25,7 @@ public class PdfRendererBuilder
     private boolean _textDirection = false;
     private boolean _testMode = false;
     private boolean _useSubsets = true;
-    private HttpStreamFactory _httpStreamFactory = new NaiveUserAgent.DefaultHttpStreamFactory();
+    private HttpStreamFactory _httpStreamFactory;
     private BidiSplitterFactory _splitter;
     private BidiReorderer _reorderer;
     private String _html;
@@ -40,25 +40,33 @@ public class PdfRendererBuilder
     private Float _pageWidth;
     private Float _pageHeight;
     private boolean _isPageSizeInches;
+    private float _pdfVersion = 1.7f;
     
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
      * @throws Exception
      */
     public void run() throws Exception {
-        PdfBoxRenderer renderer = this.buildPdfRenderer();
-        renderer.layout();
-        renderer.createPDF();
+        PdfBoxRenderer renderer = null;
+        try {
+            renderer = this.buildPdfRenderer();
+            renderer.layout();
+            renderer.createPDF();
+        } finally {
+            if (renderer != null)
+                renderer.cleanup();
+        }
     }
     
     /**
      * Build a PdfBoxRenderer for further customization.
+     * Remember to call {@link PdfBoxRenderer#cleanup()} after use.
      * @return
      */
     public PdfBoxRenderer buildPdfRenderer() {
         return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer,
                 _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache, _svgImpl,
-                _pageWidth, _pageHeight, _isPageSizeInches);
+                _pageWidth, _pageHeight, _isPageSizeInches, _pdfVersion);
     }
     
     /**
@@ -220,6 +228,18 @@ public class PdfRendererBuilder
         this._pageWidth = pageWidth;
         this._pageHeight = pageHeight;
         this._isPageSizeInches = (units == PageSizeUnits.INCHES);
+        return this;
+    }
+    
+    /**
+     * Set the PDF version, typically we use 1.7.
+     * If you set a lower version, it is your responsibility to make sure
+     * no more recent PDF features are used.
+     * @param version
+     * @return
+     */
+    public PdfRendererBuilder usePdfVersion(float version) {
+        this._pdfVersion = version;
         return this;
     }
 }

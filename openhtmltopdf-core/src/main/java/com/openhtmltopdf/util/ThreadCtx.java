@@ -29,7 +29,7 @@ public class ThreadCtx {
 		
 		public SharedContext sharedContext() {
 			if (this.sharedContext == null)
-				throw new NullPointerException("SharedContext must be set on ThreadCtx.get() in renderer.");
+				throw new NullPointerException("SharedContext must be registered in renderer.");
 			
 			return this.sharedContext;
 		}

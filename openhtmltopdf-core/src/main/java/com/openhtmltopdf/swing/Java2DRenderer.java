@@ -369,7 +369,7 @@ public class Java2DRenderer {
 
 		UserAgentCallback userAgent = new NaiveUserAgent();
 		sharedContext = new SharedContext(userAgent);
-		ThreadCtx.get().setSharedContext(sharedContext);
+		sharedContext.registerWithThread();
 
 		AWTFontResolver fontResolver = new AWTFontResolver();
 		sharedContext.setFontResolver(fontResolver);
@@ -397,5 +397,9 @@ public class Java2DRenderer {
 		public boolean isFocus(Element e) {
 			return false;
 		}
+	}
+	
+	public void cleanup() {
+		sharedContext.removeFromThread();
 	}
 }
