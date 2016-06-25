@@ -22,6 +22,7 @@ import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.swing.Java2DRenderer;
 import com.openhtmltopdf.swing.NaiveUserAgent;
+import com.openhtmltopdf.util.ThreadCtx;
 
 import javax.print.*;
 import javax.print.attribute.Attribute;
@@ -153,6 +154,7 @@ public class Printer implements Runnable, DocumentListener, Printable, PrintJobL
 
                     Doc sdoc = new SimpleDoc(this, flavor, null);
                     SharedContext ctx = new SharedContext(uac);
+                    ThreadCtx.get().setSharedContext(ctx);
                     ctx.setBaseURL(base);
 
                     // print the doc as specified

@@ -79,7 +79,7 @@ public class RenderingContext implements CssContext {
     }
 
     public float getMmPerDot() {
-        return sharedContext.getMmPerPx();
+        return sharedContext.getMmPerDotParent();
     }
     
     public int getDotsPerPixel() {

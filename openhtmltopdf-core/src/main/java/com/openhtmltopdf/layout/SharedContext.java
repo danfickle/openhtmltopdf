@@ -53,57 +53,88 @@ import com.openhtmltopdf.swing.SwingReplacedElementFactory;
 import com.openhtmltopdf.util.XRLog;
 
 /**
- * The SharedContext is that which is kept between successive layout and render runs.
- *
- * @author empty
+ * The SharedContext stores pseudo global variables.
+ * Originally, it was reusable, but it is now recommended that the developer
+ * use a new instance for every run.
  */
 public class SharedContext {
-    private TextRenderer text_renderer;
+	/**
+	 * @deprecated Belongs in Java2D renderer.
+	 */
+    @Deprecated
+    private final static float DEFAULT_DPI = 72;
+	
+    /**
+     * @deprecated Belongs in Java2D renderer.
+     */
+    @Deprecated
+    private final static int DEFAULT_DOTS_PER_PIXEL = 1;
+
+    /**
+     * @deprecated Belongs in Java2D renderer.
+     */
+    @Deprecated
+    private final static boolean DEFAULT_INTERACTIVE = true;
+
+    private final static int MM__PER__CM = 10;
+    private final static float CM__PER__IN = 2.54F;
+    
+	private TextRenderer textRenderer;
     private String media;
     private UserAgentCallback uac;
+    private boolean interactive = DEFAULT_INTERACTIVE;
 
-    private boolean interactive = true;
+    private Map<String, Box> idMap;
 
-    private Map idMap;
-
-    /*
-     * used to adjust fonts, ems, points, into screen resolution
-     */
     /**
-     * Description of the Field
+     * Used to adjust fonts, ems, points, into screen resolution.
+     * Internal program dots per inch.
      */
     private float dpi;
+
     /**
-     * Description of the Field
+     * Internal program dots per pixel.
      */
-    private final static int MM__PER__CM = 10;
-    /**
-     * Description of the Field
-     */
-    private final static float CM__PER__IN = 2.54F;
+    private int dotsPerPixel = DEFAULT_DOTS_PER_PIXEL;
+    
     /**
      * dpi in a more usable way
+     * Internal program dots per mm (probably a fraction).
      */
-    private float mm_per_dot;
+    private float mmPerDot;
 
-    private final static float DEFAULT_DPI = 72;
     private boolean print;
-
-    private int dotsPerPixel = 1;
-
-    private Map styleMap;
-
+    private Map<Element, CalculatedStyle> styleMap;
     private ReplacedElementFactory replacedElementFactory;
-    private Rectangle temp_canvas;
+    private Rectangle tempCanvas;
+    
+    protected FontResolver fontResolver;
+    protected StyleReference css;
+    
+    protected boolean debug_draw_boxes;
+    protected boolean debug_draw_line_boxes;
+    protected boolean debug_draw_inline_boxes;
+    protected boolean debug_draw_font_metrics;
 
+    protected FSCanvas canvas;
+
+    private NamespaceHandler namespaceHandler;
+    
+	private Float defaultPageHeight;
+	private Float defaultPageWidth;
+	private boolean defaultPageSizeIsInches;
+    
+    @Deprecated
     public SharedContext() {
     }
 
     /**
      * Constructor for the Context object
+     * @deprecated This stuff should go in the renderers of a specific device.
      */
+    @Deprecated
     public SharedContext(UserAgentCallback uac) {
-        font_resolver = new AWTFontResolver();
+        fontResolver = new AWTFontResolver();
         replacedElementFactory = new SwingReplacedElementFactory();
         setMedia("screen");
         this.uac = uac;
@@ -120,9 +151,11 @@ public class SharedContext {
 
     /**
      * Constructor for the Context object
+     * @deprecated This stuff should go in the renderers of a specific device.
      */
+    @Deprecated
     public SharedContext(UserAgentCallback uac, FontResolver fr, ReplacedElementFactory ref, TextRenderer tr, float dpi) {
-        font_resolver = fr;
+        fontResolver = fr;
         replacedElementFactory = ref;
         setMedia("screen");
         this.uac = uac;
@@ -146,8 +179,7 @@ public class SharedContext {
         return c;
     }
 
-    /*
-=========== Font stuff ============== */
+    /* =========== Font stuff ============== */
 
     /**
      * Gets the fontResolver attribute of the Context object
@@ -155,17 +187,12 @@ public class SharedContext {
      * @return The fontResolver value
      */
     public FontResolver getFontResolver() {
-        return font_resolver;
+        return fontResolver;
     }
 
     public void flushFonts() {
-        font_resolver.flushCache();
+        fontResolver.flushCache();
     }
-
-    /**
-     * Description of the Field
-     */
-    protected FontResolver font_resolver;
 
     /**
      * The media for this context
@@ -174,74 +201,18 @@ public class SharedContext {
         return media;
     }
 
-    /**
-     * Description of the Field
-     */
-    protected StyleReference css;
-
-    /**
-     * Description of the Field
-     */
-    protected boolean debug_draw_boxes;
-
-    /**
-     * Description of the Field
-     */
-    protected boolean debug_draw_line_boxes;
-    protected boolean debug_draw_inline_boxes;
-    protected boolean debug_draw_font_metrics;
-
-    /**
-     * Description of the Field
-     */
-    protected FSCanvas canvas;
-
-    /*
-     * selection management code
-     */
-    /**
-     * Description of the Field
-     */
-    protected Box selection_start, selection_end;
-
-    /**
-     * Description of the Field
-     */
-    protected int selection_end_x, selection_start_x;
-
-
-    /**
-     * Description of the Field
-     */
-    protected boolean in_selection = false;
-
     public TextRenderer getTextRenderer() {
-        return text_renderer;
+        return textRenderer;
     }
 
-    /**
-     * Description of the Method
-     *
-     * @return Returns
-     */
     public boolean debugDrawBoxes() {
         return debug_draw_boxes;
     }
 
-    /**
-     * Description of the Method
-     *
-     * @return Returns
-     */
     public boolean debugDrawLineBoxes() {
         return debug_draw_line_boxes;
     }
 
-    /**
-     * Description of the Method
-     *
-     * @return Returns
-     */
     public boolean debugDrawInlineBoxes() {
         return debug_draw_inline_boxes;
     }
@@ -266,11 +237,6 @@ public class SharedContext {
         this.debug_draw_font_metrics = debug_draw_font_metrics;
     }
 
-
-    /*
-=========== Selection Management ============== */
-
-
     public StyleReference getCss() {
         return css;
     }
@@ -287,23 +253,20 @@ public class SharedContext {
         this.canvas = canvas;
     }
 
-    public void set_TempCanvas(Rectangle rect) {
-        this.temp_canvas = rect;
+    public void setTempCanvas(Rectangle rect) {
+        this.tempCanvas = rect;
     }
-
 
     public Rectangle getFixedRectangle() {
         //Uu.p("this = " + canvas);
         if (getCanvas() == null) {
-            return this.temp_canvas;
+            return this.tempCanvas;
         } else {
             Rectangle rect = getCanvas().getFixedRectangle();
             rect.translate(getCanvas().getX(), getCanvas().getY());
             return rect;
         }
     }
-
-    private NamespaceHandler namespaceHandler;
 
     public void setNamespaceHandler(NamespaceHandler nh) {
         namespaceHandler = nh;
@@ -315,16 +278,16 @@ public class SharedContext {
 
     public void addBoxId(String id, Box box) {
         if (idMap == null) {
-            idMap = new HashMap();
+            idMap = new HashMap<String, Box>();
         }
         idMap.put(id, box);
     }
 
     public Box getBoxById(String id) {
         if (idMap == null) {
-            idMap = new HashMap();
+            idMap = new HashMap<String, Box>();
         }
-        return (Box) idMap.get(id);
+        return idMap.get(id);
     }
 
     public void removeBoxId(String id) {
@@ -333,27 +296,24 @@ public class SharedContext {
         }
     }
 
-    public Map getIdMap()
-    {
+    public Map<String, Box> getIdMap() {
         return idMap;
     }
 
     /**
      * Sets the textRenderer attribute of the RenderingContext object
      *
-     * @param text_renderer The new textRenderer value
+     * @param textRenderer The new textRenderer value
      */
-    public void setTextRenderer(TextRenderer text_renderer) {
-        this.text_renderer = text_renderer;
-    }// = "screen";
+    public void setTextRenderer(TextRenderer textRenderer) {
+        this.textRenderer = textRenderer;
+    }
 
     /**
-     * <p/>
-     * <p/>
      * Set the current media type. This is usually something like <i>screen</i>
      * or <i>print</i> . See the <a href="http://www.w3.org/TR/CSS21/media.html">
      * media section</a> of the CSS 2.1 spec for more information on media
-     * types.</p>
+     * types.
      *
      * @param media The new media value
      */
@@ -364,8 +324,10 @@ public class SharedContext {
     /**
      * Gets the uac attribute of the RenderingContext object
      *
-     * @return The uac value
+     * @return The uac value (user agent).
+     * @deprecated Use getUserAgentCallback instead for clearer code.
      */
+    @Deprecated
     public UserAgentCallback getUac() {
         return uac;
     }
@@ -395,15 +357,13 @@ public class SharedContext {
      * Sets the effective DPI (Dots Per Inch) of the screen. You should normally
      * never need to override the dpi, as it is already set to the system
      * default by <code>Toolkit.getDefaultToolkit().getScreenResolution()</code>
-     * . You can override the value if you want to scale the fonts for
-     * accessibility or printing purposes. Currently the DPI setting only
-     * affects font sizing.
+     * You can override the value if you want to scale EVERYTHING.
      *
      * @param dpi The new dPI value
      */
     public void setDPI(float dpi) {
         this.dpi = dpi;
-        this.mm_per_dot = (CM__PER__IN * MM__PER__CM) / dpi;
+        this.mmPerDot = (CM__PER__IN * MM__PER__CM) / dpi;
     }
 
     /**
@@ -411,8 +371,8 @@ public class SharedContext {
      *
      * @return The dPI value
      */
-    public float getMmPerPx() {
-        return this.mm_per_dot;
+    public float getMmPerDotParent() {
+        return this.mmPerDot;
     }
 
     public FSFont getFont(FontSpecification spec) {
@@ -496,36 +456,29 @@ public class SharedContext {
     }
 
     /**
-     * <p/>
-     * <p/>
      * Adds or overrides a font mapping, meaning you can associate a particular
      * font with a particular string. For example, the following would load a
      * font out of the cool.ttf file and associate it with the name <i>CoolFont
-     * </i>:</p> <p/>
-     * <p/>
+     * </i>:
      * <pre>
      *   Font font = Font.createFont(Font.TRUETYPE_FONT,
      *   new FileInputStream("cool.ttf");
      *   setFontMapping("CoolFont", font);
-     * </pre> <p/>
-     * <p/>
-     * <p/>
-     * <p/>
-     * You could then put the following css in your page </p> <pre>
+     * </pre>
+     * You could then put the following css in your page
+     * <pre>
      *   p { font-family: CoolFont Arial sans-serif; }
-     * </pre> <p/>
-     * <p/>
-     * <p/>
-     * <p/>
+     * </pre>
      * You can also override existing font mappings, like replacing Arial with
-     * Helvetica.</p>
+     * Helvetica.
      *
      * @param name The new font name
      * @param font The actual Font to map
+     * @deprecated Definitely shouldn't use this method as it only applies for
+     * Java2D font resolver. Instead call getFontResolver, cast and use font adding 
+     * methods on that.
      */
-    /*
-     * add a new font mapping, or replace an existing one
-     */
+    @Deprecated
     public void setFontMapping(String name, Font font) {
         FontResolver resolver = getFontResolver();
         if (resolver instanceof AWTFontResolver) {
@@ -534,15 +487,23 @@ public class SharedContext {
     }
 
     public void setFontResolver(FontResolver resolver) {
-        font_resolver = resolver;
+        fontResolver = resolver;
     }
 
+    /**
+     * Get the internal dots measurement per CSS pixel.
+     * @return
+     */
     public int getDotsPerPixel() {
         return dotsPerPixel;
     }
 
-    public void setDotsPerPixel(int pixelsPerDot) {
-        this.dotsPerPixel = pixelsPerDot;
+    /**
+     * Set the internal dots measurement per CSS pixel.
+     * @param dotsPerPixel
+     */
+    public void setDotsPerPixel(int dotsPerPixel) {
+        this.dotsPerPixel = dotsPerPixel;
     }
 
     public CalculatedStyle getStyle(Element e) {
@@ -551,12 +512,12 @@ public class SharedContext {
 
     public CalculatedStyle getStyle(Element e, boolean restyle) {
         if (styleMap == null) {
-            styleMap = new HashMap(1024, 0.75f);
+            styleMap = new HashMap<Element, CalculatedStyle>(1024, 0.75f);
         }
 
         CalculatedStyle result = null;
         if (! restyle) {
-            result = (CalculatedStyle)styleMap.get(e);
+            result = styleMap.get(e);
         }
         if (result == null) {
             Node parent = e.getParentNode();
@@ -619,6 +580,44 @@ public class SharedContext {
             }
         }
     }
+
+    /**
+     * Stores a default page width.
+     * @return default page width or null.
+     * @see {@link #isDefaultPageSizeInches()}
+     */
+	public Float getDefaultPageWidth() {
+		return this.defaultPageWidth;
+	}
+
+    /**
+     * Stores a default page height.
+     * @return default page height or null.
+     * @see {@link #isDefaultPageSizeInches()}
+     */
+	public Float getDefaultPageHeight() {
+		return this.defaultPageHeight;
+	}
+	
+	/**
+	 * If not, consider it as mm.
+	 * @return
+	 */
+	public boolean isDefaultPageSizeInches() {
+		return this.defaultPageSizeIsInches;
+	}
+	
+	/**
+	 * Set the default page dimensions. These may be overridden in CSS.
+	 * If not set in CSS and null here, A4 will be used.
+	 * @param pageWidth
+	 * @param pageHeight
+	 */
+	public void setDefaultPageSize(Float pageWidth, Float pageHeight, boolean isInches) {
+		this.defaultPageWidth = pageWidth;
+		this.defaultPageHeight = pageHeight;
+		this.defaultPageSizeIsInches = isInches;
+	}
 }
 
 /*

@@ -41,6 +41,7 @@ import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.ThreadCtx;
 
 /**
  * <p>Renders an XML files, formatted with CSS, as an image. Input is a document in the form of file or URL,
@@ -339,7 +340,7 @@ public class Java2DRenderer {
 
 	private void layout(int width) {
 		Rectangle rect = new Rectangle(0, 0, width, DEFAULT_HEIGHT);
-		sharedContext.set_TempCanvas(rect);
+		sharedContext.setTempCanvas(rect);
 		LayoutContext c = newLayoutContext();
 		BlockBox root = BoxBuilder.createRootBox(c, doc);
 		root.setContainingBlock(new ViewportBox(rect));
@@ -368,6 +369,7 @@ public class Java2DRenderer {
 
 		UserAgentCallback userAgent = new NaiveUserAgent();
 		sharedContext = new SharedContext(userAgent);
+		ThreadCtx.get().setSharedContext(sharedContext);
 
 		AWTFontResolver fontResolver = new AWTFontResolver();
 		sharedContext.setFontResolver(fontResolver);

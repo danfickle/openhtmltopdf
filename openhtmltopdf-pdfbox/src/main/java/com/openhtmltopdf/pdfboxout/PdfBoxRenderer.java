@@ -75,6 +75,7 @@ import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.ThreadCtx;
 
 public class PdfBoxRenderer {
     // These two defaults combine to produce an effective resolution of 96 px to
@@ -131,6 +132,8 @@ public class PdfBoxRenderer {
         }
         
         _sharedContext = new SharedContext();
+        ThreadCtx.get().setSharedContext(_sharedContext);
+        
         _sharedContext.setUserAgentCallback(userAgent);
         _sharedContext.setCss(new StyleReference(userAgent));
         userAgent.setSharedContext(_sharedContext);
@@ -153,8 +156,12 @@ public class PdfBoxRenderer {
             boolean useSubsets, HttpStreamFactory httpStreamFactory,
             BidiSplitterFactory splitterFactory, BidiReorderer reorderer, String html,
             Document document, String baseUri, String uri, File file,
-            OutputStream os, FSUriResolver _resolver, FSCache _cache, SVGDrawer svgImpl) {
+            OutputStream os, FSUriResolver _resolver, FSCache _cache, SVGDrawer svgImpl,
+            Float pageWidth, Float pageHeight, boolean isPageSizeInches) {
+        
         this(DEFAULT_DOTS_PER_POINT, DEFAULT_DOTS_PER_PIXEL, useSubsets, testMode, httpStreamFactory, _resolver, _cache, svgImpl);
+        
+        this.getSharedContext().setDefaultPageSize(pageWidth, pageHeight, isPageSizeInches);
         
         if (splitterFactory != null) {
             this.setBidiSplitter(splitterFactory);

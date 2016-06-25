@@ -35,6 +35,7 @@ import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.ThreadCtx;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -297,7 +298,7 @@ public class BoxRenderer {
 
 	private void layout(int width) {
 		Rectangle rect = new Rectangle(0, 0, width, DEFAULT_HEIGHT);
-		sharedContext.set_TempCanvas(rect);
+		sharedContext.setTempCanvas(rect);
 		BlockBox root = BoxBuilder.createRootBox(layoutContext, doc);
 		root.setContainingBlock(new ViewportBox(rect));
 		root.layout(layoutContext);
@@ -330,6 +331,7 @@ public class BoxRenderer {
 
     private SharedContext newSharedContext(int dotsPerPixel, UserAgentCallback userAgent) {
         SharedContext context = new SharedContext(userAgent);
+        ThreadCtx.get().setSharedContext(context);
 
         AWTFontResolver fontResolver = new AWTFontResolver();
         context.setFontResolver(fontResolver);

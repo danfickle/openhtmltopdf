@@ -46,6 +46,7 @@ import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.newtable.TableBox;
+import com.openhtmltopdf.util.ThreadCtx;
 
 public class PageBox {
     private static final MarginArea[] MARGIN_AREA_DEFS = new MarginArea[] {
@@ -132,50 +133,46 @@ public class PageBox {
         }
     }
     
-    private boolean isUseLetterSize() {
-        Locale l = Locale.getDefault();
-        String county = l.getCountry();
-        
-        // Per http://en.wikipedia.org/wiki/Paper_size, letter paper is
-        // a de facto standard in Canada (although the government uses
-        // its own standard) and Mexico (even though it is officially an ISO
-        // country)
-        return county.equals("US") || county.equals("CA") || county.equals("MX"); 
-    }
-    
+    /**
+     * Returns the default page width if defined, else the A4 page size width.
+     * <b>Note:</b> We previously returned different sizes
+     * based on locale, but this could lead to different results between developement machines
+     * and servers so we now always return A4.
+     * @param cssCtx
+     * @return
+     */
     private int resolveAutoPageWidth(CssContext cssCtx) {
-        if (isUseLetterSize()) {
-            return (int)LengthValue.calcFloatProportionalValue(
-                    getStyle(),
-                    CSSName.FS_PAGE_WIDTH,
-                    "8.5in",
-                    8.5f,
-                    CSSPrimitiveValue.CSS_IN,
-                    0,
-                    cssCtx);
-        } else {
-            return (int)LengthValue.calcFloatProportionalValue(
+      if (ThreadCtx.get().sharedContext().getDefaultPageWidth() != null) {
+    	  float defaultPageWidth = ThreadCtx.get().sharedContext().getDefaultPageWidth();
+    	  boolean isInches = ThreadCtx.get().sharedContext().isDefaultPageSizeInches();
+    	  return (int) LengthValue.calcFloatProportionalValue(getStyle(),
+    			  CSSName.FS_PAGE_WIDTH, String.valueOf(defaultPageWidth), defaultPageWidth, isInches ? CSSPrimitiveValue.CSS_IN : CSSPrimitiveValue.CSS_MM, 0, cssCtx);
+      }
+      else {
+    	return (int)LengthValue.calcFloatProportionalValue(
                     getStyle(),
                     CSSName.FS_PAGE_WIDTH,
                     "210mm",
                     210f,
                     CSSPrimitiveValue.CSS_MM,
                     0,
-                    cssCtx);            
-        }
+                    cssCtx);
+      }
     }
     
+    /**
+     * Return the default page height if defined, else A4.
+     * @param cssCtx
+     * @return
+     */
     private int resolveAutoPageHeight(CssContext cssCtx) {
-        if (isUseLetterSize()) {
-            return (int)LengthValue.calcFloatProportionalValue(
-                    getStyle(),
-                    CSSName.FS_PAGE_HEIGHT,
-                    "11in",
-                    11f,
-                    CSSPrimitiveValue.CSS_IN,
-                    0,
-                    cssCtx);
-        } else {
+        if (ThreadCtx.get().sharedContext().getDefaultPageHeight() != null) {
+      	  float defaultPageHeight = ThreadCtx.get().sharedContext().getDefaultPageHeight();
+      	  boolean isInches = ThreadCtx.get().sharedContext().isDefaultPageSizeInches();
+      	  return (int) LengthValue.calcFloatProportionalValue(getStyle(),
+      			  CSSName.FS_PAGE_WIDTH, String.valueOf(defaultPageHeight), defaultPageHeight, isInches ? CSSPrimitiveValue.CSS_IN : CSSPrimitiveValue.CSS_MM, 0, cssCtx);
+        }
+        else {
             return (int)LengthValue.calcFloatProportionalValue(
                     getStyle(),
                     CSSName.FS_PAGE_HEIGHT,
@@ -183,7 +180,7 @@ public class PageBox {
                     297f,
                     CSSPrimitiveValue.CSS_MM,
                     0,
-                    cssCtx);            
+                    cssCtx);
         }
     }    
 

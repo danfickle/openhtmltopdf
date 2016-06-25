@@ -57,6 +57,7 @@ import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.NoNamespaceHandler;
 import com.openhtmltopdf.simple.extend.FormSubmissionListener;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.Uu;
 import com.openhtmltopdf.util.XRLog;
 
@@ -85,6 +86,8 @@ public abstract class BasicPanel extends RootPanel implements FormSubmissionList
 
     public BasicPanel(UserAgentCallback uac) {
         sharedContext = new SharedContext(uac);
+        ThreadCtx.get().setSharedContext(sharedContext);
+        
         mouseTracker = new MouseTracker(this);
         formSubmissionListener = new FormSubmissionListener() {
             public void submit(String query) {

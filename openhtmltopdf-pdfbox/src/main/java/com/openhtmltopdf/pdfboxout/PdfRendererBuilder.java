@@ -16,6 +16,11 @@ import com.openhtmltopdf.swing.NaiveUserAgent;
 public class PdfRendererBuilder
 {
     public static enum TextDirection { RTL, LTR; }
+    public static enum PageSizeUnits { MM, INCHES };
+    
+    public static final float PAGE_SIZE_LETTER_WIDTH = 8.5f;
+    public static final float PAGE_SIZE_LETTER_HEIGHT = 11.0f;
+    public static final PageSizeUnits PAGE_SIZE_LETTER_UNITS = PageSizeUnits.INCHES;
 
     private boolean _textDirection = false;
     private boolean _testMode = false;
@@ -32,6 +37,9 @@ public class PdfRendererBuilder
     private FSUriResolver _resolver;
     private FSCache _cache;
     private SVGDrawer _svgImpl;
+    private Float _pageWidth;
+    private Float _pageHeight;
+    private boolean _isPageSizeInches;
     
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
@@ -48,7 +56,9 @@ public class PdfRendererBuilder
      * @return
      */
     public PdfBoxRenderer buildPdfRenderer() {
-        return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer, _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache, _svgImpl);
+        return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer,
+                _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache, _svgImpl,
+                _pageWidth, _pageHeight, _isPageSizeInches);
     }
     
     /**
@@ -188,8 +198,28 @@ public class PdfRendererBuilder
         return this;
     }
     
+    /**
+     * Uses the specified SVG drawer implementation.
+     * @param svgImpl
+     * @return
+     */
     public PdfRendererBuilder useSVGDrawer(SVGDrawer svgImpl) {
         this._svgImpl = svgImpl;
+        return this;
+    }
+
+    /**
+     * Specifies the default page size to use if none is specified in CSS.
+     * @param pageWidth
+     * @param pageHeight
+     * @param units either mm or inches.
+     * @see {@link #PAGE_SIZE_LETTER_WIDTH}, {@link #PAGE_SIZE_LETTER_HEIGHT} and {@link #PAGE_SIZE_LETTER_UNITS}
+     * @return
+     */
+    public PdfRendererBuilder useDefaultPageSize(float pageWidth, float pageHeight, PageSizeUnits units) {
+        this._pageWidth = pageWidth;
+        this._pageHeight = pageHeight;
+        this._isPageSizeInches = (units == PageSizeUnits.INCHES);
         return this;
     }
 }
