@@ -1,6 +1,6 @@
 OPEN HTML TO PDF XML/CSS RENDERER LICENSE COMMENTS
-Copyright (C) 2015 Patrick Wright 
-https://code.google.com/p/flying-saucer/
+Copyright (C) 2016 Patrick Wright and others
+https://openhtmltopdf.com
 
 All source code to OPEN HTML TO PDF itself is licensed under the GNU Lesser General
 Public License (LGPL); you can redistribute it and/or modify it under the terms
@@ -12,24 +12,34 @@ http://www.gnu.org/copyleft/lesser.html, and in our distributions under
 LICENSE-LGPL-2.1.txt or LICENSE-LGPL-3.txt.
 
 OPEN HTML TO PDF relies on several other free or open source projects in 
-order to build and run. Where binary Java JAR files are included, we include
-only the unmodified binary releases as provided by those other projects. 
-Source code for the respective projects can be found on the project 
-websites, listed below.
+order to build and run. All currently used libraries are thought to have licenses compatible with the LGPL.
+However, there are several jars under the obsolete-archive folder that are no longer used 
+and their licenses are out of the scope of this document. Please check the license before
+using any of those jars.
 
-Java projects that are used for building and running Flying Saucer are:
+Java projects that are used for building and running openhtmltopdf are:
 
 Apache PDF-BOX
-License: Apache v2.
+  License: Apache v2
+
+Jsoup
+  License: MIT
+
+log4j
+  License: Apache v2
+
+icu4j
+  License: Unicode (http://www.unicode.org/copyright.html#License)
+
+slf4j
+  License: MIT
+
+batik
+  License: Apache v2
 
 JUnit (for testing)
-http://junit.org
-License: Eclipse.
-
-SVGSalamander (SVG rendering in demo)
-https://svgsalamander.java.net/
-License: LGPL
-Using version 1, released on the project website
+  http://junit.org
+  License: Eclipse
 
 DocBook CSS (DocBook XML Rendering with CSS)
   MozBook CSS (public domain, released by David Horton)
@@ -41,17 +51,3 @@ W3C CSS Test Suite
   License is W3C Document License, see LICENSE_W3C_TEST.
   Source is http://www.w3.org/Style/CSS/Test/, for the most current version
   please see that URL.
-
-Special thanks to Andy Streich, et. al. for Xilize
-Xilize Text to HTML library
-http://xilize.sourceforge.net/
-License: GPL
-Used version 3.x, only to produce documentation
-Shipped with our source bundle as a convenience for developers rebuilding 
-documentation; we do not use nor link to the Xilize libraries at runtime
-
-BeanShell
-http://www.beanshell.org
-License: LGPL (dual-license with SPL)
-Use version 2.x as Xilize has a dependency on it; used only to produce 
-documentation.
