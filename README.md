@@ -1,3 +1,5 @@
+[![Build Status](https://api.travis-ci.org/danfickle/openhtmltopdf.svg?branch=open-dev-v1)](https://travis-ci.org/danfickle/openhtmltopdf)
+
 OPEN HTML TO PDF
 ---------
 
@@ -31,6 +33,7 @@ Open HTML to PDF is based on [Flying-saucer](https://github.com/flyingsaucerproj
 
 FAQ
 ===
++ OPEN HTML TO PDF is tested with OpenJDK 7 and Oracle JDK 8.
 + No, you can not use it on Android or Google App Engine.
 + Flowing columns are not implemented.
 + No, it's not a web browser, although the 'browser' example is pretty impressive.
