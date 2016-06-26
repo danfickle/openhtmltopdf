@@ -50,6 +50,7 @@ CHANGELOG
 
 head - 0.0.1-RC4-SNAPSHOT
 ========
++ [BREAKING CHANGE: Reworked URI resolver, changed FSUriResolver interface and made sure it is used everywhere](https://github.com/danfickle/openhtmltopdf/issues/27) - See example in integration guide.
 + Fixed issue where different size pages in the same document were not being recognized.
 + Add method to builder to specify default page size. Example: ````builder.useDefaultPageSize(PdfRendererBuilder.PAGE_SIZE_LETTER_WIDTH, PdfRendererBuilder.PAGE_SIZE_LETTER_HEIGHT, PdfRendererBuilder.PAGE_SIZE_LETTER_UNITS);````
 + BREAKING CHANGE: If no page size is specified in builder or CSS use A4, rather than locale dependent. See above.

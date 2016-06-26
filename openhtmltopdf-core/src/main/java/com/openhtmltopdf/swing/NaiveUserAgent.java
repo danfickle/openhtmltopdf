@@ -21,7 +21,6 @@ package com.openhtmltopdf.swing;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,11 +73,12 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * setFSCache.
      */
     protected final LinkedHashMap<String, ImageResource> _imageCache = new LinkedHashMap<String, ImageResource>();
-    private final FSUriResolver DEFAULT_URI_RESOLVER = new DefaultUriResolver(this); 
+    protected final FSUriResolver DEFAULT_URI_RESOLVER = new DefaultUriResolver(); 
 
     protected HttpStreamFactory _streamFactory = new DefaultHttpStreamFactory();
     protected FSCache _externalCache = new NullFSCache(false);
     protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
+    protected String _baseUri;
     
     public static class DefaultHttpStream implements HttpStream {
     	private InputStream strm;
@@ -250,7 +250,13 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     @Override
     public CSSResource getCSSResource(String uri) {
-    	String resolved = _resolver.resolveURI(uri);
+    	String resolved = _resolver.resolveURI(this._baseUri, uri);
+    	
+    	if (resolved == null) {
+    		XRLog.load(Level.INFO, "URI resolver rejected loading CSS resource at (" + uri + ")");
+    		return null;
+    	}
+    	
     	FSCacheKey cacheKey = new FSCacheKey(resolved, CSSResource.class);
     	CSSResource res = (CSSResource) _externalCache.get(cacheKey);
     	
@@ -280,7 +286,12 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             BufferedImage image = ImageUtil.loadEmbeddedBase64Image(uri);
             return new ImageResource(null, AWTFSImage.createImage(image));
         } else {
-            String resolved = _resolver.resolveURI(uri);
+            String resolved = _resolver.resolveURI(this._baseUri, uri);
+            
+            if (resolved == null) {
+        		XRLog.load(Level.INFO, "URI resolver rejected loading image resource at (" + uri + ")");
+        		return null;
+        	}
             
             // First, we check the internal per run cache.
             ir = _imageCache.get(resolved);
@@ -338,7 +349,13 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     @Override
     public XMLResource getXMLResource(String uri) {
-    	String resolved = _resolver.resolveURI(uri);
+    	String resolved = _resolver.resolveURI(this._baseUri, uri);
+    	
+    	if (resolved == null) {
+    		XRLog.load(Level.INFO, "URI resolver rejected loading XML resource at (" + uri + ")");
+    		return null;
+    	}
+    	
     	XMLResource res = (XMLResource) _externalCache.get(new FSCacheKey(resolved, XMLResource.class));
     	if (res != null) {
     		return res;
@@ -364,7 +381,13 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
     @Override
     public byte[] getBinaryResource(String uri) {
-    	String resolved = _resolver.resolveURI(uri);
+    	String resolved = _resolver.resolveURI(this._baseUri, uri);
+    	
+    	if (resolved == null) {
+    		XRLog.load(Level.INFO, "URI resolver rejected loading binary resource at (" + uri + ")");
+    		return null;
+    	}
+    	
     	byte[] bytes = (byte[]) _externalCache.get(new FSCacheKey(resolved, byte[].class));
     	if (bytes != null) {
     		return bytes;
@@ -418,19 +441,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * @param url A URI which anchors other, possibly relative URIs.
      */
     @Override
-    public void setBaseURL(String url) {
-        _resolver.setBaseURL(url);
+    public void setBaseURL(String uri) {
+        _baseUri = uri;
     }
 
     public static class DefaultUriResolver implements FSUriResolver {
-
-    	private final NaiveUserAgent _agent;
-    	private String _baseURI;
-    	
-    	private DefaultUriResolver(NaiveUserAgent agent) {
-    		this._agent = agent;
-    	}
-    	
 		/**
 		 * Resolves the URI; if absolute, leaves as is, if relative, returns an
 		 * absolute URI based on the baseUrl for the agent.
@@ -441,62 +456,26 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		 * @return A URI as String, resolved, or null if there was an exception
 		 *         (for example if the URI is malformed).
 		 */
-    	@Override
-		public String resolveURI(String uri) {
-			if (uri == null)
+		@Override
+		public String resolveURI(String baseUri, String uri) {
+			if (uri == null || uri.isEmpty())
 				return null;
 			
-			String ret = null;
-			
-			if (_agent.getBaseURL() == null) {// first try to set a base URL
-
-				try {
-					URI result = new URI(uri);
-					if (result.isAbsolute())
-						_agent.setBaseURL(result.toString());
-				} catch (URISyntaxException e) {
-					XRLog.exception(
-							"The default NaiveUserAgent could not use the URL as base url: " + uri, e);
-				}
-
-				if (_agent.getBaseURL() == null) { // still not set -> fallback to current working directory
-					try {
-						XRLog.load(Level.WARNING, "Using current working directiory as base uri.");
-						_agent.setBaseURL(new File(".").toURI().toURL().toExternalForm());
-					} catch (Exception e1) {
-						XRLog.exception("The default NaiveUserAgent doesn't know how to resolve the base URL for " + uri);
-						return null;
-					}
-				}
-			}
-			
-			// test if the URI is valid; if not, try to assign the base url as
-			// its parent
 			try {
-				URI result = new URI(uri);
-				if (!result.isAbsolute()) {
-					XRLog.load(uri
-							+ " is not a URL; may be relative. Testing using parent URL "
-							+ _agent.getBaseURL());
-					result = new URI(_agent.getBaseURL()).resolve(result);
+				URI possiblyRelative = new URI(uri);
+				
+				if (possiblyRelative.isAbsolute()) {
+					return possiblyRelative.toString();
 				}
-				ret = result.toString();
+				
+				URI base = new URI(baseUri);
+				URI absolute = base.resolve(uri);
+			
+				return absolute.toString();
 			} catch (URISyntaxException e) {
-				XRLog.exception("The default NaiveUserAgent cannot resolve the URL "
-						+ uri + " with base URL " + _agent.getBaseURL());
+				XRLog.exception("When trying to load uri(" + uri + ") with base URI(" + baseUri + "), one or both were invalid URIs.", e);
+				return null;
 			}
-
-			return ret;
-		}
-
-		@Override
-		public void setBaseURL(String uri) {
-			this._baseURI = uri;
-		}
-
-		@Override
-		public String getBaseURL() {
-			return this._baseURI;
 		}
 	}
 
@@ -505,7 +484,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     @Override
     public String getBaseURL() {
-        return _resolver.getBaseURL();
+        return _baseUri;
     }
 
     @Override
@@ -524,7 +503,12 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
 	@Override
 	public String resolveURI(String uri) {
-		return _resolver.resolveURI(uri);
+		return _resolver.resolveURI(getBaseURL(), uri);
+	}
+
+	@Override
+	public String resolveUri(String baseUri, String uri) {
+		return _resolver.resolveURI(baseUri, uri);
 	}
 }
 

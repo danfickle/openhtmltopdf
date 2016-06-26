@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.w3c.dom.css.CSSPrimitiveValue;
 
@@ -48,6 +49,8 @@ import com.openhtmltopdf.css.sheet.Ruleset;
 import com.openhtmltopdf.css.sheet.RulesetContainer;
 import com.openhtmltopdf.css.sheet.Stylesheet;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
+import com.openhtmltopdf.util.ThreadCtx;
+import com.openhtmltopdf.util.XRLog;
 
 public class CSSParser {
     private static final Set SUPPORTED_PSEUDO_ELEMENTS;
@@ -267,29 +270,17 @@ public class CSSParser {
                 switch (t.getType()) {
                     case Token.STRING:
                     case Token.URI:
-                        // first see if we can set URI via URL
-                        try {
-                            info.setUri(new URL(new URL(stylesheet.getURI()), getTokenValue(t)).toString());
-                        } catch (MalformedURLException mue) {
-                            // not a valid URL, may be a custom protocol which the user expects to handle
-                            // in the user agent
-                            //
-                            // FIXME: using URI like this will not work for some cases of parent URI, depends
-                            // on whether the URI class can parse the parent and child correctly
-                            // This can lead to a bug where a stylesheet imported from another stylesheet ends
-                            // up unresolved. This will be fixed in a later release by passing Stylesheet info
-                            // all the way down to the UAC so that the end user can code for it
-                            try {
-                                URI parent = new URI(stylesheet.getURI());
-                                String tokenValue = getTokenValue(t);
-                                String resolvedUri = parent.resolve(tokenValue).toString();
-                                System.out.println("Token: " + tokenValue + " resolved " + resolvedUri);
-                                info.setUri(resolvedUri);
-                            } catch (URISyntaxException use) {
-                                throw new CSSParseException("Invalid URL, " + use.getMessage(), getCurrentLine());
-                            }
+                    	String uri = getTokenValue(t);
+                    	String baseUri = stylesheet.getURI();
+                    	
+                    	String resolved = ThreadCtx.get().sharedContext().getUserAgentCallback().resolveUri(baseUri, uri);
+                    	
+                    	if (resolved == null) {
+                    		XRLog.load(Level.INFO, "URI resolver rejected resolving CSS import at (" + uri + ")");
+                    	}
+                    	
+                    	info.setUri(resolved);
 
-                        }
                         skip_whitespace();
                         t = la();
                         if (t == Token.TK_IDENT) {
@@ -1945,16 +1936,13 @@ public class CSSParser {
                 }
 
                 String uriResult = processEscapes(ch, start, end+1);
+                String uriResolved = ThreadCtx.get().sharedContext().getUserAgentCallback().resolveUri(_URI, uriResult);
 
-                // Relative URIs are resolved relative to CSS file, not XHTML file
-                if (isRelativeURI(uriResult)) {
-                    int lastSlash = _URI.lastIndexOf('/');
-                    if (lastSlash != -1) {
-                        uriResult = _URI.substring(0, lastSlash+1) + uriResult;
-                    }
+                if (uriResolved == null) {
+                	XRLog.load(Level.INFO, "URI resolver rejected resolving URI at (" + uriResult + ") in CSS stylehseet");
                 }
-
-                return uriResult;
+                
+                return uriResolved == null ? "" : uriResolved;
             case Token.AT_RULE:
             case Token.IDENT:
             case Token.FUNCTION:

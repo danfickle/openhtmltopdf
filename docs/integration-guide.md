@@ -215,9 +215,37 @@ on the builder with ````builder.useCache(cache)````.
 
 URI RESOLVER
 =======
-By default, the code attempts to resolve relative URIs by using the document URI as a base URI. Absolute URIs are returned unchanged. If you wish to plugin your
-own resolver, you can. This can not only resolve relative URIs but also resolve URIs in a private address space or even reject a URI. To use an external resolver 
-implement ````FSUriResolver```` and use it with ````builder.useUriResolver(new MyResolver())````.
+By default, the code attempts to resolve relative URIs by using the document URI or CSS stylesheet URI as a base URI.
+Absolute URIs are returned unchanged. If you wish to plugin your own resolver, you can.
+This can not only resolve relative URIs but also resolve URIs in a private address space or even reject a URI. To use an external resolver 
+implement ````FSUriResolver```` and use it with ````builder.useUriResolver(new MyResolver())````. The following example requires resources to be loaded through
+SSL.
+````java
+        	 final NaiveUserAgent.DefaultUriResolver defaultUriResolver = new NaiveUserAgent.DefaultUriResolver();
+        	 
+        	 builder.useUriResolver(new FSUriResolver() {
+				@Override
+				public String resolveURI(String baseUri, String uri) {
+					// First get an absolute version.
+					String supResolved = defaultUriResolver.resolveURI(baseUri, uri);
+					
+					if (supResolved == null || supResolved.isEmpty())
+						return null;
+					
+					try {
+						URI uriObj = new URI(supResolved);
+						
+						// Only let through resources that are loaded through ssl.
+						if (uriObj.getScheme().equalsIgnoreCase("https"))
+							return uriObj.toString();
+					
+					} catch (URISyntaxException e) {
+						e.printStackTrace();
+					}
+					return null;
+				}
+			});
+````
 
 LOGGING
 =======

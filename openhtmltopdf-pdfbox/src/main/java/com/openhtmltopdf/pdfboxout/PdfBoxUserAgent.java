@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Locale;
+import java.util.logging.Level;
 
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.resource.ImageResource;
@@ -56,6 +57,12 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
     
     public ImageResource getImageResource(String uriStr) {
         String uriResolved = resolveURI(uriStr);
+        
+        if (uriResolved == null) {
+           XRLog.load(Level.INFO, "URI resolver rejected loading image at (" + uriStr + ")");
+           return new ImageResource(uriStr, null);
+        }
+        
         ImageResource resource = _imageCache.get(uriResolved);
         
         if (resource == null) {
