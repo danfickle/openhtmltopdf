@@ -23,9 +23,9 @@ public class TestNaiveUserAgentUrlResolver extends TestCase
         assertEquals("http://www.example.com", resolve("http://www.example.com"));
         assertEquals("http://www.example.com", resolve("ftp://www.example.com/other","http://www.example.com"));
         
-        // by default relative uris resolves as file 
-        assertNotNull(resolve("www.example.com"));
-        assertTrue(resolve("www.example.com").startsWith("file:"));
+        // by default relative uris resolves as file (not anymore)
+        // assertNotNull(resolve("www.example.com"));
+        // assertTrue(resolve("www.example.com").startsWith("file:"));
         
         // relative uris without slash
         assertEquals("ftp://www.example.com/test", resolve("ftp://www.example.com/other","test"));
