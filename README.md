@@ -48,7 +48,10 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC4-SNAPSHOT
+head - 0.0.1-RC5-SNAPSHOT
+========
+
+0.0.1-RC4
 ========
 + Add method to builder to specify replacement text if no specified font can render a character.
 + [BREAKING CHANGE: Reworked URI resolver, changed FSUriResolver interface and made sure it is used everywhere](https://github.com/danfickle/openhtmltopdf/issues/27) - See example in integration guide.
