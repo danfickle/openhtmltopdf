@@ -41,6 +41,7 @@ public class PdfRendererBuilder
     private Float _pageHeight;
     private boolean _isPageSizeInches;
     private float _pdfVersion = 1.7f;
+    private String _replacementText;
     
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
@@ -66,7 +67,7 @@ public class PdfRendererBuilder
     public PdfBoxRenderer buildPdfRenderer() {
         return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer,
                 _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache, _svgImpl,
-                _pageWidth, _pageHeight, _isPageSizeInches, _pdfVersion);
+                _pageWidth, _pageHeight, _isPageSizeInches, _pdfVersion, _replacementText);
     }
     
     /**
@@ -240,6 +241,19 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder usePdfVersion(float version) {
         this._pdfVersion = version;
+        return this;
+    }
+    
+    /**
+     * The replacement text to use if a character is cannot be renderered by any of the specified fonts.
+     * This is not broken across lines so should be one or zero characters for best results.
+     * Also, make sure it can be rendered by at least one of your specified fonts!
+     * The default is the # character.
+     * @param replacement
+     * @return
+     */
+    public PdfRendererBuilder useReplacementText(String replacement) {
+        this._replacementText = replacement;
         return this;
     }
 }

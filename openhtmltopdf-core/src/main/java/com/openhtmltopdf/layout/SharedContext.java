@@ -124,6 +124,8 @@ public class SharedContext {
 	private Float defaultPageHeight;
 	private Float defaultPageWidth;
 	private boolean defaultPageSizeIsInches;
+
+	private String replacementText = "#";
     
     public SharedContext() {
     }
@@ -605,6 +607,19 @@ public class SharedContext {
 	 */
 	public boolean isDefaultPageSizeInches() {
 		return this.defaultPageSizeIsInches;
+	}
+	
+	/**
+	 * The replacement text to be used if a character cannot be 
+	 * renderered by the current or fallback fonts.
+	 * @return
+	 */
+	public String getReplacementText() {
+		return this.replacementText;
+	}
+	
+	public void setReplacementText(String replacement) {
+		this.replacementText = replacement;
 	}
 	
 	/**

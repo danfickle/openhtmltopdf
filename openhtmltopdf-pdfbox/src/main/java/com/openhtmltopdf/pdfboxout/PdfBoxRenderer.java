@@ -176,12 +176,15 @@ public class PdfBoxRenderer {
         _sharedContext.setInteractive(false);
     }
 
+    /**
+     * Do not use this method. It is constantly changing as options are added to the builder.
+     */
     public PdfBoxRenderer(boolean textDirection, boolean testMode,
             boolean useSubsets, HttpStreamFactory httpStreamFactory,
             BidiSplitterFactory splitterFactory, BidiReorderer reorderer, String html,
             Document document, String baseUri, String uri, File file,
             OutputStream os, FSUriResolver _resolver, FSCache _cache, SVGDrawer svgImpl,
-            Float pageWidth, Float pageHeight, boolean isPageSizeInches, float pdfVersion) {
+            Float pageWidth, Float pageHeight, boolean isPageSizeInches, float pdfVersion, String replacementText) {
         
         _pdfDoc = new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
@@ -227,6 +230,10 @@ public class PdfBoxRenderer {
         _sharedContext.setInteractive(false);
         
         this.getSharedContext().setDefaultPageSize(pageWidth, pageHeight, isPageSizeInches);
+        
+        if (replacementText != null) {
+            this.getSharedContext().setReplacementText(replacementText);
+        }
         
         if (splitterFactory != null) {
             this._splitterFactory = splitterFactory;

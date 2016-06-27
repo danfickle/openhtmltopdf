@@ -50,6 +50,7 @@ CHANGELOG
 
 head - 0.0.1-RC4-SNAPSHOT
 ========
++ Add method to builder to specify replacement text if no specified font can render a character.
 + [BREAKING CHANGE: Reworked URI resolver, changed FSUriResolver interface and made sure it is used everywhere](https://github.com/danfickle/openhtmltopdf/issues/27) - See example in integration guide.
 + Fixed issue where different size pages in the same document were not being recognized.
 + Add method to builder to specify default page size. Example: ````builder.useDefaultPageSize(PdfRendererBuilder.PAGE_SIZE_LETTER_WIDTH, PdfRendererBuilder.PAGE_SIZE_LETTER_HEIGHT, PdfRendererBuilder.PAGE_SIZE_LETTER_UNITS);````

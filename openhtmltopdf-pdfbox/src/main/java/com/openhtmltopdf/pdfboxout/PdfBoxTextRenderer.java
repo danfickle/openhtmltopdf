@@ -21,9 +21,9 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.awt.Rectangle;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.pdfbox.pdmodel.font.PDFont;
+import java.util.logging.Level;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.extend.FSGlyphVector;
@@ -31,11 +31,12 @@ import com.openhtmltopdf.extend.FontContext;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
+import com.openhtmltopdf.pdfboxout.PdfBoxOutputDevice.FontRun;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.OpenUtil;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxTextRenderer implements TextRenderer {
@@ -121,27 +122,23 @@ public class PdfBoxTextRenderer implements TextRenderer {
         return result;
     }
 
-    static class ReplacementChar {
-        char replacement;
+    private static class ReplacementChar {
+        String replacement;
         FontDescription fontDescription;
-        float width;
     }
     
-    
-    static ReplacementChar getReplacementChar(FSFont font) {
-        char replacement = Configuration.valueAsChar("xr.renderer.missing-character-replacement", ' ');
-        String replaceStr = String.valueOf(replacement);
+    private static ReplacementChar getReplacementChar(FSFont font) {
+        String replaceStr = ThreadCtx.get().sharedContext().getReplacementText();
         List<FontDescription> descriptions = ((PdfBoxFSFont) font).getFontDescription();
         
         for (FontDescription des : descriptions) {
             try {
-                float width = des.getFont().getStringWidth(replaceStr);
+                des.getFont().getStringWidth(replaceStr);
 
-                // Got here without throwing, so the char exists in font.
+                // Got here without throwing, so the text exists in font.
                 ReplacementChar replace = new ReplacementChar();
-                replace.replacement = replacement;
+                replace.replacement = replaceStr;
                 replace.fontDescription = des;
-                replace.width = width;
                 return replace;
             } catch (Exception e)
             {
@@ -149,65 +146,87 @@ public class PdfBoxTextRenderer implements TextRenderer {
             }
         }
 
-        // Still haven't found a font supporting our replacement character, try space character.
+        // Still haven't found a font supporting our replacement text, try space character.
         replaceStr = " ";
         for (FontDescription des : descriptions) {
             try {
-                float width = des.getFont().getStringWidth(replaceStr);
+                des.getFont().getStringWidth(replaceStr);
 
                 // Got here without throwing, so the char exists in font.
                 ReplacementChar replace = new ReplacementChar();
-                replace.replacement = ' ';
+                replace.replacement = " ";
                 replace.fontDescription = des;
-                replace.width = width;
                 return replace;
             } catch (Exception e)
             {
-                // Could not use replacement character in this font.
+                // Could not use space in this font!
             }
         }
     
-        // Really?, no font support for either replacement character or space!
+        // Really?, no font support for either replacement text or space!
+        XRLog.general("Specified fonts don't contain a space character!");
         ReplacementChar replace = new ReplacementChar();
-        replace.replacement = ' ';
+        replace.replacement = "";
         replace.fontDescription = descriptions.get(0);
-        replace.width = 0;
         return replace;
     }
     
-    
-    private float getStringWidthSlow(FSFont bf, String str) {
-        ReplacementChar replace = getReplacementChar(bf);
-        List<FontDescription> fonts = ((PdfBoxFSFont) bf).getFontDescription();
-        float strWidthResult = 0;
-        float strWidthSpace = 0;
-        
-        try {
-            strWidthSpace = fonts.get(0).getFont().getStringWidth(" ");
-        } catch (Exception e) {
-            XRLog.general("Font doesn't contain a space character!");
-        }
+    public static List<FontRun> divideIntoFontRuns(FSFont font, String str, BidiReorderer reorderer) {
+        StringBuilder sb = new StringBuilder();
+        ReplacementChar replace = PdfBoxTextRenderer.getReplacementChar(font);
+        List<FontDescription> fonts = ((PdfBoxFSFont) font).getFontDescription();
+        List<FontRun> runs = new ArrayList<FontRun>();
+        FontRun current = new FontRun();
         
         for (int i = 0; i < str.length(); ) {
             int unicode = str.codePointAt(i);
             i += Character.charCount(unicode);
             String ch = String.valueOf(Character.toChars(unicode));
-            boolean gotWidth = false;
+            boolean gotChar = false;
             
             FONT_LOOP:
             for (FontDescription des : fonts) {
                 try {
-                    strWidthResult += des.getFont().getStringWidth(ch);
-                    gotWidth = true;
+                    des.getFont().getStringWidth(ch);
+                    // We got here, so this font has this character.
+                    if (current.des == null) {
+                        // First character of run.
+                        current.des = des;
+                    }
+                    else if (des != current.des) {
+                        // We have changed font, so we'll start a new font run.
+                        current.str = sb.toString();
+                        runs.add(current);
+                        current = new FontRun();
+                        current.des = des;
+                        sb = new StringBuilder();
+                    }
+
+                    sb.append(ch);
+                    gotChar = true;
                     break;
                 }
                 catch (Exception e1) {
-                    if (_reorderer.isLiveImplementation()) {
+                    if (reorderer.isLiveImplementation()) {
                         // Character is not in font! Next, we try deshaping.
-                        String deshaped = _reorderer.deshapeText(ch);
+                        String deshaped = reorderer.deshapeText(ch);
                         try {
-                            strWidthResult += des.getFont().getStringWidth(deshaped);
-                            gotWidth = true;
+                            des.getFont().getStringWidth(deshaped);
+                            // We got here, so this font has this deshaped character.
+                            if (current.des == null) {
+                                // First character of run.
+                                current.des = des;
+                            }
+                            else if (des != current.des) {
+                                // We have changed font, so we'll start a new font run.
+                                current.str = sb.toString();
+                                runs.add(current);
+                                current = new FontRun();
+                                current.des = des;
+                                sb = new StringBuilder();
+                            }
+                            sb.append(deshaped);
+                            gotChar = true;
                             break FONT_LOOP;
                         }
                         catch (Exception e2) {
@@ -217,23 +236,57 @@ public class PdfBoxTextRenderer implements TextRenderer {
                 }
             }
             
-            if (!gotWidth) {
+            if (!gotChar) {
+                // We still don't have the character after all that. So use replacement character.
+                if (current.des == null) {
+                    // First character of run.
+                    current.des = replace.fontDescription;
+                }
+                else if (replace.fontDescription != current.des) {
+                    // We have changed font, so we'll start a new font run.
+                    current.str = sb.toString();
+                    runs.add(current);
+                    current = new FontRun();
+                    current.des = replace.fontDescription;
+                    sb = new StringBuilder();
+                }
                 
                 if (Character.isSpaceChar(unicode) || Character.isWhitespace(unicode)) {
-                    strWidthResult += strWidthSpace;
+                    sb.append(' ');
                 }
                 else if (!OpenUtil.isCodePointPrintable(unicode)) {
                     // Do nothing
-                } else {
-                    // We still don't have the character after all that. So use replacement character.
-                    strWidthResult += replace.width;
+                }
+                else {
+                    sb.append(replace.replacement);
                 }
             }
         }
+
+        if (sb.length() > 0) {
+            current.str = sb.toString();
+            runs.add(current);
+        }
         
-        return strWidthResult;
+        return runs;
     }
     
+    private float getStringWidthSlow(FSFont bf, String str) {
+        List<FontRun> runs = divideIntoFontRuns(bf, str, _reorderer);
+        float strWidth = 0;
+        
+        for (FontRun run : runs) {
+            try {
+                strWidth += run.des.getFont().getStringWidth(run.str);
+            } catch (Exception e) {
+                XRLog.render(Level.WARNING, "BUG. Font didn't contain expected character.", e);
+            }
+        }
+
+        return strWidth;
+    }
+
+    @Override
     public int getWidth(FontContext context, FSFont font, String string) {
         float result = 0f;
 

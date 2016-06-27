@@ -21,7 +21,6 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.LinearGradientPaint;
 import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -37,7 +36,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -54,8 +52,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDFontFactory;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -65,7 +61,6 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
-import org.apache.pdfbox.util.Matrix;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -80,7 +75,6 @@ import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
-import com.openhtmltopdf.pdfboxout.PdfBoxTextRenderer.ReplacementChar;
 import com.openhtmltopdf.render.AbstractOutputDevice;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
@@ -91,7 +85,6 @@ import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.Configuration;
-import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDevice {
@@ -301,9 +294,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             // Fallthrough, we'll have to process the string into font runs.
         }
         
-        List<FontRun> fontRuns = replaceCharacters(_font, s, _reorderer);
-        float xOffset = 0f;
+        List<FontRun> fontRuns = PdfBoxTextRenderer.divideIntoFontRuns(_font, s, _reorderer);
         
+        float xOffset = 0f;
         for (FontRun run : fontRuns) {
             drawStringFast(run.str, x + xOffset, y, info, run.des, _font.getSize2D());
             try {
@@ -348,110 +341,12 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _cp.endText();
     }
     
-    static class FontRun {
+    public static class FontRun {
         String str;
         FontDescription des;
     }
     
-    private List<FontRun> replaceCharacters(FSFont font, String str, BidiReorderer reorderer) {
-        StringBuilder sb = new StringBuilder();
-        ReplacementChar replace = PdfBoxTextRenderer.getReplacementChar(font);
-        List<FontDescription> fonts = ((PdfBoxFSFont) font).getFontDescription();
-        List<FontRun> runs = new ArrayList<FontRun>();
-        FontRun current = new FontRun();
-        
-        for (int i = 0; i < str.length(); ) {
-            int unicode = str.codePointAt(i);
-            i += Character.charCount(unicode);
-            String ch = String.valueOf(Character.toChars(unicode));
-            boolean gotChar = false;
-            
-            FONT_LOOP:
-            for (FontDescription des : fonts) {
-                try {
-                    des.getFont().getStringWidth(ch);
-                    // We got here, so this font has this character.
-                    if (current.des == null) {
-                        // First character of run.
-                        current.des = des;
-                    }
-                    else if (des != current.des) {
-                        // We have changed font, so we'll start a new font run.
-                        current.str = sb.toString();
-                        runs.add(current);
-                        current = new FontRun();
-                        current.des = des;
-                        sb = new StringBuilder();
-                    }
 
-                    sb.append(ch);
-                    gotChar = true;
-                    break;
-                }
-                catch (Exception e1) {
-                    if (reorderer.isLiveImplementation()) {
-                        // Character is not in font! Next, we try deshaping.
-                        String deshaped = reorderer.deshapeText(ch);
-                        try {
-                            des.getFont().getStringWidth(deshaped);
-                            // We got here, so this font has this deshaped character.
-                            if (current.des == null) {
-                                // First character of run.
-                                current.des = des;
-                            }
-                            else if (des != current.des) {
-                                // We have changed font, so we'll start a new font run.
-                                current.str = sb.toString();
-                                runs.add(current);
-                                current = new FontRun();
-                                current.des = des;
-                                sb = new StringBuilder();
-                            }
-                            sb.append(deshaped);
-                            gotChar = true;
-                            break FONT_LOOP;
-                        }
-                        catch (Exception e2) {
-                            // Keep trying with next font.
-                        }
-                    }
-                }
-            }
-            
-            if (!gotChar) {
-                // We still don't have the character after all that. So use replacement character.
-                if (current.des == null) {
-                    // First character of run.
-                    current.des = replace.fontDescription;
-                }
-                else if (replace.fontDescription != current.des) {
-                    // We have changed font, so we'll start a new font run.
-                    current.str = sb.toString();
-                    runs.add(current);
-                    current = new FontRun();
-                    current.des = replace.fontDescription;
-                    sb = new StringBuilder();
-                }
-                
-                if (Character.isSpaceChar(unicode) || Character.isWhitespace(unicode)) {
-                    sb.append(' ');
-                }
-                else if (!OpenUtil.isCodePointPrintable(unicode)) {
-                    // Do nothing
-                }
-                else {
-                    sb.append(replace.replacement);
-                }
-            }
-        }
-
-        if (sb.length() > 0) {
-            current.str = sb.toString();
-            runs.add(current);
-        }
-        
-        return runs;
-    }
     
     /*
     public void drawString(String s, float x, float y, JustificationInfo info) {
