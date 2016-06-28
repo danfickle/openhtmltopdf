@@ -28,6 +28,7 @@ import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.extend.ContentFunction;
 import com.openhtmltopdf.css.parser.FSFunction;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.layout.Breaker;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.Styleable;
@@ -247,7 +248,7 @@ public class InlineBox implements Styleable {
         int lastWord = 0;
 
         String text = getText(trimLeadingSpace);
-        BreakIterator breakIterator = Breaker.getWordStream(text);
+        FSTextBreaker breakIterator = Breaker.getLineBreakStream(text, c.getSharedContext());
 
         // Breaker should be used
         while ( (current = breakIterator.next()) != BreakIterator.DONE) {

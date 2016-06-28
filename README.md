@@ -50,6 +50,7 @@ CHANGELOG
 
 head - 0.0.1-RC5-SNAPSHOT
 ========
++ [Add method to builder to specify a custom line breaker](https://github.com/danfickle/openhtmltopdf/issues/25) Thanks @Magotchi
 
 0.0.1-RC4
 ========

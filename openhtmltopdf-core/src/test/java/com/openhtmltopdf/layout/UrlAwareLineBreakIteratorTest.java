@@ -1,7 +1,9 @@
 package com.openhtmltopdf.layout;
 
 import java.text.BreakIterator;
+import java.util.Locale;
 
+import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.layout.UrlAwareLineBreakIterator;
 
 import junit.framework.TestCase;
@@ -107,7 +109,7 @@ public class UrlAwareLineBreakIteratorTest extends TestCase {
 
 
     private void assertBreaksCorrectly(String input, String[] segments) {
-        BreakIterator iterator = new UrlAwareLineBreakIterator();
+        FSTextBreaker iterator = new UrlAwareLineBreakIterator(BreakIterator.getLineInstance(Locale.US));
         iterator.setText(input);
 
         int segmentIndex = 0;

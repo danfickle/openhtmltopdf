@@ -60,6 +60,7 @@ import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.FSCache;
+import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.NamespaceHandler;
@@ -76,7 +77,6 @@ import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
-import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxRenderer {
@@ -178,13 +178,14 @@ public class PdfBoxRenderer {
 
     /**
      * Do not use this method. It is constantly changing as options are added to the builder.
+     * @param lineBreaker 
      */
     public PdfBoxRenderer(boolean textDirection, boolean testMode,
             boolean useSubsets, HttpStreamFactory httpStreamFactory,
             BidiSplitterFactory splitterFactory, BidiReorderer reorderer, String html,
             Document document, String baseUri, String uri, File file,
             OutputStream os, FSUriResolver _resolver, FSCache _cache, SVGDrawer svgImpl,
-            Float pageWidth, Float pageHeight, boolean isPageSizeInches, float pdfVersion, String replacementText) {
+            Float pageWidth, Float pageHeight, boolean isPageSizeInches, float pdfVersion, String replacementText, FSTextBreaker lineBreaker) {
         
         _pdfDoc = new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
@@ -242,6 +243,10 @@ public class PdfBoxRenderer {
         if (reorderer != null) {
             this._reorderer = reorderer;
             this._outputDevice.setBidiReorderer(_reorderer);
+        }
+        
+        if (lineBreaker != null) {
+            _sharedContext.setLineBreaker(lineBreaker);
         }
         
         this._defaultTextDirection = textDirection ? BidiSplitter.RTL : BidiSplitter.LTR;

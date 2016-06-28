@@ -8,10 +8,10 @@ import org.w3c.dom.Document;
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.extend.FSCache;
+import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.SVGDrawer;
-import com.openhtmltopdf.swing.NaiveUserAgent;
 
 public class PdfRendererBuilder
 {
@@ -42,6 +42,7 @@ public class PdfRendererBuilder
     private boolean _isPageSizeInches;
     private float _pdfVersion = 1.7f;
     private String _replacementText;
+    private FSTextBreaker _lineBreaker;
     
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
@@ -67,7 +68,8 @@ public class PdfRendererBuilder
     public PdfBoxRenderer buildPdfRenderer() {
         return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer,
                 _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache, _svgImpl,
-                _pageWidth, _pageHeight, _isPageSizeInches, _pdfVersion, _replacementText);
+                _pageWidth, _pageHeight, _isPageSizeInches, _pdfVersion, _replacementText,
+                _lineBreaker);
     }
     
     /**
@@ -254,6 +256,21 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder useReplacementText(String replacement) {
         this._replacementText = replacement;
+        return this;
+    }
+    
+    /**
+     * Specify the line breaker. By default a Java default BreakIterator line instance is used
+     * with US locale. Additionally, this is wrapped with UrlAwareLineBreakIterator to also
+     * break before the forward slash (/) character so that long URIs can be broken on to multiple lines.
+     * 
+     * You may want to use a BreakIterator with a different locale (wrapped by UrlAwareLineBreakIterator or not)
+     * or a more advanced BreakIterator from icu4j (see the rtl-support module for an example).
+     * @param breaker
+     * @return
+     */
+    public PdfRendererBuilder useLineBreaker(FSTextBreaker breaker) {
+        this._lineBreaker = breaker;
         return this;
     }
 }

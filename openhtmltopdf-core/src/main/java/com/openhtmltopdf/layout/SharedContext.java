@@ -23,7 +23,9 @@ import java.awt.Font;
 import java.awt.HeadlessException;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.text.BreakIterator;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.w3c.dom.Document;
@@ -36,6 +38,7 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSCanvas;
+import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.extend.FontContext;
 import com.openhtmltopdf.extend.FontResolver;
 import com.openhtmltopdf.extend.NamespaceHandler;
@@ -126,6 +129,7 @@ public class SharedContext {
 	private boolean defaultPageSizeIsInches;
 
 	private String replacementText = "#";
+	private FSTextBreaker lineBreaker = new UrlAwareLineBreakIterator(BreakIterator.getLineInstance(Locale.US));
     
     public SharedContext() {
     }
@@ -632,6 +636,14 @@ public class SharedContext {
 		this.defaultPageWidth = pageWidth;
 		this.defaultPageHeight = pageHeight;
 		this.defaultPageSizeIsInches = isInches;
+	}
+	
+	public FSTextBreaker getLineBreaker() {
+		return lineBreaker;
+	}
+	
+	public void setLineBreaker(FSTextBreaker breaker) {
+		this.lineBreaker = breaker;
 	}
 	
 	/**

@@ -20,10 +20,9 @@
  */
 package com.openhtmltopdf.layout;
 
-import java.text.BreakIterator;
-
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.render.FSFont;
 
 /**
@@ -109,7 +108,7 @@ public class Breaker {
             boolean tryToBreakAnywhere) {
         FSFont font = style.getFSFont(c);
         String currentString = context.getStartSubstring();
-        BreakIterator iterator = getWordStream(currentString);
+        FSTextBreaker iterator = getLineBreakStream(currentString, c.getSharedContext());
         int left = 0;
         int right = tryToBreakAnywhere ? 1 : iterator.next();
         int lastWrap = 0;
@@ -174,11 +173,9 @@ public class Breaker {
         return;
     }
 
-	public static BreakIterator getWordStream(String s) {
-		BreakIterator i = new UrlAwareLineBreakIterator();
+	public static FSTextBreaker getLineBreakStream(String s, SharedContext shared) {
+		FSTextBreaker i = shared.getLineBreaker();
 		i.setText(s);
 		return i;
 	}
-
 }
-

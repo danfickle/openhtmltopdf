@@ -1,37 +1,26 @@
 package com.openhtmltopdf.layout;
 
 import java.text.BreakIterator;
-import java.text.CharacterIterator;
+import com.openhtmltopdf.extend.FSTextBreaker;
 
 
 /**
  * BreakIterator implementation that improves line breaking for URLs. Break points are supported
  * before path fragments.
  */
-public class UrlAwareLineBreakIterator extends BreakIterator {
+public class UrlAwareLineBreakIterator implements FSTextBreaker {
 
     private static final String BREAKING_CHARS = ".,:;!?- \n\r\t/";
 
-    private BreakIterator delegate = BreakIterator.getLineInstance();
+    private final BreakIterator delegate;
     private String text;
     private Range currentRange;
 
-
-    public int preceding(int offset) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    public UrlAwareLineBreakIterator(BreakIterator breaker) {
+    	delegate = breaker;
     }
-
-
-    public int last() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-
-    public int previous() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-
+    
+    @Override
     public int next() {
         checkNotAheadOfDelegate();
 
@@ -103,42 +92,7 @@ public class UrlAwareLineBreakIterator extends BreakIterator {
         return next == BreakIterator.DONE;
     }
 
-
-    public int next(int n) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-
-    public boolean isBoundary(int offset) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-
-    public int following(int offset) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-
-    public int first() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-
-    public void setText(CharacterIterator newText) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-
-    public int current() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-
-    public CharacterIterator getText() {
-        return delegate.getText();
-    }
-
-
+    @Override
     public void setText(String newText) {
         delegate.setText(newText);
         text = newText;
@@ -148,56 +102,46 @@ public class UrlAwareLineBreakIterator extends BreakIterator {
 
     private static class Range {
 
-        int start;
-        int stop;
-
+        private final int start;
+        private final int stop;
 
         public Range(int start, int stop) {
             this.start = start;
             this.stop = Math.max(start, stop);
         }
 
-
         public Range(int referencePoint, int startOffset, int stopOffset) {
             this(referencePoint + startOffset, referencePoint + stopOffset);
         }
-
 
         public Range withStart(int start) {
             return new Range(start, stop);
         }
 
-
         public Range withStop(int stop) {
             return new Range(start, stop);
         }
-
 
         public Range incrementStart() {
             int newStart = start + 1;
             return new Range(newStart, Math.max(newStart, stop));
         }
 
-
         public Range decrementStop() {
             int newStop = stop + -1;
             return new Range(Math.min(start, newStop), newStop);
         }
 
-
         public int getStart() {
             return start;
         }
-
 
         public int getStop() {
             return stop;
         }
 
-
         public String toString() {
             return "[" + start + ", " + stop + ")";
         }
     }
-
 }
