@@ -9,9 +9,13 @@ import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.extend.FSCache;
 import com.openhtmltopdf.extend.FSTextBreaker;
+import com.openhtmltopdf.extend.FSTextTransformer;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.SVGDrawer;
+import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.BaseDocument;
+import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.PageDimensions;
+import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.UnicodeImplementation;
 
 public class PdfRendererBuilder
 {
@@ -43,6 +47,9 @@ public class PdfRendererBuilder
     private float _pdfVersion = 1.7f;
     private String _replacementText;
     private FSTextBreaker _lineBreaker;
+    private FSTextTransformer _unicodeToUpperTransformer;
+    private FSTextTransformer _unicodeToLowerTransformer;
+    private FSTextTransformer _unicodeToTitleTransformer;
     
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
@@ -66,10 +73,14 @@ public class PdfRendererBuilder
      * @return
      */
     public PdfBoxRenderer buildPdfRenderer() {
-        return new PdfBoxRenderer(_textDirection, _testMode, _useSubsets, _httpStreamFactory, _splitter, _reorderer,
-                _html, _document, _baseUri, _uri, _file, _os, _resolver, _cache, _svgImpl,
-                _pageWidth, _pageHeight, _isPageSizeInches, _pdfVersion, _replacementText,
-                _lineBreaker);
+        UnicodeImplementation unicode = new UnicodeImplementation(_reorderer, _splitter, _lineBreaker, 
+                _unicodeToLowerTransformer, _unicodeToUpperTransformer, _unicodeToTitleTransformer, _textDirection);
+
+        PageDimensions pageSize = new PageDimensions(_pageWidth, _pageHeight, _isPageSizeInches);
+        
+        BaseDocument doc = new BaseDocument(_baseUri, _html, _document, _file, _uri);
+        
+        return new PdfBoxRenderer(doc, unicode, _useSubsets, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _replacementText, _testMode);
     }
     
     /**
@@ -139,7 +150,7 @@ public class PdfRendererBuilder
      * @param splitter
      * @return
      */
-    public PdfRendererBuilder useBidiSplitter(BidiSplitterFactory splitter) {
+    public PdfRendererBuilder useUnicodeBidiSplitter(BidiSplitterFactory splitter) {
         this._splitter = splitter;
         return this;
     }
@@ -149,7 +160,7 @@ public class PdfRendererBuilder
      * @param reorderer
      * @return
      */
-    public PdfRendererBuilder useBidiReorderer(BidiReorderer reorderer) {
+    public PdfRendererBuilder useUnicodeBidiReorderer(BidiReorderer reorderer) {
         this._reorderer = reorderer;
         return this;
     }
@@ -269,8 +280,41 @@ public class PdfRendererBuilder
      * @param breaker
      * @return
      */
-    public PdfRendererBuilder useLineBreaker(FSTextBreaker breaker) {
+    public PdfRendererBuilder useUnicodeLineBreaker(FSTextBreaker breaker) {
         this._lineBreaker = breaker;
+        return this;
+    }
+    
+    /**
+     * Specify a transformer to use to upper case strings.
+     * By default <code>String::toUpperCase(Locale.US)</code> is used.
+     * @param tr
+     * @return
+     */
+    public PdfRendererBuilder useUnicodeToUpperTransformer(FSTextTransformer tr) {
+        this._unicodeToUpperTransformer = tr;
+        return this;
+    }
+
+    /**
+     * Specify a transformer to use to lower case strings.
+     * By default <code>String::toLowerCase(Locale.US)</code> is used.
+     * @param tr
+     * @return
+     */
+    public PdfRendererBuilder useUnicodeToLowerTransformer(FSTextTransformer tr) {
+        this._unicodeToLowerTransformer = tr;
+        return this;
+    }
+
+    /**
+     * Specify a transformer to title case strings.
+     * By default a best effort implementation (non locale aware) is used.
+     * @param tr
+     * @return
+     */
+    public PdfRendererBuilder useUnicodeToTitleTransformer(FSTextTransformer tr) {
+        this._unicodeToTitleTransformer = tr;
         return this;
     }
 }

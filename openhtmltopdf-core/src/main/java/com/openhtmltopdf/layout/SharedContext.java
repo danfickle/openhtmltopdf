@@ -39,6 +39,7 @@ import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSCanvas;
 import com.openhtmltopdf.extend.FSTextBreaker;
+import com.openhtmltopdf.extend.FSTextTransformer;
 import com.openhtmltopdf.extend.FontContext;
 import com.openhtmltopdf.extend.FontResolver;
 import com.openhtmltopdf.extend.NamespaceHandler;
@@ -130,6 +131,10 @@ public class SharedContext {
 
 	private String replacementText = "#";
 	private FSTextBreaker lineBreaker = new UrlAwareLineBreakIterator(BreakIterator.getLineInstance(Locale.US));
+
+	private FSTextTransformer _unicodeToLowerTransformer = new TextUtil.DefaultToLowerTransformer(Locale.US);
+	private FSTextTransformer _unicodeToUpperTransformer = new TextUtil.DefaultToUpperTransformer(Locale.US);
+	private FSTextTransformer _unicodeToTitleTransformer = new TextUtil.DefaultToTitleTransformer();
     
     public SharedContext() {
     }
@@ -660,6 +665,30 @@ public class SharedContext {
 	 */
 	public void removeFromThread() {
 		ThreadCtx.get().setSharedContext(null);
+	}
+
+	public FSTextTransformer getUnicodeToLowerTransformer() {
+		return this._unicodeToLowerTransformer;
+	}
+
+	public FSTextTransformer getUnicodeToUpperTransformer() {
+		return this._unicodeToUpperTransformer;
+	}
+
+	public FSTextTransformer getUnicodeToTitleTransformer() {
+		return this._unicodeToTitleTransformer;
+	}
+	
+	public void setUnicodeToLowerTransformer(FSTextTransformer tr) {
+		this._unicodeToLowerTransformer = tr;
+	}
+	
+	public void setUnicodeToUpperTransformer(FSTextTransformer tr) {
+		this._unicodeToUpperTransformer = tr;
+	}
+	
+	public void setUnicodeToTitleTransformer(FSTextTransformer tr) {
+		this._unicodeToTitleTransformer = tr;
 	}
 }
 

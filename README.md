@@ -50,6 +50,8 @@ CHANGELOG
 
 head - 0.0.1-RC5-SNAPSHOT
 ========
++ BREAKING CHANGE: Changed bi-directional method names in builder to be more consistent.
++ [Add method to builder to specify custom text transformers](https://github.com/danfickle/openhtmltopdf/issues/28)
 + [Add method to builder to specify a custom line breaker](https://github.com/danfickle/openhtmltopdf/issues/25) Thanks @Magotchi
 
 0.0.1-RC4

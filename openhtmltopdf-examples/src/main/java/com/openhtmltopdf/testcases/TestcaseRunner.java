@@ -41,8 +41,8 @@ public class TestcaseRunner {
 		
 		try {
 			PdfRendererBuilder builder = new PdfRendererBuilder();
-			builder.useBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
-			builder.useBidiReorderer(new ICUBidiReorderer());
+			builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
 			builder.defaultTextDirection(TextDirection.LTR);
 			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
 			builder.toStream(outputStream);

@@ -384,9 +384,9 @@ public class BrowserPanel extends JPanel implements DocumentListener {
                os = new FileOutputStream(path);
                try {
             	   PdfRendererBuilder builder = new PdfRendererBuilder();
-            	   builder.useBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+            	   builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
             	   builder.defaultTextDirection(TextDirection.LTR);
-                   builder.useBidiReorderer(new ICUBidiReorderer());
+                   builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
                    builder.withUri(manager.getBaseURL());
                    builder.toStream(os);
                    builder.run();

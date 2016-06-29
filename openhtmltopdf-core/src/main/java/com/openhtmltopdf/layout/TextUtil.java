@@ -19,9 +19,13 @@
  */
 package com.openhtmltopdf.layout;
 
+import java.util.Locale;
+
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.FSTextTransformer;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.Uu;
 
 
@@ -31,28 +35,80 @@ import com.openhtmltopdf.util.Uu;
  * @author   empty
  */
 public class TextUtil {
+	public static class DefaultToUpperTransformer implements FSTextTransformer {
+		private final Locale lc;
+		
+		public DefaultToUpperTransformer(Locale lc) {
+			this.lc = lc;
+		}
+		
+		@Override
+		public String transform(String in) {
+			return in.toUpperCase(lc);
+		}
+	}
+	
+	public static class DefaultToLowerTransformer implements FSTextTransformer {
+		private final Locale lc;
+		
+		public DefaultToLowerTransformer(Locale lc) {
+			this.lc = lc;
+		}
+		
+		@Override
+		public String transform(String in) {
+			return in.toLowerCase(lc);
+		}
+	}
 
-    /**
-     * Description of the Method
-     *
-     * @param text   PARAM
-     * @param style
-     * @return       Returns
-     */
+	/**
+	 * A best effort implementation of title casing. Use the implementation in the rtl-support
+	 * module for better results.
+	 */
+	public static class DefaultToTitleTransformer implements FSTextTransformer {
+		public DefaultToTitleTransformer() { }
+		
+		@Override
+		public String transform(String in) {
+			StringBuilder out = new StringBuilder(in.length());
+			boolean makeTitle = true;
+			
+			for (int i = 0; i < in.length(); ) {
+				int cp = in.codePointAt(i);
+				
+				if (Character.isLetter(cp) && makeTitle) {
+					out.appendCodePoint(Character.toTitleCase(cp));
+					makeTitle = false;
+				} else if (Character.isWhitespace(cp) || Character.isSpaceChar(cp)) {
+					out.appendCodePoint(cp);
+					makeTitle = true;
+				} else {
+					out.appendCodePoint(cp);
+				}
+				
+				i += Character.charCount(cp);
+			}
+			
+			return out.toString();
+		}
+	}
+
     public static String transformText( String text, CalculatedStyle style ) {
         IdentValue transform = style.getIdent( CSSName.TEXT_TRANSFORM );
+        SharedContext ctx = ThreadCtx.get().sharedContext();
+        
         if ( transform == IdentValue.LOWERCASE ) {
-            text = text.toLowerCase();
+            text = ctx.getUnicodeToLowerTransformer().transform(text);
         }
         if ( transform == IdentValue.UPPERCASE ) {
-            text = text.toUpperCase();
+            text = ctx.getUnicodeToUpperTransformer().transform(text);
         }
         if ( transform == IdentValue.CAPITALIZE ) {
-            text = capitalizeWords( text );
+            text = ctx.getUnicodeToTitleTransformer().transform(text);
         }
         IdentValue fontVariant = style.getIdent( CSSName.FONT_VARIANT );
         if ( fontVariant == IdentValue.SMALL_CAPS ) {
-            text = text.toUpperCase();
+            text = ctx.getUnicodeToUpperTransformer().transform(text);
         }
         return text;
     }
@@ -125,49 +181,6 @@ public class TextUtil {
                 return false;
         }
     }
-
-
-    /**
-     * Description of the Method
-     *
-     * @param text  PARAM
-     * @return      Returns
-     */
-    private static String capitalizeWords( String text ) {
-        //Uu.p("start = -"+text+"-");
-        if ( text.length() == 0 ) {
-            return text;
-        }
-
-        StringBuffer sb = new StringBuffer();
-        //Uu.p("text = -" + text + "-");
-
-        // do first letter
-        //Uu.p("first = " + text.substring(0,1));
-        boolean cap = true;
-        for ( int i = 0; i < text.length(); i++ ) {
-            String ch = text.substring( i, i + 1 );
-            //Uu.p("ch = " + ch + " cap = " + cap);
-
-
-            if ( cap ) {
-                sb.append( ch.toUpperCase() );
-            } else {
-                sb.append( ch );
-            }
-            cap = false;
-            if ( ch.equals( " " ) ) {
-                cap = true;
-            }
-        }
-
-        //Uu.p("final = -"+sb.toString()+"-");
-        if ( sb.toString().length() != text.length() ) {
-            Uu.p( "error! to strings arent the same length = -" + sb.toString() + "-" + text + "-" );
-        }
-        return sb.toString();
-    }
-
 }
 
 /*

@@ -61,6 +61,7 @@ import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.FSCache;
 import com.openhtmltopdf.extend.FSTextBreaker;
+import com.openhtmltopdf.extend.FSTextTransformer;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.NamespaceHandler;
@@ -176,16 +177,63 @@ public class PdfBoxRenderer {
         _sharedContext.setInteractive(false);
     }
 
+    static class UnicodeImplementation {
+        final BidiReorderer reorderer;
+        final BidiSplitterFactory splitterFactory;
+        final FSTextBreaker lineBreaker;
+        final FSTextTransformer toLowerTransformer;
+        final FSTextTransformer toUpperTransformer;
+        final FSTextTransformer toTitleTransformer;
+        final boolean textDirection;
+        
+        UnicodeImplementation(BidiReorderer reorderer, BidiSplitterFactory splitterFactory, 
+                FSTextBreaker lineBreaker, FSTextTransformer toLower, FSTextTransformer toUpper,
+                FSTextTransformer toTitle, boolean textDirection) {
+            this.reorderer = reorderer;
+            this.splitterFactory = splitterFactory;
+            this.lineBreaker = lineBreaker;
+            this.toLowerTransformer = toLower;
+            this.toUpperTransformer = toUpper;
+            this.toTitleTransformer = toTitle;
+            this.textDirection = textDirection;
+        }
+    }
+    
+    static class PageDimensions {
+        final Float w;
+        final Float h;
+        final boolean isSizeInches;
+        
+        PageDimensions(Float w, Float h, boolean isSizeInches) {
+            this.w = w;
+            this.h = h;
+            this.isSizeInches = isSizeInches;
+        }
+    }
+    
+    static class BaseDocument {
+        final String html;
+        final Document document;
+        final File file;
+        final String uri;
+        final String baseUri;
+        
+        BaseDocument(String baseUri, String html, Document document, File file, String uri) {
+            this.html = html;
+            this.document = document;
+            this.file = file;
+            this.uri = uri;
+            this.baseUri = baseUri;
+        }
+    }
+    
     /**
-     * Do not use this method. It is constantly changing as options are added to the builder.
-     * @param lineBreaker 
+     * This method is constantly changing as options are added to the builder.
      */
-    public PdfBoxRenderer(boolean textDirection, boolean testMode,
-            boolean useSubsets, HttpStreamFactory httpStreamFactory,
-            BidiSplitterFactory splitterFactory, BidiReorderer reorderer, String html,
-            Document document, String baseUri, String uri, File file,
-            OutputStream os, FSUriResolver _resolver, FSCache _cache, SVGDrawer svgImpl,
-            Float pageWidth, Float pageHeight, boolean isPageSizeInches, float pdfVersion, String replacementText, FSTextBreaker lineBreaker) {
+    PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode, 
+            boolean useSubsets, HttpStreamFactory httpStreamFactory, 
+            OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
+            PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode) {
         
         _pdfDoc = new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
@@ -202,12 +250,12 @@ public class PdfBoxRenderer {
             userAgent.setHttpStreamFactory(httpStreamFactory);
         }
         
-        if (_resolver != null) {
-            userAgent.setUriResolver(_resolver);
+        if (resolver != null) {
+            userAgent.setUriResolver(resolver);
         }
         
-        if (_cache != null) {
-            userAgent.setExternalCache(_cache);
+        if (cache != null) {
+            userAgent.setExternalCache(cache);
         }
         
         _sharedContext = new SharedContext();
@@ -230,39 +278,51 @@ public class PdfBoxRenderer {
         _sharedContext.setPrint(true);
         _sharedContext.setInteractive(false);
         
-        this.getSharedContext().setDefaultPageSize(pageWidth, pageHeight, isPageSizeInches);
+        this.getSharedContext().setDefaultPageSize(pageSize.w, pageSize.h, pageSize.isSizeInches);
         
         if (replacementText != null) {
             this.getSharedContext().setReplacementText(replacementText);
         }
         
-        if (splitterFactory != null) {
-            this._splitterFactory = splitterFactory;
+        if (unicode.splitterFactory != null) {
+            this._splitterFactory = unicode.splitterFactory;
         }
         
-        if (reorderer != null) {
-            this._reorderer = reorderer;
+        if (unicode.reorderer != null) {
+            this._reorderer = unicode.reorderer;
             this._outputDevice.setBidiReorderer(_reorderer);
         }
         
-        if (lineBreaker != null) {
-            _sharedContext.setLineBreaker(lineBreaker);
+        if (unicode.lineBreaker != null) {
+            _sharedContext.setLineBreaker(unicode.lineBreaker);
         }
         
-        this._defaultTextDirection = textDirection ? BidiSplitter.RTL : BidiSplitter.LTR;
+        if (unicode.toLowerTransformer != null) {
+            _sharedContext.setUnicodeToLowerTransformer(unicode.toLowerTransformer);
+        }
         
-        if (html != null) {
-            this.setDocumentFromStringP(html, baseUri);
+        if (unicode.toUpperTransformer != null) {
+            _sharedContext.setUnicodeToUpperTransformer(unicode.toUpperTransformer);
         }
-        else if (document != null) {
-            this.setDocumentP(document, baseUri);
+        
+        if (unicode.toTitleTransformer != null) {
+            _sharedContext.setUnicodeToTitleTransformer(unicode.toTitleTransformer);
         }
-        else if (uri != null) {
-            this.setDocumentP(uri);
+        
+        this._defaultTextDirection = unicode.textDirection ? BidiSplitter.RTL : BidiSplitter.LTR;
+        
+        if (doc.html != null) {
+            this.setDocumentFromStringP(doc.html, doc.baseUri);
         }
-        else if (file != null) {
+        else if (doc.document != null) {
+            this.setDocumentP(doc.document, doc.baseUri);
+        }
+        else if (doc.uri != null) {
+            this.setDocumentP(doc.uri);
+        }
+        else if (doc.file != null) {
             try {
-                this.setDocumentP(file);
+                this.setDocumentP(doc.file);
             } catch (IOException e) {
                 XRLog.exception("Problem trying to read input XHTML file", e);
                 throw new RuntimeException("File IO problem", e);
