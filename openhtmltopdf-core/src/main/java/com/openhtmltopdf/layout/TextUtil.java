@@ -19,22 +19,35 @@
  */
 package com.openhtmltopdf.layout;
 
+import java.text.BreakIterator;
 import java.util.Locale;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.extend.FSTextTransformer;
 import com.openhtmltopdf.util.ThreadCtx;
-import com.openhtmltopdf.util.Uu;
 
-
-/**
- * Description of the Class
- *
- * @author   empty
- */
 public class TextUtil {
+	public static class DefaultCharacterBreaker implements FSTextBreaker {
+		private final BreakIterator iter;
+		
+		public DefaultCharacterBreaker(BreakIterator iter) {
+			this.iter = iter;
+		}
+		
+		@Override
+		public int next() {
+			return iter.next();
+		}
+
+		@Override
+		public void setText(String newText) {
+			iter.setText(newText);
+		}
+	}
+
 	public static class DefaultToUpperTransformer implements FSTextTransformer {
 		private final Locale lc;
 		
@@ -95,81 +108,36 @@ public class TextUtil {
 
     public static String transformText( String text, CalculatedStyle style ) {
         IdentValue transform = style.getIdent( CSSName.TEXT_TRANSFORM );
+        IdentValue fontVariant = style.getIdent( CSSName.FONT_VARIANT );
+        
         SharedContext ctx = ThreadCtx.get().sharedContext();
         
         if ( transform == IdentValue.LOWERCASE ) {
             text = ctx.getUnicodeToLowerTransformer().transform(text);
         }
-        if ( transform == IdentValue.UPPERCASE ) {
+        if ( transform == IdentValue.UPPERCASE || 
+        	 fontVariant == IdentValue.SMALL_CAPS ) {
             text = ctx.getUnicodeToUpperTransformer().transform(text);
         }
         if ( transform == IdentValue.CAPITALIZE ) {
             text = ctx.getUnicodeToTitleTransformer().transform(text);
         }
-        IdentValue fontVariant = style.getIdent( CSSName.FONT_VARIANT );
-        if ( fontVariant == IdentValue.SMALL_CAPS ) {
-            text = ctx.getUnicodeToUpperTransformer().transform(text);
-        }
+
         return text;
     }
 
-    /**
-     * Description of the Method
-     *
-     * @param text   PARAM
-     * @param style
-     * @return       Returns
-     */
     public static String transformFirstLetterText( String text, CalculatedStyle style ) {
-        if (text.length() > 0) {
-            IdentValue transform = style.getIdent( CSSName.TEXT_TRANSFORM );
-            IdentValue fontVariant = style.getIdent( CSSName.FONT_VARIANT );
-            char currentChar;
-            for ( int i = 0, end = text.length(); i < end; i++ ) {
-                currentChar = text.charAt(i);
-                if ( !isFirstLetterSeparatorChar( currentChar ) ) {
-                    if ( transform == IdentValue.LOWERCASE ) {
-                        currentChar = Character.toLowerCase( currentChar );
-                        text = replaceChar( text, currentChar, i );
-                    } else if ( transform == IdentValue.UPPERCASE || transform == IdentValue.CAPITALIZE || fontVariant == IdentValue.SMALL_CAPS ) {
-                        currentChar = Character.toUpperCase( currentChar );
-                        text = replaceChar( text, currentChar, i );
-                    }
-                    break;
-                }
-            }
-        }
-        return text;
+    	return transformText(text, style);
     }
 
     /**
-     * Replace character at the specified index by another.
-     *
-     * @param text    Source text
-     * @param newChar Replacement character
-     * @return        Returns the new text
+     * According to the CSS spec the first letter includes certain punctuation immediately
+     * preceding or following the actual first letter.
+     * @param currentChar
+     * @return
      */
-    public static String replaceChar( String text, char newChar, int index ) {
-        int textLength = text.length();
-        StringBuilder b = new StringBuilder(textLength);
-        for (int i = 0; i < textLength; i++) {
-            if (i == index) {
-                b.append(newChar);
-            } else {
-                b.append(text.charAt(i));
-            }
-        }
-        return b.toString();
-    }
-
-    /**
-     * Description of the Method
-     *
-     * @param c     PARAM
-     * @return      Returns
-     */
-    public static boolean isFirstLetterSeparatorChar( char c ) {
-        switch (Character.getType(c)) {
+    public static boolean isFirstLetterSeparatorChar( int currentChar ) {
+        switch (Character.getType(currentChar)) {
             case Character.START_PUNCTUATION:
             case Character.END_PUNCTUATION:
             case Character.INITIAL_QUOTE_PUNCTUATION:

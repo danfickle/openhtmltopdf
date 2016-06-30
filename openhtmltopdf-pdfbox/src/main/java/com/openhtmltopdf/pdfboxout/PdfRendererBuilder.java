@@ -47,9 +47,11 @@ public class PdfRendererBuilder
     private float _pdfVersion = 1.7f;
     private String _replacementText;
     private FSTextBreaker _lineBreaker;
+    private FSTextBreaker _charBreaker;
     private FSTextTransformer _unicodeToUpperTransformer;
     private FSTextTransformer _unicodeToLowerTransformer;
     private FSTextTransformer _unicodeToTitleTransformer;
+
     
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
@@ -74,7 +76,7 @@ public class PdfRendererBuilder
      */
     public PdfBoxRenderer buildPdfRenderer() {
         UnicodeImplementation unicode = new UnicodeImplementation(_reorderer, _splitter, _lineBreaker, 
-                _unicodeToLowerTransformer, _unicodeToUpperTransformer, _unicodeToTitleTransformer, _textDirection);
+                _unicodeToLowerTransformer, _unicodeToUpperTransformer, _unicodeToTitleTransformer, _textDirection, _charBreaker);
 
         PageDimensions pageSize = new PageDimensions(_pageWidth, _pageHeight, _isPageSizeInches);
         
@@ -282,6 +284,18 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder useUnicodeLineBreaker(FSTextBreaker breaker) {
         this._lineBreaker = breaker;
+        return this;
+    }
+    
+    /**
+     * Specify the character breaker. By default a break iterator character instance is used with 
+     * US locale. Currently this is used when <code>word-wrap: break-word</code> is in
+     * effect.
+     * @param breaker
+     * @return
+     */
+    public PdfRendererBuilder useUnicodeCharacterBreaker(FSTextBreaker breaker) {
+        this._charBreaker = breaker;
         return this;
     }
     

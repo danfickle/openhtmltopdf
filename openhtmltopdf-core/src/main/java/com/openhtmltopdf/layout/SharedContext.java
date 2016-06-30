@@ -131,6 +131,7 @@ public class SharedContext {
 
 	private String replacementText = "#";
 	private FSTextBreaker lineBreaker = new UrlAwareLineBreakIterator(BreakIterator.getLineInstance(Locale.US));
+	private FSTextBreaker characterBreaker = new TextUtil.DefaultCharacterBreaker(BreakIterator.getCharacterInstance(Locale.US));
 
 	private FSTextTransformer _unicodeToLowerTransformer = new TextUtil.DefaultToLowerTransformer(Locale.US);
 	private FSTextTransformer _unicodeToUpperTransformer = new TextUtil.DefaultToUpperTransformer(Locale.US);
@@ -650,6 +651,15 @@ public class SharedContext {
 	public void setLineBreaker(FSTextBreaker breaker) {
 		this.lineBreaker = breaker;
 	}
+
+	public FSTextBreaker getCharacterBreaker() {
+		return characterBreaker;
+	}
+	
+	public void setCharacterBreaker(FSTextBreaker breaker) {
+		this.characterBreaker = breaker;
+	}
+	
 	
 	/**
 	 * This registers the shared context with a thread local so it

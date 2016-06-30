@@ -181,6 +181,7 @@ public class PdfBoxRenderer {
         final BidiReorderer reorderer;
         final BidiSplitterFactory splitterFactory;
         final FSTextBreaker lineBreaker;
+        final FSTextBreaker charBreaker;
         final FSTextTransformer toLowerTransformer;
         final FSTextTransformer toUpperTransformer;
         final FSTextTransformer toTitleTransformer;
@@ -188,7 +189,7 @@ public class PdfBoxRenderer {
         
         UnicodeImplementation(BidiReorderer reorderer, BidiSplitterFactory splitterFactory, 
                 FSTextBreaker lineBreaker, FSTextTransformer toLower, FSTextTransformer toUpper,
-                FSTextTransformer toTitle, boolean textDirection) {
+                FSTextTransformer toTitle, boolean textDirection, FSTextBreaker charBreaker) {
             this.reorderer = reorderer;
             this.splitterFactory = splitterFactory;
             this.lineBreaker = lineBreaker;
@@ -196,6 +197,7 @@ public class PdfBoxRenderer {
             this.toUpperTransformer = toUpper;
             this.toTitleTransformer = toTitle;
             this.textDirection = textDirection;
+            this.charBreaker = charBreaker;
         }
     }
     
@@ -295,6 +297,10 @@ public class PdfBoxRenderer {
         
         if (unicode.lineBreaker != null) {
             _sharedContext.setLineBreaker(unicode.lineBreaker);
+        }
+        
+        if (unicode.charBreaker != null) {
+            _sharedContext.setCharacterBreaker(unicode.charBreaker);
         }
         
         if (unicode.toLowerTransformer != null) {

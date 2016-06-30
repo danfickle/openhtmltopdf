@@ -26,4 +26,22 @@ public class ICUBreakers {
 			this.breaker.setText(newText);
 		}
 	}
+
+	public static class ICUCharacterBreaker implements FSTextBreaker {
+		private final BreakIterator breaker;
+		
+		public ICUCharacterBreaker(Locale locale) {
+			this.breaker = BreakIterator.getCharacterInstance(locale);
+		}
+		
+		@Override
+		public int next() {
+			return this.breaker.next();
+		}
+
+		@Override
+		public void setText(String newText) {
+			this.breaker.setText(newText);
+		}
+	}
 }

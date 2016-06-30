@@ -48,9 +48,9 @@ public class Breaker {
     private static int getFirstLetterEnd(String text, int start) {
         boolean letterFound = false;
         int end = text.length();
-        char currentChar;
-        for ( int i = start; i < end; i++ ) {
-            currentChar = text.charAt(i);
+        int currentChar;
+        for ( int i = start; i < end; ) {
+            currentChar = text.codePointAt(i);
             if (!TextUtil.isFirstLetterSeparatorChar(currentChar)) {
                 if (letterFound) {
                     return i;
@@ -58,6 +58,7 @@ public class Breaker {
                     letterFound = true;
                 }
             }
+            i += Character.charCount(currentChar);
         }
         return end;
     }
@@ -106,11 +107,15 @@ public class Breaker {
     private static void doBreakText(LayoutContext c,
             LineBreakContext context, int avail, CalculatedStyle style,
             boolean tryToBreakAnywhere) {
-        FSFont font = style.getFSFont(c);
+        
+    	FSFont font = style.getFSFont(c);
         String currentString = context.getStartSubstring();
-        FSTextBreaker iterator = getLineBreakStream(currentString, c.getSharedContext());
+        FSTextBreaker iterator = tryToBreakAnywhere ? 
+        		getCharacterBreakStream(currentString, c.getSharedContext()) :
+        		getLineBreakStream(currentString, c.getSharedContext());
+        			
         int left = 0;
-        int right = tryToBreakAnywhere ? 1 : iterator.next();
+        int right = iterator.next();
         int lastWrap = 0;
         int graphicsLength = 0;
         int lastGraphicsLength = 0;
@@ -121,12 +126,7 @@ public class Breaker {
                     c.getFontContext(), font, currentString.substring(left, right));
             lastWrap = left;
             left = right;
-            if ( tryToBreakAnywhere ) {
-                right = ( right + 1 ) % currentString.length();
-            }
-            else { // break relies on BreakIterator
-                right = iterator.next();
-            }
+            right = iterator.next();
         }
 
         if (graphicsLength <= avail) {
@@ -172,6 +172,12 @@ public class Breaker {
         }
         return;
     }
+
+	public static FSTextBreaker getCharacterBreakStream(String currentString, SharedContext sharedContext) {
+		FSTextBreaker i = sharedContext.getCharacterBreaker();
+		i.setText(currentString);
+		return i;
+	}
 
 	public static FSTextBreaker getLineBreakStream(String s, SharedContext shared) {
 		FSTextBreaker i = shared.getLineBreaker();
