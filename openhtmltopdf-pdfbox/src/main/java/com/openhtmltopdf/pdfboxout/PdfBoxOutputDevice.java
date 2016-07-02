@@ -39,19 +39,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -61,8 +66,10 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
@@ -128,6 +135,12 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private List _bookmarks = new ArrayList();
 
     private List _metadata = new ArrayList();
+    
+    private final Map<Element, PdfBoxForm> forms = new HashMap<Element, PdfBoxForm>();
+    private final Set<Element> seenForms = new HashSet<Element>();
+    private final List<PdfBoxForm.Control> controls = new ArrayList<PdfBoxForm.Control>();
+    private final Set<Element> seenControls = new HashSet<Element>();
+    private final Map<PDFont, String> controlFonts = new HashMap<PDFont, String>();
 
     private Box _root;
 
@@ -196,9 +209,88 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         super.paintBackground(c, box);
 
         _linkManager.processLinkLater(c, box, _page, _pageHeight, _transform);
+       
+        if (box.getElement() != null && box.getElement().getNodeName().equals("form")) {
+            if (!seenForms.contains(box.getElement())) {
+                PdfBoxForm frm = PdfBoxForm.createForm(box.getElement());
+                forms.put(box.getElement(), frm);
+                seenForms.add(box.getElement());
+            }
+        } else if (box.getElement() != null &&
+                (box.getElement().getNodeName().equals("input") ||
+                 box.getElement().getNodeName().equals("textarea") ||
+                 box.getElement().getNodeName().equals("button") ||
+                 box.getElement().getNodeName().equals("select"))) {
+            // Add controls to list to process later. We do this in case we paint a control background
+            // before its associated form.
+            if (!seenControls.contains(box.getElement())) {
+                controls.add(new PdfBoxForm.Control(box, _page, _transform, c, _pageHeight));
+                seenControls.add(box.getElement());
+            }
+        }
     }
 
+    public void processControls() {
+        
+        
+        for (PdfBoxForm.Control ctrl : controls) {
+            PdfBoxForm frm = findEnclosingForm(ctrl.box.getElement());
+            
+            PDFont fnt = ((PdfBoxFSFont) _sharedContext.getFont(ctrl.box.getStyle().getFontSpecification())).getFontDescription().get(0).getFont();
+            String fontName;
+            if (!controlFonts.containsKey(fnt)) {
+                fontName = "OpenHTMLFont" + controlFonts.size();
+                controlFonts.put(fnt, fontName);
+            } else {
+                fontName = controlFonts.get(fnt);
+            }
 
+            frm.addControl(ctrl, fontName);
+        }
+        
+        PDResources resources = new PDResources(); 
+        for (Map.Entry<PDFont, String> fnt : controlFonts.entrySet()) {
+            resources.put(COSName.getPDFName(fnt.getValue()), fnt.getKey());
+        }
+        
+        int start = 0;
+        PDAcroForm acro = new PDAcroForm(_writer);
+
+        acro.setNeedAppearances(Boolean.TRUE);
+        acro.setDefaultResources(resources);
+        
+        _writer.getDocumentCatalog().setAcroForm(acro);
+        
+        for (PdfBoxForm frm : forms.values()) {
+            try {
+                start = 1 + frm.process(acro, start, _root, this);
+            } catch (IOException e) {
+                throw new PdfContentStreamAdapter.PdfException("processControls", e);
+            }
+        }
+    }
+    
+    /**
+     * Helper function to find an enclosing PdfBoxForm given a input or textarea element.
+     * @param e
+     * @return
+     */
+    public PdfBoxForm findEnclosingForm(Element e) {
+        Node parent;
+        while ((parent = e.getParentNode()) != null) {
+            if (parent.getNodeType() == Node.ELEMENT_NODE &&
+                parent.getNodeName().equals("form")) {
+
+                Element frmElement = (Element) parent;
+                if (forms.containsKey(frmElement)) {
+                    return forms.get(frmElement);
+                }
+            }
+        }
+        
+        XRLog.general(Level.WARNING, "Found form control (" + e.getNodeName() + ") with no enclosing form");
+        return null;
+    }
 
     public float getDeviceLength(float length) {
         return length / _dotsPerPoint;
@@ -770,6 +862,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void finish(RenderingContext c, Box root) {
+        processControls();
         _linkManager.processLinks();
         writeOutline(c, root);
     }

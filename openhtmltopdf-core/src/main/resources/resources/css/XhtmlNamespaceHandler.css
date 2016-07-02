@@ -31,6 +31,22 @@ kbd, samp       { font-family: monospace }
 pre             { white-space: pre }
 button, textarea,
 input, select   { display: inline-block; font-family: sans-serif; font-size: 10pt; }
+input[type=text] {
+    height: 1.8em;
+    width: 10em;
+    background-color: white;
+    border: 1px solid black;
+    padding: 4px;
+}
+input[type=submit] {
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 3px;
+    padding: 4px;
+    vertical-align: top;
+}
+input[type=submit]::before { content: attr(value); height: 1.8em; display: inline-block; }
+
 /* input[type=hidden] { display: none } */        /* don't generate boxes for hidden inputs.*/
 big             { font-size: 1.17em }
 small           { font-size: .83em }

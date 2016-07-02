@@ -198,7 +198,7 @@ public class PdfBoxFontResolver implements FontResolver {
             throws IOException {
         String lower = uri.toLowerCase(Locale.US);
         
-        if (lower.endsWith(".otf") || lower.endsWith(".ttf")) {
+        if (lower.endsWith(".ttf")) {
             PDType0Font font = PDType0Font.load(_doc, new ByteArrayInputStream(font1), _useSubsets);
             
             String[] fontFamilyNames;

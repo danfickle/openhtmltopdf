@@ -58,11 +58,11 @@ public class PdfBoxLinkManager {
             current = prev;
         }
 
-        Rectangle2D result = createTargetArea(c, current, pageHeight, transform); 
+        Rectangle2D result = createTargetArea(c, current, pageHeight, transform, _root, _od); 
 
         current = current.getNextSibling();
         while (current != null && current.getElement() == box.getElement()) {
-            result = add(result, createTargetArea(c, current, pageHeight, transform));
+            result = add(result, createTargetArea(c, current, pageHeight, transform, _root, _od));
 
             current = current.getNextSibling();
         }
@@ -182,7 +182,7 @@ public class PdfBoxLinkManager {
         return result;
     }
 
-    public Rectangle2D createTargetArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform) {
+    public static Rectangle2D createTargetArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform, Box _root, PdfBoxOutputDevice _od) {
         Rectangle bounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), c);
         PageBox page = _root.getLayer().getPage(c, bounds.y);
 
