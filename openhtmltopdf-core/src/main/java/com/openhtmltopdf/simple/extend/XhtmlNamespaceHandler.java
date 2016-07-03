@@ -63,8 +63,29 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
             return applyImgStyles(e);
         } else if (e.getNodeName().equals("p") || e.getNodeName().equals("div")) {
             return applyBlockAlign(e);
+        } else if (e.getNodeName().equals("textarea")) {
+        	return applyTextareaStyles(e);
         }
+        
         return "";
+    }
+    
+    private String applyTextareaStyles(Element e) {
+    	StringBuilder sb = new StringBuilder();
+    	
+    	if (e.hasAttribute("cols") && isInteger(e.getAttribute("cols"))) {
+    		sb.append("width: ");
+    		sb.append(e.getAttribute("cols"));
+    		sb.append("em;");
+    	}
+
+    	if (e.hasAttribute("rows") && isInteger(e.getAttribute("rows"))) {
+    		sb.append("height: ");
+    		sb.append(e.getAttribute("rows"));
+    		sb.append("em;");
+    	}
+
+    	return sb.toString();
     }
     
     private String applyBlockAlign(Element e) {

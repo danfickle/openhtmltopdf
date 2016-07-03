@@ -275,7 +275,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
      * @param e
      * @return
      */
-    public PdfBoxForm findEnclosingForm(Element e) {
+    public PdfBoxForm findEnclosingForm(Node e) {
         Node parent;
         while ((parent = e.getParentNode()) != null) {
             if (parent.getNodeType() == Node.ELEMENT_NODE &&
@@ -286,6 +286,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                     return forms.get(frmElement);
                 }
             }
+            e = parent;
         }
         
         XRLog.general(Level.WARNING, "Found form control (" + e.getNodeName() + ") with no enclosing form");

@@ -1204,7 +1204,10 @@ public class BoxBuilder {
 
                     Text textNode = (Text) working;
 
-                    previousIB = doBidi(c, textNode, parent, parentStyle, previousIB, children);
+                    // Ignore the text belonging to a textarea.
+                    if (!textNode.getParentNode().getNodeName().equals("textarea")) {
+                      	previousIB = doBidi(c, textNode, parent, parentStyle, previousIB, children);
+                    }
                     child = null;
                 }
 

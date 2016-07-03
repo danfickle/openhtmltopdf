@@ -112,6 +112,12 @@ public class PdfBoxForm {
         return colorOperator;
     }
     
+    private String getTextareaText(Element e) {
+        StringBuilder sb = new StringBuilder();
+        DOMUtil.getText(e, sb);
+        return sb.toString();
+    }
+    
     private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
         PDTextField field = new PDTextField(acro);
         
@@ -123,9 +129,13 @@ public class PdfBoxForm {
         
         field.setPartialName("OpenHTMLCtrl" + i); // Internal name.
         controlNames.add("OpenHTMLCtrl" + i);
+
+        String value = ctrl.box.getElement().getNodeName().equals("textarea") ?
+                getTextareaText(ctrl.box.getElement()) :
+                ctrl.box.getElement().getAttribute("value");
         
-        field.setDefaultValue(ctrl.box.getElement().getAttribute("value")); // The reset value.
-        field.setValue(ctrl.box.getElement().getAttribute("value"));        // The original value.
+        field.setDefaultValue(value); // The reset value.
+        field.setValue(value);        // The original value.
     
         if (getNumber(ctrl.box.getElement().getAttribute("max-length")) != null) {
             field.setMaxLen(getNumber(ctrl.box.getElement().getAttribute("max-length")));
