@@ -32,7 +32,7 @@ pre             { white-space: pre }
 button, textarea,
 input, select   { display: inline-block; font-family: sans-serif; font-size: 10pt; }
 
-input[type=text], input[type=password] {
+input[type=text], input[type=password], select {
     height: 1.8em;
     width: 10em;
     background-color: white;
@@ -40,15 +40,15 @@ input[type=text], input[type=password] {
     padding: 4px;
 }
 
-input[type=submit], button {
+input[type=submit], button, input[type=reset] {
     background-color: white;
     border: 1px solid black;
     border-radius: 3px;
     padding: 4px;
     vertical-align: top;
 }
-
-input[type=submit]::before { content: attr(value); height: 1.8em; display: inline-block; }
+select > option { display: none; }
+input[type=submit]::before, input[type=reset]::before { content: attr(value); height: 1.8em; display: inline-block; }
 button { height: 1.8em; }
 textarea { width: 10em; height: 5em; padding: 4px; background-color: white; border: 1px solid black; }
 

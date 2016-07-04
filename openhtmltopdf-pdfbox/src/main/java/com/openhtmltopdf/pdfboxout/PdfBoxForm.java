@@ -3,6 +3,7 @@ package com.openhtmltopdf.pdfboxout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.io.UTFDataFormatException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -13,9 +14,11 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.COSArrayList;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDFileSpecification;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionResetForm;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionSubmitForm;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDComboBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDPushButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.w3c.dom.Element;
@@ -32,7 +35,7 @@ public class PdfBoxForm {
     private final Element element;
     private final List<ControlFontPair> controls = new ArrayList<PdfBoxForm.ControlFontPair>();
     private final List<String> controlNames = new ArrayList<String>();
-    private final List<Control> submits = new ArrayList<PdfBoxForm.Control>(1);
+    private final List<Control> submits = new ArrayList<PdfBoxForm.Control>(2);
     
     public static class Control {
         public final Box box;
@@ -113,9 +116,77 @@ public class PdfBoxForm {
     }
     
     private String getTextareaText(Element e) {
-        StringBuilder sb = new StringBuilder();
-        DOMUtil.getText(e, sb);
-        return sb.toString();
+        return DOMUtil.getText(e);
+    }
+    
+    private String populateOptions(Element e, List<String> labels, List<String> values) {
+        List<Element> opts = DOMUtil.getChildren(e, "option");
+        String selected = "";
+        
+        for (Element opt : opts) {
+            String label = DOMUtil.getText(opt);
+            labels.add(label);
+            
+            if (opt.hasAttribute("value")) {
+                values.add(opt.getAttribute("value"));
+            } else {
+                values.add(label);
+            }
+            
+            if (selected.isEmpty()) {
+                selected = label;
+            }
+            
+            if (opt.hasAttribute("selected")) {
+                selected = label;
+            }
+        }
+        
+        return selected;
+    }
+    
+    private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+        PDComboBox field = new PDComboBox(acro);
+        
+        field.setPartialName("OpenHTMLCtrl" + i);
+        controlNames.add("OpenHTMLCtrl" + i);
+        
+        field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
+        
+        List<String> labels = new ArrayList<String>();
+        List<String> values = new ArrayList<String>();
+        String selectedLabel = populateOptions(ctrl.box.getElement(), labels, values);
+        
+        field.setOptions(values, labels);
+        field.setValue(selectedLabel);
+        field.setDefaultValue(selectedLabel);
+        
+        String fontInstruction = "/" + pair.fontName + " 0 Tf";
+        field.setDefaultAppearance(fontInstruction);
+        
+        if (ctrl.box.getElement().hasAttribute("required")) {
+            field.setRequired(true);
+        }
+        
+        if (ctrl.box.getElement().hasAttribute("readonly")) {
+            field.setReadOnly(true);
+        }
+        
+        if (ctrl.box.getElement().hasAttribute("title")) {
+            field.setAlternateFieldName(ctrl.box.getElement().getAttribute("title"));
+        }
+        
+        PDAnnotationWidget widget = field.getWidgets().get(0);
+
+        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
+
+        widget.setRectangle(rect);
+        widget.setPage(ctrl.page);
+        widget.setPrinted(true);
+      
+        ctrl.page.getAnnotations().add(widget);
+        acro.getFields().add(field);
     }
     
     private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
@@ -168,6 +239,7 @@ public class PdfBoxForm {
 
         widget.setRectangle(rect);
         widget.setPage(ctrl.page);
+        widget.setPrinted(true);
       
         ctrl.page.getAnnotations().add(widget);
         acro.getFields().add(field);
@@ -188,25 +260,31 @@ public class PdfBoxForm {
 
         widget.setRectangle(rect);
         widget.setPage(ctrl.page);
-        
-        PDFileSpecification fs = PDFileSpecification.createFS(new COSString(element.getAttribute("action")));
 
         COSArrayList<String> fieldsToInclude = new COSArrayList<String>();
         fieldsToInclude.addAll(controlNames);
         
-        PDActionSubmitForm submit = new PDActionSubmitForm();
-        submit.setFields(fieldsToInclude.toList());
-        submit.setFile(fs);
-
-        if (!element.getAttribute("method").equalsIgnoreCase("post")) {
-            // Default method is get.
-            XRLog.general(Level.WARNING, "Using GET request method for form. You probably meant to add a method=\"post\" attribute to your form");
-            submit.setFlags(FLAG_USE_GET | FLAG_USE_HTML_SUBMIT);
+        if (ctrl.box.getElement().getAttribute("type").equals("reset")) {
+            PDActionResetForm reset = new PDActionResetForm();
+            reset.setFields(fieldsToInclude.toList());
+            widget.setAction(reset);;
         } else {
-            submit.setFlags(FLAG_USE_HTML_SUBMIT);
-        }
+            PDFileSpecification fs = PDFileSpecification.createFS(new COSString(element.getAttribute("action")));
+            PDActionSubmitForm submit = new PDActionSubmitForm();
+            
+            submit.setFields(fieldsToInclude.toList());
+            submit.setFile(fs);
 
-        widget.setAction(submit);
+            if (!element.getAttribute("method").equalsIgnoreCase("post")) {
+                // Default method is get.
+                XRLog.general(Level.WARNING, "Using GET request method for form. You probably meant to add a method=\"post\" attribute to your form");
+                submit.setFlags(FLAG_USE_GET | FLAG_USE_HTML_SUBMIT);
+            } else {
+                submit.setFlags(FLAG_USE_HTML_SUBMIT);
+            }
+
+            widget.setAction(submit);
+        }
 
         ctrl.page.getAnnotations().add(widget);
         acro.getFields().add(btn);
@@ -229,12 +307,17 @@ public class PdfBoxForm {
 
                 // Start with the text controls (text, password and textarea).
                 processTextControl(pair, ctrl, acro, i, root, od);
+            } else if (e.getNodeName().equals("select") &&
+                       !e.hasAttribute("multiple")) {
+                processSelectControl(pair, ctrl, acro, i, root, od);
             }
-            else if ((ctrl.box.getElement().getNodeName().equals("input") && 
-                      ctrl.box.getElement().getAttribute("type").equals("submit")) ||
-                     (ctrl.box.getElement().getNodeName().equals("button") &&
-                      !ctrl.box.getElement().getAttribute("type").equals("button"))) {
-                // We've got a submit control for this form.
+            else if ((e.getNodeName().equals("input") && 
+                      e.getAttribute("type").equals("submit")) ||
+                     (e.getNodeName().equals("button") &&
+                      !e.getAttribute("type").equals("button")) ||
+                     (e.getNodeName().equals("input") &&
+                      e.getAttribute("type").equals("reset"))) {
+                // We've got a submit or reset control for this form.
                 submits.add(ctrl);
             }
         }

@@ -41,7 +41,7 @@ public class DOMUtil {
         return null;
     }
     
-    public static List getChildren(Element parent, String name) {
+    public static List<Element> getChildren(Element parent, String name) {
         List result = new ArrayList();
         NodeList children = parent.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
