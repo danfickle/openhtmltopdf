@@ -106,7 +106,7 @@ public class PdfBoxLinkManager {
                         PDPageXYZDestination dest = createDestination(c, target);
 
                         PDAction action;
-                        if (!"".equals(handler.getAttributeValue(elem, "onclick"))) {
+                        if (handler.getAttributeValue(elem, "onclick") != null && !"".equals(handler.getAttributeValue(elem, "onclick"))) {
                             action = new PDActionJavaScript(handler.getAttributeValue(elem, "onclick"));
                         } else {
                             PDActionGoTo go = new PDActionGoTo();

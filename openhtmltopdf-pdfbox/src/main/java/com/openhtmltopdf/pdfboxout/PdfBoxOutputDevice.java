@@ -220,7 +220,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                 (box.getElement().getNodeName().equals("input") ||
                  box.getElement().getNodeName().equals("textarea") ||
                  box.getElement().getNodeName().equals("button") ||
-                 box.getElement().getNodeName().equals("select"))) {
+                 box.getElement().getNodeName().equals("select") ||
+                 box.getElement().getNodeName().equals("openhtmltopdf-combo"))) {
             // Add controls to list to process later. We do this in case we paint a control background
             // before its associated form.
             if (!seenControls.contains(box.getElement())) {

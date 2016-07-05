@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Element;
+
 import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.TreeResolver;
 import com.openhtmltopdf.css.parser.CSSParseException;
@@ -193,9 +195,9 @@ abstract class Condition {
     }
     
     private static abstract class AttributeCompareCondition extends Condition {
-        private String _namespaceURI;
-        private String _name;
-        private String _value;
+        protected String _namespaceURI;
+        protected String _name;
+        protected String _value;
         
         protected abstract boolean compare(String attrValue, String conditionValue);
 
@@ -223,8 +225,21 @@ abstract class Condition {
             super(namespaceURI, name, null);
         }
         
+        @Override
+        boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
+            if (attRes == null) {
+                return false;
+            }
+            String val = attRes.getAttributeValue(e, _namespaceURI, _name);
+            if (val == null) {
+                return false;
+            }
+            
+            return true;
+        }
+        
         protected boolean compare(String attrValue, String conditionValue) {
-            return ! attrValue.equals("");
+            throw new UnsupportedOperationException();
         }
     }
     

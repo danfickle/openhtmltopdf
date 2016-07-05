@@ -33,16 +33,20 @@ import com.openhtmltopdf.css.extend.TreeResolver;
  */
 public class DOMStaticXhtmlAttributeResolver implements AttributeResolver {
     public String getAttributeValue(Object e, String attrName) {
+    	if (!((Element) e).hasAttribute(attrName)) {
+    		return null;
+    	}
+    	
         return ((Element) e).getAttribute(attrName);
     }
     
     public String getAttributeValue(Object o, String namespaceURI, String attrName) {
         Element e = (Element)o;
         if (namespaceURI == TreeResolver.NO_NAMESPACE) {
-            return e.getAttribute(attrName);
+            return getAttributeValue(o, attrName);
         } else if (namespaceURI == null) {
             if (e.getLocalName() == null) { // No namespaces
-                return e.getAttribute(attrName);
+                return getAttributeValue(o, attrName);
             } else {
                 NamedNodeMap attrs = e.getAttributes();
                 int l = attrs.getLength();
@@ -53,10 +57,10 @@ public class DOMStaticXhtmlAttributeResolver implements AttributeResolver {
                     }
                 }
                 
-                return "";
+                return null;
             }
         } else {
-            return e.getAttributeNS(namespaceURI, attrName);
+            return e.hasAttributeNS(namespaceURI, attrName) ? e.getAttributeNS(namespaceURI, attrName) : null;
         }
     }
 

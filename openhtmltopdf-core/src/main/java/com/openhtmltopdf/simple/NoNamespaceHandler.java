@@ -52,15 +52,15 @@ public class NoNamespaceHandler implements NamespaceHandler {
     }
 
     public String getAttributeValue(org.w3c.dom.Element e, String attrName) {
-        return e.getAttribute(attrName);
+        return e.hasAttribute(attrName) ? e.getAttribute(attrName) : null;
     }
     
     public String getAttributeValue(Element e, String namespaceURI, String attrName) {
         if (namespaceURI == TreeResolver.NO_NAMESPACE) {
-            return e.getAttribute(attrName);
+            return getAttributeValue(e, attrName);
         } else if (namespaceURI == null) {
             if (e.getLocalName() == null) { // No namespaces
-                return e.getAttribute(attrName);
+                return getAttributeValue(e, attrName);
             } else {
                 NamedNodeMap attrs = e.getAttributes();
                 int l = attrs.getLength();
@@ -71,10 +71,10 @@ public class NoNamespaceHandler implements NamespaceHandler {
                     }
                 }
                 
-                return "";
+                return null;
             }
         } else {
-            return e.getAttributeNS(namespaceURI, attrName);
+            return e.hasAttributeNS(namespaceURI, attrName) ? e.getAttributeNS(namespaceURI, attrName) : null;
         }
     }
 

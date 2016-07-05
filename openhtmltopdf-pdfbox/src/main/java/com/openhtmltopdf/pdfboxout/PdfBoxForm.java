@@ -3,7 +3,6 @@ package com.openhtmltopdf.pdfboxout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
-import java.io.UTFDataFormatException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -19,6 +18,7 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDActionSubmitForm;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDComboBox;
+import org.apache.pdfbox.pdmodel.interactive.form.PDListBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDPushButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.w3c.dom.Element;
@@ -119,9 +119,10 @@ public class PdfBoxForm {
         return DOMUtil.getText(e);
     }
     
-    private String populateOptions(Element e, List<String> labels, List<String> values) {
+    private String populateOptions(Element e, List<String> labels, List<String> values, List<Integer> selectedIndices) {
         List<Element> opts = DOMUtil.getChildren(e, "option");
         String selected = "";
+        int i = 0;
         
         for (Element opt : opts) {
             String label = DOMUtil.getText(opt);
@@ -140,9 +141,63 @@ public class PdfBoxForm {
             if (opt.hasAttribute("selected")) {
                 selected = label;
             }
+            
+            if (opt.hasAttribute("selected") && selectedIndices != null) {
+                selectedIndices.add(i);
+            }
+
+            i++;
         }
         
         return selected;
+    }
+    
+    private void processMultiSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+        PDListBox field = new PDListBox(acro);
+        
+        field.setPartialName("OpenHTMLCtrl" + i);
+        controlNames.add("OpenHTMLCtrl" + i);
+        
+        field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
+        field.setMultiSelect(true);
+        
+        List<String> labels = new ArrayList<String>();
+        List<String> values = new ArrayList<String>();
+        List<Integer> selected = new ArrayList<Integer>();
+        populateOptions(ctrl.box.getElement(), labels, values, selected);
+        
+        field.setOptions(values, labels);
+        field.setSelectedOptionsIndex(selected);
+        
+        FSColor color = ctrl.box.getStyle().getColor();
+        String colorOperator = getColorOperator(color);
+        
+        String fontInstruction = "/" + pair.fontName + " 0 Tf";
+        field.setDefaultAppearance(fontInstruction + ' ' + colorOperator);
+        
+        if (ctrl.box.getElement().hasAttribute("required")) {
+            field.setRequired(true);
+        }
+        
+        if (ctrl.box.getElement().hasAttribute("readonly")) {
+            field.setReadOnly(true);
+        }
+        
+        if (ctrl.box.getElement().hasAttribute("title")) {
+            field.setAlternateFieldName(ctrl.box.getElement().getAttribute("title"));
+        }
+        
+        PDAnnotationWidget widget = field.getWidgets().get(0);
+
+        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
+
+        widget.setRectangle(rect);
+        widget.setPage(ctrl.page);
+        widget.setPrinted(true);
+      
+        ctrl.page.getAnnotations().add(widget);
+        acro.getFields().add(field);
     }
     
     private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
@@ -155,14 +210,17 @@ public class PdfBoxForm {
         
         List<String> labels = new ArrayList<String>();
         List<String> values = new ArrayList<String>();
-        String selectedLabel = populateOptions(ctrl.box.getElement(), labels, values);
+        String selectedLabel = populateOptions(ctrl.box.getElement(), labels, values, null);
         
         field.setOptions(values, labels);
         field.setValue(selectedLabel);
         field.setDefaultValue(selectedLabel);
         
+        FSColor color = ctrl.box.getStyle().getColor();
+        String colorOperator = getColorOperator(color);
+        
         String fontInstruction = "/" + pair.fontName + " 0 Tf";
-        field.setDefaultAppearance(fontInstruction);
+        field.setDefaultAppearance(fontInstruction + ' ' + colorOperator);
         
         if (ctrl.box.getElement().hasAttribute("required")) {
             field.setRequired(true);
@@ -174,6 +232,11 @@ public class PdfBoxForm {
         
         if (ctrl.box.getElement().hasAttribute("title")) {
             field.setAlternateFieldName(ctrl.box.getElement().getAttribute("title"));
+        }
+        
+        if (ctrl.box.getElement().getNodeName().equals("openhtmltopdf-combo")) {
+            field.setEdit(true);
+            field.setCombo(true);
         }
         
         PDAnnotationWidget widget = field.getWidgets().get(0);
@@ -224,6 +287,9 @@ public class PdfBoxForm {
             field.setMultiline(true);
         } else if (ctrl.box.getElement().getAttribute("type").equals("password")) {
             field.setPassword(true);
+        } else if (ctrl.box.getElement().getAttribute("type").equals("file")) {
+            XRLog.general(Level.WARNING, "Acrobat Reader does not support forms with file input controls");
+            field.setFileSelect(true);
         }
         
         field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
@@ -303,13 +369,21 @@ public class PdfBoxForm {
                  e.getAttribute("type").equals("text")) ||
                 (e.getNodeName().equals("textarea")) ||
                 (e.getNodeName().equals("input") && 
-                 e.getAttribute("type").equals("password"))) {
+                 e.getAttribute("type").equals("password")) ||
+                (e.getNodeName().equals("input") &&
+                 e.getAttribute("type").equals("file"))) {
 
-                // Start with the text controls (text, password and textarea).
+                // Start with the text controls (text, password, file and textarea).
                 processTextControl(pair, ctrl, acro, i, root, od);
-            } else if (e.getNodeName().equals("select") &&
-                       !e.hasAttribute("multiple")) {
+            } else if ((e.getNodeName().equals("select") &&
+                        !e.hasAttribute("multiple")) ||
+                       (e.getNodeName().equals("openhtmltopdf-combo"))) {
+                
                 processSelectControl(pair, ctrl, acro, i, root, od);
+            } else if (e.getNodeName().equals("select") &&
+                       e.hasAttribute("multiple")) {
+                
+                processMultiSelectControl(pair, ctrl, acro, i, root, od);
             }
             else if ((e.getNodeName().equals("input") && 
                       e.getAttribute("type").equals("submit")) ||
@@ -317,6 +391,7 @@ public class PdfBoxForm {
                       !e.getAttribute("type").equals("button")) ||
                      (e.getNodeName().equals("input") &&
                       e.getAttribute("type").equals("reset"))) {
+                
                 // We've got a submit or reset control for this form.
                 submits.add(ctrl);
             }
