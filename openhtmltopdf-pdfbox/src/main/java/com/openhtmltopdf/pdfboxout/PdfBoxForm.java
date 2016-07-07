@@ -3,12 +3,20 @@ package com.openhtmltopdf.pdfboxout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.cos.COSString;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.COSArrayList;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -16,7 +24,12 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDFileSpecification;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionResetForm;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionSubmitForm;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceCharacteristicsDictionary;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceEntry;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDCheckBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDComboBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDListBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDPushButton;
@@ -310,6 +323,116 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widget);
         acro.getFields().add(field);
     }
+
+    public static enum CheckboxStyle {
+        CHECK("0", ""),
+
+        CROSS("8", ""),
+
+        DIAMOND("0", ""),
+
+        CIRCLE("0", ""),
+
+        STAR("0", ""),
+
+        SQUARE("0",
+                "q\n" +
+                "0 g\n" +
+                "20 20 60 60 re\n" +
+                "f\n" +
+                "Q\n");
+        
+        private final String caption;
+        private final String appearance;
+        
+        private CheckboxStyle(String caption, String appearance) {
+            this.caption = caption;
+            this.appearance = appearance;
+        }
+    }
+
+    public static PDAppearanceStream createCheckboxAppearance(CheckboxStyle style, PDDocument doc) {
+        return createCheckboxAppearance(style.appearance, doc);
+    }
+    
+    public static PDAppearanceStream createCheckboxAppearance(String appear, PDDocument doc) {
+        PDAppearanceStream s = new PDAppearanceStream(doc);
+        s.setBBox(new PDRectangle(100f, 100f));
+        OutputStream os = null;
+        
+        try {
+            os = s.getContentStream().createOutputStream(COSName.FLATE_DECODE);
+            os.write(appear.getBytes("ASCII"));
+        } catch (IOException e) {
+            throw new PdfContentStreamAdapter.PdfException("createCheckboxAppearance", e);
+        } finally {
+            try {
+                if (os != null)
+                    os.close();
+            } catch (IOException e) {
+            }
+        }
+
+        return s;
+    }
+
+    private void processCheckboxControl(ControlFontPair pair, PDAcroForm acro, int i, Control ctrl, Box root, PdfBoxOutputDevice od) throws IOException {
+        PDCheckBox field = new PDCheckBox(acro);
+        
+        field.setPartialName("OpenHTMLCtrl" + i); // Internal name.
+        controlNames.add("OpenHTMLCtrl" + i);
+        
+        if (ctrl.box.getElement().hasAttribute("required")) {
+            field.setRequired(true);
+        }
+        
+        if (ctrl.box.getElement().hasAttribute("readonly")) {
+            field.setReadOnly(true);
+        }
+        
+        field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
+        field.setExportValues(Collections.singletonList(ctrl.box.getElement().getAttribute("value")));
+        
+        if (ctrl.box.getElement().hasAttribute("title")) {
+            field.setAlternateFieldName(ctrl.box.getElement().getAttribute("title"));
+        }
+        
+        if (ctrl.box.getElement().hasAttribute("checked")) {
+            field.getCOSObject().setItem(COSName.AS, COSName.YES);
+            field.getCOSObject().setItem(COSName.V, COSName.YES);
+            field.getCOSObject().setItem(COSName.DV, COSName.YES);
+        } else {
+           field.getCOSObject().setItem(COSName.AS, COSName.Off);
+           field.getCOSObject().setItem(COSName.V, COSName.Off);
+           field.getCOSObject().setItem(COSName.DV, COSName.Off);
+        }
+        
+        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
+
+        PDAnnotationWidget widget = field.getWidgets().get(0);
+        widget.setRectangle(rect);
+        widget.setPage(ctrl.page);
+        widget.setPrinted(true);
+        
+        // TOOD: Use CSS style.
+        CheckboxStyle style = CheckboxStyle.SQUARE;
+        
+        PDAppearanceCharacteristicsDictionary appearanceCharacteristics = new PDAppearanceCharacteristicsDictionary(new COSDictionary());
+        appearanceCharacteristics.setNormalCaption(style.caption);
+        widget.setAppearanceCharacteristics(appearanceCharacteristics);
+
+        COSDictionary dict = new COSDictionary();
+        dict.setItem(COSName.Off, od.checkboxOffAppearance);
+        dict.setItem(COSName.YES, od.checkboxAppearances.get(style));
+        PDAppearanceDictionary appearanceDict = new PDAppearanceDictionary();
+        appearanceDict.getCOSObject().setItem(COSName.N, dict);
+        widget.setAppearance(appearanceDict);
+        
+        
+        ctrl.page.getAnnotations().add(widget);
+        acro.getFields().add(field);
+    }
     
     private void processSubmitControl(PDAcroForm acro, int i, Control ctrl, Box root, PdfBoxOutputDevice od) throws IOException {
         final int FLAG_USE_GET = 1 << 3;
@@ -384,6 +507,10 @@ public class PdfBoxForm {
                        e.hasAttribute("multiple")) {
                 
                 processMultiSelectControl(pair, ctrl, acro, i, root, od);
+            } else if (e.getNodeName().equals("input") &&
+                       e.getAttribute("type").equals("checkbox")) {
+                
+                processCheckboxControl(pair, acro, i, ctrl, root, od);
             }
             else if ((e.getNodeName().equals("input") && 
                       e.getAttribute("type").equals("submit")) ||
@@ -391,7 +518,7 @@ public class PdfBoxForm {
                       !e.getAttribute("type").equals("button")) ||
                      (e.getNodeName().equals("input") &&
                       e.getAttribute("type").equals("reset"))) {
-                
+
                 // We've got a submit or reset control for this form.
                 submits.add(ctrl);
             }

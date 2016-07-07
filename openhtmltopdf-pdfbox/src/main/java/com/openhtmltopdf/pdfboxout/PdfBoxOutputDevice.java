@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -60,6 +61,7 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitHeightDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
@@ -82,6 +84,7 @@ import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
+import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
 import com.openhtmltopdf.render.AbstractOutputDevice;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
@@ -128,8 +131,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     private PDDocument _writer;
 
-    private Map _readerCache = new HashMap();
-
     private PDDestination _defaultDestination;
 
     private List _bookmarks = new ArrayList();
@@ -141,7 +142,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private final List<PdfBoxForm.Control> controls = new ArrayList<PdfBoxForm.Control>();
     private final Set<Element> seenControls = new HashSet<Element>();
     private final Map<PDFont, String> controlFonts = new HashMap<PDFont, String>();
-
+    final Map<CheckboxStyle, PDAppearanceStream> checkboxAppearances = new EnumMap<CheckboxStyle, PDAppearanceStream>(CheckboxStyle.class);
+    PDAppearanceStream checkboxOffAppearance;
+    
     private Box _root;
 
     private int _startPageNo;
@@ -233,26 +236,45 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void processControls() {
         
-        
         for (PdfBoxForm.Control ctrl : controls) {
             PdfBoxForm frm = findEnclosingForm(ctrl.box.getElement());
+            String fontName = null;
             
-            PDFont fnt = ((PdfBoxFSFont) _sharedContext.getFont(ctrl.box.getStyle().getFontSpecification())).getFontDescription().get(0).getFont();
-            String fontName;
-            if (!controlFonts.containsKey(fnt)) {
-                fontName = "OpenHTMLFont" + controlFonts.size();
-                controlFonts.put(fnt, fontName);
-            } else {
-                fontName = controlFonts.get(fnt);
-            }
+            if (!(ctrl.box.getElement().getAttribute("type").equals("checkbox") ||
+                  ctrl.box.getElement().getAttribute("type").equals("radio"))) {
+                PDFont fnt = ((PdfBoxFSFont) _sharedContext.getFont(ctrl.box.getStyle().getFontSpecification())).getFontDescription().get(0).getFont();
 
-            frm.addControl(ctrl, fontName);
+                if (!controlFonts.containsKey(fnt)) {
+                    fontName = "OpenHTMLFont" + controlFonts.size();
+                    controlFonts.put(fnt, fontName);
+                } else {
+                    fontName = controlFonts.get(fnt);
+                }
+            } else if (ctrl.box.getElement().getAttribute("type").equals("checkbox")) {
+                // TODO: Get checkbox style.
+                CheckboxStyle style = CheckboxStyle.SQUARE;
+
+                if (!checkboxAppearances.containsKey(style)) {
+                    PDAppearanceStream strm = PdfBoxForm.createCheckboxAppearance(style, getWriter());
+                    checkboxAppearances.put(style, strm);
+                }
+                
+                if (checkboxOffAppearance == null) {
+                    checkboxOffAppearance = PdfBoxForm.createCheckboxAppearance("q\nQ\n", getWriter());
+                }
+            }
+                
+            if (frm != null) {
+                frm.addControl(ctrl, fontName);
+            }
         }
         
         PDResources resources = new PDResources(); 
         for (Map.Entry<PDFont, String> fnt : controlFonts.entrySet()) {
             resources.put(COSName.getPDFName(fnt.getValue()), fnt.getKey());
         }
+        
+        
         
         int start = 0;
         PDAcroForm acro = new PDAcroForm(_writer);
@@ -290,7 +312,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             e = parent;
         }
         
-        XRLog.general(Level.WARNING, "Found form control (" + e.getNodeName() + ") with no enclosing form");
+        XRLog.general(Level.WARNING, "Found form control (" + e.getNodeName() + ") with no enclosing form. Ignoring.");
         return null;
     }
 
