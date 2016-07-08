@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Calendar;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -342,6 +343,10 @@ public class PdfBoxRenderer {
         return _doc;
     }
     
+    public PDDocument getPdfDocument() {
+        return _pdfDoc;
+    }
+    
     /**
      * @deprecated Use builder instead.
      * @param splitterFactory
@@ -471,14 +476,6 @@ public class PdfBoxRenderer {
     @Deprecated
     public void setDocument(Document doc, String url, NamespaceHandler nsh) {
         setDocumentP(doc, url, nsh);
-    }
-
-    public PDEncryption getPDFEncryption() {
-        return _pdfEncryption;
-    }
-
-    public void setPDFEncryption(PDEncryption pdfEncryption) {
-        _pdfEncryption = pdfEncryption;
     }
 
     /**
@@ -699,6 +696,9 @@ public class PdfBoxRenderer {
             info.setKeywords(v);
         }
         
+        info.setCreationDate(Calendar.getInstance());
+        info.setProducer("openhtmltopdf.com");
+
         doc.setDocumentInformation(info);
     }
 
