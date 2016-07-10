@@ -28,7 +28,6 @@ public class PdfRendererBuilder
 
     private boolean _textDirection = false;
     private boolean _testMode = false;
-    private boolean _useSubsets = true;
     private HttpStreamFactory _httpStreamFactory;
     private BidiSplitterFactory _splitter;
     private BidiReorderer _reorderer;
@@ -82,7 +81,7 @@ public class PdfRendererBuilder
         
         BaseDocument doc = new BaseDocument(_baseUri, _html, _document, _file, _uri);
         
-        return new PdfBoxRenderer(doc, unicode, _useSubsets, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _replacementText, _testMode);
+        return new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _replacementText, _testMode);
     }
     
     /**
@@ -104,16 +103,6 @@ public class PdfRendererBuilder
         this._testMode = mode;
         return this;
     }
-    
-    /**
-     * Whether to subset fonts, resulting in a smaller PDF. Turned on by default.
-     * @param subset
-     * @return
-     */
-    public PdfRendererBuilder subsetFonts(boolean subset) {
-        this._useSubsets = subset;
-        return this;
-    }    
     
     /**
      * Provides an HttpStreamFactory implementation if the user desires to use an external

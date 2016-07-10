@@ -43,16 +43,11 @@ public class PdfBoxFontResolver implements FontResolver {
     private Map<String, FontFamily> _fontFamilies = createInitialFontMap();
     private Map<String, FontDescription> _fontCache = new HashMap<String, FontDescription>();
     private final PDDocument _doc;
-    
-    // TODO: Let them configure this in font-face rules.
-    private final boolean _useSubsets;
-    
     private final SharedContext _sharedContext;
 
-    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, boolean useSubsets) {
+    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc) {
         _sharedContext = sharedContext;
         _doc = doc;
-        _useSubsets = useSubsets;
     }
 
     public FSFont resolveFont(SharedContext renderingContext, FontSpecification spec) {
@@ -81,9 +76,9 @@ public class PdfBoxFontResolver implements FontResolver {
         }
     }
 
-    public void importFontFaces(List fontFaces) {
-        for (Iterator i = fontFaces.iterator(); i.hasNext(); ) {
-            FontFaceRule rule = (FontFaceRule)i.next();
+    public void importFontFaces(List<FontFaceRule> fontFaces) {
+        for (Iterator<FontFaceRule> i = fontFaces.iterator(); i.hasNext(); ) {
+            FontFaceRule rule = i.next();
             CalculatedStyle style = rule.getCalculatedStyle();
 
             FSDerivedValue src = style.valueByName(CSSName.SRC);
@@ -91,30 +86,16 @@ public class PdfBoxFontResolver implements FontResolver {
                 continue;
             }
 
-            byte[] font1 = _sharedContext.getUac().getBinaryResource(src.asString());
+            byte[] font1 = _sharedContext.getUserAgentCallback().getBinaryResource(src.asString());
             if (font1 == null) {
                 XRLog.exception("Could not load font " + src.asString());
                 continue;
             }
 
-            byte[] font2 = null;
-            FSDerivedValue metricsSrc = style.valueByName(CSSName.FS_FONT_METRIC_SRC);
-            if (metricsSrc != IdentValue.NONE) {
-                font2 = _sharedContext.getUac().getBinaryResource(metricsSrc.asString());
-                if (font2 == null) {
-                    XRLog.exception("Could not load font metric data " + src.asString());
-                    continue;
-                }
-            }
-
-            if (font2 != null) {
-                byte[] t = font1;
-                font1 = font2;
-                font2 = t;
-            }
-
+            boolean noSubset = style.isIdent(CSSName.FS_FONT_SUBSET, IdentValue.COMPLETE_FONT);
             boolean embedded = style.isIdent(CSSName.FS_PDF_FONT_EMBED, IdentValue.EMBED);
             String encoding = style.getStringProperty(CSSName.FS_PDF_FONT_ENCODING);
+
             String fontFamily = null;
             IdentValue fontWeight = null;
             IdentValue fontStyle = null;
@@ -132,7 +113,7 @@ public class PdfBoxFontResolver implements FontResolver {
             }
 
             try {
-                addFontFaceFont(fontFamily, fontWeight, fontStyle, src.asString(), font1);
+                addFontFaceFont(fontFamily, fontWeight, fontStyle, src.asString(), font1, !noSubset);
             } catch (IOException e) {
                 XRLog.exception("Could not load font " + src.asString(), e);
             }
@@ -165,7 +146,7 @@ public class PdfBoxFontResolver implements FontResolver {
     }
     
     public void addFont(InputStream is, String fontFamilyNameOverride) throws IOException {
-        PDType0Font font = PDType0Font.load(_doc, is, _useSubsets);
+        PDType0Font font = PDType0Font.load(_doc, is, true);
 
         String[] fontFamilyNames;
         
@@ -194,12 +175,12 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     private void addFontFaceFont(
-            String fontFamilyNameOverride, IdentValue fontWeightOverride, IdentValue fontStyleOverride, String uri, byte[] font1)
+            String fontFamilyNameOverride, IdentValue fontWeightOverride, IdentValue fontStyleOverride, String uri, byte[] font1, boolean subset)
             throws IOException {
         String lower = uri.toLowerCase(Locale.US);
         
         if (lower.endsWith(".ttf")) {
-            PDType0Font font = PDType0Font.load(_doc, new ByteArrayInputStream(font1), _useSubsets);
+            PDType0Font font = PDType0Font.load(_doc, new ByteArrayInputStream(font1), subset);
             
             String[] fontFamilyNames;
             if (fontFamilyNameOverride != null) {

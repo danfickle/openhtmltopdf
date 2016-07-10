@@ -3,6 +3,18 @@
 
   <modelVersion>4.0.0</modelVersion>
 
+  <repositories>
+    <repository>
+      <id>ApacheSnapshot</id>
+      <name>Apache Repository</name>
+      <url>https://repository.apache.org/content/groups/snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    </repositories>
+
+
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
@@ -32,7 +44,7 @@
     <dependency>
     	<groupId>org.apache.pdfbox</groupId>
     	<artifactId>pdfbox</artifactId>
-    	<version>2.0.2</version>
+    	<version>2.0.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.openhtmltopdf</groupId>

@@ -255,15 +255,24 @@ public final class CSSName implements Comparable {
     /**
      * Unique CSSName instance for CSS2 property.
      */
-    public final static CSSName FS_FONT_METRIC_SRC =
+    public final static CSSName FS_FONT_SUBSET =
             addProperty(
-                    "-fs-font-metric-src",
+                    "-fs-font-subset",
                     PRIMITIVE,
-                    "none",
+                    "subset",
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.FSFontMetricSrc()
+                    new PrimitivePropertyBuilders.FSFontSubset()
             );
 
+    public final static CSSName FS_CHECKBOX_STYLE =
+            addProperty(
+                    "-fs-checkbox-style",
+                    PRIMITIVE,
+                    "check",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSCheckboxStyle()
+            );
+    
     /**
      * Unique CSSName instance for CSS2 property.
      */

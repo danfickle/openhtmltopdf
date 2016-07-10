@@ -217,6 +217,15 @@ public class IdentValue implements FSDerivedValue {
     public final static IdentValue XX_LARGE = addValue("xx-large");
     public final static IdentValue XX_SMALL = addValue("xx-small");
 
+	public static final IdentValue COMPLETE_FONT = addValue("complete-font");
+	public static final IdentValue SUBSET = addValue("subset");
+
+	public static final IdentValue DIAMOND = addValue("diamond");
+	public static final IdentValue STAR = addValue("star");
+	public static final IdentValue CHECK = addValue("check");
+	public static final IdentValue CROSS = addValue("cross");
+	
+
     /**
      * Description of the Field
      */

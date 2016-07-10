@@ -6,13 +6,11 @@ OPEN HTML TO PDF
 OVERVIEW
 ========
 Open HTML to PDF is a pure-Java library for rendering arbitrary well-formed XML/XHTML (and even HTML5)
-using CSS 2.1 for layout and formatting, output to PDF and images.
+using CSS 2.1 for layout and formatting, output to PDF.
 
 GETTING STARTED
 ========
 [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
-
-You could also try the browser example at ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/demo/browser/BrowserStartup.java````
 
 LICENSE
 ========
@@ -36,7 +34,7 @@ FAQ
 + OPEN HTML TO PDF is tested with OpenJDK 7 and Oracle JDK 8.
 + No, you can not use it on Android or Google App Engine.
 + Flowing columns are not implemented.
-+ No, it's not a web browser, although the 'browser' example is pretty impressive.
++ No, it's not a web browser.
 
 TEST CASES
 ========
@@ -50,7 +48,8 @@ CHANGELOG
 
 head - 0.0.1-RC5-SNAPSHOT
 ========
-+ [Added support for text, password, textarea, submit, reset and non-multiple select controls](https://github.com/danfickle/openhtmltopdf/issues/24)
++ BREAKING CHANGE: Removed font subset method in builder, replaced with property in font face rule. Example: ````-fs-font-subset: complete-font;````
++ [Added support for text, password, textarea, submit, reset, checkbox and select - multiple and single - controls](https://github.com/danfickle/openhtmltopdf/issues/24)
 + BREAKING CHANGE: Changed bi-directional method names in builder to be more consistent.
 + [Add method to builder to specify custom text transformers](https://github.com/danfickle/openhtmltopdf/issues/28)
 + [Add method to builder to specify a custom line breaker](https://github.com/danfickle/openhtmltopdf/issues/25) Thanks @Magotchi

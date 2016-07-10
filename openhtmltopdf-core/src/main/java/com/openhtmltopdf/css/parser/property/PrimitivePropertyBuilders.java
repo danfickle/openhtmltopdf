@@ -52,6 +52,12 @@ public class PrimitivePropertyBuilders {
     public static final BitSet FONT_VARIANTS = setFor(
             new IdentValue[] { IdentValue.NORMAL, IdentValue.SMALL_CAPS });
 
+    public static final BitSet FONT_SUBSETS = setFor(
+    		new IdentValue[] { IdentValue.SUBSET, IdentValue.COMPLETE_FONT });
+
+    public static final BitSet CHECKBOX_STYLES = setFor(
+    		new IdentValue[] { IdentValue.SQUARE, IdentValue.CIRCLE, IdentValue.DIAMOND, IdentValue.CHECK, IdentValue.CROSS, IdentValue.STAR });
+    
     // normal | italic | oblique | inherit
     public static final BitSet FONT_STYLES = setFor(
             new IdentValue[] { IdentValue.NORMAL, IdentValue.ITALIC, IdentValue.OBLIQUE });
@@ -1029,9 +1035,20 @@ public class PrimitivePropertyBuilders {
     public static class FSBorderSpacingVertical extends Length {
     }
 
-    public static class FSFontMetricSrc extends GenericURIWithNone {
+    public static class FSFontSubset extends SingleIdent {
+		@Override
+		protected BitSet getAllowed() {
+			return FONT_SUBSETS;
+		}
     }
 
+    public static class FSCheckboxStyle extends SingleIdent {
+		@Override
+		protected BitSet getAllowed() {
+			return CHECKBOX_STYLES;
+		}
+    }
+    
     public static class FSPageHeight extends LengthLikeWithAuto {
         protected boolean isNegativeValuesAllowed() {
             return false;

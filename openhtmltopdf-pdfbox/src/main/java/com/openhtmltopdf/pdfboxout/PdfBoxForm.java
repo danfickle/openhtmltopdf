@@ -2,22 +2,22 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.logging.Level;
 
+import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.COSArrayList;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDFileSpecification;
@@ -26,7 +26,6 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDActionSubmitForm;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceCharacteristicsDictionary;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceEntry;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDCheckBox;
@@ -36,6 +35,8 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDPushButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.w3c.dom.Element;
 
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
@@ -325,43 +326,66 @@ public class PdfBoxForm {
     }
 
     public static enum CheckboxStyle {
-        CHECK("0", ""),
+        CHECK(52),
 
-        CROSS("8", ""),
+        CROSS(53),
 
-        DIAMOND("0", ""),
+        DIAMOND(117),
 
-        CIRCLE("0", ""),
+        CIRCLE(108),
 
-        STAR("0", ""),
+        STAR(72),
 
-        SQUARE("0",
-                "q\n" +
-                "0 g\n" +
-                "20 20 60 60 re\n" +
-                "f\n" +
-                "Q\n");
+        SQUARE(110);
         
-        private final String caption;
-        private final String appearance;
+        private final int caption;
         
-        private CheckboxStyle(String caption, String appearance) {
+        private CheckboxStyle(int caption) {
             this.caption = caption;
-            this.appearance = appearance;
+        }
+        
+        public static CheckboxStyle fromIdent(IdentValue id) {
+            if (id == IdentValue.CHECK)
+                return CHECK;
+            
+            if (id == IdentValue.CROSS)
+                return CROSS;
+            
+            if (id == IdentValue.SQUARE)
+                return SQUARE;
+            
+            if (id == IdentValue.CIRCLE)
+                return CIRCLE;
+            
+            if (id == IdentValue.DIAMOND)
+                return DIAMOND;
+            
+            if (id == IdentValue.STAR)
+                return STAR;
+            
+            return CHECK;
         }
     }
 
-    public static PDAppearanceStream createCheckboxAppearance(CheckboxStyle style, PDDocument doc) {
-        return createCheckboxAppearance(style.appearance, doc);
+    public static PDAppearanceStream createCheckboxAppearance(CheckboxStyle style, PDDocument doc, PDResources resources) {
+        String appear = 
+                "q\n" + 
+                "BT\n" +
+                "1 0 0 1 15 20 Tm\n" +
+                "/OpenHTMLZap 100 Tf\n" +
+                "(" + (char) style.caption + ") Tj\n" +
+                "ET\n" +
+                "Q\n";
+        
+        return createCheckboxAppearance(appear, doc, resources);
     }
     
-    public static PDAppearanceStream createCheckboxAppearance(String appear, PDDocument doc) {
+    public static PDAppearanceStream createCheckboxAppearance(String appear, PDDocument doc, PDResources resources) {
         PDAppearanceStream s = new PDAppearanceStream(doc);
         s.setBBox(new PDRectangle(100f, 100f));
         OutputStream os = null;
-        
         try {
-            os = s.getContentStream().createOutputStream(COSName.FLATE_DECODE);
+            os = s.getContentStream().createOutputStream();
             os.write(appear.getBytes("ASCII"));
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("createCheckboxAppearance", e);
@@ -372,10 +396,31 @@ public class PdfBoxForm {
             } catch (IOException e) {
             }
         }
-
+        
+        s.setResources(resources);
         return s;
     }
 
+    private COSString getCOSStringUTF16Encoded(String value) throws UnsupportedEncodingException {
+        // UTF-16BE encoded string with a leading byte order marker
+        byte[] data = value.getBytes("UTF-16BE");
+        ByteArrayOutputStream out = new ByteArrayOutputStream(data.length + 2);
+        out.write(0xFE); // BOM
+        out.write(0xFF); // BOM
+        try
+        {
+            out.write(data);
+        }
+        catch (IOException e)
+        {
+            // should never happen
+            throw new RuntimeException(e);
+        }
+        byte[] bytes = out.toByteArray();
+        COSString valueEncoded = new COSString(bytes);
+        return valueEncoded;
+    }
+    
     private void processCheckboxControl(ControlFontPair pair, PDAcroForm acro, int i, Control ctrl, Box root, PdfBoxOutputDevice od) throws IOException {
         PDCheckBox field = new PDCheckBox(acro);
         
@@ -391,16 +436,25 @@ public class PdfBoxForm {
         }
         
         field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
-        field.setExportValues(Collections.singletonList(ctrl.box.getElement().getAttribute("value")));
+
+        /*
+         * The only way I could get Acrobat Reader to display the checkbox checked properly was to 
+         * use an explicitly encoded unicode string for the OPT entry of the dictionary.
+         */
+        COSArray arr = new COSArray();
+        arr.add(getCOSStringUTF16Encoded(ctrl.box.getElement().getAttribute("value")));
+        field.getCOSObject().setItem(COSName.OPT, arr);
         
         if (ctrl.box.getElement().hasAttribute("title")) {
             field.setAlternateFieldName(ctrl.box.getElement().getAttribute("title"));
         }
         
+        COSName zero = COSName.getPDFName("0");
+        
         if (ctrl.box.getElement().hasAttribute("checked")) {
-            field.getCOSObject().setItem(COSName.AS, COSName.YES);
-            field.getCOSObject().setItem(COSName.V, COSName.YES);
-            field.getCOSObject().setItem(COSName.DV, COSName.YES);
+            field.getCOSObject().setItem(COSName.AS, zero);
+            field.getCOSObject().setItem(COSName.V, zero);
+            field.getCOSObject().setItem(COSName.DV, zero);
         } else {
            field.getCOSObject().setItem(COSName.AS, COSName.Off);
            field.getCOSObject().setItem(COSName.V, COSName.Off);
@@ -415,20 +469,18 @@ public class PdfBoxForm {
         widget.setPage(ctrl.page);
         widget.setPrinted(true);
         
-        // TOOD: Use CSS style.
-        CheckboxStyle style = CheckboxStyle.SQUARE;
+        CheckboxStyle style = CheckboxStyle.fromIdent(ctrl.box.getStyle().getIdent(CSSName.FS_CHECKBOX_STYLE));
         
         PDAppearanceCharacteristicsDictionary appearanceCharacteristics = new PDAppearanceCharacteristicsDictionary(new COSDictionary());
-        appearanceCharacteristics.setNormalCaption(style.caption);
+        appearanceCharacteristics.setNormalCaption(String.valueOf((char) style.caption));
         widget.setAppearanceCharacteristics(appearanceCharacteristics);
 
         COSDictionary dict = new COSDictionary();
+        dict.setItem(zero, od.checkboxAppearances.get(style));
         dict.setItem(COSName.Off, od.checkboxOffAppearance);
-        dict.setItem(COSName.YES, od.checkboxAppearances.get(style));
         PDAppearanceDictionary appearanceDict = new PDAppearanceDictionary();
         appearanceDict.getCOSObject().setItem(COSName.N, dict);
         widget.setAppearance(appearanceDict);
-        
         
         ctrl.page.getAnnotations().add(widget);
         acro.getFields().add(field);

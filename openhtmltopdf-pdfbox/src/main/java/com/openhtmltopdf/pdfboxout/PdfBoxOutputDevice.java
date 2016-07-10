@@ -75,6 +75,7 @@ import org.w3c.dom.Node;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
+import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
@@ -236,6 +237,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void processControls() {
         
+        PDResources checkBoxFontResource = null;
+        
         for (PdfBoxForm.Control ctrl : controls) {
             PdfBoxForm frm = findEnclosingForm(ctrl.box.getElement());
             String fontName = null;
@@ -251,16 +254,20 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                     fontName = controlFonts.get(fnt);
                 }
             } else if (ctrl.box.getElement().getAttribute("type").equals("checkbox")) {
-                // TODO: Get checkbox style.
-                CheckboxStyle style = CheckboxStyle.SQUARE;
+                CheckboxStyle style = CheckboxStyle.fromIdent(ctrl.box.getStyle().getIdent(CSSName.FS_CHECKBOX_STYLE));
 
+                if (checkBoxFontResource == null) {
+                    checkBoxFontResource = new PDResources();
+                    checkBoxFontResource.put(COSName.getPDFName("OpenHTMLZap"), PDType1Font.ZAPF_DINGBATS);
+                }
+                
                 if (!checkboxAppearances.containsKey(style)) {
-                    PDAppearanceStream strm = PdfBoxForm.createCheckboxAppearance(style, getWriter());
+                    PDAppearanceStream strm = PdfBoxForm.createCheckboxAppearance(style, getWriter(), checkBoxFontResource);
                     checkboxAppearances.put(style, strm);
                 }
                 
                 if (checkboxOffAppearance == null) {
-                    checkboxOffAppearance = PdfBoxForm.createCheckboxAppearance("q\nQ\n", getWriter());
+                    checkboxOffAppearance = PdfBoxForm.createCheckboxAppearance("q\nQ\n", getWriter(), checkBoxFontResource);
                 }
             }
                 
@@ -273,8 +280,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         for (Map.Entry<PDFont, String> fnt : controlFonts.entrySet()) {
             resources.put(COSName.getPDFName(fnt.getValue()), fnt.getKey());
         }
-        
-        
         
         int start = 0;
         PDAcroForm acro = new PDAcroForm(_writer);
