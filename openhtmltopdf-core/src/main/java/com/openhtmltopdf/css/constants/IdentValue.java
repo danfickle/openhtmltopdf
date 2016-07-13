@@ -103,6 +103,7 @@ public class IdentValue implements FSDerivedValue {
     public final static IdentValue FONT_WEIGHT_900 = addValue("900");
     public final static IdentValue FS_CONTENT_PLACEHOLDER = addValue("-fs-content-placeholder");
     public final static IdentValue FS_INITIAL_VALUE = addValue("-fs-initial-value");
+    public final static IdentValue FS_TABLE_PAGINATE_REPEATED_VISIBLE = addValue("-fs-table-paginate-repeated-visible");
     public final static IdentValue GEORGIAN = addValue("georgian");
     public final static IdentValue GROOVE = addValue("groove");
     public final static IdentValue HEBREW = addValue("hebrew");

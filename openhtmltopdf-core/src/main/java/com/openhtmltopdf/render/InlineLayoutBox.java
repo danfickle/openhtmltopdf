@@ -251,7 +251,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     }
     
     public void paintInline(RenderingContext c) {
-        if (! getStyle().isVisible()) {
+        if (! getStyle().isVisible(c, this)) {
             return;
         }
         
@@ -785,7 +785,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         }
         
         Rectangle edge = getContentAreaEdge(getAbsX(), getAbsY(), cssCtx);
-        result = edge.contains(absX, absY) && getStyle().isVisible() ? this : null;
+        result = edge.contains(absX, absY) && getStyle().isVisible(null, this) ? this : null;
         
         if (! findAnonymous && result != null && getElement() == null) {
             return getParent().getParent();

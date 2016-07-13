@@ -109,7 +109,7 @@ public class LineBox extends Box implements InlinePaintable {
     }
     
     public void paintInline(RenderingContext c) {
-        if (! getParent().getStyle().isVisible()) {
+        if (! getParent().getStyle().isVisible(c, this)) {
             return;
         }
         

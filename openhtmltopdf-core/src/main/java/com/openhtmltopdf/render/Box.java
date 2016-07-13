@@ -691,7 +691,7 @@ public abstract class Box implements Styleable {
         }
 
         Rectangle edge = getContentAreaEdge(getAbsX(), getAbsY(), cssCtx);
-        return edge.contains(absX, absY) && getStyle().isVisible() ? this : null;
+        return edge.contains(absX, absY) && getStyle().isVisible(null, this) ? this : null;
     }
 
     public boolean isRoot() {

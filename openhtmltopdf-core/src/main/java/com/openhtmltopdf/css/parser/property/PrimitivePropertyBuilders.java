@@ -1515,10 +1515,11 @@ public class PrimitivePropertyBuilders {
     }
 
     public static class Visibility extends SingleIdent {
-        // visible | hidden | collapse | inherit
+        // visible | hidden | collapse | inherit | -fs-table-paginate-repeated-visible
         private static final BitSet ALLOWED = setFor(
                 new IdentValue[] {
-                        IdentValue.VISIBLE, IdentValue.HIDDEN, IdentValue.COLLAPSE });
+                        IdentValue.VISIBLE, IdentValue.HIDDEN, IdentValue.COLLAPSE,
+                        IdentValue.FS_TABLE_PAGINATE_REPEATED_VISIBLE });
 
         protected BitSet getAllowed() {
             return ALLOWED;

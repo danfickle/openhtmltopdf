@@ -260,7 +260,7 @@ public class TableCellBox extends BlockBox {
     }
     
     public void paintBackground(RenderingContext c) {
-        if (isPaintBackgroundsAndBorders() && getStyle().isVisible()) {
+        if (isPaintBackgroundsAndBorders() && getStyle().isVisible(c, this)) {
             Rectangle bounds;
             if (c.isPrint() && getTable().getStyle().isPaginateTable()) {
                 bounds = getContentLimitedBorderEdge(c);
@@ -315,7 +315,7 @@ public class TableCellBox extends BlockBox {
     public void paintBorder(RenderingContext c) {
         if (isPaintBackgroundsAndBorders() && ! hasCollapsedPaintingBorder()) {
             // Collapsed table borders are painted separately
-            if (c.isPrint() && getTable().getStyle().isPaginateTable() && getStyle().isVisible()) {
+            if (c.isPrint() && getTable().getStyle().isPaginateTable() && getStyle().isVisible(c, this)) {
                 Rectangle bounds = getContentLimitedBorderEdge(c);
                 if (bounds != null) {
                     c.getOutputDevice().paintBorder(c, getStyle(), bounds, getBorderSides());
