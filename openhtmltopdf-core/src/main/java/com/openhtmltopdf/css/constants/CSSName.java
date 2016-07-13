@@ -406,7 +406,7 @@ public final class CSSName implements Comparable {
             );
 
     /**
-     * Perform a pagebreak before this element, if not at least the specified space is
+     * Perform a page break before this element, if not at least the specified space is
      * left on the current page.
      */
     public final static CSSName FS_PAGE_BREAK_MIN_HEIGHT =
