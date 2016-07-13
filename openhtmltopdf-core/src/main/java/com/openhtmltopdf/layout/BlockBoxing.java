@@ -331,7 +331,8 @@ public class BlockBoxing {
         }
         if (c.isPrint()) {
             boolean pageClear = child.isNeedPageClear() ||
-                                    child.getStyle().isForcePageBreakBefore();
+                                    child.getStyle().isForcePageBreakBefore() ||
+                                    child.isPageBreakNeededBecauseOfMinHeight(c);
             boolean needNewPageContext = child.checkPageContext(c);
 
             if (needNewPageContext && trimmedPageCount != NO_PAGE_TRIM) {

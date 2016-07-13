@@ -272,7 +272,7 @@ public final class CSSName implements Comparable {
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSCheckboxStyle()
             );
-    
+
     /**
      * Unique CSSName instance for CSS2 property.
      */
@@ -403,6 +403,19 @@ public final class CSSName implements Comparable {
                     "none",
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSNamedDestination()
+            );
+
+    /**
+     * Perform a pagebreak before this element, if not at least the specified space is
+     * left on the current page.
+     */
+    public final static CSSName FS_PAGE_BREAK_MIN_HEIGHT =
+            addProperty(
+                    "-fs-page-break-min-height",
+                    PRIMITIVE,
+                    "0",
+                    INHERITS,
+                    new PrimitivePropertyBuilders.FSPageBreakMinHeight()
             );
 
     /**
@@ -1316,7 +1329,7 @@ public final class CSSName implements Comparable {
                     true,
                     new PrimitivePropertyBuilders.BorderBottomLeftRadius()
             );
-    
+
     /**
      * Unique CSSName instance for CSS2 property.
      */
@@ -1418,7 +1431,7 @@ public final class CSSName implements Comparable {
                     NOT_INHERITED,
                     new BackgroundPropertyBuilder()
             );
-    
+
 
     /**
      * Unique CSSName instance for CSS3 property.

@@ -1129,6 +1129,10 @@ public class CalculatedStyle {
         return result > 0 ? result : 1;
     }
 
+    public float getFSPageBreakMinHeight(CssContext c){
+        return getFloatPropertyProportionalTo(CSSName.FS_PAGE_BREAK_MIN_HEIGHT, 0, c);
+    }
+
     public Length asLength(CssContext c, CSSName cssName) {
         Length result = new Length();
 
