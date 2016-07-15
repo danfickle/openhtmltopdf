@@ -398,7 +398,7 @@ public class TableBox extends BlockBox {
     public void paintBackground(RenderingContext c) {
         if (_contentLimitContainer == null) {
             super.paintBackground(c);
-        } else if (getStyle().isVisible()) {
+        } else if (getStyle().isVisible(c, this)) {
             c.getOutputDevice().paintBackground(
                     c, getStyle(), getContentLimitedBorderEdge(c), getPaintingBorderEdge(c),
                     getStyle().getBorder(c));
@@ -408,7 +408,7 @@ public class TableBox extends BlockBox {
     public void paintBorder(RenderingContext c) {
         if (_contentLimitContainer == null) {
             super.paintBorder(c);
-        } else if (getStyle().isVisible()) {
+        } else if (getStyle().isVisible(c, this)) {
             c.getOutputDevice().paintBorder(c, getStyle(), getContentLimitedBorderEdge(c), getBorderSides());
         }
     }
@@ -864,6 +864,13 @@ public class TableBox extends BlockBox {
 
     public boolean hasContentLimitContainer() {
         return _contentLimitContainer != null;
+    }
+
+	/**
+     * @return true if the table is rendered on its first page. false if the table is rendered after a page break
+     */
+    public boolean isTableRenderedOnFirstPage(RenderingContext context){
+		return hasContentLimitContainer() && _contentLimitContainer.getInitialPageNo() == context.getPageNo();
     }
 
     public int getExtraSpaceTop() {

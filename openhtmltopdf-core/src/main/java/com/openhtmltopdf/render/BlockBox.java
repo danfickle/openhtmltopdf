@@ -256,7 +256,7 @@ public class BlockBox extends Box implements InlinePaintable {
     }
 
     public void paintListMarker(RenderingContext c) {
-        if (! getStyle().isVisible()) {
+        if (! getStyle().isVisible(c, this)) {
             return;
         }
 
@@ -281,7 +281,7 @@ public class BlockBox extends Box implements InlinePaintable {
     }
 
     public void paintInline(RenderingContext c) {
-        if (! getStyle().isVisible()) {
+        if (! getStyle().isVisible(c, this)) {
             return;
         }
 
