@@ -1256,6 +1256,9 @@ public class PrimitivePropertyBuilders {
     public static class MinWidth extends NonNegativeLengthLike {
     }
 
+    public static class FSPageBreakMinHeight extends NonNegativeLengthLike {
+    }
+
     public static class Orphans extends PlainInteger {
         protected boolean isNegativeValuesAllowed() {
             return false;

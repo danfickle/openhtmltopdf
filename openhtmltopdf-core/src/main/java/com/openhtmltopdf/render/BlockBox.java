@@ -550,9 +550,27 @@ public class BlockBox extends Box implements InlinePaintable {
         calcChildLocations();
     }
 
+	/**
+     * Using the css:
+     *
+     * -fs-page-break-min-height: 5cm;
+     *
+     * on a block element you can force a pagebreak before this block, if not
+     * enough space (e.g. 5cm in this case) is remaining on the current page for the block.
+     *
+     * @return true if a pagebreak is needed before this block because
+     * there is not enough space left on the current page.
+     */
+    public boolean isPageBreakNeededBecauseOfMinHeight(LayoutContext context){
+        float minHeight = getStyle().getFSPageBreakMinHeight(context);
+        PageBox page = context.getRootLayer().getFirstPage(context, this);
+        return page != null && getAbsY() + minHeight > page.getBottom();
+    }
+
+
     public void positionAbsoluteOnPage(LayoutContext c) {
         if (c.isPrint() &&
-                (getStyle().isForcePageBreakBefore() || isNeedPageClear())) {
+                (getStyle().isForcePageBreakBefore() || isNeedPageClear() || isPageBreakNeededBecauseOfMinHeight(c))) {
             forcePageBreakBefore(c, getStyle().getIdent(CSSName.PAGE_BREAK_BEFORE), false);
             calcCanvasLocation();
             calcChildLocations();

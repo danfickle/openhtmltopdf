@@ -105,7 +105,7 @@ public class LayoutUtil {
     private static void positionFloatOnPage(
             final LayoutContext c, LineBox currentLine, BlockBox block,
             boolean movedVertically) {
-        if (block.getStyle().isForcePageBreakBefore()) {
+        if (block.getStyle().isForcePageBreakBefore() || block.isPageBreakNeededBecauseOfMinHeight(c)) {
             block.forcePageBreakBefore(c, block.getStyle().getIdent(CSSName.PAGE_BREAK_BEFORE), false);
             block.calcCanvasLocation();
             resetAndFloatBlock(c, currentLine, block);

@@ -1,0 +1,2283 @@
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+<!--suppress CssUnknownProperty -->
+<style>
+
+	/*
+		Seitenlayout
+	*/
+	@font-face {
+		font-family: "Noto Sans";
+		src: url("NotoSans-Regular.ttf") format("truetype");
+		-fs-pdf-font-embed: embed;
+	}
+
+	@font-face {
+		font-family: "Noto Sans";
+		src: url("NotoSans-Bold.ttf") format("truetype");
+		-fs-pdf-font-embed: embed;
+		font-weight: 700;
+	}
+
+	*, body {
+		font-family: "Noto Sans", Hevletica, Arial, Sans-serif, serif;
+		font-size: 9px;
+		box-sizing: border-box;
+	}
+
+	@page {
+		size: A4;
+		margin: 2.5cm 1.8cm 2cm 1.9cm;
+		-fs-flow-top: "header";
+		-fs-flow-bottom: "footer";
+
+		@bottom-right {
+			content: "Seite " counter(page) " von " counter(pages);
+			font-size: 9px;
+		}
+		@bottom-left {
+			content: element(footer);
+			font-size: 9px;
+		}
+		@top-left {
+			font-size: 9px;
+			content: element(header);
+		}
+	}
+
+	#bottomLeftFooter {
+		position: running(footer);
+		font-size: 9px;
+	}
+
+	#topRightHeader {
+		position: running(header);
+	}
+
+	.header_logo {
+		width: 3cm;
+		float: right;
+	}
+
+	.headerTable, .fahrzeugTable {
+		width: 100%;
+	}
+
+	.headerTable td, .fahrzeugTable td {
+		padding: 1px 1px 1px 0;
+	}
+
+	.headerTable td {
+		margin-right: 0.5cm;
+	}
+
+	.berichtBox {
+
+	}
+
+	h1 {
+		font-size: 11px;
+		font-weight: bold;
+	}
+
+	.first_col_width {
+		width: 27.95%;
+		vertical-align: top;
+	}
+
+	.second_col_width {
+		width: 27.95%;
+		vertical-align: top;
+	}
+
+	.priority_col {
+		width: 6.3%;
+		text-align: center;
+	}
+
+	table.framed_table {
+		/*width: 100%;*/
+		width: 17cm;
+		/*border: 1px solid black;*/
+		border-collapse: collapse;
+		-fs-table-paginate: paginate;
+		-fs-keep-with-inline: keep;
+	}
+
+	table.framed_table td {
+		padding: 3px;
+		border-collapse: collapse;
+	}
+
+	table.framed_table tr td:first-child {
+		border-left: 1px solid black;
+	}
+
+	table.framed_table tr td:last-child {
+		border-right: 1px solid black;
+	}
+
+	table.framed_table tr:last-child td {
+		border-bottom: 1px solid black;
+	}
+
+	tr.table_repeat_header {
+		background-color: #ddd;
+		display: table-header-group;
+	}
+
+	tr.table_repeat_header td {
+		border: 1px solid black;
+	}
+
+	tr.table_row_odd {
+		background-color: white;
+	}
+
+	tr.table_row_even {
+		background-color: #ddd;
+	}
+
+	table.framed_cells td {
+		border-right: 1px solid black;
+		border-bottom: 1px solid black;
+	}
+
+	a {
+		color: black;
+		text-decoration: none;
+	}
+
+	.eintrag_first_col {
+		width: 27.95%;
+	}
+
+	.eintrag_second_col {
+		text-align: center;
+		width: 10%;
+		margin-left: 7px;
+	}
+
+	.eintrag_third_col {
+		width: 62.05%;
+	}
+
+	.spneintrag_table {
+		width: 100%;
+		border-collapse: collapse;
+		page-break-inside: avoid;
+	}
+
+	.spn_eintrag_first_line {
+		orphans: 5;
+		-fs-page-break-min-height: 5cm;
+	}
+	.spn_eintrag_seperator_line {
+		-fs-page-break-min-height: 5cm;
+	}
+
+	.uwbraw_output {
+		font-family: "Courier New", monospace;
+		font-size: 11px;
+	}
+
+	.img_fake_placeholder {
+		background: yellow;
+		width:20px;
+		height:20px;
+		content: " ";
+	}
+
+</style>
+</head>
+<body>
+
+<div id="topRightHeader">
+	<div style="height:20px;width:20px; bakckground: green; float:right">LOGO</div>
+</div>
+<div id="bottomLeftFooter">
+	Version: 0.83.4c5cbc7 -outer-test <br/>
+SomeFileName.xml
+</div>
+
+
+<div id="werkstattAnschrift">
+	nnnnnnnnnnnnn <br/>
+	Straße<br/>
+	PLZ Ort<br/>
+	Land
+</div>
+
+<br/>
+
+<table class="headerTable" cellspacing="0" cellpadding="0">
+	<tr>
+		<td>Telefon</td>
+		<td>Telefax</td>
+		<td>Email</td>
+		<td>Something-ID</td>
+		<td>Someother-ID</td>
+		<td>Druckzeitpunkt</td>
+	</tr>
+	<tr>
+		<td>+1234 112312312312312</td>
+		<td>+1234 112312312312312</td>
+		<td>some-email@trash-mail.com</td>
+		<td>12345555</td>
+		<td>1234568</td>
+		<td>
+			13.07.2016 13:48:10
+		</td>
+	</tr>
+</table>
+
+<h1>Lorum ipsum .... XYZ........ZYX, SOMENUMBERS......</h1>
+
+Some<br/>
+Future<br/>
+Header<br/>
+Lines<br/>
+...<br/>
+
+
+<table class="framed_table" cellspacing="0" cellpadding="0">
+	<tr class="table_repeat_header">
+		<td colspan="3">Protokoll Information</td>
+	</tr>
+	<tr class="table_row_odd">
+		<td>Originaldatei</td>
+		<td colspan="2">.....XYZ.xml</td>
+	</tr>
+	<tr class="table_row_even">
+		<td>Auslesezeitpunkt</td>
+		<td>
+		09.09.2013 13:50:11
+		</td>
+		<td>
+		00.000.000,000 km
+		</td>
+	</tr>
+	<tr class="table_row_odd">
+		<td>Erster Eintrag</td>
+		<td>
+		10.03.2044 12:04:23
+		</td>
+		<td>
+		000,000 km
+		</td>
+	</tr>
+	<tr class="table_row_even">
+		<td>Letzter Eintrag</td>
+		<td>
+		10.03.2044 13:26:55
+		</td>
+		<td>
+		000,000 km
+		</td>
+	</tr>
+</table>
+
+<br/>
+
+
+<table class="framed_table framed_cells" cellspacing="0" cellpadding="0">
+	<tr class="table_repeat_header">
+		<td colspan="9">XYZABCDEFGZX</td>
+	</tr>
+	<tr class="table_row_odd">
+		<td class="first_col_width" rowspan="3"><b>Kurzbezeichnung</b></td>
+		<td class="second_col_width" rowspan="3"><b>ABCDEFGhnummer</b></td>
+		<td colspan="7" align="center"><b>Einträge</b></td>
+	</tr>
+	<tr class="table_row_odd">
+		<td class="priority_col" style="border-left:none;">∑</td>
+		<td colspan="6" align="center"><b>Priorität</b></td>
+	</tr>
+	<tr class="table_row_odd">
+		<td class="priority_col" style="border-left:none;">&#0160;</td>
+		<td class="priority_col"><b>1</b></td>
+		<td class="priority_col"><b>2</b></td>
+		<td class="priority_col"><b>3</b></td>
+		<td class="priority_col"><b>4</b></td>
+		<td class="priority_col"><b>5</b></td>
+		<td class="priority_col"><b>?</b></td>
+	</tr>
+
+	<tr class="
+				table_row_even
+		"
+	>
+		<td><a href="#INSXYZ">SOME-NAME-XYZ</a></td>
+		<td><a href="#INSXYZ">XXNNNNZZAACCC</a></td>
+		<td align="center">5</td>
+		<td align="center">1</td>
+		<td align="center">1</td>
+		<td align="center"></td>
+		<td align="center">2</td>
+		<td align="center">1</td>
+		<td align="center"></td>
+	</tr>
+	<tr class="
+				table_row_odd
+		"
+	>
+		<td><a href="#ZTRXYZ">SOME-OTHERN</a></td>
+		<td><a href="#ZTRXYZ">AA-BBCCDD-EEFF</a></td>
+		<td align="center">16</td>
+		<td align="center"></td>
+		<td align="center">4</td>
+		<td align="center"></td>
+		<td align="center"></td>
+		<td align="center">12</td>
+		<td align="center"></td>
+	</tr>
+</table>
+
+<br/>
+
+
+
+<a id="INSXYZ">
+</a>
+<table class="framed_table framed_cells" cellspacing="0" cellpadding="0" >
+	<tr class="table_repeat_header">
+		<td colspan="6">
+			INSXZY
+			SOME-NUMBER XX.AABCC-0000
+		</td>
+	</tr>
+
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>8203</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>LIN Botschaft MFL/FFR/PTM</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">4</td>
+				<td colspan="3" class="eintrag_third_col">Hinweis</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>8135</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen ZBR</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Intermittierender Fehler</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>8110</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen Getriebesteuerung</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Intermittierender Fehler</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">4</td>
+				<td colspan="3" class="eintrag_third_col">Hinweis</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">42</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>8112</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen EDC</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Intermittierender Fehler</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">2</td>
+				<td colspan="3" class="eintrag_third_col">Funktionskritischer Fehler</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>8101</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Instrumentierung TCO/ZBR</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col">Sicherheitskritischer Fehler</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+
+
+</table>
+<br/>
+
+
+<a id="ZTRXYZ">
+</a>
+<table class="framed_table framed_cells" cellspacing="0" cellpadding="0" >
+	<tr class="table_repeat_header">
+		<td colspan="6">
+			ABC-DEFG-ASDF,
+			SOME_NUMMER XX.YYYYY-1232
+		</td>
+	</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5547</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>Geschwindigkeitsbegrenzung Funktion</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Unplausibel (3)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">2</td>
+				<td colspan="3" class="eintrag_third_col">Funktionskritischer Fehler</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5001</td>
+						<td>INTSIG : mDCI_APperPos in PTM</td>
+						<td>
+							0
+						</td>
+						<td>%</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5001</td>
+						<td>INTSIG : mDCI_APperPos in PTM</td>
+						<td>
+							6.553,5
+						</td>
+						<td>%</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5543</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>LIN Botschaft Multifunktionslenkrad Timeout</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5540</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>LIN Botschaft Fahrbereichsschalter Timeout</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,507
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5539</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen Automatikgetriebe Timeout</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5535</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen ESP Timeout</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5533</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen Automatikgetriebe Timeout</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5532</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen EBS Timeout</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5530</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen EBS Timeout</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5514</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Botschaft Informationen Sekundärretarder Timeout</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5766</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>CAN Motor Busoff Zustand</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Unterbrechung (10)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">2</td>
+				<td colspan="3" class="eintrag_third_col">Funktionskritischer Fehler</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,497
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5704</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>Virtuelles Übersetzungsverhältnis Getriebe</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,507
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5557</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>Fahrpedal PWM1 Signal</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Unterbrechung oder Kurzschluss nach UB (12)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">2</td>
+				<td colspan="3" class="eintrag_third_col">Funktionskritischer Fehler</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,507
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5556</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>Temperaturfühler Außenluft</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Unterbrechung (10)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5558</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>Fahrpedal PWM2 Signal</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Unterbrechung oder Kurzschluss nach UB (12)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">2</td>
+				<td colspan="3" class="eintrag_third_col">Funktionskritischer Fehler</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,507
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5549</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>Wegfahrsperre Paarbildung Funktion</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Kein Signal vorhanden (4)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5014</td>
+						<td>INTSIG : fOUT_ENVsysTime in PTM</td>
+						<td>
+							0
+						</td>
+						<td>s</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5014</td>
+						<td>INTSIG : fOUT_ENVsysTime in PTM</td>
+						<td>
+							18,204
+						</td>
+						<td>Stunden</td>
+					</tr>
+
+			<tr class="table_row_odd spn_eintrag_seperator_line">
+				<td colspan="6">&#0160;</td>
+			</tr>
+		<tr class="table_row_odd spn_eintrag_first_line">
+			<td colspan="2" class="eintrag_first_col">
+
+				<b>SPN</b>
+
+			</td>
+			<td class="eintrag_second_col"><b>5581</b></td>
+			<td colspan="3" class="eintrag_third_col"><b>Magnetventil Motorbremse Ausgang</b></td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Speicherstatus</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Fehler liegt an und ist gespeichert</td>
+		</tr>
+		<tr class="table_row_odd">
+			<td colspan="2" class="eintrag_first_col">Statusanzeige</td>
+			<td class="eintrag_second_col"><div class="img_fake_placeholder"></div></td>
+			<td colspan="3" class="eintrag_third_col">Unterbrechung (10)</td>
+		</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Priorität</td>
+				<td class="eintrag_second_col">5</td>
+				<td colspan="3" class="eintrag_third_col">Warnung / Info</td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col">Häufigkeit</td>
+				<td class="eintrag_second_col">1</td>
+				<td colspan="3" class="eintrag_third_col"></td>
+			</tr>
+			<tr class="table_row_odd">
+				<td colspan="2" class="eintrag_first_col"><b>Zeitstempel</b></td>
+				<td class="eintrag_second_col"><b>Umwelt SPN</b></td>
+				<td><b>Beschreibung</b></td>
+				<td><b>Wert</b></td>
+				<td><b>Einheit</b></td>
+			</tr>
+					<tr
+						class="table_row_even"
+						
+					>
+							<td rowspan="3" colspan="2">
+								1. Zeitstempel<br/>
+									0,000 km
+&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5007</td>
+						<td>INTSIG : DIAG_fknGrp in PTM</td>
+						<td>
+						</td>
+						<td></td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							26,555
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_even"
+						
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							0
+						</td>
+						<td>km/h</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+							<td rowspan="2" colspan="2">
+								2. Zeitstempel<br/>
+								&#0160;
+							</td>
+						<td class="eintrag_second_col"
+							>5009</td>
+						<td>INTSIG : fIN_supVtgKl15 in PTM</td>
+						<td>
+							65,535
+						</td>
+						<td>V</td>
+					</tr>
+
+					<tr
+						class="table_row_odd"
+					>
+						<td class="eintrag_second_col"
+							style="border-left:none">5013</td>
+						<td>INTSIG : fIN_vehSpdTCO in PTM</td>
+						<td>
+							255,996
+						</td>
+						<td>km/h</td>
+					</tr>
+
+
+
+</table>
+</body>
+</html>

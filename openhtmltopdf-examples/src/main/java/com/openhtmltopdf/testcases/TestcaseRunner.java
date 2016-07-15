@@ -29,6 +29,11 @@ public class TestcaseRunner {
 		 */
 		runTestCase("RepeatedTableSample");
 
+		/*
+		 * This sample demonstrates the -fs-pagebreak-min-height css property
+		 */
+		runTestCase("FSPageBreakMinHeightSample");
+
 		/* Add additional test cases here. */
 	}
 	
@@ -37,7 +42,8 @@ public class TestcaseRunner {
 				.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
 		String html = new String(htmlBytes, Charsets.UTF_8);
 		String outDir = System.getProperty("OUT_DIRECTORY", ".");
-		FileOutputStream outputStream = new FileOutputStream(outDir + "/" + testCaseFile + ".pdf");
+		String testCaseOutputFile = outDir + "/" + testCaseFile + ".pdf";
+		FileOutputStream outputStream = new FileOutputStream(testCaseOutputFile);
 		
 		try {
 			PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -50,5 +56,6 @@ public class TestcaseRunner {
 		} finally {
 			outputStream.close();
 		}
+		System.out.println("Wrote " + testCaseOutputFile);
 	}
 }
