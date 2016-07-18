@@ -285,11 +285,19 @@ public class PdfContentStreamAdapter {
     }
 
     public void setTextSpacing(float nonSpaceAdjust) {
-        // TODO Not currently supported in PDF-BOX.
+        try {
+            cs.appendRawCommands(String.format("%f Tc\n", nonSpaceAdjust).replace(',', '.'));
+        } catch (IOException e) {
+            logAndThrow("setSpaceSpacing", e);
+        }
     }
 
     public void setSpaceSpacing(float spaceAdjust) {
-        // TODO Not currently supported in PDF-BOX.
+        try {
+            cs.appendRawCommands(String.format("%f Tw\n", spaceAdjust).replace(',', '.'));
+        } catch (IOException e) {
+            logAndThrow("setSpaceSpacing", e);
+        }
     }
 
     public void setPdfMatrix(AffineTransform transform) {

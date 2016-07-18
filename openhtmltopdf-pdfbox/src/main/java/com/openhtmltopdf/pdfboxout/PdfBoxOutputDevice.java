@@ -98,6 +98,8 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
 
+import static com.openhtmltopdf.test.DocumentDiffTest.width;
+
 public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private static final int FILL = 1;
     private static final int STROKE = 2;
@@ -452,10 +454,14 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _cp.beginText();
         _cp.setFont(desc.getFont(), fontSize);
         _cp.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
-        
-        if (info != null) {
-            _cp.setTextSpacing(info.getNonSpaceAdjust());
-            _cp.setSpaceSpacing(info.getSpaceAdjust());
+
+        if (info != null ) {
+            // The JustificationInfo numbers need to be normalized using the current document DPI
+            _cp.setTextSpacing(info.getNonSpaceAdjust() / _dotsPerPoint);
+            _cp.setSpaceSpacing(info.getSpaceAdjust() / _dotsPerPoint);
+        } else {
+            _cp.setTextSpacing(0.0f);
+            _cp.setSpaceSpacing(0.0f);
         }
         
         _cp.drawString(s);
