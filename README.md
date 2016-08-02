@@ -48,6 +48,8 @@ CHANGELOG
 
 head - 0.0.1-RC5-SNAPSHOT
 ========
++ [Added support for -fs-page-break-min-height CSS property](https://github.com/danfickle/openhtmltopdf/pull/31) Thanks @rototor
++ [Added support for -fs-table-paginate-repeated-visible CSS property](https://github.com/danfickle/openhtmltopdf/pull/32) Thanks @rototor
 + BREAKING CHANGE: Removed font subset method in builder, replaced with property in font face rule. Example: ````-fs-font-subset: complete-font;````
 + [Added support for text, password, textarea, submit, reset, checkbox and select - multiple and single - controls](https://github.com/danfickle/openhtmltopdf/issues/24)
 + BREAKING CHANGE: Changed bi-directional method names in builder to be more consistent.
@@ -88,8 +90,8 @@ head - 0.0.1-RC5-SNAPSHOT
 + [Removed obsolete ITEXT based output devices](https://github.com/danfickle/openhtmltopdf/issues/4)
 + [Removed SWT support](https://github.com/danfickle/openhtmltopdf/issues/6)
 + Regressions (please open issue if required):
-	+ PDF form controls.
+	+ <s>PDF form controls.</s> [Reimplemented in RC5](https://github.com/danfickle/openhtmltopdf/issues/24)
 	+ PDF font types other than built-in and truetype.
 	+ XMP PDF metadata in PDFs.
-	+ PDF encryption.
+	+ <s>PDF encryption.</s> [Reimplemented in RC5](https://github.com/danfickle/openhtmltopdf/issues/30)
 	+ [PDF text justification](https://github.com/danfickle/openhtmltopdf/issues/3)
