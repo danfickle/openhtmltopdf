@@ -231,7 +231,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             return;
         }
         
-        Area borderBounds = new Area(BorderPainter.generateBorderBounds(backgroundBounds, border, false));
+        Area borderBounds = new Area(BorderPainter.generateBorderBounds(backgroundBounds, border, true));
 
         Shape oldclip = getClip();
         if(oldclip != null) {
