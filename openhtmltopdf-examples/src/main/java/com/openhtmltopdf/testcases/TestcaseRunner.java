@@ -4,10 +4,13 @@ import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
+
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 public class TestcaseRunner {
 
@@ -33,8 +36,33 @@ public class TestcaseRunner {
 		 * This sample demonstrates the -fs-pagebreak-min-height css property
 		 */
 		runTestCase("FSPageBreakMinHeightSample");
+		
+		runTestCase("color");
+		runTestCase("background-color");
+		runTestCase("background-image");
 
 		/* Add additional test cases here. */
+	}
+	
+	public static void runTestWithoutOutput(String testCaseFile) throws Exception {
+		System.out.println("Trying to run: " + testCaseFile);
+		
+		byte[] htmlBytes = IOUtils.toByteArray(TestcaseRunner.class
+				.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
+		String html = new String(htmlBytes, Charsets.UTF_8);
+		OutputStream outputStream = new ByteArrayOutputStream(4096);
+		
+		try {
+			PdfRendererBuilder builder = new PdfRendererBuilder();
+			builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
+			builder.defaultTextDirection(TextDirection.LTR);
+			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
+			builder.toStream(outputStream);
+			builder.run();
+		} finally {
+			outputStream.close();
+		}
 	}
 	
 	public static void runTestCase(String testCaseFile) throws Exception {

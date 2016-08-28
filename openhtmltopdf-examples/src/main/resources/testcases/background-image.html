@@ -1,0 +1,51 @@
+<html>
+<head>
+<style>
+div { height: 200px; border: 1px solid gray; margin: 20px; }
+.bg1 { background-image: url(../images/go-home.png); }
+.bg2 { background-image: url(invalidurl); }
+.bg3 { background-repeat: no-repeat; }
+.bg4 { background: url(../images/go-home.png) no-repeat center center; }
+</style>
+</head>
+<body>
+
+<h2>background-image</h2>
+<div>NONE (default)</div>
+<div class="bg1">URL</div>
+<div class="bg2">INVALID URL</div>
+<span class="bg1">URL (inline)</span>
+<span style="display: inline-block;" class="bg1">URL (inline-block)</span>
+
+<h2>background-repeat</h2>
+<div class="bg1" style="background-repeat:no-repeat;">background-repeat = no-repeat</div>
+<div class="bg1" style="background-repeat:repeat;">background-repeat = repeat</div>
+<div class="bg1" style="background-repeat:repeat-x;">background-repeat = repeat-x</div>
+<div class="bg1" style="background-repeat:repeat-y;">background-repeat = repeat-y</div>
+
+<h2>background-size</h2>
+<div class="bg1" style="background-size:cover;">background-size = cover</div>
+<div class="bg1" style="background-size:contain;">background-size = contain</div>
+<div class="bg1" style="background-size:50% 100%;">background-size = 50% 100%</div>
+<div class="bg1" style="background-size:100% 50%;">background-size = 100% 50%</div>
+
+<h2>background-size with no-repeat</h2>
+<div class="bg1 bg3" style="background-size:cover;">background-size = cover</div>
+<div class="bg1 bg3" style="background-size:contain;">background-size = contain</div>
+<div class="bg1 bg3" style="background-size:50% 100%;">background-size = 50% 100%</div>
+<div class="bg1 bg3" style="background-size:100% 50%;">background-size = 100% 50%</div>
+
+<h2>background-position with no-repeat</h2>
+<div class="bg1 bg3" style="background-position: right center;">background-position = right center</div>
+<div class="bg1 bg3" style="background-position: left bottom;">background-position = left bottom</div>
+<div class="bg1 bg3" style="background-position: 10% 30%;">background-position = 10% 30%</div>
+<div class="bg1 bg3" style="background-position: 60% 10%">background-position = 60% 10%</div>
+
+<h2>background (shorthand)</h2>
+<div class="bg4">shorthand</div>
+
+<h2>TODO</h2>
+<p>Multiple background images</p>
+
+</body>
+</html>
