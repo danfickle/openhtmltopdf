@@ -20,5 +20,10 @@ public class CssPropertiesTest {
 	public void testBackgroundImageProperty() throws Exception {
 		TestcaseRunner.runTestWithoutOutput("background-image");
 	}
+	
+	@Test
+	public void testTextAlignProperty() throws Exception {
+		TestcaseRunner.runTestWithoutOutput("text-align");
+	}
 
 }

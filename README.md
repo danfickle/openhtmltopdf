@@ -48,6 +48,8 @@ CHANGELOG
 
 head - 0.0.1-RC5-SNAPSHOT
 ========
++ [Reimplemented text justification](https://github.com/danfickle/openhtmltopdf/pull/33) Thanks @hiddendog 
++ [Fixed bug in table borders](https://github.com/danfickle/openhtmltopdf/pull/34) Thanks @rototor
 + [Added support for -fs-page-break-min-height CSS property](https://github.com/danfickle/openhtmltopdf/pull/31) Thanks @rototor
 + [Added support for -fs-table-paginate-repeated-visible CSS property](https://github.com/danfickle/openhtmltopdf/pull/32) Thanks @rototor
 + BREAKING CHANGE: Removed font subset method in builder, replaced with property in font face rule. Example: ````-fs-font-subset: complete-font;````
@@ -94,4 +96,4 @@ head - 0.0.1-RC5-SNAPSHOT
 	+ PDF font types other than built-in and truetype.
 	+ XMP PDF metadata in PDFs.
 	+ <s>PDF encryption.</s> [Reimplemented in RC5](https://github.com/danfickle/openhtmltopdf/issues/30)
-	+ [PDF text justification](https://github.com/danfickle/openhtmltopdf/issues/3)
+	+ <s>[PDF text justification](https://github.com/danfickle/openhtmltopdf/issues/3)</s> [Reimplemented in RC5](https://github.com/danfickle/openhtmltopdf/pull/33) 

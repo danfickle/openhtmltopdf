@@ -40,6 +40,7 @@ public class TestcaseRunner {
 		runTestCase("color");
 		runTestCase("background-color");
 		runTestCase("background-image");
+		runTestCase("text-align");
 
 		/* Add additional test cases here. */
 	}
