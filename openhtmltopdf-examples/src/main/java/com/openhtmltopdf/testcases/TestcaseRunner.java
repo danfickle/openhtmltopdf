@@ -41,6 +41,7 @@ public class TestcaseRunner {
 		runTestCase("background-color");
 		runTestCase("background-image");
 		runTestCase("text-align");
+		runTestCase("font-family-built-in");
 
 		/* Add additional test cases here. */
 	}

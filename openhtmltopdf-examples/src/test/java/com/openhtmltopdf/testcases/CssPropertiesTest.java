@@ -25,5 +25,10 @@ public class CssPropertiesTest {
 	public void testTextAlignProperty() throws Exception {
 		TestcaseRunner.runTestWithoutOutput("text-align");
 	}
+	
+	@Test
+	public void testFontFamilyBuiltIn() throws Exception {
+		TestcaseRunner.runTestWithoutOutput("font-family-built-in");
+	}
 
 }
