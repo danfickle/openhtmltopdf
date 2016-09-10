@@ -22,6 +22,11 @@ public class CssPropertiesTest {
 	}
 	
 	@Test
+	public void testInvalidBackgroundImageUrl() throws Exception {
+		TestcaseRunner.runTestWithoutOutputAndAllowWarnings("invalid-url-background-image");
+	}
+	
+	@Test
 	public void testTextAlignProperty() throws Exception {
 		TestcaseRunner.runTestWithoutOutput("text-align");
 	}
