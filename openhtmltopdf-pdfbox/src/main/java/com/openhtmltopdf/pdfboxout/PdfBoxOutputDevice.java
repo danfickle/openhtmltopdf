@@ -19,38 +19,22 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Stroke;
-import java.awt.RenderingHints.Key;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.NoninvertibleTransformException;
-import java.awt.geom.PathIterator;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-
-import javax.imageio.ImageIO;
-
+import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.bidi.SimpleBidiReorderer;
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.parser.FSCMYKColor;
+import com.openhtmltopdf.css.parser.FSColor;
+import com.openhtmltopdf.css.parser.FSRGBColor;
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
+import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
+import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.XRLog;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -73,32 +57,18 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.openhtmltopdf.bidi.BidiReorderer;
-import com.openhtmltopdf.bidi.SimpleBidiReorderer;
-import com.openhtmltopdf.css.constants.CSSName;
-import com.openhtmltopdf.css.parser.FSCMYKColor;
-import com.openhtmltopdf.css.parser.FSColor;
-import com.openhtmltopdf.css.parser.FSRGBColor;
-import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.css.style.CssContext;
-import com.openhtmltopdf.extend.FSImage;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.layout.SharedContext;
-import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
-import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
-import com.openhtmltopdf.render.AbstractOutputDevice;
-import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.FSFont;
-import com.openhtmltopdf.render.InlineLayoutBox;
-import com.openhtmltopdf.render.InlineText;
-import com.openhtmltopdf.render.JustificationInfo;
-import com.openhtmltopdf.render.PageBox;
-import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.util.Configuration;
-import com.openhtmltopdf.util.XRLog;
-
-import static com.openhtmltopdf.test.DocumentDiffTest.width;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.RenderingHints.Key;
+import java.awt.geom.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private static final int FILL = 1;
@@ -118,6 +88,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private PdfBoxFSFont _font;
 
     private AffineTransform _transform = new AffineTransform();
+    private AffineTransform _currentTransform= new AffineTransform();
+    private Stack<AffineTransform> transformStack = new Stack<AffineTransform>();
 
     private FSColor _color = FSRGBColor.BLACK;
     private FSColor _fillColor;
@@ -186,6 +158,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
         _cp.saveGraphics();
 
+        _currentTransform = new AffineTransform();
         _transform = new AffineTransform();
         _transform.scale(1.0d / _dotsPerPoint, 1.0d / _dotsPerPoint);
 
@@ -1293,11 +1266,13 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     @Override
     public void saveState() {
         _cp.saveGraphics();
+        transformStack.push(_currentTransform);
     }
 
     @Override
     public void restoreState() {
         _cp.restoreGraphics();
+        _currentTransform = transformStack.pop();
     }
 
     @Override
@@ -1333,5 +1308,13 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     @Override
     public Shape getRawClip() {
         return _clip;
+    }
+
+    @Override
+    public void applyTransform(AffineTransform transform) {
+    	AffineTransform calculatedTransform = new AffineTransform(transform);
+        _currentTransform.concatenate(transform);
+        calculatedTransform.concatenate(_currentTransform);
+        _cp.setPdfMatrix(calculatedTransform);
     }
 }

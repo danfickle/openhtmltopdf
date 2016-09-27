@@ -20,31 +20,25 @@
  */
 package com.openhtmltopdf.render;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Shape;
+import com.openhtmltopdf.bidi.BidiSplitter;
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.parser.FSRGBColor;
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.css.style.FSDerivedValue;
+import com.openhtmltopdf.css.style.derived.BorderPropertySet;
+import com.openhtmltopdf.css.style.derived.RectPropertySet;
+import com.openhtmltopdf.layout.*;
+import com.openhtmltopdf.render.LineBox.LTRvsRTL;
+import org.w3c.dom.Element;
+
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import org.w3c.dom.Element;
-
-import com.openhtmltopdf.bidi.BidiSplitter;
-import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.css.parser.FSRGBColor;
-import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.css.style.CssContext;
-import com.openhtmltopdf.css.style.derived.BorderPropertySet;
-import com.openhtmltopdf.css.style.derived.RectPropertySet;
-import com.openhtmltopdf.layout.BoxCollector;
-import com.openhtmltopdf.layout.InlineBoxing;
-import com.openhtmltopdf.layout.InlinePaintable;
-import com.openhtmltopdf.layout.Layer;
-import com.openhtmltopdf.layout.LayoutContext;
-import com.openhtmltopdf.layout.PaintingInfo;
-import com.openhtmltopdf.render.LineBox.LTRvsRTL;
 
 /**
  * A {@link Box} which contains the portion of an inline element layed out on a
@@ -254,6 +248,9 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         if (! getStyle().isVisible(c, this)) {
             return;
         }
+
+        c.getOutputDevice().saveState();
+        applyTranform(c);
         
         paintBackground(c);
         paintBorder(c);
@@ -289,6 +286,8 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
                 }
             }
         }
+
+        c.getOutputDevice().restoreState();
     }
     
     public int getBorderSides() {
@@ -962,5 +961,12 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             	((Box) child).countRtlVsLtrChars(result);
             }
         }
+	}
+
+	protected void applyTranform(RenderingContext c) {
+		FSDerivedValue transform = getStyle().valueByName(CSSName.TRANSFORM);
+		if (transform.isIdent() && transform.asIdentValue() == IdentValue.NONE)
+			return;
+		FSDerivedValue transformOrigin = getStyle().valueByName(CSSName.TRANSFORM_ORIGIN);
 	}
 }

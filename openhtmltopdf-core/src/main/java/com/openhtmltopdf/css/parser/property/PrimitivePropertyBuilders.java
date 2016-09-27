@@ -1605,4 +1605,35 @@ public class PrimitivePropertyBuilders {
 
         return Collections.singletonList(result);
     }
+
+
+    public static class TransformPropertyBuilder extends AbstractPropertyBuilder {
+        private static final BitSet ALLOWED = setFor(new IdentValue[] { IdentValue.NONE });
+
+        @Override
+        public List buildDeclarations(CSSName cssName, List values, int origin, boolean important,
+                                      boolean inheritAllowed) {
+            checkValueCount(cssName, 1, Integer.MAX_VALUE, values.size());
+            if(values.size() == 1) {
+                CSSPrimitiveValue value = (CSSPrimitiveValue) values.get(0);
+                if(value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+                    IdentValue ident = checkIdent(cssName, value);
+                    checkValidity(cssName, ALLOWED, ident);
+                    return Collections.singletonList(new PropertyDeclaration(CSSName.TRANSFORM, value,
+                            important, origin));
+                }
+            }
+            return Collections.singletonList(new PropertyDeclaration(CSSName.TRANSFORM, new PropertyValue(values),
+                    important, origin));
+        }
+    }
+
+    public static class TransformOriginPropertyBuilder extends AbstractPropertyBuilder {
+        @Override
+        public List buildDeclarations(CSSName cssName, List values, int origin, boolean important,
+                                      boolean inheritAllowed) {
+            checkValueCount(cssName, 2, 3, values.size());
+            return Collections.singletonList(new PropertyDeclaration(CSSName.TRANSFORM_ORIGIN, new PropertyValue(values), important, origin));
+        }
+    }
 }

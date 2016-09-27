@@ -1476,7 +1476,6 @@ public class CSSParser {
         }
         PropertyValue result = null;
         switch (t.getType()) {
-            case Token.ANGLE:
             case Token.TIME:
             case Token.FREQ:
             case Token.DIMENSION:
@@ -1485,6 +1484,14 @@ public class CSSParser {
                 result = new PropertyValue(
                         CSSPrimitiveValue.CSS_NUMBER,
                         sign*Float.parseFloat(getTokenValue(t)),
+                        sign(sign) + getTokenValue(t));
+                next();
+                skip_whitespace();
+                break;
+            case Token.ANGLE:
+                result = new PropertyValue(
+                        CSSPrimitiveValue.CSS_DEG,
+                        sign*Float.parseFloat(extractNumber(t)),
                         sign(sign) + getTokenValue(t));
                 next();
                 skip_whitespace();
