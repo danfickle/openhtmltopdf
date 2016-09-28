@@ -4,7 +4,7 @@ OPEN HTML TO PDF
 GETTING OPEN HTML TO PDF
 ========
 New releases of Open HTML to PDF will be distributed through Maven.  Search maven for [com.openhtmltopdf](http://mvnrepository.com/artifact/com.openhtmltopdf).
-Current maven release is ````0.0.1-RC4````. If you would like to be notified of new releases, please subscribe to the [Maven issue](https://github.com/danfickle/openhtmltopdf/issues/7).
+Current maven release is ````0.0.1-RC5````. If you would like to be notified of new releases, please subscribe to the [Maven issue](https://github.com/danfickle/openhtmltopdf/issues/7).
 
 MAVEN ARTIFACTS
 ========
@@ -12,7 +12,7 @@ Add these to your maven dependencies section as needed:
 ````xml
   	<properties>
   		<!-- Define the version of OPEN HTML TO PDF in the properties section of your POM. -->  	       
-  		<openhtml.version>0.0.1-RC4</openhtml.version>
+  		<openhtml.version>0.0.1-RC5</openhtml.version>
   	</properties>
 
   	<dependency>
@@ -118,8 +118,8 @@ import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 
 // Then call on the builder.
-builder.useBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
-builder.useBidiReorderer(new ICUBidiReorderer());
+builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
 builder.defaultTextDirection(TextDirection.LTR); // OR RTL
 ````
 

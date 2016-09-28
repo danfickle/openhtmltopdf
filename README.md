@@ -46,7 +46,10 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC5-SNAPSHOT
+head - 0.0.1-RC6-SNAPSHOT
+========
+
+0.0.1-RC5
 ========
 + [Reimplemented text justification](https://github.com/danfickle/openhtmltopdf/pull/33) Thanks @hiddendog 
 + [Fixed bug in table borders](https://github.com/danfickle/openhtmltopdf/pull/34) Thanks @rototor
