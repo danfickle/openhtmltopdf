@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 
 import org.apache.pdfbox.cos.COSArray;
@@ -32,6 +34,7 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDCheckBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDComboBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDListBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDPushButton;
+import org.apache.pdfbox.pdmodel.interactive.form.PDRadioButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.w3c.dom.Element;
 
@@ -50,6 +53,7 @@ public class PdfBoxForm {
     private final List<ControlFontPair> controls = new ArrayList<PdfBoxForm.ControlFontPair>();
     private final List<String> controlNames = new ArrayList<String>();
     private final List<Control> submits = new ArrayList<PdfBoxForm.Control>(2);
+    private final Map<String, List<PdfBoxForm.Control>> radioGroups = new LinkedHashMap<String, List<Control>>();
     
     public static class Control {
         public final Box box;
@@ -486,6 +490,66 @@ public class PdfBoxForm {
         acro.getFields().add(field);
     }
     
+    private void processRadioButtonGroup(List<Control> group, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+        String groupName = group.get(0).box.getElement().getAttribute("name");
+        PDRadioButton field = new PDRadioButton(acro);
+        
+        field.setPartialName("OpenHTMLCtrl" + i); // Internal name.
+        controlNames.add("OpenHTMLCtrl" + i);
+        
+        field.setMappingName(groupName);
+        
+        List<String> values = new ArrayList<String>(group.size());
+        for (Control ctrl : group) {
+            values.add(ctrl.box.getElement().getAttribute("value"));
+        }
+        field.setExportValues(values);
+        
+        List<PDAnnotationWidget> widgets = new ArrayList<PDAnnotationWidget>(group.size());
+        
+        int radioCnt = 0;
+        
+        for (Control ctrl : group) {
+            Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+            PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
+            
+            PDAnnotationWidget widget = new PDAnnotationWidget();
+            
+            widget.setRectangle(rect);
+            widget.setPage(ctrl.page);
+            widget.setPrinted(true);
+            
+            COSDictionary dict = new COSDictionary();
+            dict.setItem(COSName.getPDFName("" + radioCnt), od.radioBoxOnAppearance);
+            dict.setItem(COSName.Off, od.radioBoxOffAppearance);
+            PDAppearanceDictionary appearanceDict = new PDAppearanceDictionary();
+            appearanceDict.getCOSObject().setItem(COSName.N, dict);
+
+            if (ctrl.box.getElement().hasAttribute("checked")) {
+                widget.getCOSObject().setItem(COSName.AS, COSName.getPDFName("" + radioCnt));
+            } else {
+                widget.getCOSObject().setItem(COSName.AS, COSName.Off);
+            }
+
+            widget.setAppearance(appearanceDict);
+            
+            widgets.add(widget);
+            ctrl.page.getAnnotations().add(widget);
+            
+            radioCnt++;
+        }
+
+        field.setWidgets(widgets);
+
+        for (Control ctrl : group) {
+            if (ctrl.box.getElement().hasAttribute("checked")) {
+               field.setValue(ctrl.box.getElement().getAttribute("value"));
+            }
+        }
+        
+        acro.getFields().add(field);
+    }
+    
     private void processSubmitControl(PDAcroForm acro, int i, Control ctrl, Box root, PdfBoxOutputDevice od) throws IOException {
         final int FLAG_USE_GET = 1 << 3;
         final int FLAG_USE_HTML_SUBMIT = 1 << 2;
@@ -563,8 +627,18 @@ public class PdfBoxForm {
                        e.getAttribute("type").equals("checkbox")) {
                 
                 processCheckboxControl(pair, acro, i, ctrl, root, od);
-            }
-            else if ((e.getNodeName().equals("input") && 
+            } else if (e.getNodeName().equals("input") &&
+                       e.getAttribute("type").equals("radio")) {
+                // We have to do radio button groups in one hit so add them to a map of list keyed on name.
+                List<Control> radioGroup = radioGroups.get(e.getAttribute("name"));
+                
+                if (radioGroup == null) {
+                    radioGroup = new ArrayList<PdfBoxForm.Control>();
+                    radioGroups.put(e.getAttribute("name"), radioGroup);
+                }
+
+                radioGroup.add(ctrl);
+            } else if ((e.getNodeName().equals("input") && 
                       e.getAttribute("type").equals("submit")) ||
                      (e.getNodeName().equals("button") &&
                       !e.getAttribute("type").equals("button")) ||
@@ -574,6 +648,12 @@ public class PdfBoxForm {
                 // We've got a submit or reset control for this form.
                 submits.add(ctrl);
             }
+        }
+        
+        // Now process each group of radio buttons.
+        for (List<Control> group : radioGroups.values()) {
+            i++;
+            processRadioButtonGroup(group, acro, i, root, od);
         }
         
         // We do submit controls last as we need all the fields in this form.

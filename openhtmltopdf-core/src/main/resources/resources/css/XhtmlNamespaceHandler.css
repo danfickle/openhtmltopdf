@@ -31,7 +31,8 @@ kbd, samp       { font-family: monospace }
 pre             { white-space: pre }
 button, textarea,
 input, select, openhtmltopdf-combo   { display: inline-block; font-family: sans-serif; font-size: 10pt; }
-input[type=checkbox] { height: 12px; width: 12px; background-color: white; border: 1px solid gray; }
+input[type=checkbox], input[type=radio] { height: 12px; width: 12px; background-color: white; border: 1px solid gray; }
+input[type=radio] { border-radius: 50%; }
 input[type=text], input[type=password], input[type=file], select, openhtmltopdf-combo {
     height: 1.8em;
     width: 10em;
