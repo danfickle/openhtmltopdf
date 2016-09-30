@@ -10,8 +10,8 @@ using CSS 2.1 for layout and formatting, output to PDF.
 
 GETTING STARTED
 ========
-[Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
-[Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
++ [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
++ [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
 
 LICENSE
 ========
