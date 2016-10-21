@@ -12,6 +12,7 @@ GETTING STARTED
 ========
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
 + [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
++ [RC5 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
 
 LICENSE
 ========
