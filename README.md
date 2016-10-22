@@ -50,6 +50,7 @@ CHANGELOG
 
 head - 0.0.1-RC6-SNAPSHOT
 ========
++ [Corrected naming scheme for form controls](https://github.com/danfickle/openhtmltopdf/issues/42) Thanks @scoldwell
 
 0.0.1-RC5
 ========

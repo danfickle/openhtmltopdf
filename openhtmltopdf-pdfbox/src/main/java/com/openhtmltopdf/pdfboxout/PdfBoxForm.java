@@ -7,11 +7,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -32,7 +34,9 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDCheckBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDComboBox;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDListBox;
+import org.apache.pdfbox.pdmodel.interactive.form.PDNonTerminalField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDPushButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDRadioButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
@@ -49,11 +53,36 @@ import com.openhtmltopdf.util.XRLog;
 
 
 public class PdfBoxForm {
+    // The form element itself.
     private final Element element;
+    
+    // All controls, with a font name if needed.
     private final List<ControlFontPair> controls = new ArrayList<PdfBoxForm.ControlFontPair>();
-    private final List<String> controlNames = new ArrayList<String>();
+
+    // The submits have to be done after all other controls are processed.
     private final List<Control> submits = new ArrayList<PdfBoxForm.Control>(2);
+
+    // We've got to find all the radio button controls that belong to a group (common name).
     private final Map<String, List<PdfBoxForm.Control>> radioGroups = new LinkedHashMap<String, List<Control>>();
+    
+    // Contains a tree of fields in the form:
+    // person
+    // person.details
+    // person.details.name
+    // person.details.phone
+    // etc.
+    private final Map<String, Field> allFieldMap = new HashMap<String, PdfBoxForm.Field>();
+    
+    // A link in the tree of fields. We have this so that each field can look up
+    // its parent field.
+    private static class Field {
+        private PDField field;
+        private String partialName;   // eg. person.details.phone
+        private String qualifiedName; // eg. phone.
+        // If its non-terminal we'll have to create it explicitly and
+        // set its kids appropriately.
+        private boolean isTerminal;
+    }
     
     public static class Control {
         public final Box box;
@@ -91,6 +120,106 @@ public class PdfBoxForm {
 
     public void addControl(Control ctrl, String fontName) {
         controls.add(new ControlFontPair(ctrl, fontName));
+    }
+    
+    /** 
+     * This method will create a tree of names, both non-terminal
+     * and terminal.
+     */
+    private void processControlNames() {
+        for (ControlFontPair control : controls) {
+            String name = control.control.box.getElement().getAttribute("name");
+            
+            if (!name.contains(".")) {
+                // It's a root field!
+                Field f = new Field();
+                f.partialName = name;
+                f.qualifiedName = name;
+                f.isTerminal = true;
+                allFieldMap.put(name, f);
+            } else {
+                String[] partials = name.split(Pattern.quote("."));
+                
+                for (int i = 1; i <= partials.length; i++) {
+                    // Given a field name such as person.details.name
+                    // we check that 'person' is created first, then 'person.details' and
+                    // finally 'person.details.name'.
+                    
+                    String[] parent = new String[i];
+                    System.arraycopy(partials, 0, parent, 0, i);
+                    String parentQualifiedName = join(parent, ".");
+
+                    Field f = allFieldMap.get(parentQualifiedName);
+                    if (f == null) {
+                        Field fCreated = new Field();
+                        fCreated.qualifiedName = parentQualifiedName;
+                        fCreated.partialName = parent[i - 1]; 
+                        fCreated.isTerminal = (i == partials.length);
+                        allFieldMap.put(parentQualifiedName, fCreated);
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * This method will create the non terminal fields.
+     * It is called recursively to create all non-terminal field descendants.
+     * It should be called after all the PDField objects are created.
+     */
+    private void createNonTerminalFields(Field f, PDAcroForm form) {
+            if (!f.isTerminal) {
+                COSArray kids = new COSArray();
+
+                for (Field f2 : allFieldMap.values()) {
+                    if (f2.qualifiedName.indexOf(f.qualifiedName) == 0 &&                          // Its a descendant or identical.
+                        f2.qualifiedName.length() > f.qualifiedName.length() + 1 &&                // Its not identical.
+                        !f2.qualifiedName.substring(f.qualifiedName.length() + 1).contains(".")) { // Its a direct child.
+
+                        kids.add(f2.field.getCOSObject());
+                        f2.field.getCOSObject().setItem(COSName.PARENT, f.field.getCOSObject());
+                        createNonTerminalFields(f2, form);
+                    }
+                }
+                
+
+                f.field.getCOSObject().setItem(COSName.KIDS, kids); 
+            }
+      }
+
+      /**
+       * Calls createNonTerminalFields on all root non-terminal fields.
+       * Otherwise, root fields are added to the acro form field collection.
+       */
+      private void createNonTerminalFields(PDAcroForm form) {
+          for (Field f : allFieldMap.values()) {
+              if (!f.isTerminal) {
+                  PDNonTerminalField nonTerminal = new PDNonTerminalField(form);
+                  nonTerminal.setPartialName(f.partialName);
+                  f.field = nonTerminal;
+              }
+          }
+          
+          for (Field f : allFieldMap.values()) {
+              if (!f.qualifiedName.contains(".")) {
+                  createNonTerminalFields(f, form);
+                  form.getFields().add(f.field);
+              }
+          }
+      }
+    
+    /**
+     * Joins a string array, with the given separator.
+     */
+    private String join(String[] partials, String separator) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0;i < partials.length; i++) {
+            sb.append(partials[i]);
+            if (i < partials.length - 1) {
+                sb.append(separator);
+            }
+        }
+        return sb.toString();
     }
     
     private static Integer getNumber(String s) {
@@ -172,11 +301,11 @@ public class PdfBoxForm {
     
     private void processMultiSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
         PDListBox field = new PDListBox(acro);
+
+        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
+        fObj.field = field;
         
-        field.setPartialName("OpenHTMLCtrl" + i);
-        controlNames.add("OpenHTMLCtrl" + i);
-        
-        field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
+        field.setPartialName(fObj.partialName);
         field.setMultiSelect(true);
         
         List<String> labels = new ArrayList<String>();
@@ -215,16 +344,15 @@ public class PdfBoxForm {
         widget.setPrinted(true);
       
         ctrl.page.getAnnotations().add(widget);
-        acro.getFields().add(field);
     }
     
     private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
         PDComboBox field = new PDComboBox(acro);
         
-        field.setPartialName("OpenHTMLCtrl" + i);
-        controlNames.add("OpenHTMLCtrl" + i);
+        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
+        fObj.field = field;
         
-        field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
+        field.setPartialName(fObj.partialName);
         
         List<String> labels = new ArrayList<String>();
         List<String> values = new ArrayList<String>();
@@ -267,11 +395,15 @@ public class PdfBoxForm {
         widget.setPrinted(true);
       
         ctrl.page.getAnnotations().add(widget);
-        acro.getFields().add(field);
     }
     
     private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
         PDTextField field = new PDTextField(acro);
+        
+        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
+        fObj.field = field;
+        
+        field.setPartialName(fObj.partialName);
         
         FSColor color = ctrl.box.getStyle().getColor();
         String colorOperator = getColorOperator(color);
@@ -279,9 +411,6 @@ public class PdfBoxForm {
         String fontInstruction = "/" + pair.fontName + " 0 Tf";
         field.setDefaultAppearance(fontInstruction + ' ' + colorOperator);
         
-        field.setPartialName("OpenHTMLCtrl" + i); // Internal name.
-        controlNames.add("OpenHTMLCtrl" + i);
-
         String value = ctrl.box.getElement().getNodeName().equals("textarea") ?
                 getTextareaText(ctrl.box.getElement()) :
                 ctrl.box.getElement().getAttribute("value");
@@ -310,8 +439,6 @@ public class PdfBoxForm {
             field.setFileSelect(true);
         }
         
-        field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
-        
         if (ctrl.box.getElement().hasAttribute("title")) {
             field.setAlternateFieldName(ctrl.box.getElement().getAttribute("title"));
         }
@@ -326,7 +453,6 @@ public class PdfBoxForm {
         widget.setPrinted(true);
       
         ctrl.page.getAnnotations().add(widget);
-        acro.getFields().add(field);
     }
 
     public static enum CheckboxStyle {
@@ -428,8 +554,10 @@ public class PdfBoxForm {
     private void processCheckboxControl(ControlFontPair pair, PDAcroForm acro, int i, Control ctrl, Box root, PdfBoxOutputDevice od) throws IOException {
         PDCheckBox field = new PDCheckBox(acro);
         
-        field.setPartialName("OpenHTMLCtrl" + i); // Internal name.
-        controlNames.add("OpenHTMLCtrl" + i);
+        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
+        fObj.field = field;
+        
+        field.setPartialName(fObj.partialName);
         
         if (ctrl.box.getElement().hasAttribute("required")) {
             field.setRequired(true);
@@ -439,8 +567,6 @@ public class PdfBoxForm {
             field.setReadOnly(true);
         }
         
-        field.setMappingName(ctrl.box.getElement().getAttribute("name")); // Export name.
-
         /*
          * The only way I could get Acrobat Reader to display the checkbox checked properly was to 
          * use an explicitly encoded unicode string for the OPT entry of the dictionary.
@@ -487,17 +613,16 @@ public class PdfBoxForm {
         widget.setAppearance(appearanceDict);
         
         ctrl.page.getAnnotations().add(widget);
-        acro.getFields().add(field);
     }
     
     private void processRadioButtonGroup(List<Control> group, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
         String groupName = group.get(0).box.getElement().getAttribute("name");
         PDRadioButton field = new PDRadioButton(acro);
         
-        field.setPartialName("OpenHTMLCtrl" + i); // Internal name.
-        controlNames.add("OpenHTMLCtrl" + i);
+        Field fObj = allFieldMap.get(groupName);
+        fObj.field = field;
         
-        field.setMappingName(groupName);
+        field.setPartialName(fObj.partialName);
         
         List<String> values = new ArrayList<String>(group.size());
         for (Control ctrl : group) {
@@ -546,8 +671,6 @@ public class PdfBoxForm {
                field.setValue(ctrl.box.getElement().getAttribute("value"));
             }
         }
-        
-        acro.getFields().add(field);
     }
     
     private void processSubmitControl(PDAcroForm acro, int i, Control ctrl, Box root, PdfBoxOutputDevice od) throws IOException {
@@ -556,7 +679,17 @@ public class PdfBoxForm {
         
         PDPushButton btn = new PDPushButton(acro);
         btn.setPushButton(true);
-        btn.setPartialName("OpenHTMLCtrl" + i);
+        
+        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
+        fObj.field = btn;
+        
+        if (fObj.partialName.isEmpty()) {
+            btn.setPartialName("OpenHTMLCtrl" + i);
+            fObj.qualifiedName = "OpenHTMLCtrl" + i;
+            fObj.partialName = "OpenHTMLCtrl" + i; 
+        }
+        
+        btn.setPartialName(fObj.partialName);
         
         PDAnnotationWidget widget = btn.getWidgets().get(0);
         
@@ -567,7 +700,11 @@ public class PdfBoxForm {
         widget.setPage(ctrl.page);
 
         COSArrayList<String> fieldsToInclude = new COSArrayList<String>();
-        fieldsToInclude.addAll(controlNames);
+        for (Field f : allFieldMap.values()) {
+            if (f.isTerminal) {
+                fieldsToInclude.add(f.qualifiedName);
+            }
+        }
         
         if (ctrl.box.getElement().getAttribute("type").equals("reset")) {
             PDActionResetForm reset = new PDActionResetForm();
@@ -591,11 +728,14 @@ public class PdfBoxForm {
             widget.setAction(submit);
         }
 
+
+        
         ctrl.page.getAnnotations().add(widget);
-        acro.getFields().add(btn);
     }
     
     public int process(PDAcroForm acro, int startId, Box root, PdfBoxOutputDevice od) throws IOException {
+        processControlNames();
+        
         int  i = startId;
 
         for (ControlFontPair pair : controls) {
@@ -661,6 +801,8 @@ public class PdfBoxForm {
             i++;
             processSubmitControl(acro, i, ctrl, root, od);
         }
+        
+        createNonTerminalFields(acro);
         
         return i;
     }
