@@ -248,7 +248,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             String fontName = null;
             
             if (!(ctrl.box.getElement().getAttribute("type").equals("checkbox") ||
-                  ctrl.box.getElement().getAttribute("type").equals("radio"))) {
+                  ctrl.box.getElement().getAttribute("type").equals("radio") ||
+                  ctrl.box.getElement().getAttribute("type").equals("hidden"))) {
                 PDFont fnt = ((PdfBoxFSFont) _sharedContext.getFont(ctrl.box.getStyle().getFontSpecification())).getFontDescription().get(0).getFont();
 
                 if (!controlFonts.containsKey(fnt)) {

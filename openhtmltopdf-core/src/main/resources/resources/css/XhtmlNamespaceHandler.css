@@ -52,8 +52,8 @@ select > option, openhtmltopdf-combo > option { display: none; }
 input[type=submit]::before, input[type=reset]::before { content: attr(value); height: 1.8em; display: inline-block; }
 button { height: 1.8em; }
 textarea { width: 10em; height: 5em; padding: 4px; background-color: white; border: 1px solid black; }
-
-/* input[type=hidden] { display: none } */        /* don't generate boxes for hidden inputs.*/
+/* Generate a hidden box for hidden controls, so we can process them in paint background, like all the other form controls. */
+input[type=hidden] { width: 1px; height: 1px; position: absolute; background-color: transparent; }
 big             { font-size: 1.17em }
 small           { font-size: .83em }
 s, strike, del  { text-decoration: line-through }

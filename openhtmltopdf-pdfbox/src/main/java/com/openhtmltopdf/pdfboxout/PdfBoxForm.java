@@ -128,6 +128,10 @@ public class PdfBoxForm {
      */
     private void processControlNames() {
         for (ControlFontPair control : controls) {
+            if (!control.control.box.getElement().hasAttribute("name")) {
+                continue;
+            }
+            
             String name = control.control.box.getElement().getAttribute("name");
             
             if (!name.contains(".")) {
@@ -230,6 +234,9 @@ public class PdfBoxForm {
         }
     }
     
+    /**
+     * Get a PDF graphics operator for a specific color.
+     */
     private static String getColorOperator(FSColor color) {
         String colorOperator = "";
         
@@ -346,6 +353,9 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widget);
     }
     
+    /**
+     * Processes select controls and the custom openhtmltopdf-combo control.
+     */
     private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
         PDComboBox field = new PDComboBox(acro);
         
@@ -395,6 +405,27 @@ public class PdfBoxForm {
         widget.setPrinted(true);
       
         ctrl.page.getAnnotations().add(widget);
+    }
+    
+    private void processHiddenControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+        PDTextField field = new PDTextField(acro);
+        
+        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
+        fObj.field = field;
+        
+        field.setPartialName(fObj.partialName);
+        
+        String value = ctrl.box.getElement().getAttribute("value");
+        
+        field.setDefaultValue(value);
+        field.setValue(value);
+        
+        // Even hidden fields need an associated widget to work.
+        PDAnnotationWidget widgy = field.getWidgets().get(0);
+        widgy.setPage(ctrl.page);
+        widgy.setHidden(true);
+        widgy.setRectangle(new PDRectangle(0, 0, 1, 1));
+        ctrl.page.getAnnotations().add(widgy);
     }
     
     private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
@@ -497,6 +528,9 @@ public class PdfBoxForm {
         }
     }
 
+    /**
+     * Creates a checkbox appearance stream. Uses an ordinal of the zapf dingbats font for the check mark.
+     */
     public static PDAppearanceStream createCheckboxAppearance(CheckboxStyle style, PDDocument doc, PDResources resources) {
         String appear = 
                 "q\n" + 
@@ -680,16 +714,30 @@ public class PdfBoxForm {
         PDPushButton btn = new PDPushButton(acro);
         btn.setPushButton(true);
         
-        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
-        fObj.field = btn;
-        
-        if (fObj.partialName.isEmpty()) {
-            btn.setPartialName("OpenHTMLCtrl" + i);
-            fObj.qualifiedName = "OpenHTMLCtrl" + i;
-            fObj.partialName = "OpenHTMLCtrl" + i; 
+        if (ctrl.box.getElement().hasAttribute("name")) {
+            // Buttons can't have a value so we create a hidden text field instead.
+            PDTextField field = new PDTextField(acro);
+            
+            Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
+            fObj.field = field;
+    
+            field.setPartialName(fObj.partialName);
+            
+            String value = ctrl.box.getElement().getAttribute("value");
+            
+            field.setDefaultValue(value);
+            field.setValue(value);
+            
+            // Even hidden fields need an associated widget to work.
+            PDAnnotationWidget widgy = field.getWidgets().get(0);
+            widgy.setPage(ctrl.page);
+            widgy.setHidden(true);
+            widgy.setRectangle(new PDRectangle(0, 0, 1, 1));
+            ctrl.page.getAnnotations().add(widgy);
         }
         
-        btn.setPartialName(fObj.partialName);
+        // We use an internal name so as not to conflict with a hidden text that we just created.
+        btn.setPartialName("OpenHTMLCtrl" + i);
         
         PDAnnotationWidget widget = btn.getWidgets().get(0);
         
@@ -728,8 +776,7 @@ public class PdfBoxForm {
             widget.setAction(submit);
         }
 
-
-        
+        acro.getFields().add(btn);
         ctrl.page.getAnnotations().add(widget);
     }
     
@@ -768,6 +815,10 @@ public class PdfBoxForm {
                 
                 processCheckboxControl(pair, acro, i, ctrl, root, od);
             } else if (e.getNodeName().equals("input") &&
+                       e.getAttribute("type").equals("hidden")) {
+                
+                processHiddenControl(pair, ctrl, acro, i, root, od);
+            }else if (e.getNodeName().equals("input") &&
                        e.getAttribute("type").equals("radio")) {
                 // We have to do radio button groups in one hit so add them to a map of list keyed on name.
                 List<Control> radioGroup = radioGroups.get(e.getAttribute("name"));
