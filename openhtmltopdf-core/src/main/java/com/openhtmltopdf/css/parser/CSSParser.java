@@ -97,8 +97,7 @@ public class CSSParser {
 
     public Ruleset parseDeclaration(int origin, String text) {
         try {
-            // XXX Set this to something more reasonable
-            _URI = "style attribute";
+            _URI = ThreadCtx.get().sharedContext().getBaseURL();
             reset(new StringReader(text));
 
             skip_whitespace();
