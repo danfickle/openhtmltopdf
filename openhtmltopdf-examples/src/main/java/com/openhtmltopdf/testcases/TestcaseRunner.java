@@ -48,6 +48,7 @@ public class TestcaseRunner {
 		runTestCase("invalid-url-background-image");
 		runTestCase("text-align");
 		runTestCase("font-family-built-in");
+		runTestCase("form-controls");
 
 		/* Add additional test cases here. */
 	}

@@ -35,5 +35,9 @@ public class CssPropertiesTest {
 	public void testFontFamilyBuiltIn() throws Exception {
 		TestcaseRunner.runTestWithoutOutput("font-family-built-in");
 	}
-
+	
+	@Test
+	public void testFormControls() throws Exception {
+		TestcaseRunner.runTestWithoutOutput("form-controls");
+	}
 }

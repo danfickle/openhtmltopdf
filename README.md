@@ -50,6 +50,7 @@ CHANGELOG
 
 head - 0.0.1-RC6-SNAPSHOT
 ========
++ [Added support for hidden controls and submit controls with values](https://github.com/danfickle/openhtmltopdf/issues/24)
 + [Corrected naming scheme for form controls](https://github.com/danfickle/openhtmltopdf/issues/42) Thanks @scoldwell
 
 0.0.1-RC5
