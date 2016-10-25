@@ -221,3 +221,16 @@ hr[size="1"] {
 form{
  margin: 0 0 1em 0;
 }
+
+bdi {
+ direction: auto;
+}
+[dir=ltr], bdi[dir=ltr] {
+ direction: ltr;
+}
+[dir=rtl], bdi[dir=rtl] {
+ direction: rtl;
+}
+[dir=auto] {
+ direction: auto;
+}

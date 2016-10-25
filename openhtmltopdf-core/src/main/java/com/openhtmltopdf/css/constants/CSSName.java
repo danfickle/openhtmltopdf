@@ -527,8 +527,8 @@ public final class CSSName implements Comparable {
                     PRIMITIVE,
                     "ltr",
                     INHERITS,
-                    false,
-                    null
+                    true,
+                    new PrimitivePropertyBuilders.Direction()
             );
 
     /**

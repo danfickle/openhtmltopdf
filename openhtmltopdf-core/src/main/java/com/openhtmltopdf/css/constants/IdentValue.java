@@ -160,6 +160,7 @@ public class IdentValue implements FSDerivedValue {
     public final static IdentValue REPEAT_Y = addValue("repeat-y");
     public final static IdentValue RIDGE = addValue("ridge");
     public final static IdentValue RIGHT = addValue("right");
+    public final static IdentValue RTL = addValue("rtl");
     public final static IdentValue RUN_IN = addValue("run-in");
     public final static IdentValue SCROLL = addValue("scroll");
     public final static IdentValue SEPARATE = addValue("separate");
@@ -230,7 +231,7 @@ public class IdentValue implements FSDerivedValue {
     /**
      * Description of the Field
      */
-    private static Map ALL_IDENT_VALUES;
+    private static Map<String, IdentValue> ALL_IDENT_VALUES;
 
     /**
      * Constructor for the IdentValue object
@@ -292,7 +293,7 @@ public class IdentValue implements FSDerivedValue {
      */
     private final static synchronized IdentValue addValue(String ident) {
         if (ALL_IDENT_VALUES == null) {
-            ALL_IDENT_VALUES = new HashMap();
+            ALL_IDENT_VALUES = new HashMap<String, IdentValue>();
         }
         IdentValue val = new IdentValue(ident);
         ALL_IDENT_VALUES.put(ident, val);
