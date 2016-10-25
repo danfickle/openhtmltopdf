@@ -1,13 +1,18 @@
 package com.openhtmltopdf.pdfboxout;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.w3c.dom.Document;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.FSCache;
+import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.extend.FSTextTransformer;
 import com.openhtmltopdf.extend.FSUriResolver;
@@ -20,7 +25,8 @@ import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.UnicodeImplementation;
 public class PdfRendererBuilder
 {
     public static enum TextDirection { RTL, LTR; }
-    public static enum PageSizeUnits { MM, INCHES };
+    public static enum PageSizeUnits { MM, INCHES }
+    public static enum FontStyle { NORMAL, ITALIC, OBLIQUE }
     
     public static final float PAGE_SIZE_LETTER_WIDTH = 8.5f;
     public static final float PAGE_SIZE_LETTER_HEIGHT = 11.0f;
@@ -50,8 +56,25 @@ public class PdfRendererBuilder
     private FSTextTransformer _unicodeToUpperTransformer;
     private FSTextTransformer _unicodeToLowerTransformer;
     private FSTextTransformer _unicodeToTitleTransformer;
-
     
+    private static class AddedFont {
+        private final FSSupplier<InputStream> supplier;
+        private final Integer weight;
+        private final String family;
+        private final boolean subset;
+        private final FontStyle style;
+        
+        private AddedFont(FSSupplier<InputStream> supplier, Integer weight, String family, boolean subset, FontStyle style) {
+            this.supplier = supplier;
+            this.weight = weight;
+            this.family = family;
+            this.subset = subset;
+            this.style = style;
+        }
+    }
+    
+    private List<AddedFont> _fonts = new ArrayList<AddedFont>();
+
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
      * @throws Exception
@@ -60,6 +83,25 @@ public class PdfRendererBuilder
         PdfBoxRenderer renderer = null;
         try {
             renderer = this.buildPdfRenderer();
+            
+            if (!_fonts.isEmpty()) {
+                PdfBoxFontResolver resolver = renderer.getFontResolver();
+            
+                for (AddedFont font : _fonts) {
+                    IdentValue fontStyle = null;
+                    
+                    if (font.style == FontStyle.NORMAL) {
+                        fontStyle = IdentValue.NORMAL;
+                    } else if (font.style == FontStyle.ITALIC) {
+                        fontStyle = IdentValue.ITALIC;
+                    } else if (font.style == FontStyle.OBLIQUE) {
+                        fontStyle = IdentValue.OBLIQUE;
+                    }
+                    
+                    resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset);
+                }
+            }
+            
             renderer.layout();
             renderer.createPDF();
         } finally {
@@ -318,6 +360,27 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder useUnicodeToTitleTransformer(FSTextTransformer tr) {
         this._unicodeToTitleTransformer = tr;
+        return this;
+    }
+    
+    /**
+     * Add a font programmatically. If the font is NOT subset, it will be downloaded when the renderer is run, otherwise
+     * the font will only be donwnloaded if needed. Therefore, the user could add many fonts, confidant that only those
+     * that are used will be downloaded and processed. 
+     * 
+     * The InputStream returned by the supplier will be closed by the caller. Fonts should generally be subset, except
+     * when used in form controls. FSSupplier is a lambda compatible interface.
+     * 
+     * Fonts can also be added using a font-face at-rule in the CSS.
+     * @param supplier
+     * @param fontFamily
+     * @param fontWeight
+     * @param fontStyle
+     * @param subset
+     * @return
+     */
+    public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight, FontStyle fontStyle, boolean subset) {
+        this._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, subset, fontStyle));
         return this;
     }
 }

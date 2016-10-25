@@ -171,19 +171,19 @@ public class PdfBoxFontResolver implements FontResolver {
             
             for (int i = 0; i < files.length; i++) {
                 addFont(new FontFileFontSupplier(files[i].getAbsolutePath()), files[i].getName(),
-                        IdentValue.FONT_WEIGHT_400, IdentValue.NORMAL, true);
+                        400, IdentValue.NORMAL, true);
             }
         }
     }
 
     public void addFont(FSSupplier<InputStream> supplier, String fontFamilyNameOverride, 
-            IdentValue fontWeightOverride, IdentValue fontStyleOverride, boolean subset) {
+            Integer fontWeightOverride, IdentValue fontStyleOverride, boolean subset) {
         FontFamily fontFamily = getFontFamily(fontFamilyNameOverride);
         
         FontDescription descr = new FontDescription(
                 _doc,
                 supplier,
-                fontWeightOverride != null ? convertWeightToInt(fontWeightOverride) : 400,
+                fontWeightOverride != null ? fontWeightOverride : 400,
                 fontStyleOverride != null ? fontStyleOverride : IdentValue.NORMAL); 
         
         if (!subset) {
@@ -205,6 +205,7 @@ public class PdfBoxFontResolver implements FontResolver {
                  fontSupplier,
                  fontWeightOverride != null ? convertWeightToInt(fontWeightOverride) : 400,
                  fontStyleOverride != null ? fontStyleOverride : IdentValue.NORMAL); 
+        descr.setFromFontFace(true);
 
         if (!subset) {
             if (descr.realizeFont(subset))
@@ -638,9 +639,9 @@ public class PdfBoxFontResolver implements FontResolver {
         private boolean realizeFont(boolean subset) {
             if (_font == null && _supplier != null) {
                 InputStream is = _supplier.supply();
+                _supplier = null; // We only try once.
                 
                 if (is == null) {
-                    _supplier = null;
                     return false;
                 }
                 
