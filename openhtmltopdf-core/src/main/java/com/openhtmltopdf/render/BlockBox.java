@@ -51,7 +51,6 @@ import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.PersistentBFC;
 import com.openhtmltopdf.layout.Styleable;
 import com.openhtmltopdf.newtable.TableRowBox;
-import com.openhtmltopdf.render.LineBox.LTRvsRTL;
 
 /**
  * A block box as defined in the CSS spec.  It also provides a base class for
@@ -121,28 +120,6 @@ public class BlockBox extends Box implements InlinePaintable {
     protected String getExtraBoxDescription() {
         return "";
     }
-
-    /**
-     * Counts the RTL chars vs LTR chars in this block box. This is used by line box to know whether to align right
-     * or left given a predominantly left-to-right line or a predominantly right-to-left line.
-     * @param result
-     */
-    @Override
-	public void countRtlVsLtrChars(LTRvsRTL result) {
-    	
-    	if (getInlineContent() == null)
-    		return;
-    	
-    	
-        for (Iterator i = getInlineContent().iterator(); i.hasNext(); ) {
-            Styleable node = (Styleable) i.next();
-
-            if (node.getStyle().isInline()) {
-                InlineBox iB = (InlineBox) node;
-                iB.countRtlVsLtrChars(result);
-            }
-        }
-	}
     
     public String toString() {
         StringBuffer result = new StringBuffer();

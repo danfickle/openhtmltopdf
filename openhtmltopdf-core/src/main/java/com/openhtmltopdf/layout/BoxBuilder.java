@@ -1278,6 +1278,11 @@ public class BoxBuilder {
        		runText = textNode.getData().substring(0, nodeIndex);
        	}
        	
+		// Shape here, so the layout will get the right visual length for the run.
+		if (prevSplit.getDirection() == BidiSplitter.RTL) {
+			runText = c.getBidiReorderer().shapeText(runText);
+		}
+
        	InlineBox child = createInlineBox(runText, parent, parentStyle, textNode);
        	child.setTextDirection(prevSplit.getDirection());
        	previousIB = setupInlineChild(child, previousIB);

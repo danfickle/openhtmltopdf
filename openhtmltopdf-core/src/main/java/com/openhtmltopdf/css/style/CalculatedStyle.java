@@ -1296,6 +1296,10 @@ public class CalculatedStyle {
     public boolean isDirectionAuto() {
     	return isIdent(CSSName.DIRECTION, IdentValue.AUTO);
     }
+
+	public IdentValue getDirection() {
+		return getIdent(CSSName.DIRECTION);
+	}
 }// end class
 
 /*
