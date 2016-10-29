@@ -50,6 +50,7 @@ CHANGELOG
 
 head - 0.0.1-RC6-SNAPSHOT
 ========
++ BREAKING CHANGE: [Support for dir attribute and bdi element](https://github.com/danfickle/openhtmltopdf/issues/9#issuecomment-257072765)
 + [Do not download fonts that are not actually used](https://github.com/danfickle/openhtmltopdf/issues/43)
 + [Fixed resolution of relative URLs in inline style declarations](https://github.com/danfickle/openhtmltopdf/issues/27)
 + [Added support for hidden controls and submit controls with values](https://github.com/danfickle/openhtmltopdf/issues/24)
