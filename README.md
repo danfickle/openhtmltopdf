@@ -12,7 +12,7 @@ GETTING STARTED
 ========
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
 + [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
-+ [RC5 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
++ [RC7 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
 
 LICENSE
 ========
@@ -48,7 +48,11 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC6-SNAPSHOT
+head - 0.0.1-RC8-SNAPSHOT
+========
+
+
+0.0.1-RC7
 ========
 + SECURITY ISSUE: [Prevent XXE Attacks](https://github.com/danfickle/openhtmltopdf/issues/44) Thanks @lillesand
 + BREAKING CHANGE: [Support for dir attribute and bdi element](https://github.com/danfickle/openhtmltopdf/issues/9#issuecomment-257072765)
