@@ -30,7 +30,6 @@ import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.layout.*;
-import com.openhtmltopdf.render.LineBox.LTRvsRTL;
 import org.w3c.dom.Element;
 
 import java.awt.*;
@@ -938,30 +937,6 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     public int getEffectiveWidth() {
         return getInlineWidth();
     }
-
-    /**
-     * Counts the RTL chars vs LTR chars in this inline layout box. This is used by line box to know whether to align right
-     * or left given a predominantly left-to-right line or a predominantly right-to-left line.
-     * @param result
-     */
-	public void countRtlVsLtrChars(LTRvsRTL result) {
-        for (int i = 0; i < getInlineChildCount(); i++) {
-
-        	Object child = getInlineChild(i);
-
-            if (child instanceof InlineText) {
-                if (((InlineText) child).getTextDirection() == BidiSplitter.LTR) {
-                	result.ltr += ((InlineText) child).getSubstring().length();
-                }
-                else {
-                	result.rtl += ((InlineText) child).getSubstring().length(); 
-                }
-            }
-            else {
-            	((Box) child).countRtlVsLtrChars(result);
-            }
-        }
-	}
 
 	protected void applyTranform(RenderingContext c) {
 		FSDerivedValue transform = getStyle().valueByName(CSSName.TRANSFORM);

@@ -10,7 +10,9 @@ using CSS 2.1 for layout and formatting, output to PDF.
 
 GETTING STARTED
 ========
-[Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
++ [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
++ [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
++ [RC7 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
 
 LICENSE
 ========
@@ -46,14 +48,27 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC5-SNAPSHOT
+head - 0.0.1-RC8-SNAPSHOT
+========
+
+
+0.0.1-RC7
+========
++ SECURITY ISSUE: [Prevent XXE Attacks](https://github.com/danfickle/openhtmltopdf/issues/44) Thanks @lillesand
++ BREAKING CHANGE: [Support for dir attribute and bdi element](https://github.com/danfickle/openhtmltopdf/issues/9#issuecomment-257072765)
++ [Do not download fonts that are not actually used](https://github.com/danfickle/openhtmltopdf/issues/43)
++ [Fixed resolution of relative URLs in inline style declarations](https://github.com/danfickle/openhtmltopdf/issues/27)
++ [Added support for hidden controls and submit controls with values](https://github.com/danfickle/openhtmltopdf/issues/24)
++ [Corrected naming scheme for form controls](https://github.com/danfickle/openhtmltopdf/issues/42) Thanks @scoldwell
+
+0.0.1-RC5
 ========
 + [Reimplemented text justification](https://github.com/danfickle/openhtmltopdf/pull/33) Thanks @hiddendog 
 + [Fixed bug in table borders](https://github.com/danfickle/openhtmltopdf/pull/34) Thanks @rototor
 + [Added support for -fs-page-break-min-height CSS property](https://github.com/danfickle/openhtmltopdf/pull/31) Thanks @rototor
 + [Added support for -fs-table-paginate-repeated-visible CSS property](https://github.com/danfickle/openhtmltopdf/pull/32) Thanks @rototor
 + BREAKING CHANGE: Removed font subset method in builder, replaced with property in font face rule. Example: ````-fs-font-subset: complete-font;````
-+ [Added support for text, password, textarea, submit, reset, checkbox and select - multiple and single - controls](https://github.com/danfickle/openhtmltopdf/issues/24)
++ [Added support for text, password, textarea, submit, reset, checkbox, radio and select - multiple and single - controls](https://github.com/danfickle/openhtmltopdf/issues/24)
 + BREAKING CHANGE: Changed bi-directional method names in builder to be more consistent.
 + [Add method to builder to specify custom text transformers](https://github.com/danfickle/openhtmltopdf/issues/28)
 + [Add method to builder to specify a custom line breaker](https://github.com/danfickle/openhtmltopdf/issues/25) Thanks @Magotchi

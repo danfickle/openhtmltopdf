@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.util.logging.Level;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -80,6 +81,7 @@ public class XMLResource extends AbstractResource {
         return XML_RESOURCE_BUILDER.createXMLResource(new XMLResource(new InputSource(reader)));
     }
 
+    @Deprecated
     public static XMLResource load(Source source) {
         return XML_RESOURCE_BUILDER.createXMLResource(source);
     }
@@ -160,7 +162,8 @@ public class XMLResource extends AbstractResource {
     }
 
     private static class XMLResourceBuilder {
-        XMLResource createXMLResource(XMLResource target) {
+
+    	private XMLResource createXMLResource(XMLResource target) {
             Source input = null;
             DOMResult output = null;
             TransformerFactory xformFactory = null;
@@ -169,6 +172,21 @@ public class XMLResource extends AbstractResource {
             long st = 0L;
 
             xmlReader = XMLResource.newXMLReader();
+            
+            try {
+            	 // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
+            	 // DO NOT REMOVE!
+           	     xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
+            	 xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            	 xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            	 xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            	 xmlReader.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            } catch (SAXNotSupportedException e) {
+            	 XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
+            } catch (SAXNotRecognizedException e) {
+            	 XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
+            }
+
             addHandlers(xmlReader);
             setParserFeatures(xmlReader);
 
@@ -176,11 +194,35 @@ public class XMLResource extends AbstractResource {
             try {
                 input = new SAXSource(xmlReader, target.getResourceInputSource());
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                
+           	    // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
+           	    // DO NOT REMOVE!
+                dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
+                dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+                dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                
                 dbf.setNamespaceAware(true);
-                dbf.setValidating(false);//validation is the root of all evil in xml - tobe
+                // validation is the root of all evil in xml - tobe
+                dbf.setValidating(false);
+                
                 output = new DOMResult(dbf.newDocumentBuilder().newDocument());
-                xformFactory = TransformerFactory.newInstance();
+                
+                try {
+                	// FIXME:
+                	// Currently, we have to do this as the user may have an older vesion of xalan on their classpath which would be
+                	// used otherwise.
+                	xformFactory = TransformerFactory.newInstance("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl", null);
+                } catch(Exception e) {
+                	XRLog.load(Level.SEVERE, "Could not load preferred XML transformer, using default which may not be secure.");
+                	xformFactory = TransformerFactory.newInstance();
+                }
+                
+                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
                 idTransform = xformFactory.newTransformer();
+                
             } catch (Exception ex) {
                 throw new XRRuntimeException(
                         "Failed on configuring SAX to DOM transformer.", ex);
@@ -278,6 +320,7 @@ public class XMLResource extends AbstractResource {
             }
         }
 
+        @Deprecated
         public XMLResource createXMLResource(Source source) {
             DOMResult output = null;
             TransformerFactory xformFactory = null;
@@ -287,10 +330,29 @@ public class XMLResource extends AbstractResource {
             st = System.currentTimeMillis();
             try {
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                
+           	    // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
+           	    // DO NOT REMOVE!
+                dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
+                dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+                dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                
                 dbf.setNamespaceAware(true);
                 dbf.setValidating(false);//validation is the root of all evil in xml - tobe
                 output = new DOMResult(dbf.newDocumentBuilder().newDocument());
-                xformFactory = TransformerFactory.newInstance();
+                
+                try {
+                	xformFactory = TransformerFactory.newInstance("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl", null);
+                } catch(Exception e) {
+                	XRLog.load(Level.SEVERE, "Could not load preferred XML transformer, using default which may not be secure.");
+                	xformFactory = TransformerFactory.newInstance();
+                }
+                
+                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+                
                 idTransform = xformFactory.newTransformer();
             } catch (Exception ex) {
                 throw new XRRuntimeException("Failed on configuring SAX to DOM transformer.", ex);

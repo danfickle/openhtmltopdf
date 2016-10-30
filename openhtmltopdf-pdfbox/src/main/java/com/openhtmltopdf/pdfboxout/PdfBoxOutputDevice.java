@@ -119,6 +119,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private final Map<PDFont, String> controlFonts = new HashMap<PDFont, String>();
     final Map<CheckboxStyle, PDAppearanceStream> checkboxAppearances = new EnumMap<CheckboxStyle, PDAppearanceStream>(CheckboxStyle.class);
     PDAppearanceStream checkboxOffAppearance;
+    PDAppearanceStream radioBoxOffAppearance;
+    PDAppearanceStream radioBoxOnAppearance;
     
     private Box _root;
 
@@ -219,7 +221,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             String fontName = null;
             
             if (!(ctrl.box.getElement().getAttribute("type").equals("checkbox") ||
-                  ctrl.box.getElement().getAttribute("type").equals("radio"))) {
+                  ctrl.box.getElement().getAttribute("type").equals("radio") ||
+                  ctrl.box.getElement().getAttribute("type").equals("hidden"))) {
                 PDFont fnt = ((PdfBoxFSFont) _sharedContext.getFont(ctrl.box.getStyle().getFontSpecification())).getFontDescription().get(0).getFont();
 
                 if (!controlFonts.containsKey(fnt)) {
@@ -243,6 +246,19 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                 
                 if (checkboxOffAppearance == null) {
                     checkboxOffAppearance = PdfBoxForm.createCheckboxAppearance("q\nQ\n", getWriter(), checkBoxFontResource);
+                }
+            } else if (ctrl.box.getElement().getAttribute("type").equals("radio")) {
+                if (checkBoxFontResource == null) {
+                    checkBoxFontResource = new PDResources();
+                    checkBoxFontResource.put(COSName.getPDFName("OpenHTMLZap"), PDType1Font.ZAPF_DINGBATS);
+                }
+
+                if (radioBoxOffAppearance == null) {
+                    radioBoxOffAppearance = PdfBoxForm.createCheckboxAppearance("q\nQ\n", getWriter(), checkBoxFontResource);
+                }
+
+                if (radioBoxOnAppearance == null) {
+                    radioBoxOnAppearance = PdfBoxForm.createCheckboxAppearance(CheckboxStyle.DIAMOND, getWriter(), checkBoxFontResource);
                 }
             }
                 

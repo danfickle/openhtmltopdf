@@ -31,7 +31,8 @@ kbd, samp       { font-family: monospace }
 pre             { white-space: pre }
 button, textarea,
 input, select, openhtmltopdf-combo   { display: inline-block; font-family: sans-serif; font-size: 10pt; }
-input[type=checkbox] { height: 12px; width: 12px; background-color: white; border: 1px solid gray; }
+input[type=checkbox], input[type=radio] { height: 12px; width: 12px; background-color: white; border: 1px solid gray; }
+input[type=radio] { border-radius: 50%; }
 input[type=text], input[type=password], input[type=file], select, openhtmltopdf-combo {
     height: 1.8em;
     width: 10em;
@@ -51,8 +52,8 @@ select > option, openhtmltopdf-combo > option { display: none; }
 input[type=submit]::before, input[type=reset]::before { content: attr(value); height: 1.8em; display: inline-block; }
 button { height: 1.8em; }
 textarea { width: 10em; height: 5em; padding: 4px; background-color: white; border: 1px solid black; }
-
-/* input[type=hidden] { display: none } */        /* don't generate boxes for hidden inputs.*/
+/* Generate a hidden box for hidden controls, so we can process them in paint background, like all the other form controls. */
+input[type=hidden] { width: 1px; height: 1px; position: absolute; background-color: transparent; }
 big             { font-size: 1.17em }
 small           { font-size: .83em }
 s, strike, del  { text-decoration: line-through }
@@ -219,4 +220,17 @@ hr[size="1"] {
 /* Quirk: give form margin for compat (b=41806) (from Firefox) */
 form{
  margin: 0 0 1em 0;
+}
+
+bdi {
+ direction: auto;
+}
+[dir=ltr], bdi[dir=ltr] {
+ direction: ltr;
+}
+[dir=rtl], bdi[dir=rtl] {
+ direction: rtl;
+}
+[dir=auto] {
+ direction: auto;
 }

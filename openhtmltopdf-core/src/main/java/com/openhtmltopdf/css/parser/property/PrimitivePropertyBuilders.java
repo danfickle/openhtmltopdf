@@ -47,6 +47,9 @@ public class PrimitivePropertyBuilders {
     // thin | medium | thick
     public static final BitSet BORDER_WIDTHS = setFor(
             new IdentValue[] { IdentValue.THIN, IdentValue.MEDIUM, IdentValue.THICK });
+    
+    public static final BitSet DIRECTIONS = setFor(
+    		new IdentValue[] { IdentValue.LTR, IdentValue.RTL, IdentValue.AUTO });
 
     // normal | small-caps | inherit
     public static final BitSet FONT_VARIANTS = setFor(
@@ -185,6 +188,13 @@ public class PrimitivePropertyBuilders {
         protected BitSet getAllowed() {
             return BORDER_STYLES;
         }
+    }
+    
+    public static class Direction extends SingleIdent {
+		@Override
+		protected BitSet getAllowed() {
+			return DIRECTIONS;
+		}
     }
 
     private static class GenericBorderWidth extends AbstractPropertyBuilder {

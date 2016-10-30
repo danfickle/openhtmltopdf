@@ -33,4 +33,9 @@ public class ICUBidiSplitter implements BidiSplitter {
 		BidiTextRun textRun = new BidiTextRun(run.getStart(), run.getLength(), run.getDirection());
 		return textRun;
 	}
+
+	@Override
+	public byte getBaseDirection(String paragraph) {
+		return Bidi.getBaseDirection(paragraph);
+	}
 }

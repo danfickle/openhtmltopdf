@@ -34,7 +34,6 @@ import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.Styleable;
 import com.openhtmltopdf.layout.TextUtil;
 import com.openhtmltopdf.layout.WhitespaceStripper;
-import com.openhtmltopdf.render.LineBox.LTRvsRTL;
 
 /**
  * A class which reprsents a portion of an inline element. If an inline element
@@ -488,18 +487,4 @@ public class InlineBox implements Styleable {
     public Text getTextNode() {
         return this._textNode;
     }
-
-    /**
-     * Counts the RTL chars vs LTR chars in this inline box. This is used by line box to know whether to align right
-     * or left given a predominantly left-to-right line or a predominantly right-to-left line.
-     * @param result
-     */
-	public void countRtlVsLtrChars(LTRvsRTL result) {
-		if (getTextDirection() == BidiSplitter.LTR) {
-			result.ltr += _text.length();
-		}
-		else {
-			result.rtl += _text.length();
-		}
-	}
 }

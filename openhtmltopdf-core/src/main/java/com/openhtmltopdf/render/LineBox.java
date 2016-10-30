@@ -77,6 +77,8 @@ public class LineBox extends Box implements InlinePaintable {
     
     private JustificationInfo _justificationInfo;
     
+    private byte direction = BidiSplitter.LTR;
+    
     public LineBox() {
     }
     
@@ -116,8 +118,8 @@ public class LineBox extends Box implements InlinePaintable {
         if (isContainsDynamicFunction()) {
             lookForDynamicFunctions(c);
             int totalLineWidth;
-            
-            if (isHeuristicallyRTL()) {
+
+            if (direction == BidiSplitter.RTL) {
             	totalLineWidth = InlineBoxing.positionHorizontallyRTL(c, this, 0, 0);
             }
             else {
@@ -178,46 +180,17 @@ public class LineBox extends Box implements InlinePaintable {
         _containsContent = containsContent;
     }
     
-    public static class LTRvsRTL {
-    	public int ltr;
-    	public int rtl;
-    }
-    
-    public boolean isHeuristicallyRTL() {
-    	LTRvsRTL result = countRtlVsLtrChars();
-    	return (result.rtl > result.ltr);
-    }
-    
-    /**
-     * Counts the LTR vs RTL chars in this line box so we know to align left or right when <code>text-align: start</code>.
-     * @return
-     */
-    public LTRvsRTL countRtlVsLtrChars() {
-    	LTRvsRTL result = new LTRvsRTL();
-    	
-        for (Iterator i = getChildIterator(); i.hasNext(); ) {
-            Box b = (Box) i.next();
-            if (b instanceof InlineLayoutBox) {
-                ((InlineLayoutBox)b).countRtlVsLtrChars(result);
-            }
-        }
-        
-        return result;
-    }
-    
     public void align(boolean dynamic) {
         IdentValue align = getParent().getStyle().getIdent(CSSName.TEXT_ALIGN);
         
         int calcX = 0;
-        byte direction = -1;
+        byte dir = -1;
         
         if (align == IdentValue.START) {
-        	// text-align: start means right align when text is mostly RTL and left align
-        	// when text is mostly LTR.
-        	direction = isHeuristicallyRTL() ? BidiSplitter.RTL : BidiSplitter.LTR; 
+        	dir = direction == BidiSplitter.RTL ? BidiSplitter.RTL : BidiSplitter.LTR; 
         }
         
-        if (align == IdentValue.LEFT || align == IdentValue.JUSTIFY || direction == BidiSplitter.LTR) {
+        if (align == IdentValue.LEFT || align == IdentValue.JUSTIFY || dir == BidiSplitter.LTR) {
             int floatDistance = getFloatDistances().getLeftFloatDistance();
             calcX = getContentStart() + floatDistance;
             if (align == IdentValue.JUSTIFY && dynamic) {
@@ -231,7 +204,7 @@ public class LineBox extends Box implements InlinePaintable {
                 (getParent().getContentWidth() - leftFloatDistance - rightFloatDistance) / 2;
             
             calcX = midpoint - (getContentWidth() + getContentStart()) / 2;
-        } else if (align == IdentValue.RIGHT || direction == BidiSplitter.RTL) {
+        } else if (align == IdentValue.RIGHT || dir == BidiSplitter.RTL) {
             int floatDistance = getFloatDistances().getRightFloatDistance();
             calcX = getParent().getContentWidth() - floatDistance - getContentWidth();
         }
@@ -679,6 +652,14 @@ public class LineBox extends Box implements InlinePaintable {
 
     private void setJustificationInfo(JustificationInfo justificationInfo) {
         _justificationInfo = justificationInfo;
+    }
+    
+    public void setDirectionality(byte direction) {
+    	this.direction = direction;
+    }
+    
+    public boolean isLayedOutRTL() {
+    	return this.direction == BidiSplitter.RTL;
     }
 }
 

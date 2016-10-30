@@ -31,6 +31,7 @@ import com.openhtmltopdf.simple.extend.XhtmlCssOnlyNamespaceHandler;
  *
  * @author Torbjoern Gannholm
  */
+@Deprecated
 public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     /**
      * {@inheritDoc}
@@ -65,6 +66,8 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
             return applyImgStyles(e);
         } else if (e.getNodeName().equals("textarea")) {
         	return applyTextareaStyles(e);
+        } else if (e.getNodeName().equals("input")) {
+        	return applyInputStyles(e);
         }
         return "";
     }
@@ -75,6 +78,22 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
         return style.toString();
     }
 
+    private String applyInputStyles(Element e) {
+    	StringBuilder sb = new StringBuilder();
+    	
+    	if (e.hasAttribute("width") && isInteger(e.getAttribute("width"))) {
+    		sb.append("width: ");
+    		sb.append(e.getAttribute("width"));
+    		sb.append("px;");
+    	} else if (e.hasAttribute("size") && isInteger(e.getAttribute("size"))) {
+    		sb.append("width: ");
+    		sb.append(e.getAttribute("size"));
+    		sb.append("em;");
+    	}
+    	
+    	return sb.toString();
+    }
+    
     private String applyTextareaStyles(Element e) {
     	StringBuilder sb = new StringBuilder();
     	

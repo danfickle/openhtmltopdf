@@ -34,4 +34,9 @@ public class SimpleBidiSplitter implements BidiSplitter {
 	public BidiTextRun getVisualRun(int runIndex) {
 		return runs.get(runIndex);
 	}
+
+	@Override
+	public byte getBaseDirection(String paragraph) {
+		return BidiSplitter.LTR;
+	}
 }

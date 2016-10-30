@@ -1,0 +1,45 @@
+<html>
+<head>
+<style>
+input { color: orange; font-family: monospace; }
+textarea { color: red; font-family: monospace;  }
+button { color: blue; font-family: monospace; border-radius: 8px; background-color: yellow; }
+</style>
+</head>
+<body>
+<div>
+<form action="http://localhost/form.php" method="POST">
+
+ <input type="text" value="One" name="test1" readonly="" title="Hello there!"/>
+ <input type="text" value="Two" name="test2" max-length="4" />
+ <input type="text" value="Three" name="test3" required=""/>
+ <input type="text" value="Four" name="test4"/>
+ 
+ <div><textarea name="text-area-test" rows="30" cols="50">This is a test!</textarea></div> 
+ 
+ <input type="submit" value="GO!"/>
+ <button type="submit">SUBMIT</button>
+ <input type="password" name="notvery" value="secret"/>
+ 
+ <div>
+  <input type="checkbox" name="checker1" value="1" checked="" style="-fs-checkbox-style: check;" />
+  <input type="checkbox" name="checker2" value="2" checked="" style="-fs-checkbox-style: square;" />
+  <input type="checkbox" name="checker3" value="3" checked="" style="-fs-checkbox-style: diamond;" />
+  <input type="checkbox" name="checker4" value="4" checked="" style="-fs-checkbox-style: star;" />
+  <input type="checkbox" name="checker5" value="5" checked="" style="-fs-checkbox-style: circle;" />
+  <input type="checkbox" name="checker6" value="6" checked="" style="-fs-checkbox-style: cross;" />
+ </div>
+ 
+ <div>
+  <input type="radio" name="rad" value="0"/>
+  <input type="radio" name="rad" value="1"/>
+  <input type="radio" name="rad" value="2"/>
+  <input type="radio" name="rad" value="3"/>
+ </div>
+ 
+ <input type="hidden" name="hidden-control" value="secret-value"/>
+ 
+</form>
+</div>
+</body>
+</html>

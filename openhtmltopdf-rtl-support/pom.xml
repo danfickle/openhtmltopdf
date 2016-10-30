@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
-    <version>0.0.1-RC5-SNAPSHOT</version>
+    <version>0.0.1-RC8-SNAPSHOT</version>
   </parent>
 
   <artifactId>openhtmltopdf-rtl-support</artifactId>
@@ -34,7 +34,7 @@
     <dependency>
 	<groupId>com.ibm.icu</groupId>
 	<artifactId>icu4j</artifactId>
-	<version>56.1</version>
+	<version>58.1</version>
    </dependency>
     <dependency>
         <groupId>com.openhtmltopdf</groupId>

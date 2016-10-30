@@ -26,6 +26,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+
+import com.openhtmltopdf.bidi.ParagraphSplitter;
+import com.openhtmltopdf.bidi.ParagraphSplitter.Paragraph;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
@@ -55,10 +59,15 @@ public class InlineBoxing {
     }
 
     public static void layoutContent(LayoutContext c, BlockBox box, int initialY, int breakAtLine) {
+    	Element blockElement = box.getElement();
+    	Paragraph para = c.getParagraphSplitter().lookupBlockElement(blockElement);
+    	byte blockLayoutDirection = para.getActualDirection();
+    	
         int maxAvailableWidth = box.getContentWidth();
         int remainingWidth = maxAvailableWidth;
 
         LineBox currentLine = newLine(c, initialY, box);
+        currentLine.setDirectionality(blockLayoutDirection);
         LineBox previousLine = null;
 
         InlineLayoutBox currentIB = null;
@@ -249,6 +258,7 @@ public class InlineBoxing {
                         }
                         previousLine = currentLine;
                         currentLine = newLine(c, previousLine, box);
+                        currentLine.setDirectionality(blockLayoutDirection);
                         currentIB = addOpenInlineBoxes(
                                 c, currentLine, openInlineBoxes,  maxAvailableWidth, iBMap);
                         previousIB = currentIB.getParent() instanceof LineBox ?
@@ -311,6 +321,7 @@ public class InlineBoxing {
                        contentStart = 0;
                        previousLine = currentLine;
                        currentLine = newLine(c, previousLine, box);
+                       currentLine.setDirectionality(blockLayoutDirection);
                        currentIB = addOpenInlineBoxes(
                                c, currentLine, openInlineBoxes, maxAvailableWidth, iBMap);
                        previousIB = currentIB == null || currentIB.getParent() instanceof LineBox ?
@@ -413,7 +424,7 @@ public class InlineBoxing {
      */
     public static int positionHorizontallyRTL(CssContext c, Box current, int start, int width) {
     	int x = start;
-    	
+
     	InlineLayoutBox currentIB = null;
     	
     	if (current instanceof InlineLayoutBox) {
@@ -426,10 +437,10 @@ public class InlineBoxing {
     		
     		if (b instanceof InlineLayoutBox) {
     			InlineLayoutBox iB = (InlineLayoutBox) b;
-    			int w = positionHorizontallyRTL(c, iB, x, width);
+    			int w = positionHorizontallyILBRTL(c, iB, x, width);
+    			positionHorizontallyILBRTL(c, iB, x, w);
     			x -= w;
     			iB.setX(x);
-    			positionHorizontallyRTL(c, iB, x, w);
     		}
     		else {
     			x -= b.getWidth();
@@ -445,9 +456,9 @@ public class InlineBoxing {
     	return (start - x);
     }
     
-    private static int positionHorizontallyRTL(CssContext c, InlineLayoutBox current, int start, int width) {
+    private static int positionHorizontallyILBRTL(CssContext c, InlineLayoutBox current, int start, int width) {
     	// WARNING: This function was created mostly by trial and error!
-    	
+
         int xAbs = start;
         int xRel = width;
         int w;
@@ -465,21 +476,21 @@ public class InlineBoxing {
                 
             	// FIXME: Inefficient, but we need to call once to get the width and then the
             	// second time to do the actual layout.
-            	w = positionHorizontallyRTL(c, iB, xAbs, width);
-                w = positionHorizontallyRTL(c, iB, xAbs - w, w);
+            	w = positionHorizontallyILBRTL(c, iB, xAbs, width);
+                w = positionHorizontallyILBRTL(c, iB, xAbs, w);
+                iB.setX(xAbs - w);
                 xAbs -= w;
                 xRel -= w;
-                iB.setX(xRel);
             } else if (child instanceof InlineText) {
-                InlineText iT = (InlineText) child;
-                xAbs -= iT.getWidth();
+            	InlineText iT = (InlineText) child;
+            	xAbs -= iT.getWidth();
                 xRel -= iT.getWidth();
                 iT.setX(xRel);
             } else if (child instanceof Box) {
                 Box b = (Box) child;
-                b.setX(xAbs);
                 xAbs -= b.getWidth();
                 xRel -= b.getWidth();
+                b.setX(xAbs);
             }
         }
 
@@ -488,7 +499,6 @@ public class InlineBoxing {
         xRel -= w;
         
         current.setInlineWidth(start - xAbs);
-
         return start - xAbs;
     }
     
@@ -842,7 +852,7 @@ public class InlineBoxing {
 
         int totalLineWidth;
         
-        if (current.isHeuristicallyRTL()) {
+        if (current.isLayedOutRTL()) {
         	totalLineWidth = positionHorizontallyRTL(c, current, 0, 0);
         	positionHorizontallyRTL(c, current, totalLineWidth, totalLineWidth);
         }
