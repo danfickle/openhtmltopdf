@@ -383,4 +383,14 @@ public class PdfRendererBuilder
         this._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, subset, fontStyle));
         return this;
     }
+    
+    /**
+     * Simpler overload for {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}
+     * @param supplier
+     * @param fontFamily
+     * @return
+     */
+    public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily) {
+        return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
+    }
 }
