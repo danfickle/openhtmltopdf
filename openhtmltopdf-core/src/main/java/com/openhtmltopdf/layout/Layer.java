@@ -19,19 +19,6 @@
  */
 package com.openhtmltopdf.layout;
 
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.PageElementPosition;
 import com.openhtmltopdf.css.newmatch.PageInfo;
@@ -39,13 +26,11 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.newtable.TableCellBox;
-import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.BoxDimensions;
-import com.openhtmltopdf.render.InlineLayoutBox;
-import com.openhtmltopdf.render.PageBox;
-import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.render.ViewportBox;
+import com.openhtmltopdf.render.*;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 /**
  * All positioned content as well as content with an overflow value other
@@ -463,13 +448,14 @@ public class Layer {
                 this, startingPoint, blocks, lines, rangeLists);
     
         Map collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
-        
+
         paintBackgroundsAndBorders(c, blocks, collapsedTableBorders, rangeLists);
         paintListMarkers(c, blocks, rangeLists);
         paintInlineContent(c, lines, rangeLists);
         paintSelection(c, lines); // XXX only do when there is a selection
         paintReplacedElements(c, blocks, rangeLists);
-    }    
+    }
+
 
     private void paintListMarkers(RenderingContext c, List blocks, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());

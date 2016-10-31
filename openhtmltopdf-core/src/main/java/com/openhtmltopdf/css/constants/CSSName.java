@@ -1119,6 +1119,31 @@ public final class CSSName implements Comparable {
             );
 
     /**
+     * Unique CSSName instance for CSS3 property.
+     */
+    public final static CSSName TRANSFORM =
+            addProperty(
+                    "transform",
+                    PRIMITIVE,
+                    "none",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.TransformPropertyBuilder()
+            );
+
+    /**
+     * Unique CSSName instance for CSS3 property.
+     */
+    public final static CSSName TRANSFORM_ORIGIN =
+            addProperty(
+                    "transform-origin",
+                    PRIMITIVE,
+                    "50% 50%",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.TransformOriginPropertyBuilder()
+            );
+
+
+    /**
      * Unique CSSName instance for CSS2 property.
      */
     public final static CSSName WORD_SPACING =
@@ -1658,7 +1683,6 @@ public final class CSSName implements Comparable {
                     CSSName.BORDER_RIGHT_COLOR,
                     CSSName.BORDER_BOTTOM_COLOR,
                     CSSName.BORDER_LEFT_COLOR);
-
 
     /**
      * Constructor for the CSSName object

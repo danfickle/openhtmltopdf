@@ -226,7 +226,22 @@ public class IdentValue implements FSDerivedValue {
 	public static final IdentValue STAR = addValue("star");
 	public static final IdentValue CHECK = addValue("check");
 	public static final IdentValue CROSS = addValue("cross");
-	
+
+	/*
+	 * CSS 3 Transform Values
+	 */
+    public static final IdentValue MATRIX = addValue("matrix");
+    public static final IdentValue TRANSLATE = addValue("translate");
+    public static final IdentValue TRANSLATE_X = addValue("translateX");
+    public static final IdentValue TRANSLATE_Y = addValue("translateY");
+    public static final IdentValue SCALE = addValue("scale");
+    public static final IdentValue SCALE_X = addValue("scaleX");
+    public static final IdentValue SCALE_Y = addValue("scaleY");
+    public static final IdentValue ROTATE = addValue("rotate");
+    public static final IdentValue SKEW = addValue("skew");
+    public static final IdentValue SKEW_X = addValue("skewX");
+    public static final IdentValue SKEW_Y = addValue("skewY");
+
 
     /**
      * Description of the Field

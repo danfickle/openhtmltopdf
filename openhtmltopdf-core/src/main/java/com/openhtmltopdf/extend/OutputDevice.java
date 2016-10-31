@@ -19,28 +19,26 @@
  */
 package com.openhtmltopdf.extend;
 
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Stroke;
-import java.awt.RenderingHints.Key;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
-import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.FSFont;
-import com.openhtmltopdf.render.InlineLayoutBox;
-import com.openhtmltopdf.render.InlineText;
-import com.openhtmltopdf.render.LineBox;
-import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.render.TextDecoration;
+import com.openhtmltopdf.render.*;
+
+import java.awt.*;
+import java.awt.RenderingHints.Key;
+import java.awt.geom.AffineTransform;
 
 public interface OutputDevice {
 
 	// Required for SVG output.
 	public void saveState();
 	public void restoreState();
+
+	/**
+	 * Apply the given transform on top of the current one. You should
+	 * use saveState() and restoreState() to restore the transform after you are done with whatever you would like to do here
+	 */
+	public void applyTransform(AffineTransform transform);
 	
 	public void setPaint(Paint paint);
 	public void setAlpha(int alpha);
