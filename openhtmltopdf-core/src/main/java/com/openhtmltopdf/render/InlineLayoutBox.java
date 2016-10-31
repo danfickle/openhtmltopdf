@@ -248,8 +248,8 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             return;
         }
 
-        c.getOutputDevice().saveState();
-        applyTranform(c);
+        //c.getOutputDevice().saveState();
+        //applyTranform(c);
         
         paintBackground(c);
         paintBorder(c);
@@ -286,7 +286,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             }
         }
 
-        c.getOutputDevice().restoreState();
+        //c.getOutputDevice().restoreState();
     }
     
     public int getBorderSides() {
