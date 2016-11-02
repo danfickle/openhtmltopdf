@@ -50,7 +50,7 @@ CHANGELOG
 
 head - 0.0.1-RC8-SNAPSHOT
 ========
-
++ [Add support for max-width and max-height on img elements](https://github.com/danfickle/openhtmltopdf/pull/48) Thanks @achuinard
 
 0.0.1-RC7
 ========
