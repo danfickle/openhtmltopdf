@@ -71,69 +71,136 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDevice {
+    //
+    // A discussion on units:
+    //   PDF points are defined as 1/72 inch.
+    //   CSS pixels are defined as 1/96 inch.
+    //   PDF text units are defined as 1/1000 of a PDF point.
+    //   OpenHTMLtoPDF dots are defined as 1/20 of a CSS pixel.
+    //   Therefore dots per point is 20 * 96/72 or about 26.66.
+    //   Dividing by _dotsPerPoint will convert OpenHTMLtoPDF dots to PDF points.
+    //   Theoretically, this is all configurable, but not tested at all with other values.
+    //
+    
     private static final int FILL = 1;
     private static final int STROKE = 2;
     private static final int CLIP = 3;
 
     private static final AffineTransform IDENTITY = new AffineTransform();
-
     private static final BasicStroke STROKE_ONE = new BasicStroke(1);
 
     private static final boolean ROUND_RECT_DIMENSIONS_DOWN = Configuration.isTrue("xr.pdf.round.rect.dimensions.down", false);
 
+    // The current PDF page.
     private PDPage _page;
+    
+    // A wrapper around the IOException throwing content stream methods which only throws runtime exceptions.
+    // Created for every page.
     private PdfContentStreamAdapter _cp;
+    
+    // We need the page height because the project uses top down units which PDFs use bottom up units.
+    // This is in PDF points unit (1/72 inch).
     private float _pageHeight;
 
+    // The desired font as set by setFont.
+    // This may not yet be set on the PDF text stream.
     private PdfBoxFSFont _font;
 
+    // This transform is a scale and translate.
+    // It scales from internal dots to PDF points.
+    // It translates positions to implement page margins.
     private AffineTransform _transform = new AffineTransform();
-    private AffineTransform _currentTransform= new AffineTransform();
-    private Stack<AffineTransform> transformStack = new Stack<AffineTransform>();
+    
+    // TODO: Make this work.
+    private AffineTransform _currentTransform = new AffineTransform();
+    private final Deque<AffineTransform> transformStack = new ArrayDeque<AffineTransform>();
 
+    // The desired color as set by setColor.
+    // To make sure this color is set on the PDF graphics stream call ensureFillColor or ensureStrokeColor.
     private FSColor _color = FSRGBColor.BLACK;
+
+    // The actual fill and stroke colors set on the PDF graphics stream.
+    // We keep these so we don't bloat the PDF with unneeded color calls.
     private FSColor _fillColor;
     private FSColor _strokeColor;
 
+    // The currently set stroke. This will not yet be set on the PDF graphics stream.
+    // This is already transformed to PDF points units.
+    // Call setStrokeDiff to set this on the PDF graphics stream.
     private Stroke _stroke = null;
+    
+    // Same as _stroke, but not transformed. That is, it is in internal dots units.
     private Stroke _originalStroke = null;
+    
+    // The currently set stroke on the PDF graphics stream. When we call setStokeDiff
+    // this is compared with _stroke and only the differences are output to the graphics stream.
     private Stroke _oldStroke = null;
 
+    // The clipped area, as set on the PDF graphics stream, in PDF points units.
     private Area _clip;
 
+    // Essentially per-run global variables.
     private SharedContext _sharedContext;
+    
+    // The project internal dots per PDF point unit. See discussion of units above.
     private float _dotsPerPoint;
 
+    // The PDF document. Note: We are not responsible for closing it.
     private PDDocument _writer;
 
+    // The default destination for the current page.
+    // This is used to create bookmarks without a valid destination.
     private PDDestination _defaultDestination;
 
-    private List _bookmarks = new ArrayList();
+    // Contains a list of bookmarks for the document.
+    private final List<Bookmark> _bookmarks = new ArrayList<Bookmark>();
 
-    private List _metadata = new ArrayList();
+    // Contains a list of metadata items for the document.
+    private final List<Metadata> _metadata = new ArrayList<Metadata>();
     
+    // We keep a map of forms for the document so we can add controls to the correct form as they are seen.
     private final Map<Element, PdfBoxForm> forms = new HashMap<Element, PdfBoxForm>();
-    private final Set<Element> seenForms = new HashSet<Element>();
+
+    // The list of controls in the document. Control class contains all the info we need to output a control.
     private final List<PdfBoxForm.Control> controls = new ArrayList<PdfBoxForm.Control>();
+
+    // A set of controls, so we don't double process a control.
     private final Set<Element> seenControls = new HashSet<Element>();
+
+    // We keep a map of fonts to font resource name so we don't double add fonts needed for form controls.
     private final Map<PDFont, String> controlFonts = new HashMap<PDFont, String>();
+    
+    // The checkbox style to appearance stream map. We only create appearance streams on demand and once for a specific
+    // style so we store appearance streams created here.
     final Map<CheckboxStyle, PDAppearanceStream> checkboxAppearances = new EnumMap<CheckboxStyle, PDAppearanceStream>(CheckboxStyle.class);
+
+    // Again, we only create these appearance streams as needed.
     PDAppearanceStream checkboxOffAppearance;
     PDAppearanceStream radioBoxOffAppearance;
     PDAppearanceStream radioBoxOnAppearance;
     
+    // The root box in the document. We keep this so we can search for specific boxes below it
+    // such as links or form controls which we need to position.
     private Box _root;
 
+    // In theory, we can append to a PDF document, rather than creating new. This keeps the start page
+    // so we can use it to offset when we need to know the PDF page number.
+    // NOTE: Not tested recently, this feature may be broken.
     private int _startPageNo;
-
-    private int _nextFormFieldIndex;
     
+    // Whether we are in test mode, currently not used here, but keep around in case we need it down the track.
+    @SuppressWarnings("unused")
     private final boolean _testMode;
     
+    // Link manage handles a links. We add the link in paintBackground and then output links when the document is finished.
     private PdfBoxLinkManager _linkManager;
     
+    // Not used currently.
+    @SuppressWarnings("unused")
     private RenderingContext _renderingContext;
     
+    // The bidi reorderer is responsible for shaping Arabic text, deshaping and 
+    // converting RTL text into its visual order.
     private BidiReorderer _reorderer = new SimpleBidiReorderer();
 
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
@@ -149,18 +216,21 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         return _writer;
     }
 
-    public int getNextFormFieldIndex() {
-        return ++_nextFormFieldIndex;
-    }
-
+    /**
+     * Start a page. A new PDF page starts a new content stream so all graphics state has to be 
+     * set back to default.
+     */
     public void initializePage(PDPageContentStream currentPage, PDPage page, float height) {
         _cp = new PdfContentStreamAdapter(currentPage);
         _page = page;
         _pageHeight = height;
 
+        // We call saveGraphics so we can get back to a raw (unclipped) state after we have clipped.
+        // restoreGraphics is only used by setClip and page finish.
         _cp.saveGraphics();
 
         _currentTransform = new AffineTransform();
+        
         _transform = new AffineTransform();
         _transform.scale(1.0d / _dotsPerPoint, 1.0d / _dotsPerPoint);
 
@@ -171,6 +241,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         setStrokeDiff(_stroke, null);
 
         if (_defaultDestination == null) {
+            // Create a default destination to the top of the first page.
             PDPageFitHeightDestination dest = new PDPageFitHeightDestination();
             dest.setPage(page);
         }
@@ -186,16 +257,18 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         element.paint(c, this, box);
     }
 
+    /**
+     * We use paintBackground to do extra stuff such as processing links, forms and form controls.
+     */
     public void paintBackground(RenderingContext c, Box box) {
         super.paintBackground(c, box);
 
         _linkManager.processLinkLater(c, box, _page, _pageHeight, _transform);
        
         if (box.getElement() != null && box.getElement().getNodeName().equals("form")) {
-            if (!seenForms.contains(box.getElement())) {
+            if (!forms.containsKey(box.getElement())) {
                 PdfBoxForm frm = PdfBoxForm.createForm(box.getElement());
                 forms.put(box.getElement(), frm);
-                seenForms.add(box.getElement());
             }
         } else if (box.getElement() != null &&
                 (box.getElement().getNodeName().equals("input") ||
@@ -312,10 +385,12 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         return null;
     }
 
+    /**
+     * Given a value in dots units, converts to PDF points.
+     */
     public float getDeviceLength(float length) {
         return length / _dotsPerPoint;
     }
-
 
     public void drawBorderLine(Shape bounds, int side, int lineWidth, boolean solid) {
         draw(bounds);
@@ -381,6 +456,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _font = ((PdfBoxFSFont) font);
     }
 
+    /**
+     * This returns a matrix that will convert y values to bottom up coordinate space (as used by PDFs).
+     */
     private AffineTransform normalizeMatrix(AffineTransform current) {
         double[] mx = new double[6];
         AffineTransform result = new AffineTransform();
@@ -662,6 +740,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
 
+    /**
+     * Converts a top down unit to a bottom up PDF unit.
+     */
     private float normalizeY(float y) {
         return _pageHeight - y;
     }
@@ -902,9 +983,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
 
-    private void writeBookmarks(RenderingContext c, Box root, PDOutlineNode parent, List bookmarks) {
-        for (Iterator i = bookmarks.iterator(); i.hasNext();) {
-            Bookmark bookmark = (Bookmark) i.next();
+    private void writeBookmarks(RenderingContext c, Box root, PDOutlineNode parent, List<Bookmark> bookmarks) {
+        for (Iterator<Bookmark> i = bookmarks.iterator(); i.hasNext();) {
+            Bookmark bookmark = i.next();
             writeBookmark(c, root, parent, bookmark);
         }
     }
@@ -946,10 +1027,10 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         if (head != null) {
             Element bookmarks = DOMUtil.getChild(head, "bookmarks");
             if (bookmarks != null) {
-                List l = DOMUtil.getChildren(bookmarks, "bookmark");
+                List<Element> l = DOMUtil.getChildren(bookmarks, "bookmark");
                 if (l != null) {
-                    for (Iterator i = l.iterator(); i.hasNext();) {
-                        Element e = (Element) i.next();
+                    for (Iterator<Element> i = l.iterator(); i.hasNext();) {
+                        Element e = i.next();
                         loadBookmark(null, e);
                     }
                 }
@@ -964,23 +1045,20 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         } else {
             parent.addChild(us);
         }
-        List l = DOMUtil.getChildren(bookmark, "bookmark");
+        List<Element> l = DOMUtil.getChildren(bookmark, "bookmark");
         if (l != null) {
-            for (Iterator i = l.iterator(); i.hasNext();) {
-                Element e = (Element) i.next();
+            for (Iterator<Element> i = l.iterator(); i.hasNext();) {
+                Element e = i.next();
                 loadBookmark(us, e);
             }
         }
     }
 
     private static class Bookmark {
-        private String _name;
-        private String _HRef;
+        private final String _name;
+        private final String _HRef;
 
-        private List _children;
-
-        public Bookmark() {
-        }
+        private List<Bookmark> _children;
 
         public Bookmark(String name, String href) {
             _name = name;
@@ -991,27 +1069,19 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             return _HRef;
         }
 
-        public void setHRef(String href) {
-            _HRef = href;
-        }
-
         public String getName() {
             return _name;
         }
 
-        public void setName(String name) {
-            _name = name;
-        }
-
         public void addChild(Bookmark child) {
             if (_children == null) {
-                _children = new ArrayList();
+                _children = new ArrayList<Bookmark>();
             }
             _children.add(child);
         }
 
-        public List getChildren() {
-            return _children == null ? Collections.EMPTY_LIST : _children;
+        public List<Bookmark> getChildren() {
+            return _children == null ? Collections.<Bookmark>emptyList() : _children;
         }
     }
 
@@ -1090,10 +1160,10 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private void loadMetadata(Document doc) {
         Element head = DOMUtil.getChild(doc.getDocumentElement(), "head");
         if (head != null) {
-            List l = DOMUtil.getChildren(head, "meta");
+            List<Element> l = DOMUtil.getChildren(head, "meta");
             if (l != null) {
-                for (Iterator i = l.iterator(); i.hasNext();) {
-                    Element e = (Element) i.next();
+                for (Iterator<Element> i = l.iterator(); i.hasNext();) {
+                    Element e = i.next();
                     String name = e.getAttribute("name");
                     if (name != null) { // ignore non-name metadata data
                         String content = e.getAttribute("content");
