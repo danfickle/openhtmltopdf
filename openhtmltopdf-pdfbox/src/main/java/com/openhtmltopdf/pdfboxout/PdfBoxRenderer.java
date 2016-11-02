@@ -82,8 +82,7 @@ import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxRenderer {
-    // These two defaults combine to produce an effective resolution of 96 px to
-    // the inch
+    // See discussion of units at top of PdfBoxOutputDevice.
     private static final float DEFAULT_DOTS_PER_POINT = 20f * 4f / 3f;
     private static final int DEFAULT_DOTS_PER_PIXEL = 20;
     private static final int DEFAULT_PDF_POINTS_PER_INCH = 72;

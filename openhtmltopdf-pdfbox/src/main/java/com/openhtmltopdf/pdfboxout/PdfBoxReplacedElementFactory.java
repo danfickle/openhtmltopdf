@@ -64,6 +64,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                             long maxHeight = box.getStyle().asLength(c, CSSName.MAX_HEIGHT).value();
                             int intrinsicHeight = fsImage.getHeight();
                             int intrinsicWidth = fsImage.getWidth();
+
                             if (intrinsicHeight > maxHeight && intrinsicHeight >= intrinsicWidth && hasMaxHeight) {
                                 fsImage.scale(-1, (int) maxHeight);
                             } else if (intrinsicWidth > maxWidth && hasMaxWidth) {
