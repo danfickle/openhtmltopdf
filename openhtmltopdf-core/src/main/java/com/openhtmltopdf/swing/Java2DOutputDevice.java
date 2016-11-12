@@ -323,9 +323,27 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	}
 
     @Override
-    public void applyTransform(AffineTransform transform) {
+    public void pushTransform(AffineTransform transform) {
 		AffineTransform currentTransform  = _graphics.getTransform();
 		currentTransform.concatenate(transform);
         _graphics.setTransform(currentTransform);
     }
+
+	@Override
+	public void popTransform() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public AffineTransform translateTransform(float translateX, float translateY) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void translateTransform(AffineTransform inverse) {
+		// TODO Auto-generated method stub
+		
+	}
 }

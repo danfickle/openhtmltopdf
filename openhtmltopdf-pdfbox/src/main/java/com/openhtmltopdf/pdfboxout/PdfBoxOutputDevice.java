@@ -35,6 +35,7 @@ import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
+
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -58,6 +59,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.imageio.ImageIO;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.*;
@@ -113,8 +115,23 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     
     // TODO: Make this work.
     private AffineTransform _currentTransform = new AffineTransform();
+    
+    // A stack of currently in force transforms on the PDF graphics state.
+    // NOTE: Transforms are cumulative and order is important.
+    // After the graphics state is restored in setClip we must appropriately reapply the transforms
+    // that should be in effect.
     private final Deque<AffineTransform> transformStack = new ArrayDeque<AffineTransform>();
 
+    // An index into the transformStack. When we save state we set this to the length of transformStack
+    // then we know we have to reapply those transforms set after saving state upon restoring state.
+    private int clipTransformIndex;
+    
+    // We use these to know how far (in PDF points) we have been translated.
+    // We are translated to implement page margins.
+    // We need these values for calculating transform-origins.
+    private double _translateX = 0;
+    private double _translateY = 0;
+    
     // The desired color as set by setColor.
     // To make sure this color is set on the PDF graphics stream call ensureFillColor or ensureStrokeColor.
     private FSColor _color = FSRGBColor.BLACK;
@@ -233,6 +250,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         
         _transform = new AffineTransform();
         _transform.scale(1.0d / _dotsPerPoint, 1.0d / _dotsPerPoint);
+        _translateX = 0;
+        _translateY = 0;
 
         _stroke = transformStroke(STROKE_ONE);
         _originalStroke = _stroke;
@@ -443,6 +462,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void translate(double tx, double ty) {
         _transform.translate(tx, ty);
+        _translateX += tx;
+        _translateY += ty;
     }
 
     public Object getRenderingHint(Key key) {
@@ -858,8 +879,19 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void setClip(Shape s) {
+        // Restore graphics to get back to a no-clip situation.
         _cp.restoreGraphics();
+
+        // Reapply the transforms that are in effect.
+        reapplyTransforms();
+        
+        // Save graphics so we can do this again.
         _cp.saveGraphics();
+        
+        // Set the index so we know which transforms have to be reapplied
+        // when we next restore graphics.
+        clipTransformIndex = transformStack.size();
+        
         if (s != null)
             s = _transform.createTransformedShape(s);
         if (s == null) {
@@ -1348,14 +1380,75 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     public void setBidiReorderer(BidiReorderer reorderer) {
         _reorderer = reorderer;
     }
-
+    
     @Override
+    public void popTransform() {
+        AffineTransform transform = transformStack.pop();
+       System.out.println("popped transform: " + transform.toString());
+        try {
+            AffineTransform inverse = transform.createInverse();
+            _cp.setPdfMatrix(inverse);
+        } catch (NoninvertibleTransformException e) {
+            // Shouldn't happen.
+        }
+    }
+    
+    @Override
+    public void pushTransform(AffineTransform transform) {
+        try {
+            transform.createInverse();
+            transformStack.push(transform);
+            System.out.println("pushed transform: " + transform.toString());
+            _cp.setPdfMatrix(transform);
+        } catch (NoninvertibleTransformException e) {
+            XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
+        }
+    }
+    
+    private void reapplyTransforms() {
+        int idx = 0;
+
+        for (Iterator<AffineTransform> iter = transformStack.descendingIterator(); iter.hasNext(); ) {
+            AffineTransform transform = iter.next();
+            if (idx >= clipTransformIndex) {
+                System.out.println("reapplied transform: " + transform.toString());
+                _cp.setPdfMatrix(transform);
+            }
+            idx++;
+        }
+    }
+    
+    @Override
+    public AffineTransform translateTransform(float tx, float ty) {
+        float y = normalizeY((ty / _dotsPerPoint) + (float) _translateY / _dotsPerPoint);
+        float x = (tx / _dotsPerPoint) + (float) _translateX / _dotsPerPoint;
+        AffineTransform transform = AffineTransform.getTranslateInstance(x, y);
+        _cp.setPdfMatrix(transform);
+        return transform;
+    }
+    
+    @Override
+    public void translateTransform(AffineTransform token) {
+        try {
+            _cp.setPdfMatrix(token.createInverse());
+        } catch (NoninvertibleTransformException e) {
+            // Shouldn't happen.
+            e.printStackTrace();
+        }
+    }
+
+
+    // The below methods are for the experimental SVG code and should not be used for other uses.
+    
+    @Override
+    @Deprecated
     public void saveState() {
         _cp.saveGraphics();
-        transformStack.push(_currentTransform);
+        
     }
 
     @Override
+    @Deprecated
     public void restoreState() {
         _cp.restoreGraphics();
         _currentTransform = transformStack.pop();
@@ -1377,12 +1470,14 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     @Override
+    @Deprecated
     public void setRawClip(Shape s) {
         _clip = new Area(s);
         followPath(s, CLIP);
     }
 
     @Override
+    @Deprecated
     public void rawClip(Shape s) {
         if (_clip == null)
             _clip = new Area(s);
@@ -1392,15 +1487,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
     
     @Override
+    @Deprecated
     public Shape getRawClip() {
         return _clip;
-    }
-
-    @Override
-    public void applyTransform(AffineTransform transform) {
-    	AffineTransform calculatedTransform = new AffineTransform(transform);
-        _currentTransform.concatenate(transform);
-        calculatedTransform.concatenate(_currentTransform);
-        _cp.setPdfMatrix(calculatedTransform);
     }
 }

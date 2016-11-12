@@ -20,15 +20,18 @@
 package com.openhtmltopdf.layout;
 
 import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.constants.PageElementPosition;
 import com.openhtmltopdf.css.newmatch.PageInfo;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.EmptyStyle;
+import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
 
@@ -87,7 +90,8 @@ public class Layer {
         _parent = parent;
         _master = master;
         setStackingContext(
-                master.getStyle().isPositioned() && ! master.getStyle().isAutoZIndex());
+                (master.getStyle().isPositioned() && !master.getStyle().isAutoZIndex()) ||
+                (!master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE)));
         master.setLayer(this);
         master.setContainingLayer(this);
     }
@@ -106,6 +110,10 @@ public class Layer {
 
     public int getZIndex() {
         return (int) _master.getStyle().asFloat(CSSName.Z_INDEX);
+    }
+    
+    public boolean isZIndexAuto() {
+    	return _master.getStyle().isIdent(CSSName.Z_INDEX, IdentValue.AUTO);
     }
     
     public Box getMaster() {
@@ -186,14 +194,18 @@ public class Layer {
             Layer target = (Layer)children.get(i);
 
             if (target.isStackingContext()) {
-                int zIndex = target.getZIndex();
-                if (which == NEGATIVE && zIndex < 0) {
-                    result.add(target);
-                } else if (which == POSITIVE && zIndex > 0) {
-                    result.add(target);
-                } else if (which == ZERO && zIndex == 0) {
-                    result.add(target);
-                }
+            	if (!target.isZIndexAuto()) {
+                    int zIndex = target.getZIndex();
+                    if (which == NEGATIVE && zIndex < 0) {
+                        result.add(target);
+                    } else if (which == POSITIVE && zIndex > 0) {
+                        result.add(target);
+                    } else if (which == ZERO && zIndex == 0) {
+                        result.add(target);
+                    }
+            	} else if (which == ZERO) {
+            		result.add(target);
+            	}
             }
         }
         
@@ -225,6 +237,7 @@ public class Layer {
             helper.popClipRegions(c, i);
             
             BlockBox box = (BlockBox)blocks.get(i);
+            
             box.paintBackground(c);
             box.paintBorder(c);
             if (c.debugDrawBoxes()) {
@@ -240,7 +253,7 @@ public class Layer {
                     }
                 }
             }
-
+            
             helper.pushClipRegion(c, i);
         }
         
@@ -281,6 +294,8 @@ public class Layer {
         if (getMaster().getStyle().isFixed()) {
             positionFixedLayer(c);
         }
+        
+        boolean transformed = applyTranform(c, getMaster());
         
         if (isRootLayer()) {
             getMaster().paintRootElementBackground(c);
@@ -325,6 +340,25 @@ public class Layer {
                 paintLayers(c, getSortedLayers(POSITIVE));
             }
         }
+        
+        if (transformed) {
+        	c.getOutputDevice().popTransform();
+        }
+    }
+    
+	protected boolean applyTranform(RenderingContext c, Box box) {
+        FSDerivedValue transform = box.getStyle().valueByName(CSSName.TRANSFORM);
+        if (transform.isIdent() && transform.asIdentValue() == IdentValue.NONE)
+            return false;
+
+        // By default the transform point is the lower left of the page, so we need to translate to correctly apply transform.
+        float translateX = box.getStyle().getFloatPropertyProportionalWidth(CSSName.FS_TRANSFORM_ORIGIN_X, box.getWidth(), c) + box.getAbsX();
+        float translateY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y, box.getHeight(), c) + box.getAbsY();
+        
+        AffineTransform translate = c.getOutputDevice().translateTransform(translateX, translateY);
+        c.getOutputDevice().pushTransform(AffineTransform.getRotateInstance(Math.toRadians(-70)));
+        c.getOutputDevice().translateTransform(translate);
+        return true;
     }
     
     private List getFloats() {
@@ -448,15 +482,14 @@ public class Layer {
                 this, startingPoint, blocks, lines, rangeLists);
     
         Map collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
-
+        
         paintBackgroundsAndBorders(c, blocks, collapsedTableBorders, rangeLists);
         paintListMarkers(c, blocks, rangeLists);
         paintInlineContent(c, lines, rangeLists);
         paintSelection(c, lines); // XXX only do when there is a selection
         paintReplacedElements(c, blocks, rangeLists);
     }
-
-
+    
     private void paintListMarkers(RenderingContext c, List blocks, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
         

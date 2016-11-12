@@ -33,12 +33,6 @@ public interface OutputDevice {
 	// Required for SVG output.
 	public void saveState();
 	public void restoreState();
-
-	/**
-	 * Apply the given transform on top of the current one. You should
-	 * use saveState() and restoreState() to restore the transform after you are done with whatever you would like to do here
-	 */
-	public void applyTransform(AffineTransform transform);
 	
 	public void setPaint(Paint paint);
 	public void setAlpha(int alpha);
@@ -46,6 +40,18 @@ public interface OutputDevice {
 	public void setRawClip(Shape s);
 	public void rawClip(Shape s);
 	public Shape getRawClip();
+
+	// Required for CSS transforms.
+
+	/**
+	 * Apply the given transform on top of the current one in the PDF graphics stream.
+	 * This is a cumulative operation. You should popTransform after the box and children are painted.
+	 */
+	public void pushTransform(AffineTransform transform);
+	public void popTransform();
+	
+	public AffineTransform translateTransform(float translateX, float translateY);
+	public void translateTransform(AffineTransform inverse);
 	
 	// And the rest.
     public void drawText(RenderingContext c, InlineText inlineText);

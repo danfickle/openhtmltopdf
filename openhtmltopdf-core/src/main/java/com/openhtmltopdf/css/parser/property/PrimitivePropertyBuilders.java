@@ -20,6 +20,7 @@
 package com.openhtmltopdf.css.parser.property;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
@@ -1637,13 +1638,81 @@ public class PrimitivePropertyBuilders {
                     important, origin));
         }
     }
+    
+    // 0 | left | right | center | length | percentage
+    public static class TransformOriginX extends AbstractPropertyBuilder {
+    	private static final BitSet ALLOWED = setFor(new IdentValue[] { IdentValue.LEFT, IdentValue.CENTER, IdentValue.RIGHT });
+    	
+    	@Override
+    	public List buildDeclarations(CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
+    		checkValueCount(cssName, 1, values.size());
+    		CSSPrimitiveValue value = (CSSPrimitiveValue) values.get(0);
+    		checkInheritAllowed(value, inheritAllowed);
+    		
+    		if (value.getCssValueType() == CSSPrimitiveValue.CSS_INHERIT) {
+    			return Collections.singletonList(new PropertyDeclaration(cssName, value, important, origin));
+    		}
+    		
+    		if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+    			IdentValue ident = checkIdent(cssName, value);
+    			checkValidity(cssName, ALLOWED, ident);
+    			if (ident == IdentValue.LEFT) {
+    				return Collections.singletonList(new PropertyDeclaration(cssName, new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 0f, "0%"), important, origin));
+    			} else if (ident == IdentValue.CENTER) {
+    				return Collections.singletonList(new PropertyDeclaration(cssName, new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 50f, "50%"), important, origin));
+    			} else { // if (ident == IdentValue.RIGHT)
+    			    return Collections.singletonList(new PropertyDeclaration(cssName, new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 100f, "100%"), important, origin));	
+    			}
+    		} else {
+    			checkLengthOrPercentType(cssName, value);
+    			return Collections.singletonList(new PropertyDeclaration(cssName, value, important, origin)); 
+    		}
+    	}
+    }
+    
+    // 0 | top | bottom | center | length | percentage
+    public static class TransformOriginY extends AbstractPropertyBuilder {
+    	private static final BitSet ALLOWED = setFor(new IdentValue[] { IdentValue.TOP, IdentValue.CENTER, IdentValue.BOTTOM });
+    	
+    	@Override
+    	public List buildDeclarations(CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
+    		checkValueCount(cssName, 1, values.size());
+    		CSSPrimitiveValue value = (CSSPrimitiveValue) values.get(0);
+    		checkInheritAllowed(value, inheritAllowed);
+    		
+    		if (value.getCssValueType() == CSSPrimitiveValue.CSS_INHERIT) {
+    			return Collections.singletonList(new PropertyDeclaration(cssName, value, important, origin));
+    		}
+    		
+    		if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+    			IdentValue ident = checkIdent(cssName, value);
+    			checkValidity(cssName, ALLOWED, ident);
+    			if (ident == IdentValue.TOP) {
+    				return Collections.singletonList(new PropertyDeclaration(cssName, new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 0f, "0%"), important, origin));
+    			} else if (ident == IdentValue.CENTER) {
+    				return Collections.singletonList(new PropertyDeclaration(cssName, new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 50f, "50%"), important, origin));
+    			} else { // if (ident == IdentValue.BOTTOM)
+    			    return Collections.singletonList(new PropertyDeclaration(cssName, new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 100f, "100%"), important, origin));	
+    			}
+    		} else {
+    			checkLengthOrPercentType(cssName, value);
+    			return Collections.singletonList(new PropertyDeclaration(cssName, value, important, origin)); 
+    		}
+    	}
+    }
 
     public static class TransformOriginPropertyBuilder extends AbstractPropertyBuilder {
         @Override
         public List buildDeclarations(CSSName cssName, List values, int origin, boolean important,
                                       boolean inheritAllowed) {
             checkValueCount(cssName, 2, 3, values.size());
-            return Collections.singletonList(new PropertyDeclaration(CSSName.TRANSFORM_ORIGIN, new PropertyValue(values), important, origin));
+            CSSPrimitiveValue x = (CSSPrimitiveValue) values.get(0);
+            CSSPrimitiveValue y = (CSSPrimitiveValue) values.get(1);
+
+            return Arrays.asList(
+               new TransformOriginX().buildDeclarations(CSSName.FS_TRANSFORM_ORIGIN_X, Collections.singletonList(x), origin, important).get(0),
+               new TransformOriginY().buildDeclarations(CSSName.FS_TRANSFORM_ORIGIN_Y, Collections.singletonList(y), origin, important).get(0)
+            );
         }
     }
 }
