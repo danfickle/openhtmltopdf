@@ -25,7 +25,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
 import org.w3c.dom.css.CSSPrimitiveValue;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -1625,6 +1624,12 @@ public class PrimitivePropertyBuilders {
         public List buildDeclarations(CSSName cssName, List values, int origin, boolean important,
                                       boolean inheritAllowed) {
             checkValueCount(cssName, 1, Integer.MAX_VALUE, values.size());
+            checkInheritAllowed((CSSPrimitiveValue) values.get(0), inheritAllowed);
+            
+            if (((PropertyValue) values.get(0)).getCssValueType() == CSSPrimitiveValue.CSS_INHERIT) {
+            	return Collections.singletonList(new PropertyDeclaration(cssName, (CSSPrimitiveValue) values.get(0), important, origin));
+            }
+            
             if(values.size() == 1) {
                 CSSPrimitiveValue value = (CSSPrimitiveValue) values.get(0);
                 if(value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
@@ -1634,6 +1639,64 @@ public class PrimitivePropertyBuilders {
                             important, origin));
                 }
             }
+            
+            for (Object v : values) {
+            	PropertyValue value = (PropertyValue) v;
+            	
+            	if (value.getPropertyValueType() != PropertyValue.VALUE_TYPE_FUNCTION) {
+            		throw new CSSParseException("One or more functions must be provided for transform property", -1);
+            	}
+            	
+            	String fName = value.getFunction().getName();
+            	
+            	int expected = 0;
+            	if (fName.equalsIgnoreCase("matrix")) {
+            		expected = 6;
+            		for (Object p : value.getFunction().getParameters()) {
+            			checkNumberType(cssName, (CSSPrimitiveValue) p);
+            		}
+            	} else if (fName.equalsIgnoreCase("translate")) {
+            		expected = 2;
+            		for (Object p : value.getFunction().getParameters()) {
+            			checkLengthOrPercentType(cssName, (CSSPrimitiveValue) p);
+            		}
+            	} else if (fName.equalsIgnoreCase("translateX")) {
+            		expected = 1;
+            		for (Object p : value.getFunction().getParameters()) {
+            			checkLengthOrPercentType(cssName, (CSSPrimitiveValue) p);
+            		}
+            	} else if (fName.equalsIgnoreCase("translateY")) {
+            		expected = 1;
+            		for (Object p : value.getFunction().getParameters()) {
+            			checkLengthOrPercentType(cssName, (CSSPrimitiveValue) p);
+            		}
+            	} else if (fName.equalsIgnoreCase("scale")) {
+            		expected = 2;
+            		for (Object p : value.getFunction().getParameters()) {
+            			checkNumberType(cssName, (CSSPrimitiveValue) p);
+            		}
+            	} else if (fName.equalsIgnoreCase("scaleX")) {
+            		expected = 1;
+            		for (Object p : value.getFunction().getParameters()) {
+            			checkNumberType(cssName, (CSSPrimitiveValue) p);
+            		}
+            	} else if (fName.equalsIgnoreCase("scaleY")) {
+            		expected = 1;
+            		for (Object p : value.getFunction().getParameters()) {
+            			checkNumberType(cssName, (CSSPrimitiveValue) p);
+            		}
+            	} else if (fName.equalsIgnoreCase("rotate")) {
+            		expected = 1;
+            		for (Object p : value.getFunction().getParameters()) {
+            			checkAngleType(cssName, (CSSPrimitiveValue) p);
+            		}
+            	} else {
+            		throw new CSSParseException("Unsupported function provided in transform property: " + fName, -1);
+            	}
+            
+            	checkValueCount(cssName, expected, value.getFunction().getParameters().size());
+            }
+            
             return Collections.singletonList(new PropertyDeclaration(CSSName.TRANSFORM, new PropertyValue(values),
                     important, origin));
         }

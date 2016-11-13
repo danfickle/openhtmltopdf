@@ -109,6 +109,9 @@ public class Layer {
     }
 
     public int getZIndex() {
+    	if (_master.getStyle().isIdent(CSSName.Z_INDEX, IdentValue.AUTO)) {
+    		return 0;
+    	}
         return (int) _master.getStyle().asFloat(CSSName.Z_INDEX);
     }
     
