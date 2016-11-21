@@ -113,9 +113,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     // It translates positions to implement page margins.
     private AffineTransform _transform = new AffineTransform();
     
-    // TODO: Make this work.
-    private AffineTransform _currentTransform = new AffineTransform();
-    
     // A stack of currently in force transforms on the PDF graphics state.
     // NOTE: Transforms are cumulative and order is important.
     // After the graphics state is restored in setClip we must appropriately reapply the transforms
@@ -126,11 +123,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     // then we know we have to reapply those transforms set after saving state upon restoring state.
     private int clipTransformIndex;
     
-    // We use these to know how far (in PDF points) we have been translated.
-    // We are translated to implement page margins.
-    // We need these values for calculating transform-origins.
-    private double _translateX = 0;
-    private double _translateY = 0;
+    // We use these to keep track of where the current transform-origin is in absolute internal dots units.
+    private float _absoluteTransformOriginX = 0;
+    private float _absoluteTransformOriginY = 0;
     
     // The desired color as set by setColor.
     // To make sure this color is set on the PDF graphics stream call ensureFillColor or ensureStrokeColor.
@@ -245,13 +240,12 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         // We call saveGraphics so we can get back to a raw (unclipped) state after we have clipped.
         // restoreGraphics is only used by setClip and page finish.
         _cp.saveGraphics();
-
-        _currentTransform = new AffineTransform();
         
         _transform = new AffineTransform();
         _transform.scale(1.0d / _dotsPerPoint, 1.0d / _dotsPerPoint);
-        _translateX = 0;
-        _translateY = 0;
+
+        _absoluteTransformOriginX = 0;
+        _absoluteTransformOriginY += height * _dotsPerPoint;
 
         _stroke = transformStroke(STROKE_ONE);
         _originalStroke = _stroke;
@@ -462,8 +456,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void translate(double tx, double ty) {
         _transform.translate(tx, ty);
-        _translateX += tx;
-        _translateY += ty;
     }
 
     public Object getRenderingHint(Key key) {
@@ -1382,61 +1374,59 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
     
     @Override
-    public void popTransform() {
-        AffineTransform transform = transformStack.pop();
-       System.out.println("popped transform: " + transform.toString());
-        try {
-            AffineTransform inverse = transform.createInverse();
-            _cp.setPdfMatrix(inverse);
-        } catch (NoninvertibleTransformException e) {
-            // Shouldn't happen.
-        }
+    public void popTransforms(List<AffineTransform> inverse) {
+       Collections.reverse(inverse);
+       for (AffineTransform transform : inverse) {
+           transformStack.pop();
+           _cp.setPdfMatrix(transform);
+       }
     }
     
     @Override
-    public void pushTransform(AffineTransform transform) {
+    public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
+        List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
         try {
-            transform.createInverse();
-            transformStack.push(transform);
-            System.out.println("pushed transform: " + transform.toString());
-            _cp.setPdfMatrix(transform);
+            for (AffineTransform transform : transforms) {
+                double[] mx = new double[6];
+                transform.getMatrix(mx);
+                mx[4] /= _dotsPerPoint;
+                mx[5] /= _dotsPerPoint;
+                mx[5] = -mx[5];
+               
+                AffineTransform normalized = new AffineTransform(mx);
+                inverse.add(normalized.createInverse());
+                transformStack.push(normalized);
+                _cp.setPdfMatrix(normalized);
+            }
         } catch (NoninvertibleTransformException e) {
             XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
         }
+        return inverse;
     }
     
+    // FIXME: Not sure if this is ever needed.
     private void reapplyTransforms() {
         int idx = 0;
 
         for (Iterator<AffineTransform> iter = transformStack.descendingIterator(); iter.hasNext(); ) {
             AffineTransform transform = iter.next();
             if (idx >= clipTransformIndex) {
-                System.out.println("reapplied transform: " + transform.toString());
                 _cp.setPdfMatrix(transform);
             }
             idx++;
         }
     }
-    
-    @Override
-    public AffineTransform translateTransform(float tx, float ty) {
-        float y = normalizeY((ty / _dotsPerPoint) + (float) _translateY / _dotsPerPoint);
-        float x = (tx / _dotsPerPoint) + (float) _translateX / _dotsPerPoint;
-        AffineTransform transform = AffineTransform.getTranslateInstance(x, y);
-        _cp.setPdfMatrix(transform);
-        return transform;
-    }
-    
-    @Override
-    public void translateTransform(AffineTransform token) {
-        try {
-            _cp.setPdfMatrix(token.createInverse());
-        } catch (NoninvertibleTransformException e) {
-            // Shouldn't happen.
-            e.printStackTrace();
-        }
-    }
 
+    @Override
+    public float getAbsoluteTransformOriginX() {
+        return _absoluteTransformOriginX;
+    }
+    
+    @Override
+    public float getAbsoluteTransformOriginY() {
+        return _absoluteTransformOriginY;
+    }
+    
 
     // The below methods are for the experimental SVG code and should not be used for other uses.
     
@@ -1451,7 +1441,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     @Deprecated
     public void restoreState() {
         _cp.restoreGraphics();
-        _currentTransform = transformStack.pop();
     }
 
     @Override

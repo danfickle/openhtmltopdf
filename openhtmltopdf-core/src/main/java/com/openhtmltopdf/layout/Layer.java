@@ -23,17 +23,23 @@ import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.constants.PageElementPosition;
 import com.openhtmltopdf.css.newmatch.PageInfo;
+import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
+import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
+import java.util.logging.Level;
+
+import org.w3c.dom.css.CSSPrimitiveValue;
 
 /**
  * All positioned content as well as content with an overflow value other
@@ -154,7 +160,7 @@ public class Layer {
             }
         }
     }
-
+    
     private void paintLayers(RenderingContext c, List layers) {
         for (int i = 0; i < layers.size(); i++) {
             Layer layer = (Layer) layers.get(i);
@@ -167,21 +173,29 @@ public class Layer {
     private static final int NEGATIVE = 3;
     private static final int AUTO = 4;
     
-    private List collectLayers(int which) {
-        List result = new ArrayList();
+    /**
+     * Called recusively to collect all descendant layers in a stacking context so they can be painted in correct order.
+     * Those descendants that are under their own stacking contexts are excluded.
+     * @param which NEGATIVE ZERO POSITIVE AUTO corresponding to z-index property.
+     * @return
+     */
+    private List<Layer> collectLayers(int which) {
+        List<Layer> result = new ArrayList<Layer>();
+        List<Layer> children = getChildren();
         
-        if (which != AUTO) {
-            result.addAll(getStackingContextLayers(which));
-        }
+        result.addAll(getStackingContextLayers(which));
         
-        List children = getChildren();
-        for (int i = 0; i < children.size(); i++) {
-            Layer child = (Layer)children.get(i);
-            
+        for (Layer child : children) {
             if (! child.isStackingContext()) {
-                if (which == AUTO) {
-                    result.add(child);
-                } 
+            	if (which == AUTO && child.isZIndexAuto()) {
+            		result.add(child);
+            	} else if (which == NEGATIVE && child.getZIndex() < 0) {
+            		result.add(child);
+            	} else if (which == POSITIVE && child.getZIndex() > 0) {
+            		result.add(child);
+            	} else if (which == ZERO && child.getZIndex() == 0) {
+            		result.add(child);
+            	}
                 result.addAll(child.collectLayers(which));
             }
         }
@@ -189,13 +203,11 @@ public class Layer {
         return result;
     }
     
-    private List getStackingContextLayers(int which) {
-        List result = new ArrayList();
-        
-        List children = getChildren();
-        for (int i = 0; i < children.size(); i++) {
-            Layer target = (Layer)children.get(i);
+    private List<Layer> getStackingContextLayers(int which) {
+        List<Layer> result = new ArrayList<Layer>();
+        List<Layer> children = getChildren();
 
+        for (Layer target : children) {
             if (target.isStackingContext()) {
             	if (!target.isZIndexAuto()) {
                     int zIndex = target.getZIndex();
@@ -206,7 +218,7 @@ public class Layer {
                     } else if (which == ZERO && zIndex == 0) {
                         result.add(target);
                     }
-            	} else if (which == ZERO) {
+            	} else if (which == AUTO) {
             		result.add(target);
             	}
             }
@@ -297,16 +309,18 @@ public class Layer {
         if (getMaster().getStyle().isFixed()) {
             positionFixedLayer(c);
         }
-        
-        boolean transformed = applyTranform(c, getMaster());
+
+        List<AffineTransform> inverse = null;
         
         if (isRootLayer()) {
             getMaster().paintRootElementBackground(c);
         }
         
         if (! isInline() && ((BlockBox)getMaster()).isReplaced()) {
+            inverse = applyTranform(c, getMaster());
             paintLayerBackgroundAndBorder(c);
             paintReplacedElement(c, (BlockBox)getMaster());
+            c.getOutputDevice().popTransforms(inverse);
         } else {
             BoxRangeLists rangeLists = new BoxRangeLists();
             
@@ -316,6 +330,8 @@ public class Layer {
             BoxCollector collector = new BoxCollector();
             collector.collect(c, c.getOutputDevice().getClip(), this, blocks, lines, rangeLists);
     
+            inverse = applyTranform(c, getMaster());
+            
             if (! isInline()) {
                 paintLayerBackgroundAndBorder(c);
                 if (c.debugDrawBoxes()) {
@@ -328,7 +344,6 @@ public class Layer {
             }
             
             Map collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
-    
             paintBackgroundsAndBorders(c, blocks, collapsedTableBorders, rangeLists);
             paintFloats(c);
             paintListMarkers(c, blocks, rangeLists);
@@ -342,26 +357,88 @@ public class Layer {
                 paintLayers(c, getSortedLayers(ZERO));
                 paintLayers(c, getSortedLayers(POSITIVE));
             }
+            
+            c.getOutputDevice().popTransforms(inverse);
         }
         
-        if (transformed) {
-        	c.getOutputDevice().popTransform();
-        }
     }
+
     
-	protected boolean applyTranform(RenderingContext c, Box box) {
-        FSDerivedValue transform = box.getStyle().valueByName(CSSName.TRANSFORM);
-        if (transform.isIdent() && transform.asIdentValue() == IdentValue.NONE)
-            return false;
+    /**
+     * Applies the transforms specified for the box and returns a list of inverse transforms that should be
+     * applied once the transformed element has been output.
+     */
+    protected List<AffineTransform> applyTranform(RenderingContext c, Box box) {
+        FSDerivedValue transforms = box.getStyle().valueByName(CSSName.TRANSFORM);
+        if (transforms.isIdent() && transforms.asIdentValue() == IdentValue.NONE)
+            return Collections.emptyList();
 
         // By default the transform point is the lower left of the page, so we need to translate to correctly apply transform.
-        float translateX = box.getStyle().getFloatPropertyProportionalWidth(CSSName.FS_TRANSFORM_ORIGIN_X, box.getWidth(), c) + box.getAbsX();
-        float translateY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y, box.getHeight(), c) + box.getAbsY();
+        float absTranslateX = box.getStyle().getFloatPropertyProportionalWidth(CSSName.FS_TRANSFORM_ORIGIN_X, box.getWidth(), c) + box.getAbsX();
+        float absTranslateY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y, box.getHeight(), c) + box.getAbsY();
         
-        AffineTransform translate = c.getOutputDevice().translateTransform(translateX, translateY);
-        c.getOutputDevice().pushTransform(AffineTransform.getRotateInstance(Math.toRadians(-70)));
-        c.getOutputDevice().translateTransform(translate);
-        return true;
+        float relTranslateX = absTranslateX - c.getOutputDevice().getAbsoluteTransformOriginX();
+        float relTranslateY = absTranslateY - c.getOutputDevice().getAbsoluteTransformOriginY();
+ 
+        List<PropertyValue> transformList = ((ListValue) transforms).getValues();
+        
+        if (transformList.size() == 1) {
+            String fName = transformList.get(0).getFunction().getName();
+            List<PropertyValue> params = transformList.get(0).getFunction().getParameters();
+            
+            if ("rotate".equalsIgnoreCase(fName)) {
+                float radians = this.convertAngleToRadians(params.get(0));
+                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        AffineTransform.getRotateInstance(radians),
+                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        ));
+            } else if ("scale".equalsIgnoreCase(fName)) {
+                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        AffineTransform.getScaleInstance(params.get(0).getFloatValue(), params.get(0).getFloatValue()),
+                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        ));
+            } else if ("scalex".equalsIgnoreCase(fName)) {
+                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        AffineTransform.getScaleInstance(params.get(0).getFloatValue(), 1),
+                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        ));
+            } else if ("scaley".equalsIgnoreCase(fName)) {
+                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        AffineTransform.getScaleInstance(1, params.get(0).getFloatValue()),
+                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        ));
+            } else if ("matrix".equalsIgnoreCase(fName)) {
+                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        new AffineTransform(params.get(0).getFloatValue(), params.get(1).getFloatValue(),params.get(2).getFloatValue(),
+                                params.get(3).getFloatValue(),params.get(4).getFloatValue(),params.get(5).getFloatValue()),
+                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        ));
+            } else if ("translate".equalsIgnoreCase(fName)) {
+                XRLog.layout(Level.WARNING, "translate function not implemented at this time");
+            } else if ("translateX".equalsIgnoreCase(fName)) {
+                XRLog.layout(Level.WARNING, "translateX function not implemented at this time");                
+            } else if ("translateY".equalsIgnoreCase(fName)) {
+                XRLog.layout(Level.WARNING, "translateY function not implemented at this time");
+            }
+        }
+        
+        XRLog.layout(Level.WARNING, "Multiple transforms on one element not implemented at this time");
+        return Collections.emptyList();
+    }
+	
+    private float convertAngleToRadians(PropertyValue param) {
+    	if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_DEG) {
+    		return (float) Math.toRadians(-param.getFloatValue());
+    	} else if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_RAD) {
+    		return -param.getFloatValue();
+    	} else { // if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_GRAD)
+    		return (float) -(param.getFloatValue() * (Math.PI / 200));
+    	}
     }
     
     private List getFloats() {

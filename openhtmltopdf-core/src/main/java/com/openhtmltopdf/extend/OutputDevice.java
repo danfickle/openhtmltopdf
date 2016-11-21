@@ -27,6 +27,7 @@ import com.openhtmltopdf.render.*;
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
+import java.util.List;
 
 public interface OutputDevice {
 
@@ -46,12 +47,13 @@ public interface OutputDevice {
 	/**
 	 * Apply the given transform on top of the current one in the PDF graphics stream.
 	 * This is a cumulative operation. You should popTransform after the box and children are painted.
+	 * @return 
 	 */
-	public void pushTransform(AffineTransform transform);
-	public void popTransform();
+	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms);
+	public void popTransforms(List<AffineTransform> inverse);
 	
-	public AffineTransform translateTransform(float translateX, float translateY);
-	public void translateTransform(AffineTransform inverse);
+	float getAbsoluteTransformOriginX();
+	float getAbsoluteTransformOriginY();
 	
 	// And the rest.
     public void drawText(RenderingContext c, InlineText inlineText);
@@ -108,4 +110,5 @@ public interface OutputDevice {
     public boolean isSupportsSelection();
     
     public boolean isSupportsCMYKColors();
+
 }

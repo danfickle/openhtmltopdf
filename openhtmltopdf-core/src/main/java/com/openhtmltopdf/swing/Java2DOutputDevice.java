@@ -28,6 +28,7 @@ import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.render.*;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.font.GlyphVector;
@@ -35,6 +36,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private final Graphics2D _graphics;
@@ -323,27 +325,29 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	}
 
     @Override
-    public void pushTransform(AffineTransform transform) {
-		AffineTransform currentTransform  = _graphics.getTransform();
-		currentTransform.concatenate(transform);
-        _graphics.setTransform(currentTransform);
+    public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
+//		AffineTransform currentTransform  = _graphics.getTransform();
+//		currentTransform.concatenate(transform);
+//        _graphics.setTransform(currentTransform);
+// TODO
+    	return Collections.emptyList();
     }
 
 	@Override
-	public void popTransform() {
+	public void popTransforms(List<AffineTransform> inverse) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public AffineTransform translateTransform(float translateX, float translateY) {
+	public float getAbsoluteTransformOriginX() {
 		// TODO Auto-generated method stub
-		return null;
+		return 0;
 	}
 
 	@Override
-	public void translateTransform(AffineTransform inverse) {
+	public float getAbsoluteTransformOriginY() {
 		// TODO Auto-generated method stub
-		
+		return 0;
 	}
 }
