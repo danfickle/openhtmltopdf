@@ -44,6 +44,7 @@ public class PdfBoxImage implements FSImage {
                 _isJpeg = (type.equalsIgnoreCase("jpeg")
                         || type.equalsIgnoreCase("jpg") || type
                         .equalsIgnoreCase("jfif"));
+                reader.dispose();
             } else {
                 // TODO: Avoid throw here.
                 throw new IOException("Unrecognized Image format");
