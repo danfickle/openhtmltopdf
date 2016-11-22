@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
-    <version>0.0.1-RC8</version>
+    <version>0.0.1-RC9-SNAPSHOT</version>
   </parent>
 
   <artifactId>openhtmltopdf-log4j</artifactId>
