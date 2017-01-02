@@ -358,19 +358,21 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             resources.put(COSName.getPDFName(fnt.getValue()), fnt.getKey());
         }
         
-        int start = 0;
-        PDAcroForm acro = new PDAcroForm(_writer);
+        if (forms.size() != 0) {
+            int start = 0;
+            PDAcroForm acro = new PDAcroForm(_writer);
 
-        acro.setNeedAppearances(Boolean.TRUE);
-        acro.setDefaultResources(resources);
+            acro.setNeedAppearances(Boolean.TRUE);
+            acro.setDefaultResources(resources);
         
-        _writer.getDocumentCatalog().setAcroForm(acro);
+            _writer.getDocumentCatalog().setAcroForm(acro);
         
-        for (PdfBoxForm frm : forms.values()) {
-            try {
-                start = 1 + frm.process(acro, start, _root, this);
-            } catch (IOException e) {
-                throw new PdfContentStreamAdapter.PdfException("processControls", e);
+            for (PdfBoxForm frm : forms.values()) {
+                try {
+                    start = 1 + frm.process(acro, start, _root, this);
+                } catch (IOException e) {
+                    throw new PdfContentStreamAdapter.PdfException("processControls", e);
+                }
             }
         }
     }
