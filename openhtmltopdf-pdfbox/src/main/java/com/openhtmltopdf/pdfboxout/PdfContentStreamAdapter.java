@@ -320,7 +320,7 @@ public class PdfContentStreamAdapter {
         try {
 			cs.saveGraphicsState();
 			AffineTransform tf = new AffineTransform();
-            tf.translate(x,y);
+            tf.translate(x,0);
 			cs.transform(new Matrix(tf));
 			cs.drawForm(xFormObject);
 			cs.restoreGraphicsState();

@@ -1,12 +1,15 @@
 package com.openhtmltopdf.svgsupport;
 
-import java.awt.FontFormatException;
-import java.awt.font.TextAttribute;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.sheet.FontFaceRule;
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.FSDerivedValue;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.util.XRLog;
 import org.apache.batik.bridge.FontFace;
 import org.apache.batik.bridge.FontFamilyResolver;
 import org.apache.batik.gvt.font.GVTFontFamily;
@@ -16,23 +19,32 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.w3c.dom.Document;
 
-import com.openhtmltopdf.css.constants.CSSName;
-import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.css.sheet.FontFaceRule;
-import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.css.style.FSDerivedValue;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.layout.SharedContext;
-import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.util.XRLog;
+import java.awt.*;
+import java.awt.font.TextAttribute;
+import java.awt.geom.AffineTransform;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PDFTranscoder extends SVGAbstractTranscoder {
-
-	private final PDFGraphics2DOutputDeviceAdapter od;
 	private final OpenHtmlFontResolver fontResolver;
-	
-	public PDFTranscoder(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver, float dotsPerInch) {
-		this.od = new PDFGraphics2DOutputDeviceAdapter(ctx, od, x, y, dotsPerInch);
+	private final OutputDevice outputDevice;
+	private final double x;
+	private final double y;
+	private final double dotsPerPoint;
+	private final AffineTransform defaultTransform;
+
+	public PDFTranscoder(OutputDevice od, RenderingContext ctx, double x, double y, double width, double height, OpenHtmlFontResolver fontResolver, double dotsPerInch ) {
+		this.x = x;
+		this.y = y;
+		this.dotsPerPoint = dotsPerInch / 96f;
+		defaultTransform = AffineTransform.getScaleInstance(dotsPerPoint, dotsPerPoint);
+
+		this.width = (float)width;
+		this.height = (float)height;
+		this.outputDevice = od;
+
 		this.fontResolver = fontResolver;
 	}
 
@@ -174,7 +186,26 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	protected void transcode(Document svg, String uri, TranscoderOutput out) throws TranscoderException {
 		this.userAgent = new OpenHtmlUserAgent(this.fontResolver);
 		super.transcode(svg, uri, out);
-		this.root.paint(od);
+
+		float x = (float) (this.x * this.dotsPerPoint);
+		float y = (float) (this.y * this.dotsPerPoint);
+		//final float width = (float) (this.width * this.dotsPerPoint);
+		//final float height = (float) (this.height * this.dotsPerPoint);
+		outputDevice.drawWithGraphics((float)x, (float)y, (float)width, (float)height, new OutputDeviceGraphicsDrawer() {
+			@Override
+			public void render(Graphics2D graphics2D) {
+				/*
+				 * Debug rectangle, should only fill the black bordered space...
+				 */
+				graphics2D.setColor(new Color(128,255,128,128));
+				graphics2D.fillRect(0,0,(int)width,(int)height);
+
+				/*
+				 * Do the real paint
+				 */
+				PDFTranscoder.this.root.paint(graphics2D);
+			}
+		});
 	}
 	
 	@Override

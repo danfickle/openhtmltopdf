@@ -4,10 +4,10 @@ import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.util.JDKXRLogger;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRLogger;
-
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
 
@@ -49,6 +49,11 @@ public class TestcaseRunner {
 		runTestCase("text-align");
 		runTestCase("font-family-built-in");
 		runTestCase("form-controls");
+
+		/*
+		 * SVG samples
+		 */
+		runTestCase("svg-inline");
 
 		/* Add additional test cases here. */
 	}
@@ -105,24 +110,29 @@ public class TestcaseRunner {
 				delegate.log(where, level, msg);
 			}
 		});
-		
+
+		renderPDF(html, outputStream);
+
+		if (!warnings.isEmpty() && !allowWarnings) {
+			throw warnings.get(0);
+		}
+	}
+
+	private static void renderPDF(String html, OutputStream outputStream) throws Exception {
 		try {
 			PdfRendererBuilder builder = new PdfRendererBuilder();
 			builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
 			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
 			builder.defaultTextDirection(TextDirection.LTR);
+			builder.useSVGDrawer(new BatikSVGDrawer());
 			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
 			builder.toStream(outputStream);
 			builder.run();
 		} finally {
 			outputStream.close();
 		}
-		
-		if (!warnings.isEmpty() && !allowWarnings) {
-			throw warnings.get(0);
-		}
 	}
-	
+
 	public static void runTestCase(String testCaseFile) throws Exception {
 		byte[] htmlBytes = IOUtils.toByteArray(TestcaseRunner.class
 				.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
@@ -130,18 +140,8 @@ public class TestcaseRunner {
 		String outDir = System.getProperty("OUT_DIRECTORY", ".");
 		String testCaseOutputFile = outDir + "/" + testCaseFile + ".pdf";
 		FileOutputStream outputStream = new FileOutputStream(testCaseOutputFile);
-		
-		try {
-			PdfRendererBuilder builder = new PdfRendererBuilder();
-			builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
-			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
-			builder.defaultTextDirection(TextDirection.LTR);
-			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
-			builder.toStream(outputStream);
-			builder.run();
-		} finally {
-			outputStream.close();
-		}
+
+		renderPDF(html, outputStream);
 		System.out.println("Wrote " + testCaseOutputFile);
 	}
 }

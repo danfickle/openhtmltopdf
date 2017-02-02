@@ -1,8 +1,12 @@
 package com.openhtmltopdf.svgsupport;
 
-import java.util.List;
-import java.util.logging.Level;
-
+import com.openhtmltopdf.css.sheet.FontFaceRule;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.SVGDrawer;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.svgsupport.PDFTranscoder.OpenHtmlFontResolver;
+import com.openhtmltopdf.util.XRLog;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -11,13 +15,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.openhtmltopdf.css.sheet.FontFaceRule;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.SVGDrawer;
-import com.openhtmltopdf.layout.SharedContext;
-import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.svgsupport.PDFTranscoder.OpenHtmlFontResolver;
-import com.openhtmltopdf.util.XRLog;
+import java.util.List;
+import java.util.logging.Level;
 
 public class BatikSVGDrawer implements SVGDrawer {
 
@@ -32,14 +31,14 @@ public class BatikSVGDrawer implements SVGDrawer {
 	}
 	
 	@Override
-	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y, float dotsPerInch) {
+	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y, double width, double height, double dotsPerPixel) {
 
 		if (this.fontResolver == null) {
 			XRLog.general(Level.INFO, "importFontFaceRules has not been called for this pdf transcoder");
 			this.fontResolver = new OpenHtmlFontResolver();
 		}
 		
-		PDFTranscoder transcoder = new PDFTranscoder(outputDevice, ctx, x, y, this.fontResolver, dotsPerInch);
+		PDFTranscoder transcoder = new PDFTranscoder(outputDevice, ctx, x, y, width, height, this.fontResolver, dotsPerPixel);
 		
 		try {
 			DOMImplementation impl = SVGDOMImplementation.getDOMImplementation();
