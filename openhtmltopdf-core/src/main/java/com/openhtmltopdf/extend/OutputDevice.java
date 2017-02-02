@@ -111,4 +111,9 @@ public interface OutputDevice {
     
     public boolean isSupportsCMYKColors();
 
+    /**
+     * Draw something using a Graphics2D at the given rectangle.
+     */
+    public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer);
+
 }

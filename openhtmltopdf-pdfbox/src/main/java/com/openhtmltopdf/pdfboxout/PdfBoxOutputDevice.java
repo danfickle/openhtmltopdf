@@ -29,13 +29,14 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
-
+import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -59,7 +60,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.imageio.ImageIO;
-
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.*;
@@ -1313,6 +1313,33 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public boolean isSupportsCMYKColors() {
         return true;
+    }
+
+    @Override
+    public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer) {
+        try {
+            PdfBoxGraphics2D pdfBoxGraphics2D = new PdfBoxGraphics2D(_writer, (int) width, (int) height);
+            /*
+             * We *could* customize the PDF mapping here. But for now the default is enough.
+             */
+
+            /*
+             * Do rendering
+             */
+            renderer.render(pdfBoxGraphics2D);
+            /*
+             * Dispose to close the XStream
+             */
+            pdfBoxGraphics2D.dispose();
+
+            /*
+             * And then stamp it
+             */
+            _cp.placeXForm(x,y,pdfBoxGraphics2D.getXFormObject());
+        }
+        catch(IOException e){
+            throw new RuntimeException("Error while drawing on Graphics2D", e);
+        }
     }
 
     public List findPagePositionsByID(CssContext c, Pattern pattern) {

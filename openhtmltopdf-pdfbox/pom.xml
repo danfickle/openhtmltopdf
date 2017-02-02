@@ -51,6 +51,11 @@
       <artifactId>openhtmltopdf-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+	  <dependency>
+		  <groupId>de.rototor.pdfbox</groupId>
+		  <artifactId>graphics2d</artifactId>
+		  <version>0.1</version>
+	  </dependency>
   </dependencies>
 
   <build>
