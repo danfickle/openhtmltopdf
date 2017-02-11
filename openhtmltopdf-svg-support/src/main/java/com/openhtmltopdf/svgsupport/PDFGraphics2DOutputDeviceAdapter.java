@@ -1,19 +1,12 @@
 package com.openhtmltopdf.svgsupport;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.Image;
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Stroke;
+import com.openhtmltopdf.css.parser.FSRGBColor;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.render.RenderingContext;
+import org.apache.batik.ext.awt.g2d.AbstractGraphics2D;
+import org.apache.batik.ext.awt.g2d.GraphicContext;
+
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -22,13 +15,7 @@ import java.awt.image.RenderedImage;
 import java.awt.image.renderable.RenderableImage;
 import java.text.AttributedCharacterIterator;
 
-import org.apache.batik.ext.awt.g2d.AbstractGraphics2D;
-import org.apache.batik.ext.awt.g2d.GraphicContext;
-
-import com.openhtmltopdf.css.parser.FSRGBColor;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.render.RenderingContext;
-
+@Deprecated
 public class PDFGraphics2DOutputDeviceAdapter extends AbstractGraphics2D {
 
 	private final RenderingContext ctx;

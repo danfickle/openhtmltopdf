@@ -1,15 +1,14 @@
 package com.openhtmltopdf.extend;
 
-import java.util.List;
-
-import org.w3c.dom.Element;
-
 import com.openhtmltopdf.css.sheet.FontFaceRule;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.render.RenderingContext;
+import org.w3c.dom.Element;
+
+import java.util.List;
 
 public interface SVGDrawer {
-	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y, float dotsPerInch);
+	public void drawSVG(Element svgElement, OutputDevice outputDevice, RenderingContext ctx, double x, double y, double width, double height, double dotsPerPixel);
 
 	public void importFontFaceRules(List<FontFaceRule> fontFaces, SharedContext shared);
 

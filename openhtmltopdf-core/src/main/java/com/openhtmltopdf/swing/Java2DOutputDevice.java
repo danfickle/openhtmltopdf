@@ -21,10 +21,7 @@ package com.openhtmltopdf.swing;
 
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
-import com.openhtmltopdf.extend.FSGlyphVector;
-import com.openhtmltopdf.extend.FSImage;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.render.*;
 
 import javax.swing.*;
@@ -280,7 +277,14 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
         return true;
     }
 
-    private Stack<AffineTransform> transformStack = new Stack<AffineTransform>();
+	@Override
+	public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer) {
+		Graphics2D graphics = (Graphics2D) _graphics.create((int) x, (int) y, (int) width, (int) height);
+		renderer.render(graphics);
+		graphics.dispose();
+	}
+
+	private Stack<AffineTransform> transformStack = new Stack<AffineTransform>();
     private Stack<Shape> clipStack= new Stack<Shape>();
 
 	@Override
