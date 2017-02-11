@@ -48,7 +48,11 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC9-SNAPSHOT
+head - 0.0.1-RC10-SNAPSHOT
+========
+
+
+0.0.1-RC9
 ========
 + [Don't output acroform for formless document](https://github.com/danfickle/openhtmltopdf/issues/52) Thanks @aleksandr-m
 + [Upgraded to PDFBox 2.0.4](https://github.com/danfickle/openhtmltopdf/issues/59) Thanks PDFBox team
