@@ -36,7 +36,9 @@ import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
+
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
+
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -44,6 +46,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -60,6 +63,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.imageio.ImageIO;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.*;
@@ -1321,6 +1325,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             PdfBoxGraphics2D pdfBoxGraphics2D = new PdfBoxGraphics2D(_writer, (int) width, (int) height);
             /*
              * We *could* customize the PDF mapping here. But for now the default is enough.
+             * TODO: Font mapping.
              */
 
             /*
@@ -1333,9 +1338,33 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             pdfBoxGraphics2D.dispose();
 
             /*
+             * We convert from 72dpi of the Graphics2D device to our 96dpi
+             * using the output matrix of the XForm object.
+             * FIXME: Probably want to make this configurable.
+             */
+            PDFormXObject xFormObject = pdfBoxGraphics2D.getXFormObject();
+            xFormObject.setMatrix(AffineTransform.getScaleInstance(72f / 96f, 72f / 96f));
+            
+            /*
+             * Adjust the y to take into account that the y passed to placeXForm below
+             * refers to the bottom left of the object while we were passed in y the 
+             * position of the top left corner.
+             * FIXME: Make DPI conversion configurable (as above).
+             */
+            y += (height) * _dotsPerPoint * (72f / 96f);
+
+            /*
+             * Use the page transform to convert from _dotsPerPoint units to 
+             * PDF units. Also takes care of page margins.
+             */
+            Point2D p = new Point2D.Float(x, y);
+            Point2D pResult = new Point2D.Float();
+            _transform.transform(p, pResult);
+
+            /*
              * And then stamp it
              */
-            _cp.placeXForm(x,y,pdfBoxGraphics2D.getXFormObject());
+            _cp.placeXForm((float) pResult.getX(), _pageHeight - (float) pResult.getY(), xFormObject);
         }
         catch(IOException e){
             throw new RuntimeException("Error while drawing on Graphics2D", e);

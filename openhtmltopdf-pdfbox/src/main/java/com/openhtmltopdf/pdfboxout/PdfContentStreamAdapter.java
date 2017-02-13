@@ -319,9 +319,7 @@ public class PdfContentStreamAdapter {
     public void placeXForm(float x, float y, PDFormXObject xFormObject) {
         try {
 			cs.saveGraphicsState();
-			AffineTransform tf = new AffineTransform();
-            tf.translate(x,0);
-			cs.transform(new Matrix(tf));
+			cs.transform(new Matrix(AffineTransform.getTranslateInstance(x, y)));
 			cs.drawForm(xFormObject);
 			cs.restoreGraphicsState();
         } catch (IOException e) {

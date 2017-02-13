@@ -187,10 +187,6 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		this.userAgent = new OpenHtmlUserAgent(this.fontResolver);
 		super.transcode(svg, uri, out);
 
-		float x = (float) (this.x * this.dotsPerPoint);
-		float y = (float) (this.y * this.dotsPerPoint);
-		//final float width = (float) (this.width * this.dotsPerPoint);
-		//final float height = (float) (this.height * this.dotsPerPoint);
 		outputDevice.drawWithGraphics((float)x, (float)y, (float)width, (float)height, new OutputDeviceGraphicsDrawer() {
 			@Override
 			public void render(Graphics2D graphics2D) {
