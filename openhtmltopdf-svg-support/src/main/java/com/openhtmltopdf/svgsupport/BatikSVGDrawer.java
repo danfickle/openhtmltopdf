@@ -50,6 +50,12 @@ public class BatikSVGDrawer implements SVGDrawer {
 				newDocument.getDocumentElement().appendChild(importedNode);
 			}
 			
+			// Copy attributes such as viewBox to the new SVG document.
+			for (int i = 0; i < svgElement.getAttributes().getLength(); i++) {
+				Node importedAttr = svgElement.getAttributes().item(i);
+				newDocument.getDocumentElement().setAttribute(importedAttr.getNodeName(), importedAttr.getNodeValue());
+			}
+			
 			if (svgElement.hasAttribute("width")) {
 				newDocument.getDocumentElement().setAttribute("width", svgElement.getAttribute("width"));
 			}
