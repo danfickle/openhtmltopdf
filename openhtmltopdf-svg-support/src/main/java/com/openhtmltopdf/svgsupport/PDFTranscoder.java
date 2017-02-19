@@ -190,15 +190,9 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		this.userAgent = new OpenHtmlUserAgent(this.fontResolver);
 		super.transcode(svg, uri, out);
 
-		outputDevice.drawWithGraphics((float)x, (float)y, (float)width, (float)height, new OutputDeviceGraphicsDrawer() {
+		outputDevice.drawWithGraphics((float)x, (float)y, width, height, new OutputDeviceGraphicsDrawer() {
 			@Override
 			public void render(Graphics2D graphics2D) {
-				/*
-				 * Debug rectangle, should only fill the black bordered space...
-				 */
-				graphics2D.setColor(new Color(128,255,128,128));
-				graphics2D.fillRect(0,0,(int)width,(int)height);
-
 				/*
 				 * Do the real paint
 				 */
