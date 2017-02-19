@@ -50,6 +50,7 @@ CHANGELOG
 
 head - 0.0.1-RC10-SNAPSHOT
 ========
++ [Support for inline SVG images](https://github.com/danfickle/openhtmltopdf/issues/23)
 
 
 0.0.1-RC9
