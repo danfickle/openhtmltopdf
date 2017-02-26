@@ -1,6 +1,5 @@
 package com.openhtmltopdf.simple;
 
-import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
@@ -14,9 +13,6 @@ import org.w3c.dom.Element;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Build a Java2D renderer for a given
@@ -35,24 +31,6 @@ public class Java2DRendererBuilder {
 	private FSTextTransformer _unicodeToUpperTransformer;
 	private FSTextTransformer _unicodeToLowerTransformer;
 	private FSTextTransformer _unicodeToTitleTransformer;
-	private List<AddedFont> _fonts = new ArrayList<AddedFont>();
-
-	private static class AddedFont {
-		private final FSSupplier<InputStream> supplier;
-		private final Integer weight;
-		private final String family;
-		private final boolean subset;
-		private final PrimitivePropertyBuilders.FontStyle style;
-
-		private AddedFont(FSSupplier<InputStream> supplier, Integer weight, String family, boolean subset,
-				PrimitivePropertyBuilders.FontStyle style) {
-			this.supplier = supplier;
-			this.weight = weight;
-			this.family = family;
-			this.subset = subset;
-			this.style = style;
-		}
-	}
 
 	/**
 	 * Provides an HttpStreamFactory implementation if the user desires to use
@@ -123,87 +101,6 @@ public class Java2DRendererBuilder {
 	 */
 	public Java2DRendererBuilder useSVGDrawer(SVGDrawer svgImpl) {
 		this._svgImpl = svgImpl;
-		return this;
-	}
-
-	/**
-	 * The replacement text to use if a character is cannot be renderered by any
-	 * of the specified fonts. This is not broken across lines so should be one
-	 * or zero characters for best results. Also, make sure it can be rendered
-	 * by at least one of your specified fonts! The default is the # character.
-	 *
-	 * @param replacement
-	 * @return
-	 */
-	public Java2DRendererBuilder useReplacementText(String replacement) {
-		this._replacementText = replacement;
-		return this;
-	}
-
-	/**
-	 * Specify the line breaker. By default a Java default BreakIterator line
-	 * instance is used with US locale. Additionally, this is wrapped with
-	 * UrlAwareLineBreakIterator to also break before the forward slash (/)
-	 * character so that long URIs can be broken on to multiple lines.
-	 * <p>
-	 * You may want to use a BreakIterator with a different locale (wrapped by
-	 * UrlAwareLineBreakIterator or not) or a more advanced BreakIterator from
-	 * icu4j (see the rtl-support module for an example).
-	 *
-	 * @param breaker
-	 * @return
-	 */
-	public Java2DRendererBuilder useUnicodeLineBreaker(FSTextBreaker breaker) {
-		this._lineBreaker = breaker;
-		return this;
-	}
-
-	/**
-	 * Specify the character breaker. By default a break iterator character
-	 * instance is used with US locale. Currently this is used when
-	 * <code>word-wrap: break-word</code> is in effect.
-	 *
-	 * @param breaker
-	 * @return
-	 */
-	public Java2DRendererBuilder useUnicodeCharacterBreaker(FSTextBreaker breaker) {
-		this._charBreaker = breaker;
-		return this;
-	}
-
-	/**
-	 * Specify a transformer to use to upper case strings. By default
-	 * <code>String::toUpperCase(Locale.US)</code> is used.
-	 *
-	 * @param tr
-	 * @return
-	 */
-	public Java2DRendererBuilder useUnicodeToUpperTransformer(FSTextTransformer tr) {
-		this._unicodeToUpperTransformer = tr;
-		return this;
-	}
-
-	/**
-	 * Specify a transformer to use to lower case strings. By default
-	 * <code>String::toLowerCase(Locale.US)</code> is used.
-	 *
-	 * @param tr
-	 * @return
-	 */
-	public Java2DRendererBuilder useUnicodeToLowerTransformer(FSTextTransformer tr) {
-		this._unicodeToLowerTransformer = tr;
-		return this;
-	}
-
-	/**
-	 * Specify a transformer to title case strings. By default a best effort
-	 * implementation (non locale aware) is used.
-	 *
-	 * @param tr
-	 * @return
-	 */
-	public Java2DRendererBuilder useUnicodeToTitleTransformer(FSTextTransformer tr) {
-		this._unicodeToTitleTransformer = tr;
 		return this;
 	}
 
@@ -372,6 +269,7 @@ public class Java2DRendererBuilder {
 		}
 	}
 
+
 	public static class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 		private SVGDrawer _svgImpl;
 
@@ -384,12 +282,12 @@ public class Java2DRendererBuilder {
 			}
 
 			String nodeName = e.getNodeName();
-			if (nodeName.equals("svg") && _svgImpl != null) {
+			if (nodeName.equals("svg") && _svgImpl != null)
 				return new Java2DSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight);
-				/*
-				 * Default: Just let the base class handle everything
-				 */
-			}
+
+			/*
+			 * Default: Just let the base class handle everything
+			 */
 			return super.createReplacedElement(context, box, uac, cssWidth, cssHeight);
 		}
 	}

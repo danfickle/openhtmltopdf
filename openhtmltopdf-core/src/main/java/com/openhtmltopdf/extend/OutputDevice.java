@@ -30,17 +30,8 @@ import java.awt.geom.AffineTransform;
 import java.util.List;
 
 public interface OutputDevice {
-
-	// Required for SVG output.
-	public void saveState();
-	public void restoreState();
-	
 	public void setPaint(Paint paint);
 	public void setAlpha(int alpha);
-	
-	public void setRawClip(Shape s);
-	public void rawClip(Shape s);
-	public Shape getRawClip();
 
 	// Required for CSS transforms.
 

@@ -292,17 +292,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	private Stack<AffineTransform> transformStack = new Stack<AffineTransform>();
     private Stack<Shape> clipStack= new Stack<Shape>();
 
-	@Override
-	public void saveState() {
-		transformStack.push(_graphics.getTransform());
-		clipStack.push(_graphics.getClip());
-	}
-
-	@Override
-	public void restoreState() {
-		_graphics.setTransform(transformStack.pop());
-		_graphics.setClip(clipStack.pop());
-	}
 
 	@Override
 	public void setPaint(Paint paint) {
@@ -313,24 +302,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	public void setAlpha(int alpha) {
 		// TODO Auto-generated method stub
 		
-	}
-
-	@Override
-	public void setRawClip(Shape s) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void rawClip(Shape s) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Shape getRawClip() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
     @Override
