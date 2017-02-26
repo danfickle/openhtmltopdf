@@ -4,6 +4,7 @@ import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
+import com.openhtmltopdf.simple.Graphics2DRenderer;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.util.JDKXRLogger;
 import com.openhtmltopdf.util.XRLog;
@@ -11,9 +12,13 @@ import com.openhtmltopdf.util.XRLogger;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
@@ -133,15 +138,26 @@ public class TestcaseRunner {
 		}
 	}
 
+	private static void renderPNG(URL f, OutputStream outputStream) throws IOException {
+		BufferedImage image = Graphics2DRenderer.renderToImageAutoSize(f.toExternalForm(),
+				512, BufferedImage.TYPE_INT_ARGB);
+		ImageIO.write(image,"PNG",outputStream);
+		outputStream.close();
+				
+	}
+
 	public static void runTestCase(String testCaseFile) throws Exception {
-		byte[] htmlBytes = IOUtils.toByteArray(TestcaseRunner.class
-				.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
+		byte[] htmlBytes = IOUtils
+				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
 		String html = new String(htmlBytes, Charsets.UTF_8);
 		String outDir = System.getProperty("OUT_DIRECTORY", ".");
 		String testCaseOutputFile = outDir + "/" + testCaseFile + ".pdf";
+		String testCaseOutputPNGFile = outDir + "/" + testCaseFile + ".png";
 		FileOutputStream outputStream = new FileOutputStream(testCaseOutputFile);
-
 		renderPDF(html, outputStream);
 		System.out.println("Wrote " + testCaseOutputFile);
+
+		FileOutputStream outputStreamPNG = new FileOutputStream(testCaseOutputPNGFile);
+		renderPNG(TestcaseRunner.class.getResource("/testcases/" + testCaseFile + ".html"), outputStreamPNG);
 	}
 }
