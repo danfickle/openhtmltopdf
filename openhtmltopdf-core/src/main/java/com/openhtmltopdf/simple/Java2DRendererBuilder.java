@@ -15,7 +15,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
- * Build a Java2D renderer for a given
+ * Build a Java2D renderer for a given HTML. The renderer allows to get a
+ * BufferedImage of the HTML and to render it in components (using Graphics2D).
  */
 public class Java2DRendererBuilder {
 	private HttpStreamFactory _httpStreamFactory;
@@ -268,7 +269,6 @@ public class Java2DRendererBuilder {
 			}
 		}
 	}
-
 
 	public static class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 		private SVGDrawer _svgImpl;
