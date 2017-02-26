@@ -23,17 +23,18 @@ import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.simple.Java2DRendererBuilder;
 
 import javax.swing.*;
-
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private final Graphics2D _graphics;
@@ -179,7 +180,11 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
             Point location = replaced.getLocation();
             _graphics.drawImage(
                     image, (int)location.getX(), (int)location.getY(), null);
-        }
+		} else if (replaced instanceof Java2DRendererBuilder.Graphics2DPaintingReplacedElement) {
+			Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), c);
+			((Java2DRendererBuilder.Graphics2DPaintingReplacedElement) replaced).paint(this, c, contentBounds.x,
+					contentBounds.y, contentBounds.width, contentBounds.height);
+		}
     }
     
     public void setColor(FSColor color) {
