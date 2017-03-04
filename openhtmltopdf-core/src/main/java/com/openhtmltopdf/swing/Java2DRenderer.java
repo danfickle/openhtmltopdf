@@ -70,7 +70,9 @@ import com.openhtmltopdf.util.ThreadCtx;
  * <p>Not thread-safe.</p>
  *
  * @see ITextRenderer
+ * @deprecated do not use, seems to be broken
  */
+@Deprecated
 public class Java2DRenderer {
 	private static final int DEFAULT_HEIGHT = 1000;
 	private static final int DEFAULT_DOTS_PER_POINT = 1;

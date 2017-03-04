@@ -1486,20 +1486,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
     
 
-    // The below methods are for the experimental SVG code and should not be used for other uses.
-    
-    @Override
-    @Deprecated
-    public void saveState() {
-        _cp.saveGraphics();
-        
-    }
-
-    @Override
-    @Deprecated
-    public void restoreState() {
-        _cp.restoreGraphics();
-    }
 
     @Override
     public void setPaint(Paint paint) {
@@ -1514,28 +1500,5 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     @Override
     public void setAlpha(int alpha) {
         
-    }
-
-    @Override
-    @Deprecated
-    public void setRawClip(Shape s) {
-        _clip = new Area(s);
-        followPath(s, CLIP);
-    }
-
-    @Override
-    @Deprecated
-    public void rawClip(Shape s) {
-        if (_clip == null)
-            _clip = new Area(s);
-        else
-            _clip.intersect(new Area(s));
-        followPath(s, CLIP);
-    }
-    
-    @Override
-    @Deprecated
-    public Shape getRawClip() {
-        return _clip;
     }
 }
