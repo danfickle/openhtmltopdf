@@ -18,9 +18,9 @@ import com.openhtmltopdf.extend.FSTextTransformer;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.SVGDrawer;
-import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.BaseDocument;
-import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.PageDimensions;
-import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.UnicodeImplementation;
+import com.openhtmltopdf.outputdevice.helper.BaseDocument;
+import com.openhtmltopdf.outputdevice.helper.PageDimensions;
+import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 
 public class PdfRendererBuilder
 {

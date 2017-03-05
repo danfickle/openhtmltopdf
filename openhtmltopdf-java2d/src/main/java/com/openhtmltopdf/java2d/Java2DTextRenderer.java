@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  * }}}
  */
-package com.openhtmltopdf.swing;
+package com.openhtmltopdf.java2d;
 
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -42,6 +42,8 @@ import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.render.LineMetricsAdapter;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.swing.AWTFSFont;
+import com.openhtmltopdf.swing.AWTFSGlyphVector;
 
 
 /**

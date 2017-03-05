@@ -72,6 +72,9 @@ import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.BaseDocument;
+import com.openhtmltopdf.outputdevice.helper.PageDimensions;
+import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -177,58 +180,6 @@ public class PdfBoxRenderer {
         _sharedContext.setInteractive(false);
     }
 
-    static class UnicodeImplementation {
-        final BidiReorderer reorderer;
-        final BidiSplitterFactory splitterFactory;
-        final FSTextBreaker lineBreaker;
-        final FSTextBreaker charBreaker;
-        final FSTextTransformer toLowerTransformer;
-        final FSTextTransformer toUpperTransformer;
-        final FSTextTransformer toTitleTransformer;
-        final boolean textDirection;
-        
-        UnicodeImplementation(BidiReorderer reorderer, BidiSplitterFactory splitterFactory, 
-                FSTextBreaker lineBreaker, FSTextTransformer toLower, FSTextTransformer toUpper,
-                FSTextTransformer toTitle, boolean textDirection, FSTextBreaker charBreaker) {
-            this.reorderer = reorderer;
-            this.splitterFactory = splitterFactory;
-            this.lineBreaker = lineBreaker;
-            this.toLowerTransformer = toLower;
-            this.toUpperTransformer = toUpper;
-            this.toTitleTransformer = toTitle;
-            this.textDirection = textDirection;
-            this.charBreaker = charBreaker;
-        }
-    }
-    
-    static class PageDimensions {
-        final Float w;
-        final Float h;
-        final boolean isSizeInches;
-        
-        PageDimensions(Float w, Float h, boolean isSizeInches) {
-            this.w = w;
-            this.h = h;
-            this.isSizeInches = isSizeInches;
-        }
-    }
-    
-    static class BaseDocument {
-        final String html;
-        final Document document;
-        final File file;
-        final String uri;
-        final String baseUri;
-        
-        BaseDocument(String baseUri, String html, Document document, File file, String uri) {
-            this.html = html;
-            this.document = document;
-            this.file = file;
-            this.uri = uri;
-            this.baseUri = baseUri;
-        }
-    }
-    
     /**
      * This method is constantly changing as options are added to the builder.
      */

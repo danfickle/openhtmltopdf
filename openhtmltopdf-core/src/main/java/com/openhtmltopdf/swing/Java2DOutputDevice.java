@@ -19,6 +19,7 @@
  */
 package com.openhtmltopdf.swing;
 
+import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.extend.*;
@@ -26,6 +27,7 @@ import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.simple.Java2DRendererBuilder;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.font.GlyphVector;
@@ -329,5 +331,30 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	public float getAbsoluteTransformOriginY() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	public void setBidiReorderer(BidiReorderer _reorderer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void setRenderingContext(RenderingContext result) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void setRoot(BlockBox _root) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void initializePage(Graphics2D graphics2d) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void finish(RenderingContext c, BlockBox _root) {
+		// TODO Auto-generated method stub
+		
 	}
 }
