@@ -14,6 +14,7 @@ import org.w3c.dom.Document;
 
 import java.awt.Graphics2D;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class Java2DRendererBuilder {
     private File _file;
     private boolean _testMode = false;
     private Graphics2D _layoutGraphics;
+    private int _initialPageNumber;
     
     public static enum TextDirection { RTL, LTR; }
     public static enum PageSizeUnits { MM, INCHES }
@@ -327,6 +329,16 @@ public class Java2DRendererBuilder {
         this._isPageSizeInches = (units == PageSizeUnits.INCHES);
         return this;
     }
+    
+    /**
+     * Used to set an initial page number for use with page counters, etc.
+     * @param pageNumberInitial
+     * @return
+     */
+    public Java2DRendererBuilder useInitialPageNumber(int pageNumberInitial) {
+    	this._initialPageNumber = pageNumberInitial;
+    	return this;
+    }
 
 	/**
 	 * Output the document in paged format. The user can use the DefaultPageProcessor or use its source
@@ -339,6 +351,32 @@ public class Java2DRendererBuilder {
 		return this;
 	}
 	
+	/**
+	 * <code>useLayoutGraphics</code> and <code>toPageProcessor</code> MUST have been called.
+	 * Also a document MUST have been set with one of the with* methods.
+	 * This will build the renderer and output each page of the document to the specified page 
+	 * processor.
+	 * @throws Exception
+	 */
+	public void runPaged() throws Exception {
+		Java2DRenderer renderer = this.buildJava2DRenderer();
+		renderer.layout();
+		renderer.writePages();
+	}
+
+	/**
+	 * <code>useLayoutGraphics</code> and <code>toPageProcessor</code> MUST have been called.
+	 * Also a document MUST have been set with one of the with* methods.
+	 * This will build the renderer and output the first page of the document to the specified page 
+	 * processor.
+	 * @throws Exception
+	 */
+	public void runFirstPage() throws Exception {
+		Java2DRenderer renderer = this.buildJava2DRenderer();
+		renderer.layout();
+		renderer.writePage(0);
+	}
+	
 	public Java2DRenderer buildJava2DRenderer() {
         UnicodeImplementation unicode = new UnicodeImplementation(_reorderer, _splitter, _lineBreaker, 
                 _unicodeToLowerTransformer, _unicodeToUpperTransformer, _unicodeToTitleTransformer, _textDirection, _charBreaker);
@@ -347,7 +385,7 @@ public class Java2DRendererBuilder {
         
         BaseDocument doc = new BaseDocument(_baseUri, _html, _document, _file, _uri);
         
-        return new Java2DRenderer(doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, pageSize, _replacementText, _testMode, _pageProcessor, _layoutGraphics);
+        return new Java2DRenderer(doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, pageSize, _replacementText, _testMode, _pageProcessor, _layoutGraphics, _initialPageNumber);
     }
 
 	public static abstract class Graphics2DPaintingReplacedElement extends EmptyReplacedElement {

@@ -63,6 +63,8 @@ public class Java2DRenderer implements IJava2DRenderer {
     
     private static final int DEFAULT_DOTS_PER_PIXEL = 1;
     private static final int DEFAULT_DPI = 72;
+    
+    private final int _initialPageNo;
 	
 	/**
 	 * Subject to change. Not public API. Used exclusively by the Java2DRendererBuilder class. 
@@ -79,10 +81,11 @@ public class Java2DRenderer implements IJava2DRenderer {
 			String replacementText,
 			boolean testMode,
 			FSPageProcessor pageProcessor,
-			Graphics2D layoutGraphics) {
+			Graphics2D layoutGraphics,
+			int initialPageNumber) {
 	
 		_pageProcessor = pageProcessor;
-		
+		_initialPageNo = initialPageNumber;		
 		_svgImpl = svgImpl;
 		_outputDevice = new Java2DOutputDevice(layoutGraphics);
 		
@@ -276,11 +279,11 @@ public class Java2DRenderer implements IJava2DRenderer {
         return result;
     }
     
-    public void writePages(int initialPageNo) throws IOException {
+    public void writePages() throws IOException {
         List<PageBox> pages = _root.getLayer().getPages();
 
         RenderingContext c = newRenderingContext();
-        c.setInitialPageNo(initialPageNo);
+        c.setInitialPageNo(_initialPageNo);
         
         PageBox firstPage = pages.get(0);
         Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
@@ -288,6 +291,41 @@ public class Java2DRenderer implements IJava2DRenderer {
                 firstPage.getHeight(c) / DEFAULT_DOTS_PER_PIXEL);
 
         writePageImages(pages, c, firstPageSize);
+    }
+    
+    public void writePage(int zeroBasedPageNumber) throws IOException {
+    	List<PageBox> pages = _root.getLayer().getPages();
+    	
+    	if (zeroBasedPageNumber >= pages.size()) {
+    		throw new IndexOutOfBoundsException();
+    	}
+    	
+    	RenderingContext c = newRenderingContext();
+        c.setInitialPageNo(_initialPageNo);
+    	
+    	PageBox page = pages.get(zeroBasedPageNumber);
+    	
+        Rectangle2D pageSize = new Rectangle2D.Float(0, 0,
+                page.getWidth(c) / DEFAULT_DOTS_PER_PIXEL,
+                page.getHeight(c) / DEFAULT_DOTS_PER_PIXEL);
+        
+        _outputDevice.setRoot(_root);
+        
+        FSPage pg = _pageProcessor.createPage(zeroBasedPageNumber, (int) pageSize.getWidth(), (int) pageSize.getHeight());
+        
+        _outputDevice.initializePage(pg.getGraphics());
+        _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
+
+        c.setPageCount(pages.size());
+        c.setPage(zeroBasedPageNumber, page);
+        paintPage(c, page);
+        _pageProcessor.finishPage(pg);
+        
+        _outputDevice.finish(c, _root);
+    }
+    
+    public int getPageCount() {
+    	return _root.getLayer().getPages().size();
     }
     
     private void writePageImages(List<PageBox> pages, RenderingContext c, Rectangle2D firstPageSize) throws IOException {
