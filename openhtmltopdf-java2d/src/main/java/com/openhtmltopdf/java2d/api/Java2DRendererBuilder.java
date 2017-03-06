@@ -14,6 +14,9 @@ import org.w3c.dom.Document;
 
 import java.awt.Graphics2D;
 import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Build a Java2D renderer for a given HTML. The renderer allows to get a
@@ -44,6 +47,26 @@ public class Java2DRendererBuilder {
     private File _file;
     private boolean _testMode = false;
     private Graphics2D _layoutGraphics;
+    
+    public static enum TextDirection { RTL, LTR; }
+    public static enum PageSizeUnits { MM, INCHES }
+    public static enum FontStyle { NORMAL, ITALIC, OBLIQUE }
+    
+    private static class AddedFont {
+        private final FSSupplier<InputStream> supplier;
+        private final Integer weight;
+        private final String family;
+        private final FontStyle style;
+        
+        private AddedFont(FSSupplier<InputStream> supplier, Integer weight, String family, FontStyle style) {
+            this.supplier = supplier;
+            this.weight = weight;
+            this.family = family;
+            this.style = style;
+        }
+    }
+    
+    private List<AddedFont> _fonts = new ArrayList<AddedFont>();
 
 	/**
 	 * Provides an HttpStreamFactory implementation if the user desires to use
@@ -127,12 +150,191 @@ public class Java2DRendererBuilder {
 		return this;
 	}
 	
+	/**
+	 * Compulsory method. The layout graphics are used to measure text and should be from an image or device with
+	 * the same characteristics as the output graphicsw provided by the page processor.
+	 * @param g2d
+	 * @return
+	 */
 	public Java2DRendererBuilder useLayoutGraphics(Graphics2D g2d) {
 		this._layoutGraphics = g2d;
 		return this;
 	}
+	
+    /**
+     * The default text direction of the document. LTR by default.
+     * @param textDirection
+     * @return
+     */
+    public Java2DRendererBuilder defaultTextDirection(TextDirection textDirection) {
+        this._textDirection = textDirection == TextDirection.RTL;
+        return this;
+    }
 
-	public Java2DRendererBuilder usePageProcessor(FSPageProcessor pageProcessor) {
+    /**
+     * Whether to use test mode which will output box boundaries on the result. Turned off by default.
+     * @param mode
+     * @return
+     */
+    public Java2DRendererBuilder testMode(boolean mode) {
+        this._testMode = mode;
+        return this;
+    }
+    
+    /**
+     * Provides a text splitter to split text into directional runs. Does nothing by default.
+     * @param splitter
+     * @return
+     */
+    public Java2DRendererBuilder useUnicodeBidiSplitter(BidiSplitterFactory splitter) {
+        this._splitter = splitter;
+        return this;
+    }
+    
+    /**
+     * Provides a reorderer to properly reverse RTL text. No-op by default.
+     * @param reorderer
+     * @return
+     */
+    public Java2DRendererBuilder useUnicodeBidiReorderer(BidiReorderer reorderer) {
+        this._reorderer = reorderer;
+        return this;
+    }
+	
+    /**
+     * Provides a file to convert to PDF. The file MUST contain XHTML/XML in UTF-8 encoding.
+     * @param file
+     * @return
+     */
+    public Java2DRendererBuilder withFile(File file) {
+        this._file = file;
+        return this;
+    }
+
+    /**
+     * The replacement text to use if a character is cannot be renderered by any of the specified fonts.
+     * This is not broken across lines so should be one or zero characters for best results.
+     * Also, make sure it can be rendered by at least one of your specified fonts!
+     * The default is the # character.
+     * @param replacement
+     * @return
+     */
+    public Java2DRendererBuilder useReplacementText(String replacement) {
+        this._replacementText = replacement;
+        return this;
+    }
+    
+    /**
+     * Specify the line breaker. By default a Java default BreakIterator line instance is used
+     * with US locale. Additionally, this is wrapped with UrlAwareLineBreakIterator to also
+     * break before the forward slash (/) character so that long URIs can be broken on to multiple lines.
+     * 
+     * You may want to use a BreakIterator with a different locale (wrapped by UrlAwareLineBreakIterator or not)
+     * or a more advanced BreakIterator from icu4j (see the rtl-support module for an example).
+     * @param breaker
+     * @return
+     */
+    public Java2DRendererBuilder useUnicodeLineBreaker(FSTextBreaker breaker) {
+        this._lineBreaker = breaker;
+        return this;
+    }
+    
+    /**
+     * Specify the character breaker. By default a break iterator character instance is used with 
+     * US locale. Currently this is used when <code>word-wrap: break-word</code> is in
+     * effect.
+     * @param breaker
+     * @return
+     */
+    public Java2DRendererBuilder useUnicodeCharacterBreaker(FSTextBreaker breaker) {
+        this._charBreaker = breaker;
+        return this;
+    }
+    
+    /**
+     * Specify a transformer to use to upper case strings.
+     * By default <code>String::toUpperCase(Locale.US)</code> is used.
+     * @param tr
+     * @return
+     */
+    public Java2DRendererBuilder useUnicodeToUpperTransformer(FSTextTransformer tr) {
+        this._unicodeToUpperTransformer = tr;
+        return this;
+    }
+
+    /**
+     * Specify a transformer to use to lower case strings.
+     * By default <code>String::toLowerCase(Locale.US)</code> is used.
+     * @param tr
+     * @return
+     */
+    public Java2DRendererBuilder useUnicodeToLowerTransformer(FSTextTransformer tr) {
+        this._unicodeToLowerTransformer = tr;
+        return this;
+    }
+    
+    /**
+     * Specify a transformer to title case strings.
+     * By default a best effort implementation (non locale aware) is used.
+     * @param tr
+     * @return
+     */
+    public Java2DRendererBuilder useUnicodeToTitleTransformer(FSTextTransformer tr) {
+        this._unicodeToTitleTransformer = tr;
+        return this;
+    }
+    
+    /**
+     * Add a font programmatically. The font will only be downloaded if needed. 
+     * 
+     * The InputStream returned by the supplier will be closed by the caller. 
+     * FSSupplier is a lambda compatible interface.
+     * 
+     * Fonts can also be added using a font-face at-rule in the CSS.
+     * @param supplier
+     * @param fontFamily
+     * @param fontWeight
+     * @param fontStyle
+     * @param subset
+     * @return
+     */
+    public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight, FontStyle fontStyle) {
+        this._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, fontStyle));
+        return this;
+    }
+    
+    /**
+     * Simpler overload for {@link #useFont(FSSupplier, String, Integer, FontStyle)}
+     * @param supplier
+     * @param fontFamily
+     * @return
+     */
+    public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily) {
+        return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL);
+    }
+    
+    /**
+     * Specifies the default page size to use if none is specified in CSS.
+     * @param pageWidth
+     * @param pageHeight
+     * @param units either mm or inches.
+     * @see {@link #PAGE_SIZE_LETTER_WIDTH}, {@link #PAGE_SIZE_LETTER_HEIGHT} and {@link #PAGE_SIZE_LETTER_UNITS}
+     * @return
+     */
+    public Java2DRendererBuilder useDefaultPageSize(float pageWidth, float pageHeight, PageSizeUnits units) {
+        this._pageWidth = pageWidth;
+        this._pageHeight = pageHeight;
+        this._isPageSizeInches = (units == PageSizeUnits.INCHES);
+        return this;
+    }
+
+	/**
+	 * Output the document in paged format. The user can use the DefaultPageProcessor or use its source
+	 * as a reference to code their own page processor for advanced usage.
+	 * @param pageProcessor
+	 * @return
+	 */
+	public Java2DRendererBuilder toPageProcessor(FSPageProcessor pageProcessor) {
 		this._pageProcessor = pageProcessor;
 		return this;
 	}
