@@ -38,7 +38,7 @@ import java.util.Stack;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private Graphics2D _graphics;
-    private AWTFSFont _font;
+    private Java2DFont _font;
 
     public Java2DOutputDevice(Graphics2D layoutGraphics) {
     	this._graphics = layoutGraphics;
@@ -141,11 +141,11 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     
     @Override
     public void setFont(FSFont font) {
-        this._font = (AWTFSFont) font;
+        this._font = (Java2DFont) font;
         _graphics.setFont(this._font.getAWTFonts().get(0));
     }
 
-    public AWTFSFont getFont() {
+    public Java2DFont getFont() {
     	return this._font;
     }
     

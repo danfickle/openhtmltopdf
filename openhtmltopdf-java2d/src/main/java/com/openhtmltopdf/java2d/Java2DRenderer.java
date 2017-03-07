@@ -111,7 +111,7 @@ public class Java2DRenderer implements IJava2DRenderer {
 //        uac.setSharedContext(_sharedContext);
 //        _outputDevice.setSharedContext(_sharedContext);
 
-        AWTFontResolver fontResolver = new AWTFontResolver();
+        Java2DFontResolver fontResolver = new Java2DFontResolver(_sharedContext);
         _sharedContext.setFontResolver(fontResolver);
         
         Java2DReplacedElementFactory replacedFactory = new Java2DReplacedElementFactory(_svgImpl);
@@ -216,15 +216,15 @@ public class Java2DRenderer implements IJava2DRenderer {
         _sharedContext.setNamespaceHandler(nsh);
         _sharedContext.getCss().setDocumentContext(_sharedContext, _sharedContext.getNamespaceHandler(), doc, new NullUserInterface());
         
-        // TODO getFontResolver().importFontFaces(_sharedContext.getCss().getFontFaceRules());
+        getFontResolver().importFontFaces(_sharedContext.getCss().getFontFaceRules());
         
         if (_svgImpl != null) {
             _svgImpl.importFontFaceRules(_sharedContext.getCss().getFontFaceRules(), _sharedContext);
         }
     }
     
-    public AWTFontResolver getFontResolver() {
-        return (AWTFontResolver) _sharedContext.getFontResolver();
+    public Java2DFontResolver getFontResolver() {
+        return (Java2DFontResolver) _sharedContext.getFontResolver();
     }
     
     public void layout() {
