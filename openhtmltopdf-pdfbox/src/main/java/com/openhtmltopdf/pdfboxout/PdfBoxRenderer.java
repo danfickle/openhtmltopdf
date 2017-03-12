@@ -19,41 +19,6 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Rectangle2D;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.Calendar;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentInformation;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.encryption.PDEncryption;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
@@ -61,8 +26,7 @@ import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.FSCache;
-import com.openhtmltopdf.extend.FSTextBreaker;
-import com.openhtmltopdf.extend.FSTextTransformer;
+import com.openhtmltopdf.extend.FSObjectDrawerFactory;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.NamespaceHandler;
@@ -83,6 +47,27 @@ import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.encryption.PDEncryption;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.io.*;
+import java.util.Calendar;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class PdfBoxRenderer {
     // See discussion of units at top of PdfBoxOutputDevice.
@@ -170,7 +155,7 @@ public class PdfBoxRenderer {
         PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc);
         _sharedContext.setFontResolver(fontResolver);
 
-        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, svgImpl);
+        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, svgImpl, null);
         _sharedContext.setReplacedElementFactory(replacedElementFactory);
 
         _sharedContext.setTextRenderer(new PdfBoxTextRenderer());
@@ -186,11 +171,11 @@ public class PdfBoxRenderer {
     PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode, 
             HttpStreamFactory httpStreamFactory, 
             OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
-            PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode) {
+            PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode, FSObjectDrawerFactory objectDrawerFactory) {
         
         _pdfDoc = new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
-        
+
         _svgImpl = svgImpl;
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = testMode;
@@ -222,7 +207,7 @@ public class PdfBoxRenderer {
         PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc);
         _sharedContext.setFontResolver(fontResolver);
 
-        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, svgImpl);
+        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, svgImpl, objectDrawerFactory);
         _sharedContext.setReplacedElementFactory(replacedElementFactory);
 
         _sharedContext.setTextRenderer(new PdfBoxTextRenderer());

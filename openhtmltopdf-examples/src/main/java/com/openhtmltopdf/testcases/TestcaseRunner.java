@@ -5,14 +5,22 @@ import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 import com.openhtmltopdf.simple.Java2DRendererBuilder;
+import com.openhtmltopdf.extend.FSObjectDrawer;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
+import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.util.JDKXRLogger;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRLogger;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
+import org.w3c.dom.Element;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -65,6 +73,11 @@ public class TestcaseRunner {
 		 * Graphics2D Texterror Case
 		 */
 		runTestCase("moonbase");
+
+		/*
+		 * Custom Objects
+		 */
+		runTestCase("custom-objects");
 
 		/* Add additional test cases here. */
 	}
@@ -136,6 +149,11 @@ public class TestcaseRunner {
 			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
 			builder.defaultTextDirection(TextDirection.LTR);
 			builder.useSVGDrawer(new BatikSVGDrawer());
+
+			DefaultObjectDrawerFactory objectDrawerFactory = new DefaultObjectDrawerFactory();
+			objectDrawerFactory.registerDrawer("custom/binary-tree", new SampleObjectDrawerBinaryTree());
+			builder.useObjectDrawerFactory(objectDrawerFactory);
+
 			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
 			builder.toStream(outputStream);
 			builder.run();
@@ -151,7 +169,6 @@ public class TestcaseRunner {
 		BufferedImage image = builder.build().renderToImage(512, BufferedImage.TYPE_3BYTE_BGR);
 		ImageIO.write(image, "PNG", outputStream);
 		outputStream.close();
-
 	}
 
 	public static void runTestCase(String testCaseFile) throws Exception {
@@ -167,5 +184,46 @@ public class TestcaseRunner {
 
 		FileOutputStream outputStreamPNG = new FileOutputStream(testCaseOutputPNGFile);
 		renderPNG(html, outputStreamPNG);
+	}
+
+	public static class SampleObjectDrawerBinaryTree implements FSObjectDrawer {
+		int fanout;
+		int angle;
+
+		@Override
+		public void drawObject(Element e, double x, double y, final double width, final double height,
+				OutputDevice outputDevice, RenderingContext ctx, final int dotsPerPixel) {
+			final int depth = Integer.parseInt(e.getAttribute("data-depth"));
+			fanout = Integer.parseInt(e.getAttribute("data-fanout"));
+			angle = Integer.parseInt(e.getAttribute("data-angle"));
+
+			outputDevice.drawWithGraphics((float) x, (float) y, (float) width / dotsPerPixel,
+					(float) height / dotsPerPixel, new OutputDeviceGraphicsDrawer() {
+						@Override
+						public void render(Graphics2D graphics2D) {
+							double realWidth = width / dotsPerPixel;
+							double realHeight = height / dotsPerPixel;
+
+							renderTree(graphics2D, realWidth / 2f, realHeight, realHeight / depth, -90, depth);
+						}
+					});
+		}
+
+		private void renderTree(Graphics2D gfx, double x, double y, double len, double angleDeg, int depth) {
+			double rad = angleDeg * Math.PI / 180f;
+			double xTarget = x + Math.cos(rad) * len;
+			double yTarget = y + Math.sin(rad) * len;
+			gfx.setStroke(new BasicStroke(2f));
+			gfx.setColor(new Color(255 / depth, 128, 128));
+			gfx.draw(new Line2D.Double(x, y, xTarget, yTarget));
+
+			if (depth > 1) {
+				double childAngle = angleDeg - (((fanout - 1) * angle) / 2f);
+				for (int i = 0; i < fanout; i++) {
+					renderTree(gfx, xTarget, yTarget, len * 0.95, childAngle, depth - 1);
+					childAngle += angle;
+				}
+			}
+		}
 	}
 }
