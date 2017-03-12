@@ -1,11 +1,9 @@
 package com.openhtmltopdf.java2d.api;
-import java.awt.Color;
-import java.awt.Graphics2D;
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
-
-import javax.imageio.ImageIO;
 
 public class DefaultPageProcessor implements FSPageProcessor {
 	public static class DefaultPage implements FSPage {
@@ -20,6 +18,8 @@ public class DefaultPageProcessor implements FSPageProcessor {
 			_g2d = _img.createGraphics();
 
 			if (_img.getColorModel().hasAlpha()) {
+				/* We need to clear with white transparent */
+				_g2d.setBackground(new Color(255, 255, 255, 0));
 				_g2d.clearRect(0, 0, (int) _img.getWidth(), (int) _img.getHeight());
 			} else {
 				_g2d.setColor(Color.WHITE);
