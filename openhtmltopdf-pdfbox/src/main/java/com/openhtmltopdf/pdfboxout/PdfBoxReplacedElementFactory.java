@@ -20,11 +20,7 @@
 package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.css.constants.CSSName;
-import com.openhtmltopdf.extend.FSImage;
-import com.openhtmltopdf.extend.ReplacedElement;
-import com.openhtmltopdf.extend.ReplacedElementFactory;
-import com.openhtmltopdf.extend.SVGDrawer;
-import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.simple.extend.FormSubmissionListener;
@@ -33,10 +29,12 @@ import org.w3c.dom.Element;
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
     private final PdfBoxOutputDevice _outputDevice;
     private final SVGDrawer _svgImpl;
+    private final FSObjectDrawerFactory _objectDrawerFactory;
 
-    public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice, SVGDrawer svgImpl) {
+    public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice, SVGDrawer svgImpl, FSObjectDrawerFactory objectDrawerFactory) {
         _outputDevice = outputDevice;
         _svgImpl = svgImpl;
+        _objectDrawerFactory = objectDrawerFactory;
     }
 
     public ReplacedElement createReplacedElement(LayoutContext c, BlockBox box,
@@ -122,6 +120,11 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                 result.setAnchorName(name);
             }
             return result;
+        } else if (nodeName.equals("object") && _objectDrawerFactory != null) {
+			FSObjectDrawer drawer = _objectDrawerFactory.createDrawer(e);
+			if (drawer != null)
+				return new PdfBoxObjectDrawerReplacedElement(e, drawer, cssWidth, cssHeight,
+						c.getSharedContext().getDotsPerPixel());
         }
 
         return null;
