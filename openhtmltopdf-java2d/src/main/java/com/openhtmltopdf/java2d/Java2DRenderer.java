@@ -1,30 +1,12 @@
 package com.openhtmltopdf.java2d;
 
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Rectangle2D;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.extend.FSCache;
-import com.openhtmltopdf.extend.FSUriResolver;
-import com.openhtmltopdf.extend.HttpStreamFactory;
-import com.openhtmltopdf.extend.NamespaceHandler;
-import com.openhtmltopdf.extend.SVGDrawer;
+import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.java2d.api.FSPage;
 import com.openhtmltopdf.java2d.api.FSPageProcessor;
 import com.openhtmltopdf.java2d.api.IJava2DRenderer;
@@ -42,10 +24,19 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
-import com.openhtmltopdf.swing.AWTFontResolver;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
 
 public class Java2DRenderer implements IJava2DRenderer {
 	private Document _doc;
@@ -65,10 +56,11 @@ public class Java2DRenderer implements IJava2DRenderer {
     private static final int DEFAULT_DPI = 72;
     
     private final int _initialPageNo;
-	
-	/**
+    private final short _pagingMode;
+
+
+    /**
 	 * Subject to change. Not public API. Used exclusively by the Java2DRendererBuilder class. 
-	 * @param _layoutGraphics 
 	 */
 	public Java2DRenderer(
 			BaseDocument doc,
@@ -82,8 +74,9 @@ public class Java2DRenderer implements IJava2DRenderer {
 			boolean testMode,
 			FSPageProcessor pageProcessor,
 			Graphics2D layoutGraphics,
-			int initialPageNumber) {
-	
+			int initialPageNumber, short pagingMode) {
+
+	    _pagingMode = pagingMode;
 		_pageProcessor = pageProcessor;
 		_initialPageNo = initialPageNumber;		
 		_svgImpl = svgImpl;
@@ -314,13 +307,48 @@ public class Java2DRenderer implements IJava2DRenderer {
         FSPage pg = _pageProcessor.createPage(zeroBasedPageNumber, (int) pageSize.getWidth(), (int) pageSize.getHeight());
         
         _outputDevice.initializePage(pg.getGraphics());
-        _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
+        _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
 
         c.setPageCount(pages.size());
         c.setPage(zeroBasedPageNumber, page);
         paintPage(c, page);
         _pageProcessor.finishPage(pg);
         
+        _outputDevice.finish(c, _root);
+    }
+
+    public void writeSinglePage(){
+        List<PageBox> pages = _root.getLayer().getPages();
+
+        RenderingContext c = newRenderingContext();
+        c.setInitialPageNo(_initialPageNo);
+
+        PageBox page = pages.get(0);
+        Rectangle2D pageSize = new Rectangle2D.Float(0, 0,
+                page.getWidth(c) / DEFAULT_DOTS_PER_PIXEL,
+                 _root.getHeight()/ DEFAULT_DOTS_PER_PIXEL);
+
+        _outputDevice.setRoot(_root);
+
+        FSPage pg = _pageProcessor.createPage(0, (int) pageSize.getWidth(), _root.getHeight());
+
+        _outputDevice.initializePage(pg.getGraphics());
+        _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
+
+        c.setPageCount(pages.size());
+        c.setPage(0, page);
+
+        page.paintBackground(c, 0, _pagingMode);
+        page.paintMarginAreas(c, 0, _pagingMode);
+        page.paintBorder(c, 0, _pagingMode);
+
+        Shape working = _outputDevice.getClip();
+
+        _root.getLayer().paint(c);
+
+        _outputDevice.setClip(working);
+        _pageProcessor.finishPage(pg);
+
         _outputDevice.finish(c, _root);
     }
     
@@ -334,7 +362,7 @@ public class Java2DRenderer implements IJava2DRenderer {
         FSPage pg = _pageProcessor.createPage(0, (int) firstPageSize.getWidth(), (int) firstPageSize.getHeight());
         
         _outputDevice.initializePage(pg.getGraphics());
-        _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
+        _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
 
         int pageCount = _root.getLayer().getPages().size();
         c.setPageCount(pageCount);
@@ -360,9 +388,9 @@ public class Java2DRenderer implements IJava2DRenderer {
     }
     
     private void paintPage(RenderingContext c, PageBox page) throws IOException {
-        page.paintBackground(c, 0, Layer.PAGED_MODE_PRINT);
-        page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
-        page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
+        page.paintBackground(c, 0, _pagingMode);
+        page.paintMarginAreas(c, 0, _pagingMode);
+        page.paintBorder(c, 0, _pagingMode);
 
         Shape working = _outputDevice.getClip();
 
@@ -378,4 +406,5 @@ public class Java2DRenderer implements IJava2DRenderer {
 
         _outputDevice.setClip(working);
     }
+
 }
