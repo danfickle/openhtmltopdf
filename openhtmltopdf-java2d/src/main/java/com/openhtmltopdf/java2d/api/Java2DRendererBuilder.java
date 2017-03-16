@@ -1,23 +1,24 @@
 package com.openhtmltopdf.java2d.api;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.openhtmltopdf.layout.Layer;
+import org.w3c.dom.Document;
+
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.java2d.Java2DRenderer;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.swing.EmptyReplacedElement;
-import com.openhtmltopdf.java2d.Java2DRenderer;
-
-import org.w3c.dom.Document;
-
-import java.awt.Graphics2D;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Build a Java2D renderer for a given HTML. The renderer allows to get a
@@ -49,8 +50,9 @@ public class Java2DRendererBuilder {
     private boolean _testMode = false;
     private Graphics2D _layoutGraphics;
     private int _initialPageNumber;
-    
-    public static enum TextDirection { RTL, LTR; }
+    private short _pagingMode = Layer.PAGED_MODE_PRINT;
+
+	public static enum TextDirection { RTL, LTR; }
     public static enum PageSizeUnits { MM, INCHES }
     public static enum FontStyle { NORMAL, ITALIC, OBLIQUE }
     
@@ -297,7 +299,6 @@ public class Java2DRendererBuilder {
      * @param fontFamily
      * @param fontWeight
      * @param fontStyle
-     * @param subset
      * @return
      */
     public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight, FontStyle fontStyle) {
@@ -340,6 +341,16 @@ public class Java2DRendererBuilder {
     	return this;
     }
 
+    /**
+     * Render everything to a single page. I.e. only one big page is genereated,
+	 * no pagebreak will be done. The page is only as height as needed.
+     */
+    public Java2DRendererBuilder toSinglePage(FSPageProcessor pageProcessor){
+    	this._pagingMode = Layer.PAGED_MODE_SCREEN;
+    	this._pageProcessor = pageProcessor;
+    	return this;
+	}
+
 	/**
 	 * Output the document in paged format. The user can use the DefaultPageProcessor or use its source
 	 * as a reference to code their own page processor for advanced usage.
@@ -347,6 +358,7 @@ public class Java2DRendererBuilder {
 	 * @return
 	 */
 	public Java2DRendererBuilder toPageProcessor(FSPageProcessor pageProcessor) {
+		this._pagingMode = Layer.PAGED_MODE_PRINT;
 		this._pageProcessor = pageProcessor;
 		return this;
 	}
@@ -361,7 +373,10 @@ public class Java2DRendererBuilder {
 	public void runPaged() throws Exception {
 		Java2DRenderer renderer = this.buildJava2DRenderer();
 		renderer.layout();
-		renderer.writePages();
+		if( _pagingMode == Layer.PAGED_MODE_PRINT)
+			renderer.writePages();
+		else
+			renderer.writeSinglePage();
 	}
 
 	/**
@@ -374,7 +389,10 @@ public class Java2DRendererBuilder {
 	public void runFirstPage() throws Exception {
 		Java2DRenderer renderer = this.buildJava2DRenderer();
 		renderer.layout();
-		renderer.writePage(0);
+		if( _pagingMode == Layer.PAGED_MODE_PRINT)
+			renderer.writePage(0);
+		else
+			renderer.writeSinglePage();
 	}
 	
 	public Java2DRenderer buildJava2DRenderer() {
@@ -384,8 +402,16 @@ public class Java2DRendererBuilder {
         PageDimensions pageSize = new PageDimensions(_pageWidth, _pageHeight, _isPageSizeInches);
         
         BaseDocument doc = new BaseDocument(_baseUri, _html, _document, _file, _uri);
-        
-        return new Java2DRenderer(doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, pageSize, _replacementText, _testMode, _pageProcessor, _layoutGraphics, _initialPageNumber);
+
+        /*
+         * If no layout graphics is provied, just use a sane default
+         */
+        if(_layoutGraphics == null ) {
+			BufferedImage bf = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+			_layoutGraphics = bf.createGraphics();
+		}
+
+        return new Java2DRenderer(doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, pageSize, _replacementText, _testMode, _pageProcessor, _layoutGraphics, _initialPageNumber, _pagingMode);
     }
 
 	public static abstract class Graphics2DPaintingReplacedElement extends EmptyReplacedElement {

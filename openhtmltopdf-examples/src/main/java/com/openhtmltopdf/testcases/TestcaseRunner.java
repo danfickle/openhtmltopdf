@@ -2,9 +2,12 @@ package com.openhtmltopdf.testcases;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.java2d.api.BufferedImagePageProcessor;
+import com.openhtmltopdf.java2d.api.DefaultPageProcessor;
+import com.openhtmltopdf.java2d.api.FSPageOutputStreamSupplier;
+import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
-import com.openhtmltopdf.simple.Java2DRendererBuilder;
 import com.openhtmltopdf.extend.FSObjectDrawer;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
@@ -162,13 +165,33 @@ public class TestcaseRunner {
 		}
 	}
 
-	private static void renderPNG(String html, OutputStream outputStream) throws IOException {
+	private static void renderPNG(String html, final String filename) throws Exception {
 		Java2DRendererBuilder builder = new Java2DRendererBuilder();
 		builder.useSVGDrawer(new BatikSVGDrawer());
 		builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
-		BufferedImage image = builder.build().renderToImage(512, BufferedImage.TYPE_3BYTE_BGR);
-		ImageIO.write(image, "PNG", outputStream);
-		outputStream.close();
+		BufferedImagePageProcessor bufferedImagePageProcessor = new BufferedImagePageProcessor(
+				BufferedImage.TYPE_INT_RGB, 2.0);
+		builder.useDefaultPageSize(210, 297, Java2DRendererBuilder.PageSizeUnits.MM);
+
+		/*
+		 * Render Single Page Image
+		 */
+		builder.toSinglePage(bufferedImagePageProcessor).runFirstPage();
+		BufferedImage image = bufferedImagePageProcessor.getPageImages().get(0);
+
+		FileOutputStream output = new FileOutputStream(filename);
+		ImageIO.write(image, "PNG", output);
+		output.close();
+
+		/*
+		 * Render Multipage Image Files
+		 */
+		builder.toPageProcessor(new DefaultPageProcessor(new FSPageOutputStreamSupplier() {
+			@Override
+			public OutputStream supply(int zeroBasedPageNumber) throws IOException {
+				return new FileOutputStream(filename.replace(".png", "_" + zeroBasedPageNumber + ".png"));
+			}
+		}, BufferedImage.TYPE_INT_ARGB, "PNG")).runPaged();
 	}
 
 	public static void runTestCase(String testCaseFile) throws Exception {
@@ -182,8 +205,7 @@ public class TestcaseRunner {
 		renderPDF(html, outputStream);
 		System.out.println("Wrote " + testCaseOutputFile);
 
-		FileOutputStream outputStreamPNG = new FileOutputStream(testCaseOutputPNGFile);
-		renderPNG(html, outputStreamPNG);
+		renderPNG(html, testCaseOutputPNGFile);
 	}
 
 	public static class SampleObjectDrawerBinaryTree implements FSObjectDrawer {
