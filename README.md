@@ -6,7 +6,7 @@ OPEN HTML TO PDF
 OVERVIEW
 ========
 Open HTML to PDF is a pure-Java library for rendering arbitrary well-formed XML/XHTML (and even HTML5)
-using CSS 2.1 for layout and formatting, output to PDF.
+using CSS 2.1 for layout and formatting, outputting to PDF or images.
 
 GETTING STARTED
 ========
@@ -50,7 +50,12 @@ CHANGELOG
 
 head - 0.0.1-RC10-SNAPSHOT
 ========
-+ [Support for inline SVG images](https://github.com/danfickle/openhtmltopdf/issues/23)
+
+
+0.0.1-RC10
+========
++ [Support for inline SVG images](https://github.com/danfickle/openhtmltopdf/issues/23) Thanks @rototor
++ [Support for outputting paged or continuous images](https://github.com/danfickle/openhtmltopdf/issues/73#issuecomment-291070264) Thanks @rototor
 
 
 0.0.1-RC9

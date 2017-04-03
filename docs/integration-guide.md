@@ -4,7 +4,7 @@ OPEN HTML TO PDF
 GETTING OPEN HTML TO PDF
 ========
 New releases of Open HTML to PDF will be distributed through Maven.  Search maven for [com.openhtmltopdf](http://mvnrepository.com/artifact/com.openhtmltopdf).
-Current maven release is ````0.0.1-RC9````. If you would like to be notified of new releases, please subscribe to the [Maven issue](https://github.com/danfickle/openhtmltopdf/issues/7).
+Current maven release is ````0.0.1-RC10````. If you would like to be notified of new releases, please subscribe to the [Maven issue](https://github.com/danfickle/openhtmltopdf/issues/7).
 
 MAVEN ARTIFACTS
 ========
@@ -12,7 +12,7 @@ Add these to your maven dependencies section as needed:
 ````xml
   	<properties>
   		<!-- Define the version of OPEN HTML TO PDF in the properties section of your POM. -->  	       
-  		<openhtml.version>0.0.1-RC9</openhtml.version>
+  		<openhtml.version>0.0.1-RC10</openhtml.version>
   	</properties>
 
   	<dependency>
@@ -26,6 +26,13 @@ Add these to your maven dependencies section as needed:
   		<!-- Required for PDF output. -->
   		<groupId>com.openhtmltopdf</groupId>
   		<artifactId>openhtmltopdf-pdfbox</artifactId>
+  		<version>${openhtml.version}</version>
+  	</dependency>
+  	
+  	<dependency>
+  		<!-- Required for image output only. -->  	
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-java2d</artifactId>
   		<version>${openhtml.version}</version>
   	</dependency>
   	
@@ -260,9 +267,20 @@ Add the appropriate maven module, then at the start of your code, before calling
   XRLog.setLoggerImpl(new Log4JXRLogger());    
 ````
 
+SVG SUPPORT
+=======
+Add the appropriate maven module and include this line in your builder code:
+````java
+  builder.useSVGDrawer(new BatikSVGDrawer());
+````
+
+IMAGE OUTPUT
+=======
+For an example of outputting to images see [issue #73](https://github.com/danfickle/openhtmltopdf/issues/73#issuecomment-291070264)
+
+
 COMING SOON
 =======
-+ SVG support.
 + Loads more (stay tuned).
 
 FINALLY
