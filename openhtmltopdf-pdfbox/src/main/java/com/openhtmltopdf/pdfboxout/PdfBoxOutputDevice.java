@@ -1258,7 +1258,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     // Class for storing metadata element name/content pairs from the head
     // section of an xhtml document.
-    private static class Metadata {
+    static class Metadata {
         private String _name;
         private String _content;
 
@@ -1285,6 +1285,14 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     // Metadata end
+
+
+    /**
+     * @return All metadata entries
+     */
+    List<Metadata> getMetadata() {
+        return _metadata;
+    }
 
     public SharedContext getSharedContext() {
         return _sharedContext;
