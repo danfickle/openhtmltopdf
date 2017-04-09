@@ -273,6 +273,32 @@ public class PdfContentStreamAdapter {
         }
     }
 
+    public void drawArray(Object[] array) {
+        try {
+            cs.appendRawCommands("[");
+
+            boolean lastWasNumber = false;
+            for (Object obj : array) {
+                if (obj instanceof String) {
+                    drawString((String) obj);
+                    lastWasNumber = false;
+                } else {
+                    if (lastWasNumber) {
+                        cs.appendRawCommands(' ');
+                    } else {
+                        lastWasNumber = true;
+                    }
+
+                    cs.appendRawCommands((Float) obj);
+                }
+            }
+            cs.appendRawCommands("]TJ");
+            cs.appendRawCommands('\n');
+        } catch (IOException e) {
+            logAndThrow("drawArray", e);
+        }
+    }
+
     public void drawImage(PDImageXObject xobject, float x, float y, float w,
             float h) {
         try {
