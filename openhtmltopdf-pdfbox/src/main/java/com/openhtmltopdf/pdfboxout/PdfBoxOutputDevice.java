@@ -547,7 +547,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         if (info != null ) {
             // Justification must be done through TJ rendering because Tw param is not working for UNICODE fonts
             Object[] array = makeJustificationArray(s, info);
-            _cp.drawArray(array);
+            _cp.drawStringWithPositioning(array);
         } else {
             _cp.setTextSpacing(0.0f);
             _cp.setSpaceSpacing(0.0f);

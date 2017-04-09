@@ -273,29 +273,11 @@ public class PdfContentStreamAdapter {
         }
     }
 
-    public void drawArray(Object[] array) {
+    public void drawStringWithPositioning(Object[] array) {
         try {
-            cs.appendRawCommands("[");
-
-            boolean lastWasNumber = false;
-            for (Object obj : array) {
-                if (obj instanceof String) {
-                    drawString((String) obj);
-                    lastWasNumber = false;
-                } else {
-                    if (lastWasNumber) {
-                        cs.appendRawCommands(' ');
-                    } else {
-                        lastWasNumber = true;
-                    }
-
-                    cs.appendRawCommands((Float) obj);
-                }
-            }
-            cs.appendRawCommands("]TJ");
-            cs.appendRawCommands('\n');
+            cs.showTextWithPositioning(array);
         } catch (IOException e) {
-            logAndThrow("drawArray", e);
+            logAndThrow("drawString", e);
         }
     }
 
