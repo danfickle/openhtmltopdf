@@ -545,16 +545,36 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _cp.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
 
         if (info != null ) {
-            // The JustificationInfo numbers need to be normalized using the current document DPI
-            _cp.setTextSpacing(info.getNonSpaceAdjust() / _dotsPerPoint);
-            _cp.setSpaceSpacing(info.getSpaceAdjust() / _dotsPerPoint);
+            // Justification must be done through TJ rendering because Tw param is not working for UNICODE fonts
+            Object[] array = makeJustificationArray(s, info);
+            _cp.drawArray(array);
         } else {
             _cp.setTextSpacing(0.0f);
             _cp.setSpaceSpacing(0.0f);
+            _cp.drawString(s);
         }
-        
-        _cp.drawString(s);
+
         _cp.endText();
+    }
+
+    private Object[] makeJustificationArray(String s, JustificationInfo info) {
+        List data = new ArrayList();
+
+        int len = s.length();
+        for (int i = 0; i < len; i++) {
+            char c = s.charAt(i);
+            data.add(Character.toString(c));
+            if (i != len - 1) {
+                float offset;
+                if (c == ' ' || c == '\u00a0' || c == '\u3000') {
+                    offset = info.getSpaceAdjust();
+                } else {
+                    offset = info.getNonSpaceAdjust();
+                }
+                data.add((-offset / _dotsPerPoint) * 1000 / (_font.getSize2D() / _dotsPerPoint));
+            }
+        }
+        return data.toArray();
     }
     
     public static class FontRun {
