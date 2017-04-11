@@ -25,13 +25,7 @@ import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.extend.FSCache;
-import com.openhtmltopdf.extend.FSObjectDrawerFactory;
-import com.openhtmltopdf.extend.FSUriResolver;
-import com.openhtmltopdf.extend.HttpStreamFactory;
-import com.openhtmltopdf.extend.NamespaceHandler;
-import com.openhtmltopdf.extend.SVGDrawer;
-import com.openhtmltopdf.extend.UserInterface;
+import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
@@ -39,6 +33,7 @@ import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
+import com.openhtmltopdf.pdfboxout.PdfBoxOutputDevice.Metadata;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -611,28 +606,27 @@ public class PdfBoxRenderer {
 
     // Sets the document information dictionary values from html metadata
     private void setDidValues(PDDocument doc) {
-        String v = _outputDevice.getMetadataByName("title");
-
         PDDocumentInformation info = new PDDocumentInformation();
-        
-        if (v != null) {
-            info.setTitle(v);
-        }
-        v = _outputDevice.getMetadataByName("author");
-        if (v != null) {
-            info.setAuthor(v);
-        }
-        v = _outputDevice.getMetadataByName("subject");
-        if (v != null) {
-            info.setSubject(v);
-        }
-        v = _outputDevice.getMetadataByName("keywords");
-        if (v != null) {
-            info.setKeywords(v);
-        }
         
         info.setCreationDate(Calendar.getInstance());
         info.setProducer("openhtmltopdf.com");
+
+        for (Metadata metadata : _outputDevice.getMetadata()) {
+        	String name = metadata.getName();
+        	String content = metadata.getContent();
+        	if( content == null )
+        	    continue;
+            if( name.equals("title"))
+                info.setTitle(content);
+            else if( name.equals("author"))
+                info.setAuthor(content);
+            else if(name.equals("subject"))
+                info.setSubject(content);
+            else if(name.equals("keywords"))
+                info.setKeywords(content);
+            else
+                info.setCustomMetadataValue(name,content);
+        }
 
         doc.setDocumentInformation(info);
     }
