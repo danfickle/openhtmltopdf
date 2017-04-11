@@ -51,6 +51,7 @@ public class Java2DRendererBuilder {
     private Graphics2D _layoutGraphics;
     private int _initialPageNumber;
     private short _pagingMode = Layer.PAGED_MODE_PRINT;
+	private FSObjectDrawerFactory _objectDrawerFactory;
 
 	public static enum TextDirection { RTL, LTR; }
     public static enum PageSizeUnits { MM, INCHES }
@@ -411,8 +412,18 @@ public class Java2DRendererBuilder {
 			_layoutGraphics = bf.createGraphics();
 		}
 
-        return new Java2DRenderer(doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, pageSize, _replacementText, _testMode, _pageProcessor, _layoutGraphics, _initialPageNumber, _pagingMode);
+        return new Java2DRenderer(doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, pageSize, _replacementText, _testMode, _pageProcessor, _layoutGraphics, _initialPageNumber, _pagingMode, _objectDrawerFactory);
     }
+
+	/**
+	 * Set a factory for &lt;object&gt; drawers
+	 * @param objectDrawerFactory Object Drawer Factory
+	 * @return this for method chaining
+	 */
+	public Java2DRendererBuilder useObjectDrawerFactory(FSObjectDrawerFactory objectDrawerFactory) {
+		this._objectDrawerFactory = objectDrawerFactory;
+		return this;
+	}
 
 	public static abstract class Graphics2DPaintingReplacedElement extends EmptyReplacedElement {
 		protected Graphics2DPaintingReplacedElement(int width, int height) {
