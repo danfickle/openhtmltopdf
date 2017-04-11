@@ -27,25 +27,24 @@ import com.openhtmltopdf.render.*;
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
+import java.util.List;
 
 public interface OutputDevice {
-
-	// Required for SVG output.
-	public void saveState();
-	public void restoreState();
-
-	/**
-	 * Apply the given transform on top of the current one. You should
-	 * use saveState() and restoreState() to restore the transform after you are done with whatever you would like to do here
-	 */
-	public void applyTransform(AffineTransform transform);
-	
 	public void setPaint(Paint paint);
 	public void setAlpha(int alpha);
+
+	// Required for CSS transforms.
+
+	/**
+	 * Apply the given transform on top of the current one in the PDF graphics stream.
+	 * This is a cumulative operation. You should popTransform after the box and children are painted.
+	 * @return 
+	 */
+	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms);
+	public void popTransforms(List<AffineTransform> inverse);
 	
-	public void setRawClip(Shape s);
-	public void rawClip(Shape s);
-	public Shape getRawClip();
+	float getAbsoluteTransformOriginX();
+	float getAbsoluteTransformOriginY();
 	
 	// And the rest.
     public void drawText(RenderingContext c, InlineText inlineText);
@@ -102,4 +101,10 @@ public interface OutputDevice {
     public boolean isSupportsSelection();
     
     public boolean isSupportsCMYKColors();
+
+    /**
+     * Draw something using a Graphics2D at the given rectangle.
+     */
+    public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer);
+
 }

@@ -959,6 +959,10 @@ public class CalculatedStyle {
     }
 
     public boolean requiresLayer() {
+    	if (!isIdent(CSSName.TRANSFORM, IdentValue.NONE)) {
+    		return true;
+    	}
+    	
         FSDerivedValue value = valueByName(CSSName.POSITION);
 
         if (value instanceof FunctionValue) {  // running(header)

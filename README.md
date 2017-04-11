@@ -6,7 +6,7 @@ OPEN HTML TO PDF
 OVERVIEW
 ========
 Open HTML to PDF is a pure-Java library for rendering arbitrary well-formed XML/XHTML (and even HTML5)
-using CSS 2.1 for layout and formatting, output to PDF.
+using CSS 2.1 for layout and formatting, outputting to PDF or images.
 
 GETTING STARTED
 ========
@@ -48,8 +48,25 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC8-SNAPSHOT
+head - 0.0.1-RC10-SNAPSHOT
 ========
+
+
+0.0.1-RC10
+========
++ [Support for inline SVG images](https://github.com/danfickle/openhtmltopdf/issues/23) Thanks @rototor
++ [Support for outputting paged or continuous images](https://github.com/danfickle/openhtmltopdf/issues/73#issuecomment-291070264) Thanks @rototor
+
+
+0.0.1-RC9
+========
++ [Don't output acroform for formless document](https://github.com/danfickle/openhtmltopdf/issues/52) Thanks @aleksandr-m
++ [Upgraded to PDFBox 2.0.4](https://github.com/danfickle/openhtmltopdf/issues/59) Thanks PDFBox team
++ [Fixed memory leak - properly - in image processing on some JREs](https://github.com/danfickle/openhtmltopdf/issues/51) Thanks @skjardenCode and @MartyMcMartface
+
+0.0.1-RC8
+========
++ [Initial support for CSS transform property](https://github.com/danfickle/openhtmltopdf/issues/38) Thanks @rototor
 + [Add support for max-width and max-height on img elements](https://github.com/danfickle/openhtmltopdf/pull/48) Thanks @achuinard
 
 0.0.1-RC7

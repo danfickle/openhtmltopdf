@@ -3,6 +3,7 @@ package com.openhtmltopdf.pdfboxout;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -11,6 +12,7 @@ import javax.imageio.stream.ImageInputStream;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxImage implements FSImage {
     private byte[] _bytes;
@@ -29,12 +31,13 @@ public class PdfBoxImage implements FSImage {
 
         ImageInputStream in = ImageIO
                 .createImageInputStream(new ByteArrayInputStream(_bytes));
-
+        ImageReader reader = null;
+        
         try {
             Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
 
             if (readers.hasNext()) {
-                ImageReader reader = readers.next();
+                reader = readers.next();
                 reader.setInput(in);
                 _intrinsicWidth = reader.getWidth(0);
                 _intrinsicHeight = reader.getHeight(0);
@@ -45,12 +48,15 @@ public class PdfBoxImage implements FSImage {
                         || type.equalsIgnoreCase("jpg") || type
                         .equalsIgnoreCase("jfif"));
             } else {
+                XRLog.load(Level.WARNING, "Unrecognized image format for: " + uri);
                 // TODO: Avoid throw here.
                 throw new IOException("Unrecognized Image format");
             }
         } finally {
             if (in != null)
                 in.close();
+            if (reader != null)
+                reader.dispose();
         }
     }
 

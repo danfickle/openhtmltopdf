@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.extend.FSGlyphVector;
 import com.openhtmltopdf.extend.FontContext;
 import com.openhtmltopdf.extend.OutputDevice;
@@ -189,9 +190,9 @@ public class Java2DTextRenderer implements TextRenderer {
         graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, fracHint);
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void setup(FontContext fontContext) {
+    /** {@inheritDoc} 
+     * @param bidiReorderer */
+    public void setup(FontContext fontContext, BidiReorderer bidiReorderer) {
         //Uu.p("setup graphics called");
 //        ((Java2DFontContext)fontContext).getGraphics().setRenderingHint( 
 //                RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF );
@@ -470,5 +471,11 @@ public class Java2DTextRenderer implements TextRenderer {
         
         return new AWTFSGlyphVector(vector);
     }
+
+	@Override
+	public void setup(FontContext context) {
+		// TODO Auto-generated method stub
+		
+	}
 }
 

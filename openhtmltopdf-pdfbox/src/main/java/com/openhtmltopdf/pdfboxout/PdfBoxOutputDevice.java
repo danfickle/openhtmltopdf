@@ -29,12 +29,16 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
+
+import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
+
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -42,6 +46,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -58,6 +63,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.imageio.ImageIO;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.*;
@@ -111,10 +117,20 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     // It translates positions to implement page margins.
     private AffineTransform _transform = new AffineTransform();
     
-    // TODO: Make this work.
-    private AffineTransform _currentTransform = new AffineTransform();
+    // A stack of currently in force transforms on the PDF graphics state.
+    // NOTE: Transforms are cumulative and order is important.
+    // After the graphics state is restored in setClip we must appropriately reapply the transforms
+    // that should be in effect.
     private final Deque<AffineTransform> transformStack = new ArrayDeque<AffineTransform>();
 
+    // An index into the transformStack. When we save state we set this to the length of transformStack
+    // then we know we have to reapply those transforms set after saving state upon restoring state.
+    private int clipTransformIndex;
+    
+    // We use these to keep track of where the current transform-origin is in absolute internal dots units.
+    private float _absoluteTransformOriginX = 0;
+    private float _absoluteTransformOriginY = 0;
+    
     // The desired color as set by setColor.
     // To make sure this color is set on the PDF graphics stream call ensureFillColor or ensureStrokeColor.
     private FSColor _color = FSRGBColor.BLACK;
@@ -228,11 +244,12 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         // We call saveGraphics so we can get back to a raw (unclipped) state after we have clipped.
         // restoreGraphics is only used by setClip and page finish.
         _cp.saveGraphics();
-
-        _currentTransform = new AffineTransform();
         
         _transform = new AffineTransform();
         _transform.scale(1.0d / _dotsPerPoint, 1.0d / _dotsPerPoint);
+
+        _absoluteTransformOriginX = 0;
+        _absoluteTransformOriginY += height * _dotsPerPoint;
 
         _stroke = transformStroke(STROKE_ONE);
         _originalStroke = _stroke;
@@ -345,19 +362,21 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             resources.put(COSName.getPDFName(fnt.getValue()), fnt.getKey());
         }
         
-        int start = 0;
-        PDAcroForm acro = new PDAcroForm(_writer);
+        if (forms.size() != 0) {
+            int start = 0;
+            PDAcroForm acro = new PDAcroForm(_writer);
 
-        acro.setNeedAppearances(Boolean.TRUE);
-        acro.setDefaultResources(resources);
+            acro.setNeedAppearances(Boolean.TRUE);
+            acro.setDefaultResources(resources);
         
-        _writer.getDocumentCatalog().setAcroForm(acro);
+            _writer.getDocumentCatalog().setAcroForm(acro);
         
-        for (PdfBoxForm frm : forms.values()) {
-            try {
-                start = 1 + frm.process(acro, start, _root, this);
-            } catch (IOException e) {
-                throw new PdfContentStreamAdapter.PdfException("processControls", e);
+            for (PdfBoxForm frm : forms.values()) {
+                try {
+                    start = 1 + frm.process(acro, start, _root, this);
+                } catch (IOException e) {
+                    throw new PdfContentStreamAdapter.PdfException("processControls", e);
+                }
             }
         }
     }
@@ -858,8 +877,19 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void setClip(Shape s) {
+        // Restore graphics to get back to a no-clip situation.
         _cp.restoreGraphics();
+
+        // Reapply the transforms that are in effect.
+        reapplyTransforms();
+        
+        // Save graphics so we can do this again.
         _cp.saveGraphics();
+        
+        // Set the index so we know which transforms have to be reapplied
+        // when we next restore graphics.
+        clipTransformIndex = transformStack.size();
+        
         if (s != null)
             s = _transform.createTransformedShape(s);
         if (s == null) {
@@ -1289,6 +1319,58 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         return true;
     }
 
+    @Override
+    public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer) {
+        try {
+            PdfBoxGraphics2D pdfBoxGraphics2D = new PdfBoxGraphics2D(_writer, (int) width, (int) height);
+            /*
+             * We *could* customize the PDF mapping here. But for now the default is enough.
+             * TODO: Font mapping.
+             */
+
+            /*
+             * Do rendering
+             */
+            renderer.render(pdfBoxGraphics2D);
+            /*
+             * Dispose to close the XStream
+             */
+            pdfBoxGraphics2D.dispose();
+
+            /*
+             * We convert from 72dpi of the Graphics2D device to our 96dpi
+             * using the output matrix of the XForm object.
+             * FIXME: Probably want to make this configurable.
+             */
+            PDFormXObject xFormObject = pdfBoxGraphics2D.getXFormObject();
+            xFormObject.setMatrix(AffineTransform.getScaleInstance(72f / 96f, 72f / 96f));
+            
+            /*
+             * Adjust the y to take into account that the y passed to placeXForm below
+             * refers to the bottom left of the object while we were passed in y the 
+             * position of the top left corner.
+             * FIXME: Make DPI conversion configurable (as above).
+             */
+            y += (height) * _dotsPerPoint * (72f / 96f);
+
+            /*
+             * Use the page transform to convert from _dotsPerPoint units to 
+             * PDF units. Also takes care of page margins.
+             */
+            Point2D p = new Point2D.Float(x, y);
+            Point2D pResult = new Point2D.Float();
+            _transform.transform(p, pResult);
+
+            /*
+             * And then stamp it
+             */
+            _cp.placeXForm((float) pResult.getX(), _pageHeight - (float) pResult.getY(), xFormObject);
+        }
+        catch(IOException e){
+            throw new RuntimeException("Error while drawing on Graphics2D", e);
+        }
+    }
+
     public List findPagePositionsByID(CssContext c, Pattern pattern) {
         Map idMap = _sharedContext.getIdMap();
         if (idMap == null) {
@@ -1348,18 +1430,62 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     public void setBidiReorderer(BidiReorderer reorderer) {
         _reorderer = reorderer;
     }
-
+    
     @Override
-    public void saveState() {
-        _cp.saveGraphics();
-        transformStack.push(_currentTransform);
+    public void popTransforms(List<AffineTransform> inverse) {
+       Collections.reverse(inverse);
+       for (AffineTransform transform : inverse) {
+           transformStack.pop();
+           _cp.setPdfMatrix(transform);
+       }
+    }
+    
+    @Override
+    public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
+        List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
+        try {
+            for (AffineTransform transform : transforms) {
+                double[] mx = new double[6];
+                transform.getMatrix(mx);
+                mx[4] /= _dotsPerPoint;
+                mx[5] /= _dotsPerPoint;
+                mx[5] = -mx[5];
+               
+                AffineTransform normalized = new AffineTransform(mx);
+                inverse.add(normalized.createInverse());
+                transformStack.push(normalized);
+                _cp.setPdfMatrix(normalized);
+            }
+        } catch (NoninvertibleTransformException e) {
+            XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
+        }
+        return inverse;
+    }
+    
+    // FIXME: Not sure if this is ever needed.
+    private void reapplyTransforms() {
+        int idx = 0;
+
+        for (Iterator<AffineTransform> iter = transformStack.descendingIterator(); iter.hasNext(); ) {
+            AffineTransform transform = iter.next();
+            if (idx >= clipTransformIndex) {
+                _cp.setPdfMatrix(transform);
+            }
+            idx++;
+        }
     }
 
     @Override
-    public void restoreState() {
-        _cp.restoreGraphics();
-        _currentTransform = transformStack.pop();
+    public float getAbsoluteTransformOriginX() {
+        return _absoluteTransformOriginX;
     }
+    
+    @Override
+    public float getAbsoluteTransformOriginY() {
+        return _absoluteTransformOriginY;
+    }
+    
+
 
     @Override
     public void setPaint(Paint paint) {
@@ -1374,33 +1500,5 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     @Override
     public void setAlpha(int alpha) {
         
-    }
-
-    @Override
-    public void setRawClip(Shape s) {
-        _clip = new Area(s);
-        followPath(s, CLIP);
-    }
-
-    @Override
-    public void rawClip(Shape s) {
-        if (_clip == null)
-            _clip = new Area(s);
-        else
-            _clip.intersect(new Area(s));
-        followPath(s, CLIP);
-    }
-    
-    @Override
-    public Shape getRawClip() {
-        return _clip;
-    }
-
-    @Override
-    public void applyTransform(AffineTransform transform) {
-    	AffineTransform calculatedTransform = new AffineTransform(transform);
-        _currentTransform.concatenate(transform);
-        calculatedTransform.concatenate(_currentTransform);
-        _cp.setPdfMatrix(calculatedTransform);
     }
 }

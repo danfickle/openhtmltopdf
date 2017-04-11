@@ -1488,8 +1488,18 @@ public class CSSParser {
                 skip_whitespace();
                 break;
             case Token.ANGLE:
+            	String unit = extractUnit(t);
+            	short type = CSSPrimitiveValue.CSS_UNKNOWN;
+
+            	if ("deg".equals(unit))
+            		type = CSSPrimitiveValue.CSS_DEG;
+            	else if ("rad".equals(unit))
+            		type = CSSPrimitiveValue.CSS_RAD;
+            	else if ("grad".equals(unit))
+            		type = CSSPrimitiveValue.CSS_GRAD;
+            	
                 result = new PropertyValue(
-                        CSSPrimitiveValue.CSS_DEG,
+                        type,
                         sign*Float.parseFloat(extractNumber(t)),
                         sign(sign) + getTokenValue(t));
                 next();

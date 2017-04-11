@@ -1,29 +1,30 @@
 package com.openhtmltopdf.pdfboxout;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.w3c.dom.Document;
-
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.FSCache;
+import com.openhtmltopdf.extend.FSObjectDrawerFactory;
 import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.extend.FSTextTransformer;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.HttpStreamFactory;
 import com.openhtmltopdf.extend.SVGDrawer;
-import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.BaseDocument;
-import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.PageDimensions;
-import com.openhtmltopdf.pdfboxout.PdfBoxRenderer.UnicodeImplementation;
+import com.openhtmltopdf.outputdevice.helper.BaseDocument;
+import com.openhtmltopdf.outputdevice.helper.PageDimensions;
+import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
+import org.w3c.dom.Document;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PdfRendererBuilder
 {
+
     public static enum TextDirection { RTL, LTR; }
     public static enum PageSizeUnits { MM, INCHES }
     public static enum FontStyle { NORMAL, ITALIC, OBLIQUE }
@@ -56,6 +57,7 @@ public class PdfRendererBuilder
     private FSTextTransformer _unicodeToUpperTransformer;
     private FSTextTransformer _unicodeToLowerTransformer;
     private FSTextTransformer _unicodeToTitleTransformer;
+    private FSObjectDrawerFactory _objectDrawerFactory;
     
     private static class AddedFont {
         private final FSSupplier<InputStream> supplier;
@@ -123,7 +125,7 @@ public class PdfRendererBuilder
         
         BaseDocument doc = new BaseDocument(_baseUri, _html, _document, _file, _uri);
         
-        return new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _replacementText, _testMode);
+        return new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _replacementText, _testMode, _objectDrawerFactory);
     }
     
     /**
@@ -392,5 +394,15 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily) {
         return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
+    }
+
+    /**
+     * Set a factory for &lt;object&gt; drawers
+     * @param _objectDrawerFactory Object Drawer Factory
+     * @return this for method chaining
+     */
+    public PdfRendererBuilder useObjectDrawerFactory(FSObjectDrawerFactory _objectDrawerFactory) {
+        this._objectDrawerFactory = _objectDrawerFactory;
+        return this;
     }
 }

@@ -34,6 +34,11 @@ import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.extend.FontResolver;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.FontFaceFontSupplier;
+import com.openhtmltopdf.outputdevice.helper.FontFamily;
+import com.openhtmltopdf.outputdevice.helper.FontFileFontSupplier;
+import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
+import com.openhtmltopdf.outputdevice.helper.MinimalFontDescription;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.util.XRLog;
 
@@ -42,7 +47,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 public class PdfBoxFontResolver implements FontResolver {
-    private Map<String, FontFamily> _fontFamilies = createInitialFontMap();
+    private Map<String, FontFamily<FontDescription>> _fontFamilies = createInitialFontMap();
     private Map<String, FontDescription> _fontCache = new HashMap<String, FontDescription>();
     private final PDDocument _doc;
     private final SharedContext _sharedContext;
@@ -68,8 +73,8 @@ public class PdfBoxFontResolver implements FontResolver {
     public void flushFontFaceFonts() {
         _fontCache = new HashMap<String, FontDescription>();
 
-        for (Iterator<FontFamily> i = _fontFamilies.values().iterator(); i.hasNext(); ) {
-            FontFamily family = i.next();
+        for (Iterator<FontFamily<FontDescription>> i = _fontFamilies.values().iterator(); i.hasNext(); ) {
+            FontFamily<FontDescription> family = i.next();
             for (Iterator<FontDescription> j = family.getFontDescriptions().iterator(); j.hasNext(); ) {
                 FontDescription d = j.next();
                 if (d.isFromFontFace()) {
@@ -79,28 +84,6 @@ public class PdfBoxFontResolver implements FontResolver {
             if (family.getFontDescriptions().size() == 0) {
                 i.remove();
             }
-        }
-    }
-    
-    private static class FontFaceFontSupplier implements FSSupplier<InputStream> {
-        private final String src;
-        private final SharedContext ctx;
-        
-        private FontFaceFontSupplier(SharedContext ctx, String src) {
-            this.src = src;
-            this.ctx = ctx;
-        }
-        
-        @Override
-        public InputStream supply() {
-            byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src);
-            
-            if (font1 == null) {
-                XRLog.exception("Could not load @font-face font: " + src);
-                return null;
-            }
-            
-            return new ByteArrayInputStream(font1);
         }
     }
 
@@ -140,25 +123,6 @@ public class PdfBoxFontResolver implements FontResolver {
         }
     }
 
-    private static class FontFileFontSupplier implements FSSupplier<InputStream> {
-
-        private final String path;
-        
-        FontFileFontSupplier(String path) {
-            this.path = path;
-        }
-        
-        @Override
-        public InputStream supply() {
-            try {
-                return new FileInputStream(this.path);
-            } catch (FileNotFoundException e) {
-                XRLog.exception("While trying to add font from directory, file seems to have disappeared.");
-                return null;
-            }
-        }
-    }
-    
     public void addFontDirectory(String dir, boolean embedded) throws IOException {
         File f = new File(dir);
         if (f.isDirectory()) {
@@ -178,7 +142,7 @@ public class PdfBoxFontResolver implements FontResolver {
 
     public void addFont(FSSupplier<InputStream> supplier, String fontFamilyNameOverride, 
             Integer fontWeightOverride, IdentValue fontStyleOverride, boolean subset) {
-        FontFamily fontFamily = getFontFamily(fontFamilyNameOverride);
+        FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
         
         FontDescription descr = new FontDescription(
                 _doc,
@@ -199,11 +163,11 @@ public class PdfBoxFontResolver implements FontResolver {
             String uri, boolean subset) {
         
         FSSupplier<InputStream> fontSupplier = new FontFaceFontSupplier(_sharedContext, uri);
-        FontFamily fontFamily = getFontFamily(fontFamilyNameOverride);
+        FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
         FontDescription descr = new FontDescription(
                  _doc,
                  fontSupplier,
-                 fontWeightOverride != null ? convertWeightToInt(fontWeightOverride) : 400,
+                 fontWeightOverride != null ? FontResolverHelper.convertWeightToInt(fontWeightOverride) : 400,
                  fontStyleOverride != null ? fontStyleOverride : IdentValue.NORMAL); 
         descr.setFromFontFace(true);
 
@@ -215,11 +179,10 @@ public class PdfBoxFontResolver implements FontResolver {
         }
     }
 
-    private FontFamily getFontFamily(String fontFamilyName) {
-        FontFamily fontFamily = _fontFamilies.get(fontFamilyName);
+    private FontFamily<FontDescription> getFontFamily(String fontFamilyName) {
+        FontFamily<FontDescription> fontFamily = _fontFamilies.get(fontFamilyName);
         if (fontFamily == null) {
-            fontFamily = new FontFamily();
-            fontFamily.setName(fontFamilyName);
+            fontFamily = new FontFamily<FontDescription>();
             _fontFamilies.put(fontFamilyName, fontFamily);
         }
         return fontFamily;
@@ -282,10 +245,10 @@ public class PdfBoxFontResolver implements FontResolver {
             return result;
         }
 
-        FontFamily family = _fontFamilies.get(normalizedFontFamily);
+        FontFamily<FontDescription> family = _fontFamilies.get(normalizedFontFamily);
 
         if (family != null) {
-            result = family.match(convertWeightToInt(weight), style);
+            result = family.match(FontResolverHelper.convertWeightToInt(weight), style);
 
             if (result != null) {
                 _fontCache.put(cacheKey, result);
@@ -296,46 +259,13 @@ public class PdfBoxFontResolver implements FontResolver {
         return null;
     }
 
-    private static int convertWeightToInt(IdentValue weight) {
-        if (weight == IdentValue.NORMAL) {
-            return 400;
-        } else if (weight == IdentValue.BOLD) {
-            return 700;
-        } else if (weight == IdentValue.FONT_WEIGHT_100) {
-            return 100;
-        } else if (weight == IdentValue.FONT_WEIGHT_200) {
-            return 200;
-        } else if (weight == IdentValue.FONT_WEIGHT_300) {
-            return 300;
-        } else if (weight == IdentValue.FONT_WEIGHT_400) {
-            return 400;
-        } else if (weight == IdentValue.FONT_WEIGHT_500) {
-            return 500;
-        } else if (weight == IdentValue.FONT_WEIGHT_600) {
-            return 600;
-        } else if (weight == IdentValue.FONT_WEIGHT_700) {
-            return 700;
-        } else if (weight == IdentValue.FONT_WEIGHT_800) {
-            return 800;
-        } else if (weight == IdentValue.FONT_WEIGHT_900) {
-            return 900;
-        } else if (weight == IdentValue.LIGHTER) {
-            // FIXME
-            return 400;
-        } else if (weight == IdentValue.BOLDER) {
-            // FIXME
-            return 700;
-        }
-        throw new IllegalArgumentException();
-    }
-
     protected static String getHashName(
             String name, IdentValue weight, IdentValue style) {
         return name + "-" + weight + "-" + style;
     }
 
-    private static Map<String, FontFamily> createInitialFontMap() {
-        HashMap<String, FontFamily> result = new HashMap<String, FontFamily>();
+    private static Map<String, FontFamily<FontDescription>> createInitialFontMap() {
+        HashMap<String, FontFamily<FontDescription>> result = new HashMap<String, FontFamily<FontDescription>>();
 
         try {
             addCourier(result);
@@ -359,8 +289,8 @@ public class PdfBoxFontResolver implements FontResolver {
         return font;
     }
 
-    private static void addCourier(HashMap<String, FontFamily> result) throws IOException {
-        FontFamily courier = new FontFamily();
+    private static void addCourier(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
+        FontFamily<FontDescription> courier = new FontFamily<FontDescription>();
         courier.setName("Courier");
 
         courier.addFontDescription(new FontDescription(
@@ -377,8 +307,8 @@ public class PdfBoxFontResolver implements FontResolver {
         result.put("Courier", courier);
     }
 
-    private static void addTimes(HashMap<String, FontFamily> result) throws IOException {
-        FontFamily times = new FontFamily();
+    private static void addTimes(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
+        FontFamily<FontDescription> times = new FontFamily<FontDescription>();
         times.setName("Times");
 
         times.addFontDescription(new FontDescription(
@@ -394,8 +324,8 @@ public class PdfBoxFontResolver implements FontResolver {
         result.put("TimesRoman", times);
     }
 
-    private static void addHelvetica(HashMap<String, FontFamily> result) throws IOException {
-        FontFamily helvetica = new FontFamily();
+    private static void addHelvetica(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
+        FontFamily<FontDescription> helvetica = new FontFamily<FontDescription>();
         helvetica.setName("Helvetica");
 
         helvetica.addFontDescription(new FontDescription(
@@ -412,8 +342,8 @@ public class PdfBoxFontResolver implements FontResolver {
         result.put("Helvetica", helvetica);
     }
 
-    private static void addSymbol(Map<String, FontFamily> result) throws IOException {
-        FontFamily fontFamily = new FontFamily();
+    private static void addSymbol(Map<String, FontFamily<FontDescription>> result) throws IOException {
+        FontFamily<FontDescription> fontFamily = new FontFamily<FontDescription>();
         fontFamily.setName("Symbol");
 
         fontFamily.addFontDescription(new FontDescription(createFont(PDType1Font.SYMBOL), IdentValue.NORMAL, 400));
@@ -421,8 +351,8 @@ public class PdfBoxFontResolver implements FontResolver {
         result.put("Symbol", fontFamily);
     }
 
-    private static void addZapfDingbats(Map<String, FontFamily> result) throws IOException {
-        FontFamily fontFamily = new FontFamily();
+    private static void addZapfDingbats(Map<String, FontFamily<FontDescription>> result) throws IOException {
+        FontFamily<FontDescription> fontFamily = new FontFamily<FontDescription>();
         fontFamily.setName("ZapfDingbats");
 
         fontFamily.addFontDescription(new FontDescription(createFont(PDType1Font.ZAPF_DINGBATS), IdentValue.NORMAL, 400));
@@ -479,124 +409,8 @@ public class PdfBoxFontResolver implements FontResolver {
         fontFamilyMap.put(fontFamilyName, fontFamily);
     }
 */
-    private static class FontFamily {
-        private List<FontDescription> _fontDescriptions;
 
-        private FontFamily() {
-        }
-
-        private List<FontDescription> getFontDescriptions() {
-            return _fontDescriptions;
-        }
-
-        private void addFontDescription(FontDescription descr) {
-            if (_fontDescriptions == null) {
-                _fontDescriptions = new ArrayList<FontDescription>();
-            }
-            _fontDescriptions.add(descr);
-            Collections.sort(_fontDescriptions,
-                    new Comparator<FontDescription>() {
-                        public int compare(FontDescription o1, FontDescription o2) {
-                            return o1.getWeight() - o2.getWeight();
-                        }
-            });
-        }
-
-        private void setName(String name) {
-        }
-
-        private FontDescription match(int desiredWeight, IdentValue style) {
-            if (_fontDescriptions == null) {
-                throw new RuntimeException("fontDescriptions is null");
-            }
-
-            List<FontDescription> candidates = new ArrayList<FontDescription>();
-
-            for (FontDescription description : _fontDescriptions) {
-                if (description.getStyle() == style) {
-                    candidates.add(description);
-                }
-            }
-
-            if (candidates.size() == 0) {
-                if (style == IdentValue.ITALIC) {
-                    return match(desiredWeight, IdentValue.OBLIQUE);
-                } else if (style == IdentValue.OBLIQUE) {
-                    return match(desiredWeight, IdentValue.NORMAL);
-                } else {
-                    candidates.addAll(_fontDescriptions);
-                }
-            }
-
-            FontDescription[] matches = (FontDescription[])
-                candidates.toArray(new FontDescription[candidates.size()]);
-            FontDescription result;
-
-            result = findByWeight(matches, desiredWeight, SM_EXACT);
-
-            if (result != null) {
-                return result;
-            } else {
-                if (desiredWeight <= 500) {
-                    return findByWeight(matches, desiredWeight, SM_LIGHTER_OR_DARKER);
-                } else {
-                    return findByWeight(matches, desiredWeight, SM_DARKER_OR_LIGHTER);
-                }
-            }
-        }
-
-        private static final int SM_EXACT = 1;
-        private static final int SM_LIGHTER_OR_DARKER = 2;
-        private static final int SM_DARKER_OR_LIGHTER = 3;
-
-        private FontDescription findByWeight(FontDescription[] matches,
-                int desiredWeight, int searchMode) {
-            if (searchMode == SM_EXACT) {
-                for (int i = 0; i < matches.length; i++) {
-                    FontDescription descr = matches[i];
-                    if (descr.getWeight() == desiredWeight) {
-                        return descr;
-                    }
-                }
-                return null;
-            } else if (searchMode == SM_LIGHTER_OR_DARKER){
-                int offset = 0;
-                FontDescription descr = null;
-                for (offset = 0; offset < matches.length; offset++) {
-                    descr = matches[offset];
-                    if (descr.getWeight() > desiredWeight) {
-                        break;
-                    }
-                }
-
-                if (offset > 0 && descr.getWeight() > desiredWeight) {
-                    return matches[offset-1];
-                } else {
-                    return descr;
-                }
-
-            } else if (searchMode == SM_DARKER_OR_LIGHTER) {
-                int offset = 0;
-                FontDescription descr = null;
-                for (offset = matches.length - 1; offset >= 0; offset--) {
-                    descr = matches[offset];
-                    if (descr.getWeight() < desiredWeight) {
-                        break;
-                    }
-                }
-
-                if (offset != matches.length - 1 && descr.getWeight() < desiredWeight) {
-                    return matches[offset+1];
-                } else {
-                    return descr;
-                }
-            }
-
-            return null;
-        }
-    }
-
-    public static class FontDescription {
+    public static class FontDescription implements MinimalFontDescription {
         private final IdentValue _style;
         private final int _weight;
         private final PDDocument _doc;
@@ -675,10 +489,12 @@ public class PdfBoxFontResolver implements FontResolver {
             _font = font;
         }
 
+        @Override
         public int getWeight() {
             return _weight;
         }
 
+        @Override
         public IdentValue getStyle() {
             return _style;
         }

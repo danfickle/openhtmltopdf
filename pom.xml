@@ -5,7 +5,7 @@
 
   <groupId>com.openhtmltopdf</groupId>
   <artifactId>openhtmltopdf-parent</artifactId>
-  <version>0.0.1-RC8-SNAPSHOT</version>
+  <version>0.0.1-RC11-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
@@ -30,6 +30,7 @@
     <module>openhtmltopdf-rtl-support</module>
     <module>openhtmltopdf-jsoup-dom-converter</module>
     <module>openhtmltopdf-svg-support</module>
+    <module>openhtmltopdf-java2d</module>
   </modules>
 
   <scm>

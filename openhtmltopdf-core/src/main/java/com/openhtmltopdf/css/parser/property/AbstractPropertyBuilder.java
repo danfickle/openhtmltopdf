@@ -131,6 +131,14 @@ public abstract class AbstractPropertyBuilder implements PropertyBuilder {
         }
     }
     
+    protected void checkAngleType(CSSName cssName, CSSPrimitiveValue value) {
+    	if (value.getPrimitiveType() != CSSPrimitiveValue.CSS_DEG &&
+    		value.getPrimitiveType() != CSSPrimitiveValue.CSS_RAD &&
+    		value.getPrimitiveType() != CSSPrimitiveValue.CSS_GRAD) {
+    		throw new CSSParseException("Value for " + cssName + "must be an angle (degrees, radians or grads)", -1);
+    	}
+    }
+    
     protected void checkStringType(CSSName cssName, CSSPrimitiveValue value) {
         if (value.getPrimitiveType() != CSSPrimitiveValue.CSS_STRING) {
             throw new CSSParseException("Value for " + cssName + " must be a string", -1);

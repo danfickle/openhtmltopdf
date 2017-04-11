@@ -248,9 +248,6 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             return;
         }
 
-        //c.getOutputDevice().saveState();
-        //applyTranform(c);
-        
         paintBackground(c);
         paintBorder(c);
         
@@ -285,8 +282,6 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
                 }
             }
         }
-
-        //c.getOutputDevice().restoreState();
     }
     
     public int getBorderSides() {
@@ -937,11 +932,4 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     public int getEffectiveWidth() {
         return getInlineWidth();
     }
-
-	protected void applyTranform(RenderingContext c) {
-		FSDerivedValue transform = getStyle().valueByName(CSSName.TRANSFORM);
-		if (transform.isIdent() && transform.asIdentValue() == IdentValue.NONE)
-			return;
-		FSDerivedValue transformOrigin = getStyle().valueByName(CSSName.TRANSFORM_ORIGIN);
-	}
 }

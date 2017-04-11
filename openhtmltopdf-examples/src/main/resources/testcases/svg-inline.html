@@ -1,0 +1,143 @@
+<html>
+<head>
+    <style>
+        svg {
+            border: 2px solid black;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Some inline SVG examples</h1>
+
+Some examples how inline SVG is rendered.
+
+<h2>JSON-Symbol</h2>
+
+<!-- Taken from https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/ -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 102" width="200" height="200">
+	<radialGradient id="jsongrad" cx="65" cy="90" r="100" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#EEF"/><stop offset="1"/></radialGradient>
+	<path d="M61,02 A 49,49 0,0,0 39,98 C 9,79 10,24 45,25 C 72,24 65,75 50,75 C 93,79 91,21 62,02" id="jsonswirl" fill="url(#jsongrad)"/>
+	<use xlink:href="#jsonswirl" transform="rotate(180 50,50)"/>
+</svg>
+
+<h2>Barchart</h2>
+<!--
+
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+-->
+<!-- ========================================================================= -->
+<!-- Illustrates how SVG can be used for high quality graphs.                  -->
+<!--                                                                           -->
+<!-- @author vincent.hardy@eng.sun.com                                         -->
+<!-- @author neeme.praks@one.lv                                                -->
+<!-- @version $Id$        -->
+<!-- ========================================================================= -->
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="body" width="450" height="500" xml:space="preserve" viewBox="0 0 450 500">
+    <title>Bar Chart</title>
+
+    <g id="barChart" transform="translate(40, 100)" fill-rule="evenodd" clip-rule="evenodd" stroke="none" class="legend"
+        stroke-width="1" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" style="text-anchor:start">
+
+        <g id="GridAndLegend" style="stroke:none;">
+            <g stroke="black">
+
+                <!-- "floor" and "wall" -->
+                <path fill="lightgray" stroke="darkgray" d="M 27,240 l   15,-15 v -224 l -15,15" />
+                <path fill="lightgray" stroke="darkgray" d="M 41,225 v -224     h  316 v 224" />
+                <path fill="darkgray" stroke="none"      d="M 27,240 l   15,-15 h  316 l -15,15" />
+
+				<!-- axis lines -->
+                <path d="M 27,240 h  316"/>
+                <path d="M 27,240 v -224"/>
+
+				<!-- value axis major gridlines -->
+                <g style="fill:none;">
+                    <path d="M 27,202 l 15,-15 h 316" />
+                    <path d="M 27,165 l 15,-15 h 316" />
+                    <path d="M 27,127 l 15,-15 h 316" />
+                    <path d="M 27, 90 l 15,-15 h 316" />
+                    <path d="M 27, 53 l 15,-15 h 316" />
+                </g>
+
+				<!-- category axis major ticks -->
+                <path d="M  27,245 v -5"/>
+                <path d="M 106,245 v -5"/>
+                <path d="M 185,245 v -5"/>
+                <path d="M 264,245 v -5"/>
+
+				<!-- value axis minor ticks -->
+                <path d="M 22,240 h 5"/>
+                <path d="M 22,202 h 5"/>
+                <path d="M 22,165 h 5"/>
+                <path d="M 22,127 h 5"/>
+                <path d="M 22, 90 h 5"/>
+                <path d="M 22, 53 h 5"/>
+                <path d="M 22, 15 h 5"/>
+            </g>
+
+            <text transform="matrix(1 0 0 1 54  256)">Shoe</text>
+            <text transform="matrix(1 0 0 1 142 256)">Car</text>
+            <text transform="matrix(1 0 0 1 211 256)">Travel</text>
+            <text transform="matrix(1 0 0 1 285 256)">Computer</text>
+
+            <text transform="matrix(1 0 0 1 13 247)"><tspan x="0" y="0">0</tspan></text>
+            <text transform="matrix(1 0 0 1  6 209)"><tspan x="0" y="0">10</tspan></text>
+            <text transform="matrix(1 0 0 1  6 171)"><tspan x="0" y="0">20</tspan></text>
+            <text transform="matrix(1 0 0 1  6 134)"><tspan x="0" y="0">30</tspan></text>
+            <text transform="matrix(1 0 0 1  6  96)"><tspan x="0" y="0">40</tspan></text>
+            <text transform="matrix(1 0 0 1  6  60)"><tspan x="0" y="0">50</tspan></text>
+            <text transform="matrix(1 0 0 1  6  22)"><tspan x="0" y="0">60</tspan></text>
+        </g>
+
+        <g id="ShoeBar">
+            <path style="fill:#8686E0;" d="M  86,240 v  -37 l 15    -15 v  37 l -15,15 z"/>
+            <path style="fill:#5B5B97;" d="M  86,203 h  -39 l 15    -15 h  39 l -15,15 z"/>
+            <path style="fill:#7575C3;" d="M  47,203 v   37 h 39 v  -37 H  47 z"/>
+        </g>
+        <g id="CarBar">
+            <path style="fill:#8686E0;" d="M 165,240 v  -74 l 15    -15 v  74 l -15,15 z"/>
+            <path style="fill:#5B5B97;" d="M 165,166 h  -39 l 15    -15 h  39 l -15,15 z"/>
+            <path style="fill:#7575C3;" d="M 126,166 v   74 h 39 v  -74 h -39 z"/>
+        </g>
+        <g id="TravelBar">
+            <path style="fill:#8686E0;" d="M 244,240 v  -37 l 15    -15 v  37 l -15,15 z"/>
+            <path style="fill:#5B5B97;" d="M 244,203 h  -39 l 15    -15 h  39 l -15,15 z"/>
+            <path style="fill:#7575C3;" d="M 205,203 v   37 h 39 v  -37 h -39 z"/>
+        </g>
+        <g id="ComputerBar">
+            <path style="fill:#8686E0;" d="M 323,240 v -224 l 15    -15 v 224 l -15,15 z"/>
+            <path style="fill:#5B5B97;" d="M 323, 16 h  -39 l 15    -15 h  39 l -15,15 z"/>
+            <path style="fill:#7575C3;" d="M 284, 16 v  224 h 39 v -224 h -39 z"/>
+        </g>
+
+    </g>
+
+	<!-- ============================================================= -->
+	<!-- Batik sample mark                                             -->
+	<!-- ============================================================= -->
+	<!--
+	<use xlink:href="batikLogo.svg#Batik_Tag_Box" />
+	-->
+
+</svg>
+
+<b>End of SVGs</b>
+
+</body>
+</html>

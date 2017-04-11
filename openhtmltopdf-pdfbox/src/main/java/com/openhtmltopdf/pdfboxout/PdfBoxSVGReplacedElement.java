@@ -1,13 +1,12 @@
 package com.openhtmltopdf.pdfboxout;
 
-import java.awt.Point;
-
-import org.w3c.dom.Element;
-
 import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.RenderingContext;
+import org.w3c.dom.Element;
+
+import java.awt.*;
 
 public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement {
     private final Element e;
@@ -80,6 +79,6 @@ public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement {
 
     @Override
     public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice, BlockBox box) {
-        svg.drawSVG(e, outputDevice, c, point.getX(), point.getY(), this.dotsPerPixel * 96f);
+        svg.drawSVG(e, outputDevice, c, point.getX(), point.getY(), getIntrinsicWidth(), getIntrinsicHeight(), dotsPerPixel);
     }
 }

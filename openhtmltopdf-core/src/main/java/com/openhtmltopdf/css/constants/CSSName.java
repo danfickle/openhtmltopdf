@@ -1129,20 +1129,27 @@ public final class CSSName implements Comparable {
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.TransformPropertyBuilder()
             );
+    
+    public final static CSSName FS_TRANSFORM_ORIGIN_X = 
+    		addProperty(
+    				"-fs-transform-origin-x",
+    				PRIMITIVE,
+    				"50%",
+    				NOT_INHERITED,
+    				new PrimitivePropertyBuilders.TransformOriginX()
+    		);
 
-    /**
-     * Unique CSSName instance for CSS3 property.
-     */
-    public final static CSSName TRANSFORM_ORIGIN =
-            addProperty(
-                    "transform-origin",
-                    PRIMITIVE,
-                    "50% 50%",
-                    NOT_INHERITED,
-                    new PrimitivePropertyBuilders.TransformOriginPropertyBuilder()
-            );
+    public final static CSSName FS_TRANSFORM_ORIGIN_Y = 
+    		addProperty(
+    				"-fs-transform-origin-y",
+    				PRIMITIVE,
+    				"50%",
+    				NOT_INHERITED,
+    				new PrimitivePropertyBuilders.TransformOriginY()
+    		);
 
-
+    
+    
     /**
      * Unique CSSName instance for CSS2 property.
      */
@@ -1647,6 +1654,18 @@ public final class CSSName implements Comparable {
                     "auto",
                     NOT_INHERITED,
                     new SizePropertyBuilder()
+            );
+    
+    /**
+     * Unique CSSName instance for CSS3 property.
+     */
+    public final static CSSName TRANSFORM_ORIGIN_SHORTHAND =
+            addProperty(
+                    "transform-origin",
+                    SHORTHAND,
+                    "50% 50%",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.TransformOriginPropertyBuilder()
             );
 
     public final static CSSSideProperties MARGIN_SIDE_PROPERTIES =
