@@ -398,11 +398,11 @@ public class PdfRendererBuilder
 
     /**
      * Set a factory for &lt;object&gt; drawers
-     * @param _objectDrawerFactory Object Drawer Factory
+     * @param objectDrawerFactory Object Drawer Factory
      * @return this for method chaining
      */
-    public PdfRendererBuilder useObjectDrawerFactory(FSObjectDrawerFactory _objectDrawerFactory) {
-        this._objectDrawerFactory = _objectDrawerFactory;
+    public PdfRendererBuilder useObjectDrawerFactory(FSObjectDrawerFactory objectDrawerFactory) {
+        this._objectDrawerFactory = objectDrawerFactory;
         return this;
     }
 }

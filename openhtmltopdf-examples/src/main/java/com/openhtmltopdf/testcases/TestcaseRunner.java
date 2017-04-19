@@ -152,10 +152,7 @@ public class TestcaseRunner {
 			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
 			builder.defaultTextDirection(TextDirection.LTR);
 			builder.useSVGDrawer(new BatikSVGDrawer());
-
-			DefaultObjectDrawerFactory objectDrawerFactory = new DefaultObjectDrawerFactory();
-			objectDrawerFactory.registerDrawer("custom/binary-tree", new SampleObjectDrawerBinaryTree());
-			builder.useObjectDrawerFactory(objectDrawerFactory);
+			builder.useObjectDrawerFactory(buildObjectDrawerFactory());
 
 			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
 			builder.toStream(outputStream);
@@ -165,9 +162,16 @@ public class TestcaseRunner {
 		}
 	}
 
+	private static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
+		DefaultObjectDrawerFactory objectDrawerFactory = new DefaultObjectDrawerFactory();
+		objectDrawerFactory.registerDrawer("custom/binary-tree", new SampleObjectDrawerBinaryTree());
+		return objectDrawerFactory;
+	}
+
 	private static void renderPNG(String html, final String filename) throws Exception {
 		Java2DRendererBuilder builder = new Java2DRendererBuilder();
 		builder.useSVGDrawer(new BatikSVGDrawer());
+		builder.useObjectDrawerFactory(buildObjectDrawerFactory());
 		builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
 		BufferedImagePageProcessor bufferedImagePageProcessor = new BufferedImagePageProcessor(
 				BufferedImage.TYPE_INT_RGB, 2.0);

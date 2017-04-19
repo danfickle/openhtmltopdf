@@ -50,6 +50,7 @@ public class Java2DRenderer implements IJava2DRenderer {
     private BidiReorderer _reorderer;
     
     private final SVGDrawer _svgImpl;
+    private final FSObjectDrawerFactory _objectDrawerFactory;
 	private final FSPageProcessor _pageProcessor;
     
     private static final int DEFAULT_DOTS_PER_PIXEL = 1;
@@ -74,12 +75,14 @@ public class Java2DRenderer implements IJava2DRenderer {
 			boolean testMode,
 			FSPageProcessor pageProcessor,
 			Graphics2D layoutGraphics,
-			int initialPageNumber, short pagingMode) {
+			int initialPageNumber, short pagingMode,
+            FSObjectDrawerFactory objectDrawerFactory) {
 
 	    _pagingMode = pagingMode;
 		_pageProcessor = pageProcessor;
 		_initialPageNo = initialPageNumber;		
 		_svgImpl = svgImpl;
+        _objectDrawerFactory = objectDrawerFactory;
 		_outputDevice = new Java2DOutputDevice(layoutGraphics);
 		
 		NaiveUserAgent uac = new NaiveUserAgent();
@@ -107,7 +110,7 @@ public class Java2DRenderer implements IJava2DRenderer {
         Java2DFontResolver fontResolver = new Java2DFontResolver(_sharedContext);
         _sharedContext.setFontResolver(fontResolver);
         
-        Java2DReplacedElementFactory replacedFactory = new Java2DReplacedElementFactory(_svgImpl);
+        Java2DReplacedElementFactory replacedFactory = new Java2DReplacedElementFactory(_svgImpl, _objectDrawerFactory);
         _sharedContext.setReplacedElementFactory(replacedFactory);
         
         _sharedContext.setTextRenderer(new Java2DTextRenderer());
