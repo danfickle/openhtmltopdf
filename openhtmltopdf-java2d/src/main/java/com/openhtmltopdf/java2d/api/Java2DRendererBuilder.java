@@ -53,9 +53,9 @@ public class Java2DRendererBuilder {
     private short _pagingMode = Layer.PAGED_MODE_PRINT;
 	private FSObjectDrawerFactory _objectDrawerFactory;
 
-	public static enum TextDirection { RTL, LTR; }
-    public static enum PageSizeUnits { MM, INCHES }
-    public static enum FontStyle { NORMAL, ITALIC, OBLIQUE }
+	public enum TextDirection { RTL, LTR; }
+    public enum PageSizeUnits { MM, INCHES }
+    public enum FontStyle { NORMAL, ITALIC, OBLIQUE }
     
     private static class AddedFont {
         private final FSSupplier<InputStream> supplier;

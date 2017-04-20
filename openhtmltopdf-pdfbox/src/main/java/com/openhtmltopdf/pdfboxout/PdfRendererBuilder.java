@@ -3,17 +3,11 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.extend.FSCache;
-import com.openhtmltopdf.extend.FSObjectDrawerFactory;
-import com.openhtmltopdf.extend.FSSupplier;
-import com.openhtmltopdf.extend.FSTextBreaker;
-import com.openhtmltopdf.extend.FSTextTransformer;
-import com.openhtmltopdf.extend.FSUriResolver;
-import com.openhtmltopdf.extend.HttpStreamFactory;
-import com.openhtmltopdf.extend.SVGDrawer;
+import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
+import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Document;
 
 import java.io.File;
@@ -21,6 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class PdfRendererBuilder
 {
@@ -61,13 +56,15 @@ public class PdfRendererBuilder
     
     private static class AddedFont {
         private final FSSupplier<InputStream> supplier;
+        private final File fontFile;
         private final Integer weight;
         private final String family;
         private final boolean subset;
         private final FontStyle style;
         
-        private AddedFont(FSSupplier<InputStream> supplier, Integer weight, String family, boolean subset, FontStyle style) {
+        private AddedFont(FSSupplier<InputStream> supplier, File fontFile, Integer weight, String family, boolean subset, FontStyle style) {
             this.supplier = supplier;
+            this.fontFile = fontFile;
             this.weight = weight;
             this.family = family;
             this.subset = subset;
@@ -75,7 +72,7 @@ public class PdfRendererBuilder
         }
     }
     
-    private List<AddedFont> _fonts = new ArrayList<AddedFont>();
+    private final List<AddedFont> _fonts = new ArrayList<AddedFont>();
 
     /**
      * Run the XHTML/XML to PDF conversion and output to an output stream set by toStream.
@@ -85,25 +82,6 @@ public class PdfRendererBuilder
         PdfBoxRenderer renderer = null;
         try {
             renderer = this.buildPdfRenderer();
-            
-            if (!_fonts.isEmpty()) {
-                PdfBoxFontResolver resolver = renderer.getFontResolver();
-            
-                for (AddedFont font : _fonts) {
-                    IdentValue fontStyle = null;
-                    
-                    if (font.style == FontStyle.NORMAL) {
-                        fontStyle = IdentValue.NORMAL;
-                    } else if (font.style == FontStyle.ITALIC) {
-                        fontStyle = IdentValue.ITALIC;
-                    } else if (font.style == FontStyle.OBLIQUE) {
-                        fontStyle = IdentValue.OBLIQUE;
-                    }
-                    
-                    resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset);
-                }
-            }
-            
             renderer.layout();
             renderer.createPDF();
         } finally {
@@ -124,8 +102,37 @@ public class PdfRendererBuilder
         PageDimensions pageSize = new PageDimensions(_pageWidth, _pageHeight, _isPageSizeInches);
         
         BaseDocument doc = new BaseDocument(_baseUri, _html, _document, _file, _uri);
-        
-        return new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _replacementText, _testMode, _objectDrawerFactory);
+
+        PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _replacementText, _testMode, _objectDrawerFactory);
+
+        /*
+         * Register all Fonts
+         */
+		PdfBoxFontResolver resolver = renderer.getFontResolver();
+		for (AddedFont font : _fonts) {
+			IdentValue fontStyle = null;
+
+			if (font.style == FontStyle.NORMAL) {
+				fontStyle = IdentValue.NORMAL;
+			} else if (font.style == FontStyle.ITALIC) {
+				fontStyle = IdentValue.ITALIC;
+			} else if (font.style == FontStyle.OBLIQUE) {
+				fontStyle = IdentValue.OBLIQUE;
+			}
+
+			if( font.supplier != null) {
+				resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset);
+			}
+			else {
+				try {
+					resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset);
+				} catch (Exception e) {
+					XRLog.init(Level.WARNING, "Font " + font.fontFile + " could not be loaded", e);
+				}
+			}
+		}
+
+        return renderer;
     }
     
     /**
@@ -382,7 +389,7 @@ public class PdfRendererBuilder
      * @return
      */
     public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight, FontStyle fontStyle, boolean subset) {
-        this._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, subset, fontStyle));
+        this._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle));
         return this;
     }
     
@@ -394,6 +401,25 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily) {
         return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
+    }
+
+    /**
+     * Like {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}, but allows to supply a font file. If the font file
+     * is a .ttc file it is handled as TrueTypeCollection. If you have the font in file form you should use this API.
+     */
+    public PdfRendererBuilder useFont(File fontFile, String fontFamily, Integer fontWeight, FontStyle fontStyle, boolean subset) {
+        this._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle));
+        return this;
+    }
+
+    /**
+     * Simpler overload for {@link #useFont(File, String, Integer, FontStyle, boolean)}
+     * @param fontFile
+     * @param fontFamily
+     * @return
+     */
+    public PdfRendererBuilder useFont(File fontFile, String fontFamily) {
+        return this.useFont(fontFile, fontFamily, 400, FontStyle.NORMAL, true);
     }
 
     /**
