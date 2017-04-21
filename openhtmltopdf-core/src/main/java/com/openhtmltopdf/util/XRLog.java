@@ -55,7 +55,7 @@ public class XRLog {
     private static boolean initPending = true;
     private static XRLogger loggerImpl;
 
-    private static boolean loggingEnabled = true;
+    private static Boolean loggingEnabled;
 
     /**
      * Returns a list of all loggers that will be accessed by XRLog. Each entry is a String with a logger
@@ -245,7 +245,9 @@ public class XRLog {
                 return;
             }
 
-            XRLog.setLoggingEnabled(Configuration.isTrue("xr.util-logging.loggingEnabled", true));
+            if (loggingEnabled == null) {
+            	XRLog.setLoggingEnabled(Configuration.isTrue("xr.util-logging.loggingEnabled", true));
+            }
 
             if (loggerImpl == null) {
                 loggerImpl = new JDKXRLogger();
