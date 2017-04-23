@@ -63,6 +63,13 @@ Add these to your maven dependencies section as needed:
   		<artifactId>openhtmltopdf-log4j</artifactId>
   		<version>${openhtml.version}</version>
   	</dependency>
+
+  	<dependency>
+  	    <!-- Optional, leave out if you do not SVG support. -->
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-svg-support</artifactId>
+  		<version>${openhtml.version}</version>
+  	</dependency>
 ````
 
 MINIMAL USAGE
