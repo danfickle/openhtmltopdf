@@ -20,6 +20,7 @@
 package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
@@ -58,7 +59,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                     boolean hasMaxProperty = hasMaxWidth || hasMaxHeight;
                     if (cssWidth == -1 && cssHeight == -1) {
                         if (hasMaxProperty) {
-                            long maxWidth = box.getStyle().asLength(c, CSSName.MAX_WIDTH).value();
+                            long maxWidth = getCSSMaxWidth(c, box);
                             long maxHeight = box.getStyle().asLength(c, CSSName.MAX_HEIGHT).value();
                             int intrinsicHeight = fsImage.getHeight();
                             int intrinsicWidth = fsImage.getWidth();
@@ -137,6 +138,10 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
         }
 
         return null;
+    }
+
+    private int getCSSMaxWidth(CssContext c, BlockBox box) {
+        return box.getStyle().getMaxWidth(c, box.getContainingBlock().getContentWidth());
     }
 
     public void setFormSubmissionListener(FormSubmissionListener listener) {
