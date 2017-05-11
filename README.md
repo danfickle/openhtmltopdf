@@ -50,6 +50,8 @@ CHANGELOG
 
 head - 0.0.1-RC11-SNAPSHOT
 ========
++ [FIX: Dispose of thread local when renderer is cleaned up](https://github.com/danfickle/openhtmltopdf/issues/94) Thanks @rototor
++ [FIX: Link handling when identical link positions on multiple pages](https://github.com/danfickle/openhtmltopdf/pull/95) Thanks @rototor
 + [FIX: Allow user to disable logging](https://github.com/danfickle/openhtmltopdf/pull/90) Thanks @GrammyTraore
 + [Handle TrueType font collections added in builder](https://github.com/danfickle/openhtmltopdf/pull/89) Thanks @rototor
 + [Implement custom object drawer for Java2D output](https://github.com/danfickle/openhtmltopdf/pull/87) Thanks @rototor
