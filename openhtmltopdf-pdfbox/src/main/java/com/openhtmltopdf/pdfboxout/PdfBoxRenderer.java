@@ -41,7 +41,9 @@ import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -57,6 +59,7 @@ import org.xml.sax.InputSource;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
@@ -764,7 +767,11 @@ public class PdfBoxRenderer {
         _listener = listener;
     }
     
+    /**
+     * Cleanup thread resources. MUST be called after finishing with the renderer.
+     */
     public void cleanup() {
         _sharedContext.removeFromThread();
+        ThreadCtx.cleanup();
     }
 }
