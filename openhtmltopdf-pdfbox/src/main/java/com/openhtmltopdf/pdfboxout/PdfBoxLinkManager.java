@@ -1,14 +1,11 @@
 package com.openhtmltopdf.pdfboxout;
 
-import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.NamespaceHandler;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.PageBox;
+import com.openhtmltopdf.render.RenderingContext;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
@@ -21,16 +18,16 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.w3c.dom.Element;
 
-import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.extend.NamespaceHandler;
-import com.openhtmltopdf.layout.SharedContext;
-import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.PageBox;
-import com.openhtmltopdf.render.RenderingContext;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 public class PdfBoxLinkManager {
     
-    private final Set _linkTargetAreas;
+    private final Map<PDPage, Set<String>> _linkTargetAreas;
     private final SharedContext _sharedContext;
     private final float _dotsPerPoint;
     private final Box _root;
@@ -43,7 +40,7 @@ public class PdfBoxLinkManager {
         this._dotsPerPoint = dotsPerPoint;
         this._root = root;
         this._od = od;
-        this._linkTargetAreas = new HashSet();
+        this._linkTargetAreas = new HashMap<PDPage,Set<String>>();
         this._links = new ArrayList();
     }
 
@@ -83,13 +80,18 @@ public class PdfBoxLinkManager {
         return rect.getMinX() + ":" + rect.getMaxY() + ":" + rect.getMaxX() + ":" + rect.getMinY();
     }
 
-    private Rectangle2D checkLinkArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform) {
+    private Rectangle2D checkLinkArea(PDPage page, RenderingContext c, Box box, float pageHeight, AffineTransform transform) {
         Rectangle2D targetArea = calcTotalLinkArea(c, box, pageHeight, transform);
         String key = createRectKey(targetArea);
-        if (_linkTargetAreas.contains(key)) {
+        Set<String> keys = _linkTargetAreas.get(page);
+        if( keys == null ) {
+            keys = new HashSet<String>();
+            _linkTargetAreas.put(page,keys);
+        }
+        if (keys.contains(key)) {
             return null;
         }
-        _linkTargetAreas.add(key);
+        keys.add(key);
         return targetArea;
     }
 
@@ -114,7 +116,7 @@ public class PdfBoxLinkManager {
                             action = go;
                         }
 
-                        Rectangle2D targetArea = checkLinkArea(c, box, pageHeight, transform);
+                        Rectangle2D targetArea = checkLinkArea(page, c, box, pageHeight, transform);
                         if (targetArea == null) {
                             return;
                         }
@@ -146,7 +148,7 @@ public class PdfBoxLinkManager {
                     PDActionURI uriAct = new PDActionURI();
                     uriAct.setURI(uri);
 
-                    Rectangle2D targetArea = checkLinkArea(c, box, pageHeight, transform);
+                    Rectangle2D targetArea = checkLinkArea(page, c, box, pageHeight, transform);
                     if (targetArea == null) {
                         return;
                     }
