@@ -1149,7 +1149,10 @@ public class CalculatedStyle {
     }
 
     public boolean isCollapseBorders() {
-        return isIdent(CSSName.BORDER_COLLAPSE, IdentValue.COLLAPSE) && ! isPaginateTable();
+    	// The second part of this condition was commented out by @danfickle because seems unneccessary
+    	// See https://github.com/danfickle/openhtmltopdf/issues/97
+    	
+        return isIdent(CSSName.BORDER_COLLAPSE, IdentValue.COLLAPSE); // && ! isPaginateTable();
     }
 
     public int getBorderHSpacing(CssContext c) {
