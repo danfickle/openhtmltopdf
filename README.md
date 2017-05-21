@@ -48,7 +48,11 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC11-SNAPSHOT
+head - 0.0.1-RC12-SNAPSHOT
+========
+
+
+0.0.1-RC11
 ========
 + [Allow collapsed borders with table pagination](https://github.com/danfickle/openhtmltopdf/issues/97) Thanks @Epimetheus89 
 + [FIX: Dispose of thread local when renderer is cleaned up](https://github.com/danfickle/openhtmltopdf/issues/94) Thanks @rototor
