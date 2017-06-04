@@ -49,6 +49,24 @@
       <artifactId>openhtmltopdf-java2d</artifactId>
       <version>${project.version}</version>
     </dependency>
+    
+    <dependency>
+    <groupId>com.vladsch.flexmark</groupId>
+    <artifactId>flexmark</artifactId>
+    <version>0.19.6</version>
+    </dependency>
+    <dependency>
+    <groupId>com.vladsch.flexmark</groupId>
+    <artifactId>flexmark-ext-anchorlink</artifactId>
+    <version>0.19.6</version>
+    </dependency>
+    <dependency>
+    <groupId>com.vladsch.flexmark</groupId>
+    <artifactId>flexmark-ext-toc</artifactId>
+    <version>0.19.6</version>
+    </dependency>
+
+    
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
