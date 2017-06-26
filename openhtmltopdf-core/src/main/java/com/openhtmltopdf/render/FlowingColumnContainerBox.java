@@ -83,7 +83,8 @@ public class FlowingColumnContainerBox extends BlockBox {
 	
 	@Override
 	public void layout(LayoutContext c, int contentStart) {
-
+		this.calcDimensions(c);
+		
 		int colCount = getStyle().columnCount();
 		int colGapCount = colCount - 1;
 

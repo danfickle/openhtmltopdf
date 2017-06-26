@@ -81,7 +81,12 @@ public class TestcaseRunner {
 		 * Custom Objects
 		 */
 		runTestCase("custom-objects");
-
+		
+		/*
+		 * CSS3 multi-column layout
+		 */
+		runTestCase("multi-column-layout");
+		
 		/* Add additional test cases here. */
 	}
 

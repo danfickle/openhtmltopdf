@@ -40,4 +40,9 @@ public class CssPropertiesTest {
 	public void testFormControls() throws Exception {
 		TestcaseRunner.runTestWithoutOutput("form-controls");
 	}
+	
+	@Test
+	public void testCss3MultiColumnLayout() throws Exception {
+		TestcaseRunner.runTestWithoutOutput("multi-column-layout");
+	}
 }
