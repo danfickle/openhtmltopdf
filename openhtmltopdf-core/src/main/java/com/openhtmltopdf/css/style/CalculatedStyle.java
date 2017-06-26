@@ -1032,6 +1032,14 @@ public class CalculatedStyle {
     public boolean isListItem() {
         return isIdent(CSSName.DISPLAY, IdentValue.LIST_ITEM);
     }
+    
+    public boolean hasColumns() {
+    	return !isIdent(CSSName.COLUMN_COUNT, IdentValue.AUTO) && asFloat(CSSName.COLUMN_COUNT) > 1;
+    }
+    
+    public int columnCount() {
+    	return (int) asFloat(CSSName.COLUMN_COUNT);
+    }
 
 	/**
      * Determine if the element is visible. This is normaly the case

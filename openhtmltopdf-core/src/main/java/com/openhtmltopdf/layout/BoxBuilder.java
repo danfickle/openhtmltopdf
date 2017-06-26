@@ -60,6 +60,8 @@ import com.openhtmltopdf.render.AnonymousBlockBox;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FloatedBoxData;
+import com.openhtmltopdf.render.FlowingColumnBox;
+import com.openhtmltopdf.render.FlowingColumnContainerBox;
 import com.openhtmltopdf.render.InlineBox;
 
 /**
@@ -1011,7 +1013,7 @@ public class BoxBuilder {
 
     private static BlockBox createBlockBox(
             CalculatedStyle style, ChildBoxInfo info, boolean generated) {
-        if (style.isFloated() && !(style.isAbsolute() || style.isFixed())) {
+    	if (style.isFloated() && !(style.isAbsolute() || style.isFixed())) {
             BlockBox result;
             if (style.isTable() || style.isInlineTable()) {
                 result = new TableBox();
@@ -1166,9 +1168,23 @@ public class BoxBuilder {
                             needEndText = true;
                         }
                     } else {
-                        child = createBlockBox(style, info, false);
+                    	if (style.hasColumns() && c.isPrint()) {
+                            child = new FlowingColumnContainerBox();
+                    	} else {
+                    		child = createBlockBox(style, info, false);
+                    	}
+                    	
                         child.setStyle(style);
                         child.setElement(element);
+                        
+                        if (style.hasColumns() && c.isPrint()) {
+                        	FlowingColumnContainerBox cont = (FlowingColumnContainerBox) child;
+                            cont.setOnlyChild(c, new FlowingColumnBox(cont));
+                            cont.getChild().setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
+                            cont.getChild().setElement(element);
+                            cont.getChild().ensureChildren(c);
+                        }
+                        
                         if (style.isListItem()) {
                             BlockBox block = (BlockBox) child;
                             block.setListCounter(c.getCounterContext(style).getCurrentCounterValue("list-item"));

@@ -1125,6 +1125,16 @@ public abstract class Box implements Styleable {
     protected boolean isInitialContainingBlock() {
         return false;
     }
+
+	public boolean isFlowingColumnBox() {
+		while (getParent() != null) {
+			if (getParent().isFlowingColumnBox()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }
 
 /*

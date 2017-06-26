@@ -1602,6 +1602,44 @@ public class PrimitivePropertyBuilders {
         }
     }
     
+    public static class ColumnCount extends AbstractPropertyBuilder {
+        // auto | <integer> | inherit
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] { IdentValue.AUTO });
+
+        @Override
+        public List buildDeclarations(
+                CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
+            checkValueCount(cssName, 1, values.size());
+            CSSPrimitiveValue value = (CSSPrimitiveValue)values.get(0);
+            checkInheritAllowed(value, inheritAllowed);
+            if (value.getCssValueType() != CSSPrimitiveValue.CSS_INHERIT) {
+                checkIdentOrIntegerType(cssName, value);
+
+                if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+                    IdentValue ident = checkIdent(cssName, value);
+                    checkValidity(cssName, ALLOWED, ident);
+                } else if (value.getFloatValue(CSSPrimitiveValue.CSS_NUMBER) < 1) {
+                	throw new CSSParseException("column-count must be one or greater", -1);
+                }
+            }
+
+            return Collections.singletonList(
+                    new PropertyDeclaration(cssName, value, important, origin));
+        }
+    }
+    
+    public static class ColumnGap extends LengthLikeWithIdent {
+    	// length || normal
+    	private static final BitSet ALLOWED = setFor(
+    			new IdentValue[] { IdentValue.NORMAL });
+
+    	@Override
+		protected BitSet getAllowed() {
+			return ALLOWED;
+		}
+    }
+    
 
     private static List createTwoValueResponse(CSSName cssName, CSSPrimitiveValue value1, CSSPrimitiveValue value2,
             int origin, boolean important) {

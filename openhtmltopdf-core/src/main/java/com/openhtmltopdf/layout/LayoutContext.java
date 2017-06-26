@@ -91,6 +91,8 @@ public class LayoutContext implements CssContext {
     private boolean _mayCheckKeepTogether = true;
 
     private BreakAtLineContext _breakAtLineContext;
+    
+    private Boolean isPrintOverride = null; // True, false, or null for no override.
 
     public TextRenderer getTextRenderer() {
         return _sharedContext.getTextRenderer();
@@ -339,7 +341,18 @@ public class LayoutContext implements CssContext {
     }
 
     public boolean isPrint() {
+    	if (this.isPrintOverride != null) {
+    		return this.isPrintOverride;
+    	}
+    	
         return _sharedContext.isPrint();
+    }
+    
+    /**
+     * @param isPrint true, false or null for no override.
+     */
+    public void setIsPrintOverride(Boolean isPrint) {
+    	this.isPrintOverride = isPrint;
     }
 
     public StyleTracker getFirstLinesTracker() {

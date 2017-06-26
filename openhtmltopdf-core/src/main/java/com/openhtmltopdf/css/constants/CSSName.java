@@ -466,6 +466,24 @@ public final class CSSName implements Comparable {
                     false,
                     null
             );
+    
+    public final static CSSName COLUMN_COUNT =
+            addProperty(
+                    "column-count",
+                    PRIMITIVE,
+                    "auto",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.ColumnCount()
+            );
+    
+    public final static CSSName COLUMN_GAP =
+            addProperty(
+                    "column-gap",
+                    PRIMITIVE,
+                    "normal",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.ColumnGap()
+            );
 
     /**
      * Unique CSSName instance for CSS2 property.
