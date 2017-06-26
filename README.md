@@ -36,7 +36,7 @@ FAQ
 ===
 + OPEN HTML TO PDF is tested with OpenJDK 7 and Oracle JDK 8.
 + No, you can not use it on Android or Google App Engine.
-+ Flowing columns are not implemented.
++ <s>Flowing columns are not implemented.</s> Implemented in RC12.
 + No, it's not a web browser.
 
 TEST CASES
@@ -51,7 +51,7 @@ CHANGELOG
 
 head - 0.0.1-RC12-SNAPSHOT
 ========
-
++ [Implemented CSS3 flowing text columns](https://github.com/danfickle/openhtmltopdf/issues/60#issuecomment-310959602) Thanks @miminno
 
 0.0.1-RC11
 ========
