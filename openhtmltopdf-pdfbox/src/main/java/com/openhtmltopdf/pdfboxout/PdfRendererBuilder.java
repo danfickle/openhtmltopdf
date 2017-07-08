@@ -53,7 +53,9 @@ public class PdfRendererBuilder
     private FSTextTransformer _unicodeToLowerTransformer;
     private FSTextTransformer _unicodeToTitleTransformer;
     private FSObjectDrawerFactory _objectDrawerFactory;
-    
+    private String _pdfAConformance;
+    private byte[] _colorProfile;
+
     private static class AddedFont {
         private final FSSupplier<InputStream> supplier;
         private final File fontFile;
@@ -103,7 +105,8 @@ public class PdfRendererBuilder
         
         BaseDocument doc = new BaseDocument(_baseUri, _html, _document, _file, _uri);
 
-        PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _replacementText, _testMode, _objectDrawerFactory);
+        PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl, pageSize, _pdfVersion, _pdfAConformance,
+                _colorProfile, _replacementText, _testMode, _objectDrawerFactory);
 
         /*
          * Register all Fonts
@@ -298,7 +301,28 @@ public class PdfRendererBuilder
         this._pdfVersion = version;
         return this;
     }
-    
+
+    /**
+     * Set the PDF/A conformance, typically we use A
+     * Possible values are 'A', 'B' or 'U' for PDF/A-1, PDF/A-2 and PDF/A-3 respectively
+     * @param pdfAConformance
+     * @return
+     */
+    public PdfRendererBuilder usePdfAConformance(String pdfAConformance) {
+        this._pdfAConformance = pdfAConformance;
+        return this;
+    }
+
+    /**
+     * Sets the color profile, needed for PDF/A conformance
+     * @param colorProfile
+     * @return
+     */
+    public PdfRendererBuilder useColorProfile(byte[] colorProfile) {
+        this._colorProfile = colorProfile;
+        return this;
+    }
+
     /**
      * The replacement text to use if a character is cannot be renderered by any of the specified fonts.
      * This is not broken across lines so should be one or zero characters for best results.

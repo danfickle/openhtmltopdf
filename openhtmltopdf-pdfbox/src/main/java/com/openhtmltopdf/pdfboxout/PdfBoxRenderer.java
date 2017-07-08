@@ -43,14 +43,20 @@ import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentInformation;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
 import org.apache.pdfbox.pdmodel.encryption.PDEncryption;
+import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.xmpbox.XMPMetadata;
+import org.apache.xmpbox.schema.AdobePDFSchema;
+import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.schema.XMPBasicSchema;
+import org.apache.xmpbox.schema.XMPSchema;
+import org.apache.xmpbox.type.BadFieldValueException;
+import org.apache.xmpbox.xml.XmpSerializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -87,7 +93,11 @@ public class PdfBoxRenderer {
 
     // Usually 1.7
     private float _pdfVersion;
-    
+
+    private String _pdfAConformance;
+
+    private byte[] _colorProfile;
+
     private boolean _testMode;
 
     private PDFCreationListener _listener;
@@ -169,11 +179,12 @@ public class PdfBoxRenderer {
     PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode, 
             HttpStreamFactory httpStreamFactory, 
             OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
-            PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode, FSObjectDrawerFactory objectDrawerFactory) {
+            PageDimensions pageSize, float pdfVersion, String pdfAConformance, byte[] colorProfile, String replacementText, boolean testMode, FSObjectDrawerFactory objectDrawerFactory) {
         
         _pdfDoc = new PDDocument();
+        _pdfAConformance = pdfAConformance;
+        _colorProfile = colorProfile;
         _pdfDoc.setVersion(pdfVersion);
-
         _svgImpl = svgImpl;
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = testMode;
@@ -585,7 +596,11 @@ public class PdfBoxRenderer {
         c.setPageCount(pageCount);
         firePreWrite(pageCount); // opportunity to adjust meta data
         setDidValues(doc); // set PDF header fields from meta data
-        
+
+        if (_pdfAConformance != null) {
+            addPdfASchema(doc, _pdfAConformance);
+        }
+
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
             
@@ -607,10 +622,59 @@ public class PdfBoxRenderer {
         _outputDevice.finish(c, _root);
     }
 
+    private void addPdfASchema(PDDocument document, String conformance) {
+        PDDocumentInformation information = document.getDocumentInformation();
+        XMPMetadata metadata = XMPMetadata.createXMPMetadata();
+
+        try {
+            PDFAIdentificationSchema pdfaid = metadata.createAndAddPFAIdentificationSchema();
+            pdfaid.setConformance(conformance);
+            pdfaid.setPart(1);
+
+            AdobePDFSchema pdfSchema = metadata.createAndAddAdobePDFSchema();
+            pdfSchema.setProducer(information.getProducer());
+
+            XMPBasicSchema xmpBasicSchema = metadata.createAndAddXMPBasicSchema();
+            xmpBasicSchema.setCreateDate(information.getCreationDate());
+
+            PDMetadata metadataStream = new PDMetadata(document);
+            PDMarkInfo markInfo = new PDMarkInfo();
+            markInfo.setMarked(true);
+
+            // add to catalog
+            PDDocumentCatalog catalog = document.getDocumentCatalog();
+            catalog.setMetadata( metadataStream );
+            catalog.setMarkInfo(markInfo);
+
+            XmpSerializer serializer = new XmpSerializer();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            serializer.serialize(metadata, baos, true);
+            metadataStream.importXMPMetadata( baos.toByteArray() );
+
+
+            if (_colorProfile != null) {
+                ByteArrayInputStream colorProfile = new ByteArrayInputStream(_colorProfile);
+                PDOutputIntent oi = new PDOutputIntent(document, colorProfile);
+                oi.setInfo("sRGB IEC61966-2.1");
+                oi.setOutputCondition("sRGB IEC61966-2.1");
+                oi.setOutputConditionIdentifier("sRGB IEC61966-2.1");
+                oi.setRegistryName("http://www.color.org");
+                catalog.addOutputIntent(oi);
+            }
+
+        } catch (BadFieldValueException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (TransformerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     // Sets the document information dictionary values from html metadata
     private void setDidValues(PDDocument doc) {
         PDDocumentInformation info = new PDDocumentInformation();
-        
+
         info.setCreationDate(Calendar.getInstance());
         info.setProducer("openhtmltopdf.com");
 
