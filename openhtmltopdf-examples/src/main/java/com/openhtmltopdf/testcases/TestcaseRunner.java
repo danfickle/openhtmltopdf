@@ -2,15 +2,15 @@ package com.openhtmltopdf.testcases;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.extend.FSObjectDrawer;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.java2d.api.BufferedImagePageProcessor;
 import com.openhtmltopdf.java2d.api.DefaultPageProcessor;
 import com.openhtmltopdf.java2d.api.FSPageOutputStreamSupplier;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
-import com.openhtmltopdf.extend.FSObjectDrawer;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -25,10 +25,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
@@ -207,7 +204,7 @@ public class TestcaseRunner {
 		byte[] htmlBytes = IOUtils
 				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
 		String html = new String(htmlBytes, Charsets.UTF_8);
-		String outDir = System.getProperty("OUT_DIRECTORY", ".");
+		String outDir = prepareOutDir();
 		String testCaseOutputFile = outDir + "/" + testCaseFile + ".pdf";
 		String testCaseOutputPNGFile = outDir + "/" + testCaseFile + ".png";
 		FileOutputStream outputStream = new FileOutputStream(testCaseOutputFile);
@@ -215,6 +212,18 @@ public class TestcaseRunner {
 		System.out.println("Wrote " + testCaseOutputFile);
 
 		renderPNG(html, testCaseOutputPNGFile);
+	}
+
+	private static String prepareOutDir() {
+		String outDir = System.getProperty("OUT_DIRECTORY", ".");
+		File outDirFile = new File(outDir);
+		if (!outDirFile.exists()) {
+			boolean created = outDirFile.mkdirs();
+			if (!created) {
+				throw new IllegalStateException("Can't create out dir '" + outDir + "'.");
+			}
+		}
+		return outDir;
 	}
 
 	public static class SampleObjectDrawerBinaryTree implements FSObjectDrawer {
