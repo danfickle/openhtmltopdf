@@ -92,6 +92,20 @@
           <use>false</use>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <configuration>
+          <mainClass>com.openhtmltopdf.testcases.TestcaseRunner</mainClass>
+          <systemProperties>
+            <systemProperty>
+              <key>OUT_DIRECTORY</key>
+              <value>target/examples</value>
+            </systemProperty>
+          </systemProperties>
+        </configuration>
+      </plugin>
     </plugins>
     <resources>
       <resource>
