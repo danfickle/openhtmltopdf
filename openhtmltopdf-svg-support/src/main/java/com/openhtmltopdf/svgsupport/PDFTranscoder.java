@@ -128,7 +128,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	            String fontFamilyNameOverride, IdentValue fontWeightOverride, IdentValue fontStyleOverride, String uri, byte[] font1)
 	            throws FontFormatException {
 			
-			OpenHtmlGvtFontFamily family = null;
+			OpenHtmlGvtFontFamily family;
 			
 			if (families.containsKey(fontFamilyNameOverride))
 				family = families.get(fontFamilyNameOverride);
