@@ -2,15 +2,15 @@ package com.openhtmltopdf.testcases;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.extend.FSObjectDrawer;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.java2d.api.BufferedImagePageProcessor;
 import com.openhtmltopdf.java2d.api.DefaultPageProcessor;
 import com.openhtmltopdf.java2d.api.FSPageOutputStreamSupplier;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
-import com.openhtmltopdf.extend.FSObjectDrawer;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -35,10 +36,9 @@ import java.util.logging.Level;
 public class TestcaseRunner {
 
 	/**
-	 * Runs our set of manual test cases. You can specify an output directory
-	 * with -DOUT_DIRECTORY=./output for example. Otherwise, the current working
-	 * directory is used. Test cases must be placed in
-	 * src/main/resources/testcases/
+	 * Runs our set of manual test cases. You can specify an output directory with
+	 * -DOUT_DIRECTORY=./output for example. Otherwise, the current working
+	 * directory is used. Test cases must be placed in src/main/resources/testcases/
 	 *
 	 * @param args
 	 * @throws Exception
@@ -49,8 +49,7 @@ public class TestcaseRunner {
 		 * Note: The RepeatedTableSample optionally requires the font file
 		 * NotoSans-Regular.ttf to be placed in the resources directory.
 		 * 
-		 * This sample demonstrates the failing repeated table header on each
-		 * page.
+		 * This sample demonstrates the failing repeated table header on each page.
 		 */
 		runTestCase("RepeatedTableSample");
 
@@ -81,12 +80,12 @@ public class TestcaseRunner {
 		 * Custom Objects
 		 */
 		runTestCase("custom-objects");
-		
+
 		/*
 		 * CSS3 multi-column layout
 		 */
 		runTestCase("multi-column-layout");
-		
+
 		/* Add additional test cases here. */
 	}
 
@@ -234,8 +233,18 @@ public class TestcaseRunner {
 						public void render(Graphics2D graphics2D) {
 							double realWidth = width / dotsPerPixel;
 							double realHeight = height / dotsPerPixel;
+							double titleBottomHeight = 10;
 
-							renderTree(graphics2D, realWidth / 2f, realHeight, realHeight / depth, -90, depth);
+							renderTree(graphics2D, realWidth / 2f, realHeight - titleBottomHeight, realHeight / depth,
+									-90, depth);
+
+							Font dialog = Font.decode("Dialog").deriveFont(10f);
+							graphics2D.setFont(dialog);
+							String txt = "FanOut " + fanout + " Angle " + angle;
+							Rectangle2D textBounds = dialog.getStringBounds(txt,
+									graphics2D.getFontRenderContext());
+							graphics2D.setPaint(Color.GREEN);
+							graphics2D.drawString(txt, (int)((realWidth - textBounds.getWidth()) / 2), (int)(realHeight - titleBottomHeight));
 						}
 					});
 		}

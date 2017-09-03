@@ -22,11 +22,13 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
@@ -36,9 +38,8 @@ import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
-
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
-
+import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -63,7 +64,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.imageio.ImageIO;
-
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.*;
@@ -218,6 +218,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     // The bidi reorderer is responsible for shaping Arabic text, deshaping and 
     // converting RTL text into its visual order.
     private BidiReorderer _reorderer = new SimpleBidiReorderer();
+
+    // Font Mapping for the Graphics2D output
+    private PdfBoxGraphics2DFontTextDrawer _fontTextDrawer;
 
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
@@ -1335,6 +1338,30 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
              * We *could* customize the PDF mapping here. But for now the default is enough.
              * TODO: Font mapping.
              */
+            /*
+             * Register the fonts
+             */
+            if( _fontTextDrawer == null ) {
+                _fontTextDrawer = new PdfBoxGraphics2DFontTextDrawer(){
+                    @Override
+                    protected PDFont mapFont(Font font, IFontTextDrawerEnv env) throws IOException, FontFormatException {
+						FontSpecification spec = new FontSpecification();
+						spec.size = font.getSize();
+						spec.families = new String[] { font.getFamily() };
+						spec.fontStyle = IdentValue.NORMAL;
+						spec.fontWeight = IdentValue.NORMAL;
+						spec.variant = IdentValue.NORMAL;
+						PdfBoxFSFont fsFont = (PdfBoxFSFont) getSharedContext().getFontResolver()
+								.resolveFont(getSharedContext(), spec);
+						if (fsFont == null)
+							return super.mapFont(font, env);
+						return fsFont.getFontDescription().get(0).getFont();
+                    }
+                };
+                // Register a dummy font to activate the font lookups
+                _fontTextDrawer.registerFont("dummy", (PDFont)null);
+            }
+            pdfBoxGraphics2D.setFontTextDrawer(_fontTextDrawer);
 
             /*
              * Do rendering
