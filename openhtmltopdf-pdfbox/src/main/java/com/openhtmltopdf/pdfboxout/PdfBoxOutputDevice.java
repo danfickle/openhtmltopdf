@@ -1334,32 +1334,45 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer) {
         try {
             PdfBoxGraphics2D pdfBoxGraphics2D = new PdfBoxGraphics2D(_writer, (int) width, (int) height);
-            /*
-             * We *could* customize the PDF mapping here. But for now the default is enough.
-             * TODO: Font mapping.
-             */
-            /*
-             * Register the fonts
-             */
-            if( _fontTextDrawer == null ) {
-                _fontTextDrawer = new PdfBoxGraphics2DFontTextDrawer(){
+			/*
+			 * Create and set the fontTextDrawer to perform the font mapping.
+			 */
+            if (_fontTextDrawer == null) {
+                _fontTextDrawer = new PdfBoxGraphics2DFontTextDrawer() {
                     @Override
-                    protected PDFont mapFont(Font font, IFontTextDrawerEnv env) throws IOException, FontFormatException {
-						FontSpecification spec = new FontSpecification();
-						spec.size = font.getSize();
-						spec.families = new String[] { font.getFamily() };
-						spec.fontStyle = IdentValue.NORMAL;
-						spec.fontWeight = IdentValue.NORMAL;
-						spec.variant = IdentValue.NORMAL;
-						PdfBoxFSFont fsFont = (PdfBoxFSFont) getSharedContext().getFontResolver()
-								.resolveFont(getSharedContext(), spec);
-						if (fsFont == null)
-							return super.mapFont(font, env);
-						return fsFont.getFontDescription().get(0).getFont();
+                    protected PDFont mapFont(Font font, IFontTextDrawerEnv env)
+                            throws IOException, FontFormatException {
+                        FontSpecification spec = new FontSpecification();
+                        spec.size = font.getSize();
+                        spec.families = new String[] { font.getFamily() };
+                        spec.fontStyle = IdentValue.NORMAL;
+                        spec.fontWeight = IdentValue.NORMAL;
+                        spec.variant = IdentValue.NORMAL;
+                        if ((font.getStyle() & Font.BOLD) == Font.BOLD) {
+                            spec.fontWeight = IdentValue.FONT_WEIGHT_700;
+                        }
+                        if ((font.getStyle() & Font.ITALIC) == Font.ITALIC) {
+                            spec.fontStyle = IdentValue.ITALIC;
+                        }
+                        PdfBoxFSFont fsFont = (PdfBoxFSFont) getSharedContext().getFontResolver()
+                                .resolveFont(getSharedContext(), spec);
+                        FontDescription fontDescription = fsFont.getFontDescription().get(0);
+						/*
+						 * Detect the default fallback value
+						 */
+                        if (fsFont.getFontDescription().size() == 1) {
+                            if (fontDescription.getFont().getName().equals("Times-Roman")
+                                    && !(font.getFamily().equals("Times New Roman"))) {
+								/*
+								 * We did not find the font, this is the generic default fallback font.
+								 * So use the vectorized text shapes.
+								 */
+                                return null;
+                            }
+                        }
+                        return fontDescription.getFont();
                     }
                 };
-                // Register a dummy font to activate the font lookups
-                _fontTextDrawer.registerFont("dummy", (PDFont)null);
             }
             pdfBoxGraphics2D.setFontTextDrawer(_fontTextDrawer);
 
@@ -1536,4 +1549,18 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     public void setAlpha(int alpha) {
         
     }
+
+    /**
+     * Perform any internal cleanup needed
+     */
+    public void close() {
+        if (_fontTextDrawer != null) {
+            try {
+                _fontTextDrawer.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
 }

@@ -238,12 +238,21 @@ public class TestcaseRunner {
 							renderTree(graphics2D, realWidth / 2f, realHeight - titleBottomHeight, realHeight / depth,
 									-90, depth);
 
-							Font dialog = Font.decode("Dialog").deriveFont(10f);
-							graphics2D.setFont(dialog);
-							String txt = "FanOut " + fanout + " Angle " + angle;
-							Rectangle2D textBounds = dialog.getStringBounds(txt,
+							Font font = Font.decode("Times New Roman").deriveFont(10f);
+							if (depth == 10)
+								font = Font.decode("Arial");
+							if (angle == 35)
+								font = Font.decode("Courier");
+							if (depth == 6)
+								font = Font.decode("Dialog"); /* Gets mapped to Helvetica */
+							graphics2D.setFont(font);
+							String txt = "FanOut " + fanout + " Angle " + angle + " Depth " + depth;
+							Rectangle2D textBounds = font.getStringBounds(txt,
 									graphics2D.getFontRenderContext());
-							graphics2D.setPaint(Color.GREEN);
+							graphics2D.setPaint(new Color(16, 133, 30));
+							GradientPaint gp = new GradientPaint(10.0f, 25.0f, Color.blue, (float) textBounds.getWidth(), (float) textBounds.getHeight(), Color.red);
+							if (angle == 35)
+								graphics2D.setPaint(gp);
 							graphics2D.drawString(txt, (int)((realWidth - textBounds.getWidth()) / 2), (int)(realHeight - titleBottomHeight));
 						}
 					});
