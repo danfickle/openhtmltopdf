@@ -238,13 +238,16 @@ public class TestcaseRunner {
 							renderTree(graphics2D, realWidth / 2f, realHeight - titleBottomHeight, realHeight / depth,
 									-90, depth);
 
+							/*
+							 * Now draw some text using different fonts to exercise all different font mappings
+							 */
 							Font font = Font.decode("Times New Roman").deriveFont(10f);
 							if (depth == 10)
-								font = Font.decode("Arial");
+								font = Font.decode("Arial"); // Does not get mapped
 							if (angle == 35)
-								font = Font.decode("Courier");
+								font = Font.decode("Courier"); // Would get mapped to Courier
 							if (depth == 6)
-								font = Font.decode("Dialog"); /* Gets mapped to Helvetica */
+								font = Font.decode("Dialog"); // Gets mapped to Helvetica
 							graphics2D.setFont(font);
 							String txt = "FanOut " + fanout + " Angle " + angle + " Depth " + depth;
 							Rectangle2D textBounds = font.getStringBounds(txt,
