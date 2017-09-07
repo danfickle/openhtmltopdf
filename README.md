@@ -51,6 +51,10 @@ CHANGELOG
 
 head - 0.0.1-RC12-SNAPSHOT
 ========
++ [Ability to run examples from maven](https://github.com/danfickle/openhtmltopdf/pull/108) Thanks @jartysiewicz
++ [Fix to allow jar scheme urls](https://github.com/danfickle/openhtmltopdf/issues/125) Thanks @geesen
++ [Font mapping in custom object drawer rather than using vector shapes](https://github.com/danfickle/openhtmltopdf/pull/121) Thanks @rototor
++ [Upgraded PDFBOX to 2.0.7, ICU4J to 59.1 and PDFBOX-GRAPHICS2D to 0.7](https://github.com/danfickle/openhtmltopdf/pull/121) Thanks @rototor
 + [Implemented CSS3 flowing text columns](https://github.com/danfickle/openhtmltopdf/issues/60#issuecomment-310959602) Thanks @miminno
 
 0.0.1-RC11
