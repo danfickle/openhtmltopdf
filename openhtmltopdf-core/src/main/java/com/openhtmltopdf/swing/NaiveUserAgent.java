@@ -466,14 +466,25 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 				
 				if (possiblyRelative.isAbsolute()) {
 					return possiblyRelative.toString();
+				} else {
+				    if(baseUri.startsWith("jar")) {
+				    	// Fix for OpenHTMLtoPDF issue-#125, URI class doesn't resolve jar: scheme urls and so returns only
+				    	// the relative part on calling base.resolve(relative) so we use the URL class instead which does
+				    	// understand jar: scheme urls.
+				    	URL base = new URL(baseUri);
+				        URL absolute = new URL(base, uri);
+				        return absolute.toString();
+				    } else {
+						URI base = new URI(baseUri);
+						URI absolute = base.resolve(uri);
+						return absolute.toString();				    	
+				    }
 				}
-				
-				URI base = new URI(baseUri);
-				URI absolute = base.resolve(uri);
-			
-				return absolute.toString();
 			} catch (URISyntaxException e) {
 				XRLog.exception("When trying to load uri(" + uri + ") with base URI(" + baseUri + "), one or both were invalid URIs.", e);
+				return null;
+			} catch (MalformedURLException e) {
+				XRLog.exception("When trying to load uri(" + uri + ") with base jar scheme URI(" + baseUri + "), one or both were invalid URIs.", e);
 				return null;
 			}
 		}
