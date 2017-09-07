@@ -771,6 +771,7 @@ public class PdfBoxRenderer {
      * Cleanup thread resources. MUST be called after finishing with the renderer.
      */
     public void cleanup() {
+        _outputDevice.close();
         _sharedContext.removeFromThread();
         ThreadCtx.cleanup();
     }

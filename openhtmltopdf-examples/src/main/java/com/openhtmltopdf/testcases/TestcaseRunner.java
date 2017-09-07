@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
@@ -32,10 +33,9 @@ import java.util.logging.Level;
 public class TestcaseRunner {
 
 	/**
-	 * Runs our set of manual test cases. You can specify an output directory
-	 * with -DOUT_DIRECTORY=./output for example. Otherwise, the current working
-	 * directory is used. Test cases must be placed in
-	 * src/main/resources/testcases/
+	 * Runs our set of manual test cases. You can specify an output directory with
+	 * -DOUT_DIRECTORY=./output for example. Otherwise, the current working
+	 * directory is used. Test cases must be placed in src/main/resources/testcases/
 	 *
 	 * @param args
 	 * @throws Exception
@@ -46,8 +46,7 @@ public class TestcaseRunner {
 		 * Note: The RepeatedTableSample optionally requires the font file
 		 * NotoSans-Regular.ttf to be placed in the resources directory.
 		 * 
-		 * This sample demonstrates the failing repeated table header on each
-		 * page.
+		 * This sample demonstrates the failing repeated table header on each page.
 		 */
 		runTestCase("RepeatedTableSample");
 
@@ -78,12 +77,12 @@ public class TestcaseRunner {
 		 * Custom Objects
 		 */
 		runTestCase("custom-objects");
-		
+
 		/*
 		 * CSS3 multi-column layout
 		 */
 		runTestCase("multi-column-layout");
-		
+
 		/* Add additional test cases here. */
 	}
 
@@ -243,8 +242,30 @@ public class TestcaseRunner {
 						public void render(Graphics2D graphics2D) {
 							double realWidth = width / dotsPerPixel;
 							double realHeight = height / dotsPerPixel;
+							double titleBottomHeight = 10;
 
-							renderTree(graphics2D, realWidth / 2f, realHeight, realHeight / depth, -90, depth);
+							renderTree(graphics2D, realWidth / 2f, realHeight - titleBottomHeight, realHeight / depth,
+									-90, depth);
+
+							/*
+							 * Now draw some text using different fonts to exercise all different font mappings
+							 */
+							Font font = Font.decode("Times New Roman").deriveFont(10f);
+							if (depth == 10)
+								font = Font.decode("Arial"); // Does not get mapped
+							if (angle == 35)
+								font = Font.decode("Courier"); // Would get mapped to Courier
+							if (depth == 6)
+								font = Font.decode("Dialog"); // Gets mapped to Helvetica
+							graphics2D.setFont(font);
+							String txt = "FanOut " + fanout + " Angle " + angle + " Depth " + depth;
+							Rectangle2D textBounds = font.getStringBounds(txt,
+									graphics2D.getFontRenderContext());
+							graphics2D.setPaint(new Color(16, 133, 30));
+							GradientPaint gp = new GradientPaint(10.0f, 25.0f, Color.blue, (float) textBounds.getWidth(), (float) textBounds.getHeight(), Color.red);
+							if (angle == 35)
+								graphics2D.setPaint(gp);
+							graphics2D.drawString(txt, (int)((realWidth - textBounds.getWidth()) / 2), (int)(realHeight - titleBottomHeight));
 						}
 					});
 		}

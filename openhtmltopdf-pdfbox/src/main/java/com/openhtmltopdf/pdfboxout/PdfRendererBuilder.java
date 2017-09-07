@@ -374,7 +374,7 @@ public class PdfRendererBuilder
     
     /**
      * Add a font programmatically. If the font is NOT subset, it will be downloaded when the renderer is run, otherwise
-     * the font will only be donwnloaded if needed. Therefore, the user could add many fonts, confidant that only those
+     * the font will only be downloaded if needed. Therefore, the user could add many fonts, confidant that only those
      * that are used will be downloaded and processed. 
      * 
      * The InputStream returned by the supplier will be closed by the caller. Fonts should generally be subset, except
