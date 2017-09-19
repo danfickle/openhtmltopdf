@@ -21,34 +21,44 @@ import org.w3c.dom.Document;
 
 import java.awt.*;
 import java.awt.font.TextAttribute;
-import java.awt.geom.AffineTransform;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class PDFTranscoder extends SVGAbstractTranscoder {
-	private final OpenHtmlFontResolver fontResolver;
-	private final OutputDevice outputDevice;
-	private final double x;
-	private final double y;
-	private final double dotsPerPoint;
-	private final AffineTransform defaultTransform;
+	private OpenHtmlFontResolver fontResolver;
+	private OutputDevice outputDevice;
+	private double x;
+	private double y;
 
-	public PDFTranscoder(OutputDevice od, RenderingContext ctx, double x, double y, double width, double height, OpenHtmlFontResolver fontResolver, double dotsPerInch ) {
-		this.x = x;
-		this.y = y;
-		this.dotsPerPoint = dotsPerInch / 96f;
-		defaultTransform = AffineTransform.getScaleInstance(dotsPerPoint, dotsPerPoint);
-
+	public PDFTranscoder(double width, double height ) {
 		this.width = (float)width;
 		this.height = (float)height;
-		this.outputDevice = od;
+	}
+	
+	public void setRenderingParameters(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver) {
+	    this.x = x;
+            this.y = y;
+            this.outputDevice = od;
 
-		this.fontResolver = fontResolver;
+            this.fontResolver = fontResolver;
 	}
 
-	public static class OpenHtmlFontResolver implements FontFamilyResolver {
+	@Override
+        public void setImageSize(float docWidth, float docHeight) {
+            super.setImageSize(docWidth, docHeight);
+        }
+	
+	public float getWidth() {
+	    return this.width;
+	}
+	
+	public float getHeight() {
+	    return this.height;
+	}
+
+    public static class OpenHtmlFontResolver implements FontFamilyResolver {
 		private final Map<String, OpenHtmlGvtFontFamily> families = new HashMap<String, OpenHtmlGvtFontFamily>(4);
 
 		@Override

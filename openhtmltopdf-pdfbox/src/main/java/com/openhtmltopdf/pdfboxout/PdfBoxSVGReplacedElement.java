@@ -1,6 +1,7 @@
 package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.extend.SVGDrawer;
+import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -9,43 +10,21 @@ import org.w3c.dom.Element;
 import java.awt.*;
 
 public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement {
-    private final Element e;
-    private final SVGDrawer svg;
+    private final SVGImage svgImage;
     private Point point = new Point(0, 0);
-    private final int width;
-    private final int height;
-    private final int dotsPerPixel;
     
-    public PdfBoxSVGReplacedElement(Element e, SVGDrawer svgImpl, int cssWidth, int cssHeight, int dotsPerPixel) {
-        this.e = e;
-        this.svg = svgImpl;
-        this.width = cssWidth;
-        this.height = cssHeight;
-        this.dotsPerPixel = dotsPerPixel;
+    public PdfBoxSVGReplacedElement(Element e, SVGDrawer svgImpl, int cssWidth, int cssHeight, int cssMaxWidth, int cssMaxHeight, int dotsPerPixel) {       
+        this.svgImage = svgImpl.buildSVGImage(e, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, dotsPerPixel);
     }
 
     @Override
     public int getIntrinsicWidth() {
-        if (this.width >= 0) {
-            // CSS takes precedence over width and height defined on element.
-            return this.width;
-        }
-        else {
-            // Seems to need dots rather than pixels.
-            return this.svg.getSVGWidth(e) * this.dotsPerPixel;
-        }
+        return this.svgImage.getIntrinsicWidth();
     }
 
     @Override
     public int getIntrinsicHeight() {
-        if (this.height >= 0) {
-            // CSS takes precedence over width and height defined on element.
-            return this.height;
-        }
-        else {
-            // Seems to need dots rather than pixels.
-            return this.svg.getSVGHeight(e) * this.dotsPerPixel;
-        }
+        return this.svgImage.getIntrinsicHeight();
     }
 
     @Override
@@ -79,6 +58,6 @@ public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement {
 
     @Override
     public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice, BlockBox box) {
-        svg.drawSVG(e, outputDevice, c, point.getX(), point.getY(), getIntrinsicWidth(), getIntrinsicHeight(), dotsPerPixel);
+        svgImage.drawSVG(outputDevice, c, point.getX(), point.getY());
     }
 }

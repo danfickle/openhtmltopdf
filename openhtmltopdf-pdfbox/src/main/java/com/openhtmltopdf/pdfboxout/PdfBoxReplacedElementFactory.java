@@ -47,7 +47,15 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
         String nodeName = e.getNodeName();
 
         if (nodeName.equals("svg") && _svgImpl != null) {
-            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, c.getSharedContext().getDotsPerPixel());
+            int cssMaxWidth = -1;
+            if (!box.getStyle().isMaxWidthNone()) {
+                cssMaxWidth = (int)box.getStyle().asLength(c, CSSName.MAX_WIDTH).value();
+            }
+            int cssMaxHeight = -1;
+            if (!box.getStyle().isMaxHeightNone()) {
+                cssMaxHeight = (int)box.getStyle().asLength(c, CSSName.MAX_HEIGHT).value();
+            }
+            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, c.getSharedContext().getDotsPerPixel());
         } else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");
             if (srcAttr != null && srcAttr.length() > 0) {
