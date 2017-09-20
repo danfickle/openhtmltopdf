@@ -242,6 +242,12 @@ public class IdentValue implements FSDerivedValue {
     public static final IdentValue SKEW_X = addValue("skewX");
     public static final IdentValue SKEW_Y = addValue("skewY");
 
+    /*
+     * Box-sizing
+     */
+    public static final IdentValue BORDER_BOX = addValue("border-box");
+    public static final IdentValue CONTENT_BOX = addValue("content-box");
+
 
     /**
      * Description of the Field

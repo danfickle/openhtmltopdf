@@ -1673,6 +1673,18 @@ public final class CSSName implements Comparable {
                     NOT_INHERITED,
                     new SizePropertyBuilder()
             );
+
+    /**
+     * Unique CSSName instance for CSS2 property.
+     */
+    public final static CSSName BOX_SIZING =
+            addProperty(
+                    "box-sizing",
+                    PRIMITIVE,
+                    "content-box",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.BoxSizing()
+            );
     
     /**
      * Unique CSSName instance for CSS3 property.
