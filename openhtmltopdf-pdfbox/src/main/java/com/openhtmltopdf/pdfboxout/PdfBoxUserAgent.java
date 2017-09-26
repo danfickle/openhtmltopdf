@@ -76,8 +76,8 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
             return new ImageResource(resource.getImageUri(), copy);
         }
         
-        if (ImageUtil.isEmbeddedBase64Image(uriStr)) {
-            resource = loadEmbeddedBase64ImageResource(uriStr);
+        if (ImageUtil.isEmbeddedBase64Image(uriResolved)) {
+            resource = loadEmbeddedBase64ImageResource(uriResolved);
             _outputDevice.realizeImage((PdfBoxImage) resource.getImage());
             _imageCache.put(uriResolved, resource);
         } else {
