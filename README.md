@@ -13,7 +13,8 @@ GETTING STARTED
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
 + [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
 + [Template Author Guide - PDF - WIP](https://openhtmltopdf.com/template-guide.pdf)
-+ [RC7 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
++ [RC11 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
++ [Sample Project - Pretty Resume Generator](https://github.com/danfickle/pretty-resume)
 
 LICENSE
 ========
@@ -51,6 +52,7 @@ CHANGELOG
 
 head - 0.0.1-RC12-SNAPSHOT
 ========
++ [Allow uri resolver to resolve uri before checking if a data uri](https://github.com/danfickle/openhtmltopdf/pull/132) Thanks @AlbanSeurat
 + [Ability to run examples from maven](https://github.com/danfickle/openhtmltopdf/pull/108) Thanks @jartysiewicz
 + [Fix to allow jar scheme urls](https://github.com/danfickle/openhtmltopdf/issues/125) Thanks @geesen
 + [Font mapping in custom object drawer rather than using vector shapes](https://github.com/danfickle/openhtmltopdf/pull/121) Thanks @rototor
