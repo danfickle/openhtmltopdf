@@ -103,16 +103,27 @@ public class Breaker {
         context.setEndsOnNL(false);
         doBreakText(c, context, avail, style, false);
     }
-
+    
     private static void doBreakText(LayoutContext c,
             LineBreakContext context, int avail, CalculatedStyle style,
             boolean tryToBreakAnywhere) {
-        
+    	doBreakText(c, context, avail, style, STANDARD_CHARACTER_BREAKER, STANDARD_LINE_BREAKER, tryToBreakAnywhere);
+    }
+    
+    public static void doBreakText(
+    		LayoutContext c,
+            LineBreakContext context,
+            int avail,
+            CalculatedStyle style,
+            TextBreakerSupplier characterBreaker,
+            TextBreakerSupplier lineBreaker, 
+            boolean tryToBreakAnywhere) {
+    	
     	FSFont font = style.getFSFont(c);
         String currentString = context.getStartSubstring();
         FSTextBreaker iterator = tryToBreakAnywhere ? 
-        		getCharacterBreakStream(currentString, c.getSharedContext()) :
-        		getLineBreakStream(currentString, c.getSharedContext());
+        		characterBreaker.getBreaker(currentString, c.getSharedContext()) :
+        		lineBreaker.getBreaker(currentString, c.getSharedContext());
         			
         int left = 0;
         int right = iterator.next();
@@ -120,6 +131,7 @@ public class Breaker {
         int graphicsLength = 0;
         int lastGraphicsLength = 0;
 
+        // FIXME: Should this be >= instead. See comment in BreakerTest.
         while (right > 0 && graphicsLength <= avail) {
             lastGraphicsLength = graphicsLength;
             graphicsLength += c.getTextRenderer().getWidth(
@@ -147,7 +159,7 @@ public class Breaker {
         context.setNeedsNewLine(true);
         if ( lastWrap == 0 && style.getWordWrap() == IdentValue.BREAK_WORD ) {
             if ( ! tryToBreakAnywhere ) {
-                doBreakText(c, context, avail, style, true);
+                doBreakText(c, context, avail, style, characterBreaker, lineBreaker, true);
                 return;
             }
         }
@@ -170,9 +182,29 @@ public class Breaker {
                 context.setWidth(graphicsLength);
             }
         }
-        return;
+    }
+    
+    public interface TextBreakerSupplier {
+    	public FSTextBreaker getBreaker(String str, SharedContext sharedContext);
+    }
+    
+    private static class CharacterBreakerSupplier implements TextBreakerSupplier {
+		@Override
+		public FSTextBreaker getBreaker(String str, SharedContext sharedContext) {
+			return getCharacterBreakStream(str, sharedContext);
+		}
     }
 
+    private static class LineBreakerSupplier implements TextBreakerSupplier {
+		@Override
+		public FSTextBreaker getBreaker(String str, SharedContext sharedContext) {
+			return getLineBreakStream(str, sharedContext);
+		}
+    }
+    
+    public static final TextBreakerSupplier STANDARD_CHARACTER_BREAKER = new CharacterBreakerSupplier();
+    public static final TextBreakerSupplier STANDARD_LINE_BREAKER = new LineBreakerSupplier();
+    
 	public static FSTextBreaker getCharacterBreakStream(String currentString, SharedContext sharedContext) {
 		FSTextBreaker i = sharedContext.getCharacterBreaker();
 		i.setText(currentString);
