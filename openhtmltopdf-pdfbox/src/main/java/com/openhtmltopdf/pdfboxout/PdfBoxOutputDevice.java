@@ -1555,11 +1555,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
      */
     public void close() {
         if (_fontTextDrawer != null) {
-            try {
                 _fontTextDrawer.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
