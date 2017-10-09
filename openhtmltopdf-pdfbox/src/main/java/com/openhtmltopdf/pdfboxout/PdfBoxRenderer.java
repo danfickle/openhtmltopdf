@@ -616,6 +616,8 @@ public class PdfBoxRenderer {
 
         for (Metadata metadata : _outputDevice.getMetadata()) {
         	String name = metadata.getName();
+			if (name.isEmpty())
+				continue;
         	String content = metadata.getContent();
         	if( content == null )
         	    continue;
