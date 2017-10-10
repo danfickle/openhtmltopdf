@@ -8,6 +8,12 @@ OVERVIEW
 Open HTML to PDF is a pure-Java library for rendering arbitrary well-formed XML/XHTML (and even HTML5)
 using CSS 2.1 for layout and formatting, outputting to PDF or images.
 
+Use this library to generated nice looking PDF documents. But be aware that you can not throw modern HTML5+ at
+this engine and expect a great result. You must special craft the HTML document for this library and 
+use it's extended CSS feature like [#31](https://github.com/danfickle/openhtmltopdf/pull/31) or
+[#32](https://github.com/danfickle/openhtmltopdf/pull/32) 
+to get good results. Avoid floats near page breaks and use table layouts.
+
 GETTING STARTED
 ========
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
