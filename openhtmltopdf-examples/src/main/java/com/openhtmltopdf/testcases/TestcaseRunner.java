@@ -36,9 +36,9 @@ public class TestcaseRunner {
 	 * Runs our set of manual test cases. You can specify an output directory with
 	 * -DOUT_DIRECTORY=./output for example. Otherwise, the current working
 	 * directory is used. Test cases must be placed in src/main/resources/testcases/
-	 *
-	 * @param args
-	 * @throws Exception
+	 * 
+	 * If you only want to run one spefic test, you can specify
+	 * -DONLY_TEST=&lt;testname&gt;. I.e. -DONLY_TEST=adobe-borderstyle-bugs
 	 */
 	public static void main(String[] args) throws Exception {
 
@@ -82,6 +82,11 @@ public class TestcaseRunner {
 		 * CSS3 multi-column layout
 		 */
 		runTestCase("multi-column-layout");
+
+		/*
+		 * Adobe Borderyle Problem
+		 */
+		runTestCase("adobe-borderstyle-bugs");
 
 		/* Add additional test cases here. */
 	}
@@ -199,7 +204,10 @@ public class TestcaseRunner {
 		}, BufferedImage.TYPE_INT_ARGB, "PNG")).runPaged();
 	}
 
-	public static void runTestCase(String testCaseFile) throws Exception {
+	private static void runTestCase(String testCaseFile) throws Exception {
+		String onlyTest = System.getProperty("ONLY_TEST", "");
+		if (!onlyTest.isEmpty() && !onlyTest.equals(testCaseFile))
+			return;
 		byte[] htmlBytes = IOUtils
 				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
 		String html = new String(htmlBytes, Charsets.UTF_8);
@@ -248,7 +256,8 @@ public class TestcaseRunner {
 									-90, depth);
 
 							/*
-							 * Now draw some text using different fonts to exercise all different font mappings
+							 * Now draw some text using different fonts to exercise all different font
+							 * mappings
 							 */
 							Font font = Font.decode("Times New Roman").deriveFont(10f);
 							if (depth == 10)
@@ -259,13 +268,14 @@ public class TestcaseRunner {
 								font = Font.decode("Dialog"); // Gets mapped to Helvetica
 							graphics2D.setFont(font);
 							String txt = "FanOut " + fanout + " Angle " + angle + " Depth " + depth;
-							Rectangle2D textBounds = font.getStringBounds(txt,
-									graphics2D.getFontRenderContext());
+							Rectangle2D textBounds = font.getStringBounds(txt, graphics2D.getFontRenderContext());
 							graphics2D.setPaint(new Color(16, 133, 30));
-							GradientPaint gp = new GradientPaint(10.0f, 25.0f, Color.blue, (float) textBounds.getWidth(), (float) textBounds.getHeight(), Color.red);
+							GradientPaint gp = new GradientPaint(10.0f, 25.0f, Color.blue,
+									(float) textBounds.getWidth(), (float) textBounds.getHeight(), Color.red);
 							if (angle == 35)
 								graphics2D.setPaint(gp);
-							graphics2D.drawString(txt, (int)((realWidth - textBounds.getWidth()) / 2), (int)(realHeight - titleBottomHeight));
+							graphics2D.drawString(txt, (int) ((realWidth - textBounds.getWidth()) / 2),
+									(int) (realHeight - titleBottomHeight));
 						}
 					});
 		}
