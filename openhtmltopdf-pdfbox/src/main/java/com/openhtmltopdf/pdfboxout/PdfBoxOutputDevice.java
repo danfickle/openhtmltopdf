@@ -305,7 +305,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
 
-    public void processControls() {
+    private void processControls() {
         
         PDResources checkBoxFontResource = null;
         
@@ -386,10 +386,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     
     /**
      * Helper function to find an enclosing PdfBoxForm given a input or textarea element.
-     * @param e
-     * @return
      */
-    public PdfBoxForm findEnclosingForm(Node e) {
+    private PdfBoxForm findEnclosingForm(Node e) {
         Node parent;
         while ((parent = e.getParentNode()) != null) {
             if (parent.getNodeType() == Node.ELEMENT_NODE &&
@@ -1017,8 +1015,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     private void writeBookmarks(RenderingContext c, Box root, PDOutlineNode parent, List<Bookmark> bookmarks) {
-        for (Iterator<Bookmark> i = bookmarks.iterator(); i.hasNext();) {
-            Bookmark bookmark = i.next();
+        for (Bookmark bookmark : bookmarks) {
             writeBookmark(c, root, parent, bookmark);
         }
     }
@@ -1062,8 +1059,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             if (bookmarks != null) {
                 List<Element> l = DOMUtil.getChildren(bookmarks, "bookmark");
                 if (l != null) {
-                    for (Iterator<Element> i = l.iterator(); i.hasNext();) {
-                        Element e = i.next();
+                    for (Element e : l) {
                         loadBookmark(null, e);
                     }
                 }
@@ -1080,8 +1076,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
         List<Element> l = DOMUtil.getChildren(bookmark, "bookmark");
         if (l != null) {
-            for (Iterator<Element> i = l.iterator(); i.hasNext();) {
-                Element e = i.next();
+            for (Element e : l) {
                 loadBookmark(us, e);
             }
         }
@@ -1128,7 +1123,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
      * 
      * @param name
      *            the name of the metadata element to add.
-     * @return the content value for this metadata.
      */
     public void addMetadata(String name, String value) {
         if ((name != null) && (value != null)) {
@@ -1149,8 +1143,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
      */
     public String getMetadataByName(String name) {
         if (name != null) {
-            for (int i = 0, len = _metadata.size(); i < len; i++) {
-                Metadata m = (Metadata) _metadata.get(i);
+            for (Metadata m : _metadata) {
                 if ((m != null) && m.getName().equalsIgnoreCase(name)) {
                     return m.getContent();
                 }
@@ -1169,11 +1162,10 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
      * @return an ArrayList with matching content values; otherwise an empty
      *         list.
      */
-    public ArrayList getMetadataListByName(String name) {
-        ArrayList result = new ArrayList();
+    public List getMetadataListByName(String name) {
+        List<String> result = new ArrayList<String>();
         if (name != null) {
-            for (int i = 0, len = _metadata.size(); i < len; i++) {
-                Metadata m = (Metadata) _metadata.get(i);
+            for (Metadata m : _metadata) {
                 if ((m != null) && m.getName().equalsIgnoreCase(name)) {
                     result.add(m.getContent());
                 }
@@ -1195,8 +1187,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         if (head != null) {
             List<Element> l = DOMUtil.getChildren(head, "meta");
             if (l != null) {
-                for (Iterator<Element> i = l.iterator(); i.hasNext();) {
-                    Element e = i.next();
+                for (Element e : l) {
                     String name = e.getAttribute("name");
                     if (name != null) { // ignore non-name metadata data
                         String content = e.getAttribute("content");
@@ -1226,15 +1217,13 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
      * 
      * @param name
      *            the metadata element name to locate.
-     * @return the new content value for this metadata (null to remove all
-     *         instances).
      */
     public void setMetadata(String name, String value) {
         if (name != null) {
             boolean remove = (value == null); // removing all instances of name?
             int free = -1; // first open slot in array
             for (int i = 0, len = _metadata.size(); i < len; i++) {
-                Metadata m = (Metadata) _metadata.get(i);
+                Metadata m = _metadata.get(i);
                 if (m != null) {
                     if (m.getName().equalsIgnoreCase(name)) {
                         if (!remove) {
@@ -1265,7 +1254,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         private String _name;
         private String _content;
 
-        public Metadata(String name, String content) {
+        Metadata(String name, String content) {
             _name = name;
             _content = content;
         }
@@ -1340,8 +1329,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             if (_fontTextDrawer == null) {
                 _fontTextDrawer = new PdfBoxGraphics2DFontTextDrawer() {
                     @Override
-                    protected PDFont mapFont(Font font, IFontTextDrawerEnv env)
-                            throws IOException, FontFormatException {
+                    protected PDFont mapFont(Font font, IFontTextDrawerEnv env) {
                         FontSpecification spec = new FontSpecification();
                         spec.size = font.getSize();
                         spec.families = new String[] { font.getFamily() };
@@ -1425,9 +1413,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             return Collections.EMPTY_LIST;
         }
 
-        List result = new ArrayList();
-        for (Iterator i = idMap.entrySet().iterator(); i.hasNext();) {
-            Map.Entry entry = (Entry) i.next();
+        List<PagePosition> result = new ArrayList<PagePosition>();
+        for (Object o : idMap.entrySet()) {
+            Entry entry = (Entry) o;
             String id = (String) entry.getKey();
             if (pattern.matcher(id).find()) {
                 Box box = (Box) entry.getValue();
@@ -1438,10 +1426,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             }
         }
 
-        Collections.sort(result, new Comparator() {
-            public int compare(Object arg0, Object arg1) {
-                PagePosition p1 = (PagePosition) arg0;
-                PagePosition p2 = (PagePosition) arg1;
+        Collections.sort(result, new Comparator<PagePosition>() {
+            public int compare(PagePosition p1, PagePosition p2) {
                 return p1.getPageNo() - p2.getPageNo();
             }
         });
@@ -1555,11 +1541,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
      */
     public void close() {
         if (_fontTextDrawer != null) {
-            try {
-                _fontTextDrawer.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            _fontTextDrawer.close();
         }
     }
 
