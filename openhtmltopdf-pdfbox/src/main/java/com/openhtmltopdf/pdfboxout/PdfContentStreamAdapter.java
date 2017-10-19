@@ -6,6 +6,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
+import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.apache.pdfbox.util.Matrix;
 
 import java.awt.geom.AffineTransform;
@@ -265,9 +266,25 @@ public class PdfContentStreamAdapter {
         }
     }
 
+    public void setRenderingMode(RenderingMode rm) {
+        try {
+            cs.setRenderingMode(rm);
+        } catch (IOException e) {
+            logAndThrow("setRenderingMode", e);
+        }
+    }
+
     public void drawString(String s) {
         try {
             cs.showText(s);
+        } catch (IOException e) {
+            logAndThrow("drawString", e);
+        }
+    }
+
+    public void drawStringWithPositioning(Object[] array) {
+        try {
+            cs.showTextWithPositioning(array);
         } catch (IOException e) {
             logAndThrow("drawString", e);
         }

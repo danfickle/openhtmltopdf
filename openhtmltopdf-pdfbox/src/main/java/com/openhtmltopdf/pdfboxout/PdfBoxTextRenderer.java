@@ -65,7 +65,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
         try {
             float largestAscent = Float.MIN_VALUE;
             float largestDescent = Float.MIN_VALUE;
-            float largestStrikethroughOffset = Float.MIN_VALUE;
+            float largestStrikethroughOffset = -Float.MAX_VALUE;
             float largestStrikethroughThickness = Float.MIN_VALUE;
             float largestUnderlinePosition = Float.MIN_VALUE;
             float largestUnderlineThickness = Float.MIN_VALUE;

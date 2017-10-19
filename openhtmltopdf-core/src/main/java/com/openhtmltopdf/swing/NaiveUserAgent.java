@@ -179,22 +179,25 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         java.io.InputStream is = null;
         
         try {
-			URL urlObj = new URL(uri);
+        	if (uri.startsWith("classpath:")) {
+				is = NaiveUserAgent.class.getResourceAsStream(uri.substring("classpath:".length()));
+			} else {
+				URL urlObj = new URL(uri);
 
-			if (urlObj.getProtocol().equalsIgnoreCase("http") ||
-				urlObj.getProtocol().equalsIgnoreCase("https")) {
-				return _streamFactory.getUrl(uri).getStream();
-			}
-			else {
-		        try {
-		            is = new URL(uri).openStream();
-		        } catch (java.net.MalformedURLException e) {
-		            XRLog.exception("bad URL given: " + uri, e);
-		        } catch (java.io.FileNotFoundException e) {
-		            XRLog.exception("item at URI " + uri + " not found");
-		        } catch (java.io.IOException e) {
-		            XRLog.exception("IO problem for " + uri, e);
-		        }
+				if (urlObj.getProtocol().equalsIgnoreCase("http") ||
+						urlObj.getProtocol().equalsIgnoreCase("https")) {
+					return _streamFactory.getUrl(uri).getStream();
+				} else {
+					try {
+						is = new URL(uri).openStream();
+					} catch (java.net.MalformedURLException e) {
+						XRLog.exception("bad URL given: " + uri, e);
+					} catch (java.io.FileNotFoundException e) {
+						XRLog.exception("item at URI " + uri + " not found");
+					} catch (java.io.IOException e) {
+						XRLog.exception("IO problem for " + uri, e);
+					}
+				}
 			}
         } catch (MalformedURLException e2) {
         	XRLog.exception("bad URL given: " + uri, e2);
@@ -210,22 +213,25 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	InputStream is = null;
     	
         try {
-			URL urlObj = new URL(uri);
+			if (uri.startsWith("classpath:")) {
+				is = NaiveUserAgent.class.getResourceAsStream(uri.substring("classpath:".length()));
+			} else {
+				URL urlObj = new URL(uri);
 
-			if (urlObj.getProtocol().equalsIgnoreCase("http") ||
-				urlObj.getProtocol().equalsIgnoreCase("https")) {
-				return _streamFactory.getUrl(uri).getReader();
-			}
-			else {
-		        try {
-		            is = new URL(uri).openStream();
-		        } catch (java.net.MalformedURLException e) {
-		            XRLog.exception("bad URL given: " + uri, e);
-		        } catch (java.io.FileNotFoundException e) {
-		            XRLog.exception("item at URI " + uri + " not found");
-		        } catch (java.io.IOException e) {
-		            XRLog.exception("IO problem for " + uri, e);
-		        }
+				if (urlObj.getProtocol().equalsIgnoreCase("http") ||
+						urlObj.getProtocol().equalsIgnoreCase("https")) {
+					return _streamFactory.getUrl(uri).getReader();
+				} else {
+					try {
+						is = new URL(uri).openStream();
+					} catch (java.net.MalformedURLException e) {
+						XRLog.exception("bad URL given: " + uri, e);
+					} catch (java.io.FileNotFoundException e) {
+						XRLog.exception("item at URI " + uri + " not found");
+					} catch (java.io.IOException e) {
+						XRLog.exception("IO problem for " + uri, e);
+					}
+				}
 			}
         } catch (MalformedURLException e2) {
         	XRLog.exception("bad URL given: " + uri, e2);
