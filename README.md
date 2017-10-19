@@ -58,6 +58,7 @@ CHANGELOG
 
 head - 0.0.1-RC12-SNAPSHOT
 ========
++ [Better sizing system for inline SVG images](https://github.com/danfickle/openhtmltopdf/issues/128) Thanks @harbulot
 + [Allow uri resolver to resolve uri before checking if a data uri](https://github.com/danfickle/openhtmltopdf/pull/132) Thanks @AlbanSeurat
 + [Ability to run examples from maven](https://github.com/danfickle/openhtmltopdf/pull/108) Thanks @jartysiewicz
 + [Fix to allow jar scheme urls](https://github.com/danfickle/openhtmltopdf/issues/125) Thanks @geesen

@@ -67,6 +67,7 @@ public class TestcaseRunner {
 		 * SVG samples
 		 */
 		runTestCase("svg-inline");
+		runTestCase("svg-sizes");
 
 		/*
 		 * Graphics2D Texterror Case

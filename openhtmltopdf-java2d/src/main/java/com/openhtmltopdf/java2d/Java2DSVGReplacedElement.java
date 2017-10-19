@@ -12,9 +12,9 @@ public class Java2DSVGReplacedElement extends Graphics2DPaintingReplacedElement 
 
 	private final SVGImage _svgImage;
 
-	public Java2DSVGReplacedElement(Element e, SVGDrawer svgImpl, int width, int height) {
+	public Java2DSVGReplacedElement(Element e, SVGDrawer svgImpl, int width, int height, int maxWidth, int maxHeight) {
 		super(width, height);
-                this._svgImage = svgImpl.buildSVGImage(e, width, height, -1, -1, DOTS_PER_INCH);
+        this._svgImage = svgImpl.buildSVGImage(e, width, height, maxWidth, maxHeight, /* dots-per-pixel */ 1);
 	}
 
 	@Override

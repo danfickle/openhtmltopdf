@@ -20,10 +20,12 @@
 package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.simple.extend.FormSubmissionListener;
+
 import org.w3c.dom.Element;
 
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
@@ -47,14 +49,9 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
         String nodeName = e.getNodeName();
 
         if (nodeName.equals("svg") && _svgImpl != null) {
-            int cssMaxWidth = -1;
-            if (!box.getStyle().isMaxWidthNone()) {
-                cssMaxWidth = (int)box.getStyle().asLength(c, CSSName.MAX_WIDTH).value();
-            }
-            int cssMaxHeight = -1;
-            if (!box.getStyle().isMaxHeightNone()) {
-                cssMaxHeight = (int)box.getStyle().asLength(c, CSSName.MAX_HEIGHT).value();
-            }
+            int cssMaxWidth = CalculatedStyle.getCSSMaxWidth(c, box);
+            int cssMaxHeight = CalculatedStyle.getCSSMaxHeight(c, box);
+            
             return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, c.getSharedContext().getDotsPerPixel());
         } else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");

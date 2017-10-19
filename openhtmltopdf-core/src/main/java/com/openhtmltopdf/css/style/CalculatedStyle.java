@@ -1315,6 +1315,48 @@ public class CalculatedStyle {
 	public IdentValue getDirection() {
 		return getIdent(CSSName.DIRECTION);
 	}
+	
+	/**
+	 * Aims to get the correct resolved max-width for a box in dots unit.
+	 * Returns -1 if there is no max-width defined.
+	 * Assumptions: box has a containing block.
+	 */
+	public static int getCSSMaxWidth(CssContext c, Box box) {
+		if (box.getStyle().isMaxWidthNone()) {
+			return -1;
+		}
+		
+	    return box.getStyle().getMaxWidth(c, box.getContainingBlock().getContentWidth());
+	}
+
+	/**
+	 * Aims to get the correct resolved max-height for a box in dots unit.
+	 * returns -1 if there is no max-height defined.
+	 * Assumptions: box has a containing block.
+	 */
+	public static int getCSSMaxHeight(CssContext c, Box box) {
+		if (box.getStyle().isMaxHeightNone()) {
+			return -1;
+		}
+		
+		Length cssMaxHeight = box.getStyle().asLength(c, CSSName.MAX_HEIGHT);
+
+		/* 	MDN says:
+		 *  The percentage is calculated with respect to the height of the generated box's containing block.
+		 *  If the height of the containing block is not specified explicitly (i.e., it depends on content height),
+		 *  and this element is not absolutely positioned, the percentage value is treated as none.*/
+		
+		if (cssMaxHeight.isPercent() &&
+			box.getContainingBlock().getStyle().hasAbsoluteUnit(CSSName.HEIGHT)) {
+			return (int) (cssMaxHeight.value() * box.getContainingBlock().getStyle().asLength(c, CSSName.HEIGHT).value() / 100f);
+		} else if (cssMaxHeight.isPercent()) {
+			return -1;
+		} else {
+			return (int) cssMaxHeight.value();
+		}
+	}
+	
+	
 }// end class
 
 /*
