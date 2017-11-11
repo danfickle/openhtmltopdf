@@ -72,10 +72,10 @@ public class PdfBoxTextRenderer implements TextRenderer {
             
             for (FontDescription des : descrs) {
                 float loopAscent = des.getFont().getBoundingBox().getUpperRightY();
-                float loopDescent = -des.getFont().getBoundingBox().getLowerLeftY();
-                float loopStrikethroughOffset = -des.getYStrikeoutPosition();
+                float loopDescent = des.getFont().getBoundingBox().getLowerLeftY();
+                float loopStrikethroughOffset = des.getYStrikeoutPosition();
                 float loopStrikethroughThickness = des.getYStrikeoutSize();
-                float loopUnderlinePosition = -des.getUnderlinePosition();
+                float loopUnderlinePosition = des.getUnderlinePosition();
                 float loopUnderlineThickness = des.getUnderlineThickness();
                 
                 if (loopAscent > largestAscent) {
@@ -104,8 +104,8 @@ public class PdfBoxTextRenderer implements TextRenderer {
             }
             
             result.setAscent(largestAscent / 1000f * size);
-            result.setDescent(largestDescent / 1000f * size);
-            result.setStrikethroughOffset(largestStrikethroughOffset / 1000f * size);
+            result.setDescent(-1 * largestDescent / 1000f * size);
+            result.setStrikethroughOffset(-1 * largestStrikethroughOffset / 1000f * size);
             
             if (largestStrikethroughThickness > 0) {
                 result.setStrikethroughThickness(largestStrikethroughThickness / 1000f * size);
@@ -113,7 +113,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
                 result.setStrikethroughThickness(size / 12.0f);
             }
             
-            result.setUnderlineOffset(largestUnderlinePosition / 1000f * size);
+            result.setUnderlineOffset(-1 * largestUnderlinePosition / 1000f * size);
             result.setUnderlineThickness(largestUnderlineThickness / 1000f * size);
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("getFSFontMetrics", e);
