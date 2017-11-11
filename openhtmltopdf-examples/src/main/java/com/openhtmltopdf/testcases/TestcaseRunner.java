@@ -56,6 +56,7 @@ public class TestcaseRunner {
 		runTestCase("FSPageBreakMinHeightSample");
 
 		runTestCase("color");
+		runTestCase("text-decoration");
 		runTestCase("background-color");
 		runTestCase("background-image");
 		runTestCase("invalid-url-background-image");

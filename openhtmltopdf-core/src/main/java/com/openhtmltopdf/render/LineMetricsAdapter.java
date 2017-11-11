@@ -68,10 +68,10 @@ public class LineMetricsAdapter implements FSFontMetrics {
     	float max = Float.MIN_VALUE;
     	
     	for (LineMetrics met : _lineMetrics) {
-    		max = Math.max(max, met.getStrikethroughOffset());
+    		max = Math.max(max, Math.abs(met.getStrikethroughOffset()));
     	}
     	
-    	return max;
+    	return -1 * max;
     }
 
     public float getStrikethroughThickness() {
