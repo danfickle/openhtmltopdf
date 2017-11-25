@@ -58,6 +58,7 @@ CHANGELOG
 
 head - 0.0.1-RC12-SNAPSHOT
 ========
++ [Fix incorrect strikethrough offset](https://github.com/danfickle/openhtmltopdf/issues/136) Thanks @alebar, @backslash47, @izhenka
 + Allow percentages for max-width and max-height of images Thanks @backslash47
 + [Better sizing system for inline SVG images](https://github.com/danfickle/openhtmltopdf/issues/128) Thanks @harbulot
 + [Allow uri resolver to resolve uri before checking if a data uri](https://github.com/danfickle/openhtmltopdf/pull/132) Thanks @AlbanSeurat

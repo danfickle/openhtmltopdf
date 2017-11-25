@@ -63,12 +63,12 @@ public class PdfBoxTextRenderer implements TextRenderer {
         PdfBoxFSFontMetrics result = new PdfBoxFSFontMetrics();
         
         try {
-            float largestAscent = Float.MIN_VALUE;
-            float largestDescent = Float.MIN_VALUE;
+            float largestAscent = -Float.MAX_VALUE;
+            float largestDescent = -Float.MAX_VALUE;
             float largestStrikethroughOffset = -Float.MAX_VALUE;
-            float largestStrikethroughThickness = Float.MIN_VALUE;
-            float largestUnderlinePosition = Float.MIN_VALUE;
-            float largestUnderlineThickness = Float.MIN_VALUE;
+            float largestStrikethroughThickness = -Float.MAX_VALUE;
+            float largestUnderlinePosition = -Float.MAX_VALUE;
+            float largestUnderlineThickness = -Float.MAX_VALUE;
             
             for (FontDescription des : descrs) {
                 float loopAscent = des.getFont().getBoundingBox().getUpperRightY();
