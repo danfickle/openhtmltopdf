@@ -65,7 +65,7 @@ public class LineMetricsAdapter implements FSFontMetrics {
     }
 
     public float getStrikethroughOffset() {
-    	float max = Float.MIN_VALUE;
+    	float max = -Float.MAX_VALUE;
     	
     	for (LineMetrics met : _lineMetrics) {
     		max = Math.max(max, met.getStrikethroughOffset());
