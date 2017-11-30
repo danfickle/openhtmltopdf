@@ -219,8 +219,12 @@ public class XMLResource extends AbstractResource {
                 	xformFactory = TransformerFactory.newInstance();
                 }
                 
-                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+                try {
+                	xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                	xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+                }catch(Exception e) {
+                	XRLog.load(Level.SEVERE, e.getMessage());
+                }
                 idTransform = xformFactory.newTransformer();
                 
             } catch (Exception ex) {
