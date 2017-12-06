@@ -136,6 +136,8 @@ public class SharedContext {
 	private FSTextTransformer _unicodeToLowerTransformer = new TextUtil.DefaultToLowerTransformer(Locale.US);
 	private FSTextTransformer _unicodeToUpperTransformer = new TextUtil.DefaultToUpperTransformer(Locale.US);
 	private FSTextTransformer _unicodeToTitleTransformer = new TextUtil.DefaultToTitleTransformer();
+
+	public String _preferredTransformerFactoryImplementationClass = null;
     
     public SharedContext() {
     }

@@ -169,7 +169,8 @@ public class PdfBoxRenderer {
     PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode, 
             HttpStreamFactory httpStreamFactory, 
             OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
-            PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode, FSObjectDrawerFactory objectDrawerFactory) {
+            PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode,
+            FSObjectDrawerFactory objectDrawerFactory, String preferredTransformerFactoryImplementationClass) {
         
         _pdfDoc = new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
@@ -196,6 +197,8 @@ public class PdfBoxRenderer {
         
         _sharedContext = new SharedContext();
         _sharedContext.registerWithThread();
+        
+        _sharedContext._preferredTransformerFactoryImplementationClass = preferredTransformerFactoryImplementationClass;
         
         _sharedContext.setUserAgentCallback(userAgent);
         _sharedContext.setCss(new StyleReference(userAgent));

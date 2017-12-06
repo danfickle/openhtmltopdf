@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.openhtmltopdf.layout.Layer;
+
 import org.w3c.dom.Document;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
@@ -72,6 +73,7 @@ public class Java2DRendererBuilder {
     }
     
     private List<AddedFont> _fonts = new ArrayList<AddedFont>();
+	private String _preferredTransformerFactoryImplementationClass = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";;
 
 	/**
 	 * Provides an HttpStreamFactory implementation if the user desires to use
@@ -412,7 +414,10 @@ public class Java2DRendererBuilder {
 			_layoutGraphics = bf.createGraphics();
 		}
 
-        return new Java2DRenderer(doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, pageSize, _replacementText, _testMode, _pageProcessor, _layoutGraphics, _initialPageNumber, _pagingMode, _objectDrawerFactory);
+        return new Java2DRenderer(
+        		doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, pageSize, _replacementText,
+        		_testMode, _pageProcessor, _layoutGraphics, _initialPageNumber, _pagingMode,
+        		_objectDrawerFactory, _preferredTransformerFactoryImplementationClass);
     }
 
 	/**
@@ -424,6 +429,20 @@ public class Java2DRendererBuilder {
 		this._objectDrawerFactory = objectDrawerFactory;
 		return this;
 	}
+	
+    /**
+     * This method should be considered advanced and is not required for most setups.
+     * Set a preferred implementation class for use as javax.xml.transform.TransformerFactory. Use null to let 
+     * a default implementation class be used. The default is "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl".
+     * This seems to work with most systems but not JBoss Wildfly and related setups. In this case you can use null to let
+     * the container use whatever TransformerFactory it has available. 
+     * @param transformerFactoryClass
+     * @return this for method chaining
+     */
+    public Java2DRendererBuilder useTransformerFactoryImplementationClass(String transformerFactoryClass) {
+        this._preferredTransformerFactoryImplementationClass = transformerFactoryClass;
+        return this;
+    }
 
 	public static abstract class Graphics2DPaintingReplacedElement extends EmptyReplacedElement {
 		protected Graphics2DPaintingReplacedElement(int width, int height) {

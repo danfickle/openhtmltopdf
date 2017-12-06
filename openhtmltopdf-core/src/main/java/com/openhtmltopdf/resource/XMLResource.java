@@ -25,11 +25,13 @@ import java.util.logging.Level;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXSource;
 
@@ -44,6 +46,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRRuntimeException;
 
@@ -162,7 +165,55 @@ public class XMLResource extends AbstractResource {
     }
 
     private static class XMLResourceBuilder {
-
+    	
+    	private void setXmlReaderSecurityFeatures(XMLReader xmlReader) {
+            try {
+           	 // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
+           	 // DO NOT REMOVE!
+          	 xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
+           	 xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
+           	 xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+           	 xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+           	 xmlReader.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+           } catch (SAXNotSupportedException e) {
+           	 XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
+           } catch (SAXNotRecognizedException e) {
+           	 XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
+           }
+    	}
+    	
+    	private void setDocumentBuilderSecurityFeatures(DocumentBuilderFactory dbf) {
+    		try {
+       	      // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
+       	      // DO NOT REMOVE!
+              dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
+              dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+              dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+              dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+              dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+    		} catch (ParserConfigurationException e) {
+    		  XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
+    		}
+    	}
+    	
+    	private void setTranformerFactorySecurityFeatures(TransformerFactory xformFactory) {
+    		try {
+    		  xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+              xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+    		} catch (IllegalArgumentException e) {
+    		  XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
+    		}
+    	}
+    	
+    	private TransformerFactory loadPreferredTransformerFactory(String preferredImpl) {
+            try {
+            	return TransformerFactory.newInstance(preferredImpl, null);
+            } catch (TransformerFactoryConfigurationError e) {
+            	XRLog.load(Level.SEVERE, "Could not load preferred XML transformer, using default which may not be secure.");
+            	return TransformerFactory.newInstance();
+            }
+    	}
+    	
     	private XMLResource createXMLResource(XMLResource target) {
             Source input = null;
             DOMResult output = null;
@@ -172,55 +223,32 @@ public class XMLResource extends AbstractResource {
             long st = 0L;
 
             xmlReader = XMLResource.newXMLReader();
-            
-            try {
-            	 // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
-            	 // DO NOT REMOVE!
-           	     xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
-            	 xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            	 xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            	 xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-            	 xmlReader.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            } catch (SAXNotSupportedException e) {
-            	 XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
-            } catch (SAXNotRecognizedException e) {
-            	 XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
-            }
 
+            setXmlReaderSecurityFeatures(xmlReader);
             addHandlers(xmlReader);
             setParserFeatures(xmlReader);
 
             st = System.currentTimeMillis();
             try {
                 input = new SAXSource(xmlReader, target.getResourceInputSource());
+                
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 
-           	    // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
-           	    // DO NOT REMOVE!
-                dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
-                dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-                dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-                
+                setDocumentBuilderSecurityFeatures(dbf);
                 dbf.setNamespaceAware(true);
-                // validation is the root of all evil in xml - tobe
-                dbf.setValidating(false);
+                dbf.setValidating(false); // validation is the root of all evil in xml - tobe
                 
                 output = new DOMResult(dbf.newDocumentBuilder().newDocument());
                 
-                try {
-                	// FIXME:
-                	// Currently, we have to do this as the user may have an older vesion of xalan on their classpath which would be
-                	// used otherwise.
-                	xformFactory = TransformerFactory.newInstance("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl", null);
-                } catch(Exception e) {
-                	XRLog.load(Level.SEVERE, "Could not load preferred XML transformer, using default which may not be secure.");
+                String preferredTransformerFactory = ThreadCtx.get().sharedContext()._preferredTransformerFactoryImplementationClass;
+                
+                if (preferredTransformerFactory == null) {
                 	xformFactory = TransformerFactory.newInstance();
+                } else {
+                	xformFactory = loadPreferredTransformerFactory(preferredTransformerFactory);
                 }
                 
-                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+                setTranformerFactorySecurityFeatures(xformFactory);
                 idTransform = xformFactory.newTransformer();
                 
             } catch (Exception ex) {

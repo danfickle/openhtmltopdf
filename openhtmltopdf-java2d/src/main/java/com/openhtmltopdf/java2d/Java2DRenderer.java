@@ -27,6 +27,7 @@ import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
+
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -62,6 +63,7 @@ public class Java2DRenderer implements IJava2DRenderer {
 
     /**
 	 * Subject to change. Not public API. Used exclusively by the Java2DRendererBuilder class. 
+     * @param preferredTransformerFactoryImplementationClass 
 	 */
 	public Java2DRenderer(
 			BaseDocument doc,
@@ -76,7 +78,8 @@ public class Java2DRenderer implements IJava2DRenderer {
 			FSPageProcessor pageProcessor,
 			Graphics2D layoutGraphics,
 			int initialPageNumber, short pagingMode,
-            FSObjectDrawerFactory objectDrawerFactory) {
+            FSObjectDrawerFactory objectDrawerFactory,
+            String preferredTransformerFactoryImplementationClass) {
 
 	    _pagingMode = pagingMode;
 		_pageProcessor = pageProcessor;
@@ -101,6 +104,8 @@ public class Java2DRenderer implements IJava2DRenderer {
 		
         _sharedContext = new SharedContext();
         _sharedContext.registerWithThread();
+        
+        _sharedContext._preferredTransformerFactoryImplementationClass = preferredTransformerFactoryImplementationClass;
         
         _sharedContext.setUserAgentCallback(uac);
         _sharedContext.setCss(new StyleReference(uac));
