@@ -32,14 +32,13 @@ import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.XRLog;
+import org.w3c.dom.css.CSSPrimitiveValue;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
-
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 /**
  * All positioned content as well as content with an overflow value other
@@ -58,35 +57,35 @@ public class Layer {
     
     private Layer _parent;
     private boolean _stackingContext;
-    private List _children;
+    private List<Layer> _children;
     private Box _master;
-    
+
     private Box _end;
 
     private List _floats;
 
     private boolean _fixedBackground;
-    
+
     private boolean _inline;
     private boolean _requiresLayout;
-    
-    private List _pages;
+
+    private List<PageBox> _pages;
     private PageBox _lastRequestedPage = null;
-    
-    private Set _pageSequences;
-    private List _sortedPageSequences;
-    
+
+    private Set<BlockBox> _pageSequences;
+    private List<BlockBox> _sortedPageSequences;
+
     private Map _runningBlocks;
-    
+
     private Box _selectionStart;
     private Box _selectionEnd;
-    
+
     private int _selectionStartX;
     private int _selectionStartY;
-    
+
     private int _selectionEndX;
     private int _selectionEndY;
-    
+
     public Layer(Box master) {
         this(null, master);
         setStackingContext(true);
@@ -120,18 +119,18 @@ public class Layer {
     	}
         return (int) _master.getStyle().asFloat(CSSName.Z_INDEX);
     }
-    
+
     public boolean isZIndexAuto() {
     	return _master.getStyle().isIdent(CSSName.Z_INDEX, IdentValue.AUTO);
     }
-    
+
     public Box getMaster() {
         return _master;
     }
 
     public synchronized void addChild(Layer layer) {
         if (_children == null) {
-            _children = new ArrayList();
+            _children = new ArrayList<Layer>();
         }
         _children.add(layer);
     }
@@ -374,50 +373,78 @@ public class Layer {
             return Collections.emptyList();
 
         // By default the transform point is the lower left of the page, so we need to translate to correctly apply transform.
-        float absTranslateX = box.getStyle().getFloatPropertyProportionalWidth(CSSName.FS_TRANSFORM_ORIGIN_X, box.getWidth(), c) + box.getAbsX();
-        float absTranslateY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y, box.getHeight(), c) + box.getAbsY();
+        float relOriginX = box.getStyle().getFloatPropertyProportionalWidth(CSSName.FS_TRANSFORM_ORIGIN_X, box.getWidth(), c);
+        float relOriginY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y, box.getHeight(), c);
+
+        float absTranslateX = relOriginX + box.getAbsX();
+        float absTranslateY = relOriginY + box.getAbsY();
         
         float relTranslateX = absTranslateX - c.getOutputDevice().getAbsoluteTransformOriginX();
         float relTranslateY = absTranslateY - c.getOutputDevice().getAbsoluteTransformOriginY();
- 
-        List<PropertyValue> transformList = ((ListValue) transforms).getValues();
-        
-        if (transformList.size() == 1) {
-            String fName = transformList.get(0).getFunction().getName();
-            List<PropertyValue> params = transformList.get(0).getFunction().getParameters();
+
+        List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
+        List<AffineTransform> resultTransforms = new ArrayList<AffineTransform>();
+        float currentScaleX = 1, currentScaleY = 1;
+        for( PropertyValue transform : transformList) {
+            String fName = transform.getFunction().getName();
+            List<PropertyValue> params = transform.getFunction().getParameters();
             
             if ("rotate".equalsIgnoreCase(fName)) {
                 float radians = this.convertAngleToRadians(params.get(0));
-                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                resultTransforms.addAll(Arrays.asList(
                         AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
                         AffineTransform.getRotateInstance(radians),
                         AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
                         ));
-            } else if ("scale".equalsIgnoreCase(fName)) {
-                return c.getOutputDevice().pushTransforms(Arrays.asList(
+            } else if ("scale".equalsIgnoreCase(fName) || "scalex".equalsIgnoreCase(fName) || "scaley".equalsIgnoreCase(fName)) {
+                float scaleX = params.get(0).getFloatValue();
+                float scaleY = params.get(0).getFloatValue();
+				if (params.size() > 1)
+					scaleY = params.get(1).getFloatValue();
+				if( "scalex".equalsIgnoreCase(fName) )
+				    scaleY = 1;
+                if( "scaley".equalsIgnoreCase(fName) )
+                    scaleX = 1;
+                /*
+                 * We must compensate the x / y translation, which will be applied to draw this box, but will
+                 * be applied with this scaling.
+                 */
+				resultTransforms.addAll(Arrays.asList(AffineTransform.getScaleInstance(scaleX, scaleY),
+						AffineTransform.getTranslateInstance((-relOriginX + box.getAbsX()) / scaleX - box.getAbsX(),
+                                (-relOriginY + box.getAbsY()) / scaleY - box.getAbsY())));
+				currentScaleX *= scaleX;
+                currentScaleY *= scaleY;
+            } else if ("skew".equalsIgnoreCase(fName)) {
+                float radiansX = this.convertAngleToRadians(params.get(0));
+                float radiansY = this.convertAngleToRadians(params.get(0));
+                if (params.size() > 1)
+                    radiansY = this.convertAngleToRadians(params.get(1));
+                resultTransforms.addAll(Arrays.asList(
                         AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
-                        AffineTransform.getScaleInstance(params.get(0).getFloatValue(), params.get(0).getFloatValue()),
+                        AffineTransform.getShearInstance(Math.tan(radiansX), Math.tan(radiansY)),
                         AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
-                        ));
-            } else if ("scalex".equalsIgnoreCase(fName)) {
-                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                ));
+            } else if ("skewx".equalsIgnoreCase(fName)) {
+                float radians = this.convertAngleToRadians(params.get(0));
+                resultTransforms.addAll(Arrays.asList(
                         AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
-                        AffineTransform.getScaleInstance(params.get(0).getFloatValue(), 1),
+                        AffineTransform.getShearInstance(Math.tan(radians), 0),
                         AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
-                        ));
-            } else if ("scaley".equalsIgnoreCase(fName)) {
-                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                ));
+            } else if ("skewy".equalsIgnoreCase(fName)) {
+                float radians = this.convertAngleToRadians(params.get(0));
+                resultTransforms.addAll(Arrays.asList(
                         AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
-                        AffineTransform.getScaleInstance(1, params.get(0).getFloatValue()),
+                        AffineTransform.getShearInstance(0, Math.tan(radians)),
                         AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
-                        ));
+                ));
             } else if ("matrix".equalsIgnoreCase(fName)) {
-                return c.getOutputDevice().pushTransforms(Arrays.asList(
+                resultTransforms.addAll(Arrays.asList(
                         AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
                         new AffineTransform(params.get(0).getFloatValue(), params.get(1).getFloatValue(),params.get(2).getFloatValue(),
                                 params.get(3).getFloatValue(),params.get(4).getFloatValue(),params.get(5).getFloatValue()),
                         AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
-                        ));
+                ));
             } else if ("translate".equalsIgnoreCase(fName)) {
                 XRLog.layout(Level.WARNING, "translate function not implemented at this time");
             } else if ("translateX".equalsIgnoreCase(fName)) {
@@ -427,17 +454,16 @@ public class Layer {
             }
         }
         
-        XRLog.layout(Level.WARNING, "Multiple transforms on one element not implemented at this time");
-        return Collections.emptyList();
+        return c.getOutputDevice().pushTransforms(resultTransforms);
     }
 	
     private float convertAngleToRadians(PropertyValue param) {
     	if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_DEG) {
-    		return (float) Math.toRadians(-param.getFloatValue());
+    		return (float) Math.toRadians(param.getFloatValue());
     	} else if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_RAD) {
-    		return -param.getFloatValue();
+    		return param.getFloatValue();
     	} else { // if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_GRAD)
-    		return (float) -(param.getFloatValue() * (Math.PI / 200));
+    		return (float) (param.getFloatValue() * (Math.PI / 200));
     	}
     }
     
@@ -714,8 +740,8 @@ public class Layer {
         _fixedBackground = b;
     }
 
-    public synchronized List getChildren() {
-        return _children == null ? Collections.EMPTY_LIST : Collections.unmodifiableList(_children);
+    public synchronized List<Layer> getChildren() {
+        return _children == null ? Collections.<Layer>emptyList() : Collections.unmodifiableList(_children);
     }
     
     private void remove(Layer layer) {
@@ -837,11 +863,11 @@ public class Layer {
         }
     }
     
-    public List getPages() {
-        return _pages == null ? Collections.EMPTY_LIST : _pages;
+    public List<PageBox> getPages() {
+        return _pages == null ? Collections.<PageBox>emptyList(): _pages;
     }
 
-    public void setPages(List pages) {
+    public void setPages(List<PageBox> pages) {
         _pages = pages;
     }
     
@@ -852,10 +878,10 @@ public class Layer {
     public void addPage(CssContext c) {
         String pseudoPage = null;
         if (_pages == null) {
-            _pages = new ArrayList();
+            _pages = new ArrayList<PageBox>();
         }
         
-        List pages = getPages();
+        List<PageBox> pages = getPages();
         if (pages.size() == 0) {
             pseudoPage = "first";
         } else if (pages.size() % 2 == 0) {
@@ -867,7 +893,7 @@ public class Layer {
         if (pages.size() == 0) {
             pageBox.setTopAndBottom(c, 0);
         } else {
-            PageBox previous = (PageBox)pages.get(pages.size()-1);
+            PageBox previous = pages.get(pages.size()-1);
             pageBox.setTopAndBottom(c, previous.getBottom());
         }
         
@@ -876,7 +902,7 @@ public class Layer {
     }
     
     public void removeLastPage() {
-        PageBox pageBox = (PageBox)_pages.remove(_pages.size()-1);
+        PageBox pageBox = _pages.remove(_pages.size()-1);
         if (pageBox == getLastRequestedPage()) {
             setLastRequestedPage(null);
         }
@@ -982,9 +1008,9 @@ public class Layer {
     public void trimEmptyPages(CssContext c, int maxYHeight) {
         // Empty pages may result when a "keep together" constraint
         // cannot be satisfied and is dropped
-        List pages = getPages();
+        List<PageBox> pages = getPages();
         for (int i = pages.size() - 1; i > 0; i--) {
-            PageBox page = (PageBox)pages.get(i);
+            PageBox page = pages.get(i);
             if (page.getTop() >= maxYHeight) {
                 if (page == getLastRequestedPage()) {
                     setLastRequestedPage(null);
@@ -998,7 +1024,7 @@ public class Layer {
     
     public void trimPageCount(int newPageCount) {
         while (_pages.size() > newPageCount) {
-            PageBox pageBox = (PageBox)_pages.remove(_pages.size()-1);
+            PageBox pageBox = _pages.remove(_pages.size()-1);
             if (pageBox == getLastRequestedPage()) {
                 setLastRequestedPage(null);
             }
@@ -1011,14 +1037,13 @@ public class Layer {
     
     public void assignPagePaintingPositions(
             CssContext cssCtx, int mode, int additionalClearance) {
-        List pages = getPages();
+        List<PageBox> pages = getPages();
         int paintingTop = additionalClearance;
-        for (Iterator i = pages.iterator(); i.hasNext(); ) {
-            PageBox page = (PageBox)i.next();
+        for (PageBox page : pages) {
             page.setPaintingTop(paintingTop);
             if (mode == PAGED_MODE_SCREEN) {
                 page.setPaintingBottom(paintingTop + page.getHeight(cssCtx));
-            } else if (mode == PAGED_MODE_PRINT){
+            } else if (mode == PAGED_MODE_PRINT) {
                 page.setPaintingBottom(paintingTop + page.getContentHeight(cssCtx));
             } else {
                 throw new IllegalArgumentException("Illegal mode");
@@ -1028,11 +1053,10 @@ public class Layer {
     }
     
     public int getMaxPageWidth(CssContext cssCtx, int additionalClearance) {
-        List pages = getPages();
+        List<PageBox> pages = getPages();
         int maxWidth = 0;
-        for (Iterator i = pages.iterator(); i.hasNext(); ) {
-            PageBox page = (PageBox)i.next();
-            int pageWidth = page.getWidth(cssCtx) + additionalClearance*2;
+        for (PageBox page : pages) {
+            int pageWidth = page.getWidth(cssCtx) + additionalClearance * 2;
             if (pageWidth > maxWidth) {
                 maxWidth = pageWidth;
             }
@@ -1162,15 +1186,14 @@ public class Layer {
     
     public void layoutPages(LayoutContext c) {
         c.setRootDocumentLayer(c.getRootLayer());
-        for (Iterator i = _pages.iterator(); i.hasNext(); ) {
-            PageBox pageBox = (PageBox)i.next();
+        for (PageBox pageBox : _pages) {
             pageBox.layout(c);
         }
     }
     
     public void addPageSequence(BlockBox start) {
         if (_pageSequences == null) {
-            _pageSequences = new HashSet();
+            _pageSequences = new HashSet<BlockBox>();
         }
         
         _pageSequences.add(start);
@@ -1182,13 +1205,10 @@ public class Layer {
         }
         
         if (_sortedPageSequences == null) {
-            List result = new ArrayList(_pageSequences);
+            List<BlockBox> result = new ArrayList<BlockBox>(_pageSequences);
             
-            Collections.sort(result, new Comparator() {
-                public int compare(Object o1, Object o2) {
-                    BlockBox b1 = (BlockBox)o1;
-                    BlockBox b2 = (BlockBox)o2;
-                    
+            Collections.sort(result, new Comparator<BlockBox>() {
+                public int compare(BlockBox b1, BlockBox b2) {
                     return b1.getAbsY() - b2.getAbsY();
                 }
             });

@@ -38,7 +38,7 @@ public interface OutputDevice {
 	/**
 	 * Apply the given transform on top of the current one in the PDF graphics stream.
 	 * This is a cumulative operation. You should popTransform after the box and children are painted.
-	 * @return 
+	 * @return the list of inverse transforms to undo the effect of this transform
 	 */
 	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms);
 	public void popTransforms(List<AffineTransform> inverse);
