@@ -19,18 +19,13 @@
  */
 package com.openhtmltopdf.css.parser;
 
-import java.util.List;
-import java.util.ArrayList;
-
-import org.w3c.dom.DOMException;
-import org.w3c.dom.css.CSSPrimitiveValue;
-import org.w3c.dom.css.CSSValue;
-import org.w3c.dom.css.Counter;
-import org.w3c.dom.css.RGBColor;
-import org.w3c.dom.css.Rect;
-
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.util.ArrayUtil;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.css.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PropertyValue implements CSSPrimitiveValue {
     public static final short VALUE_TYPE_NUMBER = 1;
@@ -58,7 +53,7 @@ public class PropertyValue implements CSSPrimitiveValue {
     
     private Token _operator;
     
-    private List _values;
+    private List<?> _values;
     private FSFunction _function;
 
     public PropertyValue(short type, float floatValue, String cssText) {
@@ -108,7 +103,7 @@ public class PropertyValue implements CSSPrimitiveValue {
         _identValue = ident;
     }
     
-    public PropertyValue(List values) {
+    public PropertyValue(List<?> values) {
         _type = CSSPrimitiveValue.CSS_UNKNOWN; // HACK
         _cssValueType = CSSValue.CSS_CUSTOM;
         _cssText = values.toString(); // HACK
@@ -210,8 +205,8 @@ public class PropertyValue implements CSSPrimitiveValue {
         return _cssText;
     }
     
-    public List getValues() {
-        return new ArrayList(_values);
+    public List<Object> getValues() {
+        return new ArrayList<Object>(_values);
     }
     
     public FSFunction getFunction() {

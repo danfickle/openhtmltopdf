@@ -20,20 +20,6 @@
  */
 package com.openhtmltopdf.render;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSColor;
@@ -47,6 +33,17 @@ import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.Styleable;
 import com.openhtmltopdf.util.XRLog;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import java.awt.*;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
 
 public abstract class Box implements Styleable {
     protected static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -497,8 +494,8 @@ public abstract class Box implements Styleable {
         }
     }
 
-    public List getElementBoxes(Element elem) {
-        List result = new ArrayList();
+    public List<Box> getElementBoxes(Element elem) {
+        List<Box> result = new ArrayList<Box>();
         for (int i = 0; i < getChildCount(); i++) {
             Box child = getChild(i);
             if (child.getElement() == elem) {
@@ -608,7 +605,7 @@ public abstract class Box implements Styleable {
                 page = (PageBox)c.getRootLayer().getPages().get(page.getPageNo()+1);
                 delta += page.getContentHeight(c);
 
-                if (pageBreakCount == 2 && pendingPageName) {
+                if (pendingPageName) {
                     c.setPageName(c.getPendingPageName());
                 }
 
