@@ -19,22 +19,13 @@
  */
 package com.openhtmltopdf.css.parser.property;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import org.w3c.dom.css.CSSPrimitiveValue;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.css.parser.CSSParseException;
-import com.openhtmltopdf.css.parser.FSFunction;
-import com.openhtmltopdf.css.parser.FSRGBColor;
-import com.openhtmltopdf.css.parser.PropertyValue;
-import com.openhtmltopdf.css.parser.Token;
+import com.openhtmltopdf.css.parser.*;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
+import org.w3c.dom.css.CSSPrimitiveValue;
+
+import java.util.*;
 
 public class PrimitivePropertyBuilders {
     // none | hidden | dotted | dashed | solid | double | groove | ridge | inset | outset
@@ -1713,6 +1704,8 @@ public class PrimitivePropertyBuilders {
             		for (Object p : value.getFunction().getParameters()) {
             			checkNumberType(cssName, (CSSPrimitiveValue) p);
             		}
+                    if (value.getFunction().getParameters().size() == 1)
+                        expected = 1;
             	} else if (fName.equalsIgnoreCase("scaleX")) {
             		expected = 1;
             		for (Object p : value.getFunction().getParameters()) {
@@ -1723,6 +1716,23 @@ public class PrimitivePropertyBuilders {
             		for (Object p : value.getFunction().getParameters()) {
             			checkNumberType(cssName, (CSSPrimitiveValue) p);
             		}
+                } else if (fName.equalsIgnoreCase("skew")) {
+                    expected = 2;
+                    for (Object p : value.getFunction().getParameters()) {
+                        checkAngleType(cssName, (CSSPrimitiveValue) p);
+                    }
+                    if (value.getFunction().getParameters().size() == 1)
+                        expected = 1;
+                } else if (fName.equalsIgnoreCase("skewX")) {
+                    expected = 1;
+                    for (Object p : value.getFunction().getParameters()) {
+                        checkAngleType(cssName, (CSSPrimitiveValue) p);
+                    }
+                } else if (fName.equalsIgnoreCase("skewY")) {
+                    expected = 1;
+                    for (Object p : value.getFunction().getParameters()) {
+                        checkAngleType(cssName, (CSSPrimitiveValue) p);
+                    }
             	} else if (fName.equalsIgnoreCase("rotate")) {
             		expected = 1;
             		for (Object p : value.getFunction().getParameters()) {
