@@ -384,17 +384,19 @@ public class Layer {
 
         List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
         List<AffineTransform> resultTransforms = new ArrayList<AffineTransform>();
-        float currentScaleX = 1, currentScaleY = 1;
+        AffineTransform translateToOrigin = AffineTransform.getTranslateInstance(relTranslateX, relTranslateY);
+        AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY);
         for( PropertyValue transform : transformList) {
             String fName = transform.getFunction().getName();
             List<PropertyValue> params = transform.getFunction().getParameters();
-            
+
+
             if ("rotate".equalsIgnoreCase(fName)) {
                 float radians = this.convertAngleToRadians(params.get(0));
                 resultTransforms.addAll(Arrays.asList(
-                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        translateToOrigin,
                         AffineTransform.getRotateInstance(radians),
-                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        translateBackFromOrigin
                         ));
             } else if ("scale".equalsIgnoreCase(fName) || "scalex".equalsIgnoreCase(fName) || "scaley".equalsIgnoreCase(fName)) {
                 float scaleX = params.get(0).getFloatValue();
@@ -409,41 +411,42 @@ public class Layer {
                  * We must compensate the x / y translation, which will be applied to draw this box, but will
                  * be applied with this scaling.
                  */
-				resultTransforms.addAll(Arrays.asList(AffineTransform.getScaleInstance(scaleX, scaleY),
-						AffineTransform.getTranslateInstance((-relOriginX + box.getAbsX()) / scaleX - box.getAbsX(),
-                                (-relOriginY + box.getAbsY()) / scaleY - box.getAbsY())));
-				currentScaleX *= scaleX;
-                currentScaleY *= scaleY;
+                AffineTransform translateInstance = AffineTransform.getTranslateInstance((-relOriginX + box.getAbsX()) / scaleX - box.getAbsX(),
+                        (-relOriginY + box.getAbsY()) / scaleY - box.getAbsY());
+                resultTransforms.addAll(Arrays.asList(AffineTransform.getScaleInstance(scaleX, scaleY),
+                        translateInstance));
+                //translateToOrigin.concatenate(translateInstance);
+                //translateBackFromOrigin.concatenate(translateInstance);
             } else if ("skew".equalsIgnoreCase(fName)) {
                 float radiansX = this.convertAngleToRadians(params.get(0));
                 float radiansY = this.convertAngleToRadians(params.get(0));
                 if (params.size() > 1)
                     radiansY = this.convertAngleToRadians(params.get(1));
                 resultTransforms.addAll(Arrays.asList(
-                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        translateToOrigin,
                         AffineTransform.getShearInstance(Math.tan(radiansX), Math.tan(radiansY)),
-                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        translateBackFromOrigin
                 ));
             } else if ("skewx".equalsIgnoreCase(fName)) {
                 float radians = this.convertAngleToRadians(params.get(0));
                 resultTransforms.addAll(Arrays.asList(
-                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        translateToOrigin,
                         AffineTransform.getShearInstance(Math.tan(radians), 0),
-                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        translateBackFromOrigin
                 ));
             } else if ("skewy".equalsIgnoreCase(fName)) {
                 float radians = this.convertAngleToRadians(params.get(0));
                 resultTransforms.addAll(Arrays.asList(
-                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        translateToOrigin,
                         AffineTransform.getShearInstance(0, Math.tan(radians)),
-                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        translateBackFromOrigin
                 ));
             } else if ("matrix".equalsIgnoreCase(fName)) {
                 resultTransforms.addAll(Arrays.asList(
-                        AffineTransform.getTranslateInstance(relTranslateX, relTranslateY),
+                        translateToOrigin,
                         new AffineTransform(params.get(0).getFloatValue(), params.get(1).getFloatValue(),params.get(2).getFloatValue(),
                                 params.get(3).getFloatValue(),params.get(4).getFloatValue(),params.get(5).getFloatValue()),
-                        AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY)
+                        translateBackFromOrigin
                 ));
             } else if ("translate".equalsIgnoreCase(fName)) {
                 XRLog.layout(Level.WARNING, "translate function not implemented at this time");
