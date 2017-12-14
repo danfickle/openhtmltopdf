@@ -1,0 +1,51 @@
+<html>
+<head>
+	<style>
+		body {
+			margin: 1cm;
+		}
+
+		div.block > div {
+			border: 1px solid blue;
+			display: inline-block;
+			padding:5px;
+		}
+
+		div.block {
+			width: 100%;
+			border: 1px solid green;
+			margin-bottom:3cm;
+		}
+	</style>
+</head>
+<body>
+
+<h1>Sample to demonstrate CSS Transform</h1>
+
+<div class="block">
+	<div> 0</div>
+	<div style="transform:rotate(90deg)"> 90</div>
+	<div style="transform:rotate(180deg)"> 180</div>
+	<div style="transform:rotate(270deg)"> 270</div>
+</div>
+
+<br/>
+
+<div class="block">
+	<div style="transform:scale(2)"> 0 S</div>
+	<div style="transform:scale(2) rotate(90deg)"> 90 S</div>
+	<div style="transform:scaleX(2) rotate(180deg)"> 180 S</div>
+	<div style="transform:scaleY(2) rotate(270deg)"> 270 S</div>
+</div>
+<br/>
+
+<div class="block">
+	<div style="transform:skewX(10deg)"> 0</div>
+	<div style="transform:skew(10deg) rotate(90deg)"> 90 SK</div>
+	<div style="transform:skewX(10deg) rotate(180deg)"> 180 SK</div>
+	<div style="transform:skewY(10deg) rotate(270deg)"> 270 SK</div>
+</div>
+<br/>
+
+</body>
+</html>
