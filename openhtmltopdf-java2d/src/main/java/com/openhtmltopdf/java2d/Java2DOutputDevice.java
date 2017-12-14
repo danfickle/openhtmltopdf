@@ -207,12 +207,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	}
 
 	@Override
-	public void setAlpha(int alpha) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
 		List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
 		AffineTransform gfxTransform = _graphics.getTransform();

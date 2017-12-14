@@ -1531,11 +1531,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
 
-    @Override
-    public void setAlpha(int alpha) {
-        
-    }
-
     /**
      * Perform any internal cleanup needed
      */
@@ -1545,4 +1540,10 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
 
+    public float getTransformRotationFlipFactor() {
+        /*
+         * We must flip the angles for the PDF when applying a CSS transform
+         */
+        return -1;
+    }
 }

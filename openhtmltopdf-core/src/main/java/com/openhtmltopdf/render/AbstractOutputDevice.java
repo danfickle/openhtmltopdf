@@ -19,14 +19,6 @@
  */
 package com.openhtmltopdf.render;
 
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Area;
-import java.util.Iterator;
-import java.util.List;
-
-import org.w3c.dom.css.CSSPrimitiveValue;
-
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.css.constants.CSSName;
@@ -43,9 +35,14 @@ import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.swing.Java2DOutputDevice;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.Uu;
+import org.w3c.dom.css.CSSPrimitiveValue;
+
+import java.awt.*;
+import java.awt.geom.Area;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * An abstract implementation of an {@link OutputDevice}.  It provides complete
@@ -434,5 +431,9 @@ public abstract class AbstractOutputDevice implements OutputDevice {
      */
     public void setFontSpecification(FontSpecification fs) {
 	_fontSpec = fs;
+    }
+
+    public float getTransformRotationFlipFactor() {
+        return 1;
     }
 }

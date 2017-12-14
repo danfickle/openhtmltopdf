@@ -297,12 +297,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 		_graphics.setPaint(paint);
 	}
 
-	@Override
-	public void setAlpha(int alpha) {
-		// TODO Auto-generated method stub
-		
-	}
-
     @Override
     public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
 		return null;

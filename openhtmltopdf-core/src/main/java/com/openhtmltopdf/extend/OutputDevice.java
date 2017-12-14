@@ -31,7 +31,6 @@ import java.util.List;
 
 public interface OutputDevice {
 	public void setPaint(Paint paint);
-	public void setAlpha(int alpha);
 
 	// Required for CSS transforms.
 
@@ -106,5 +105,10 @@ public interface OutputDevice {
      * Draw something using a Graphics2D at the given rectangle.
      */
     public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer);
+
+    /**
+     * @return 1 or -1 to compensate for output device specific flips
+     */
+    public float getTransformRotationFlipFactor();
 
 }
