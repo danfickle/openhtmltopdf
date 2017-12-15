@@ -47,6 +47,7 @@ public class PdfRendererBuilder
     private boolean _isPageSizeInches;
     private float _pdfVersion = 1.7f;
     private String _replacementText;
+    private String _producer;
     private FSTextBreaker _lineBreaker;
     private FSTextBreaker _charBreaker;
     private FSTextTransformer _unicodeToUpperTransformer;
@@ -107,7 +108,8 @@ public class PdfRendererBuilder
         PdfBoxRenderer renderer = new PdfBoxRenderer(
                 doc, unicode, _httpStreamFactory, _os, _resolver,
                 _cache, _svgImpl, pageSize, _pdfVersion, _replacementText,
-                _testMode, _objectDrawerFactory, _preferredTransformerFactoryImplementationClass);
+                _testMode, _objectDrawerFactory, _preferredTransformerFactoryImplementationClass,
+                _producer);
 
         /*
          * Register all Fonts
@@ -449,4 +451,16 @@ public class PdfRendererBuilder
         this._preferredTransformerFactoryImplementationClass = transformerFactoryClass;
         return this;
     }
+
+    /**
+     * Set a producer on the output document
+     *
+     * @param producer the name of the producer to set defaults to openhtmltopdf.com
+     * @return this for method chaining
+     */
+    public PdfRendererBuilder withProducer(String producer) {
+        this._producer = producer;
+        return this;
+    }
+
 }
