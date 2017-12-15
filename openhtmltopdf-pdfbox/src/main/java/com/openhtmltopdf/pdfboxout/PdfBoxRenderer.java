@@ -526,11 +526,48 @@ public class PdfBoxRenderer {
      * @throws IOException
      */
     public void createPDF(OutputStream os, boolean finish, int initialPageNo) throws IOException {
+        renderPDF(initialPageNo);
+
+        if (finish) {
+            fireOnClose();
+            _pdfDoc.save(os);
+            _pdfDoc.close();
+        }
+    }
+
+    /**
+     * Renders the PDF but does not save it
+     * <B>NOTE:</B> The caller is responsible for cleaning up any Resources
+     *
+     *   This method is useful for post-processing the generated pdf
+     *
+     * @return PDFBox PDDocument for post-process
+     * @throws IOException when the PDF creation failed
+     */
+    public PDDocument renderPDF() throws IOException {
+        return renderPDF(0);
+    }
+
+    /**
+     * Renders the PDF but does not save it
+     * <B>NOTE:</B> The caller is responsible for cleaning up any Resources
+     *
+     *   This method is useful for post-processing the generated pdf
+     *
+     * @return PDFBox PDDocument for post-process
+     * @throws IOException when the PDF creation failed
+     */
+    public PDDocument renderPDF(int initialPageNo) throws IOException {
+        // renders the layout if it wasn't created
+        if (_root == null) {
+            this.layout();
+        }
+
         List<PageBox> pages = _root.getLayer().getPages();
 
         RenderingContext c = newRenderingContext();
         c.setInitialPageNo(initialPageNo);
-        
+
         PageBox firstPage = pages.get(0);
         Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
                 firstPage.getWidth(c) / _dotsPerPoint,
@@ -539,7 +576,7 @@ public class PdfBoxRenderer {
         if (_pdfVersion != 0f) {
             _pdfDoc.setVersion(_pdfVersion);
         }
-        
+
         if (_pdfEncryption != null) {
             _pdfDoc.setEncryptionDictionary(_pdfEncryption);
         }
@@ -548,12 +585,10 @@ public class PdfBoxRenderer {
 
         writePDF(pages, c, firstPageSize, _pdfDoc);
 
-        if (finish) {
-            fireOnClose();
-            _pdfDoc.save(os);
-            _pdfDoc.close();
-        }
+        return _pdfDoc;
     }
+
+
 
     private void firePreOpen() {
         if (_listener != null) {
