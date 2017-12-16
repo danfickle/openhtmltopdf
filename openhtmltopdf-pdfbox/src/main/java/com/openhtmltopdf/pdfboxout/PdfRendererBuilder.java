@@ -87,7 +87,7 @@ public class PdfRendererBuilder
             renderer.createPDF();
         } finally {
             if (renderer != null)
-                renderer.cleanup();
+                renderer.close();
         }
     }
     
