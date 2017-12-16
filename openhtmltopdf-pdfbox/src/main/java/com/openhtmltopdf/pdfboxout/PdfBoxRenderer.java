@@ -85,6 +85,8 @@ public class PdfBoxRenderer implements Closeable {
     
     private PDEncryption _pdfEncryption;
 
+    private String _producer;
+
     // Usually 1.7
     private float _pdfVersion;
     
@@ -106,10 +108,13 @@ public class PdfBoxRenderer implements Closeable {
             HttpStreamFactory httpStreamFactory, 
             OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
             PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode,
-            FSObjectDrawerFactory objectDrawerFactory, String preferredTransformerFactoryImplementationClass) {
+            FSObjectDrawerFactory objectDrawerFactory, String preferredTransformerFactoryImplementationClass,
+            String producer) {
         
         _pdfDoc = new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
+
+        _producer = producer;
 
         _svgImpl = svgImpl;
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
@@ -517,7 +522,12 @@ public class PdfBoxRenderer implements Closeable {
         PDDocumentInformation info = new PDDocumentInformation();
         
         info.setCreationDate(Calendar.getInstance());
-        info.setProducer("openhtmltopdf.com");
+
+        if (_producer == null) {
+            info.setProducer("openhtmltopdf.com");
+        } else {
+            info.setProducer(_producer);
+        }
 
         for (Metadata metadata : _outputDevice.getMetadata()) {
         	String name = metadata.getName();
