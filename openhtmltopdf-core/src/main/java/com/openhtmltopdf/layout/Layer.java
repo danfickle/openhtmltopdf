@@ -392,14 +392,15 @@ public class Layer {
 		AffineTransform translateToOrigin = AffineTransform.getTranslateInstance(relTranslateX, relTranslateY);
 		AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY);
 
+		resultTransforms.add(translateToOrigin);
+
 		for (PropertyValue transform : transformList) {
 			String fName = transform.getFunction().getName();
 			List<PropertyValue> params = transform.getFunction().getParameters();
 
 			if ("rotate".equalsIgnoreCase(fName)) {
 				float radians = flipFactor * this.convertAngleToRadians(params.get(0));
-				resultTransforms.addAll(Arrays.asList(translateToOrigin, AffineTransform.getRotateInstance(radians),
-						translateBackFromOrigin));
+				resultTransforms.add(AffineTransform.getRotateInstance(radians));
 			} else if ("scale".equalsIgnoreCase(fName) || "scalex".equalsIgnoreCase(fName)
 					|| "scaley".equalsIgnoreCase(fName)) {
 				float scaleX = params.get(0).getFloatValue();
@@ -410,39 +411,23 @@ public class Layer {
 					scaleY = 1;
 				if ("scaley".equalsIgnoreCase(fName))
 					scaleX = 1;
-				/*
-				 * We must compensate the x / y translation, which will be applied to draw this
-				 * box, but will be applied with this scaling.
-				 */
-				AffineTransform translateInstance = AffineTransform.getTranslateInstance(
-						(-relOriginX + box.getAbsX()) / scaleX - box.getAbsX(),
-						(-relOriginY + box.getAbsY()) / scaleY - box.getAbsY());
-				resultTransforms
-						.addAll(Arrays.asList(AffineTransform.getScaleInstance(scaleX, scaleY), translateInstance));
-				// translateToOrigin.concatenate(translateInstance);
-				// translateBackFromOrigin.concatenate(translateInstance);
+				resultTransforms.add(AffineTransform.getScaleInstance(scaleX, scaleY));
 			} else if ("skew".equalsIgnoreCase(fName)) {
 				float radiansX = flipFactor * this.convertAngleToRadians(params.get(0));
 				float radiansY = flipFactor * this.convertAngleToRadians(params.get(0));
 				if (params.size() > 1)
 					radiansY = this.convertAngleToRadians(params.get(1));
-				resultTransforms.addAll(Arrays.asList(translateToOrigin,
-						AffineTransform.getShearInstance(Math.tan(radiansX), Math.tan(radiansY)),
-						translateBackFromOrigin));
+				resultTransforms.add(AffineTransform.getShearInstance(Math.tan(radiansX), Math.tan(radiansY)));
 			} else if ("skewx".equalsIgnoreCase(fName)) {
 				float radians = flipFactor * this.convertAngleToRadians(params.get(0));
-				resultTransforms.addAll(Arrays.asList(translateToOrigin,
-						AffineTransform.getShearInstance(Math.tan(radians), 0), translateBackFromOrigin));
+				resultTransforms.add(AffineTransform.getShearInstance(Math.tan(radians), 0));
 			} else if ("skewy".equalsIgnoreCase(fName)) {
 				float radians = flipFactor * this.convertAngleToRadians(params.get(0));
-				resultTransforms.addAll(Arrays.asList(translateToOrigin,
-						AffineTransform.getShearInstance(0, Math.tan(radians)), translateBackFromOrigin));
+				resultTransforms.add(AffineTransform.getShearInstance(0, Math.tan(radians)));
 			} else if ("matrix".equalsIgnoreCase(fName)) {
-				resultTransforms.addAll(Arrays.asList(translateToOrigin,
-						new AffineTransform(params.get(0).getFloatValue(), params.get(1).getFloatValue(),
+				resultTransforms.add(new AffineTransform(params.get(0).getFloatValue(), params.get(1).getFloatValue(),
 								params.get(2).getFloatValue(), params.get(3).getFloatValue(),
-								params.get(4).getFloatValue(), params.get(5).getFloatValue()),
-						translateBackFromOrigin));
+								params.get(4).getFloatValue(), params.get(5).getFloatValue()));
 			} else if ("translate".equalsIgnoreCase(fName)) {
 				XRLog.layout(Level.WARNING, "translate function not implemented at this time");
 			} else if ("translateX".equalsIgnoreCase(fName)) {
@@ -451,6 +436,8 @@ public class Layer {
 				XRLog.layout(Level.WARNING, "translateY function not implemented at this time");
 			}
 		}
+
+		resultTransforms.add(translateBackFromOrigin);
 
 		return c.getOutputDevice().pushTransforms(resultTransforms);
 	}
