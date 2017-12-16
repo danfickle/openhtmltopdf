@@ -414,7 +414,7 @@ public class Layer {
 				resultTransforms.add(AffineTransform.getScaleInstance(scaleX, scaleY));
 			} else if ("skew".equalsIgnoreCase(fName)) {
 				float radiansX = flipFactor * this.convertAngleToRadians(params.get(0));
-				float radiansY = flipFactor * this.convertAngleToRadians(params.get(0));
+				float radiansY = 0;
 				if (params.size() > 1)
 					radiansY = this.convertAngleToRadians(params.get(1));
 				resultTransforms.add(AffineTransform.getShearInstance(Math.tan(radiansX), Math.tan(radiansY)));
