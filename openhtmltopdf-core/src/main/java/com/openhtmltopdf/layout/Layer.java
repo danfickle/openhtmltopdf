@@ -29,6 +29,7 @@ import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.ListValue;
+import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.XRLog;
@@ -386,6 +387,14 @@ public class Layer {
 
 		float relTranslateX = absTranslateX - c.getOutputDevice().getAbsoluteTransformOriginX();
 		float relTranslateY = absTranslateY - c.getOutputDevice().getAbsoluteTransformOriginY();
+		/*
+		 * FlipFactor is -1 for PDF output. We must handle the page margin in this case.
+		 */
+		if (flipFactor == -1) {
+			RectPropertySet margin = c.getPage().getMargin(c);
+			relTranslateX += margin.left();
+			relTranslateY += margin.top();
+		}
 
 		List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
 		List<AffineTransform> resultTransforms = new ArrayList<AffineTransform>();
