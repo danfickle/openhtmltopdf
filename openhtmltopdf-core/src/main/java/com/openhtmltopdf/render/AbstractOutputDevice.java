@@ -433,7 +433,8 @@ public abstract class AbstractOutputDevice implements OutputDevice {
 	_fontSpec = fs;
     }
 
-    public float getTransformRotationFlipFactor() {
-        return 1;
+    @Override
+    public boolean isPDF() {
+        return false;
     }
 }

@@ -106,9 +106,6 @@ public interface OutputDevice {
      */
     public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer);
 
-    /**
-     * @return 1 or -1 to compensate for output device specific flips
-     */
-    public float getTransformRotationFlipFactor();
+    public boolean isPDF();
 
 }

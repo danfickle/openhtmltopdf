@@ -380,7 +380,7 @@ public class Layer {
 		float relOriginY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y,
 				box.getHeight(), c);
 
-		float flipFactor = c.getOutputDevice().getTransformRotationFlipFactor();
+		float flipFactor = c.getOutputDevice().isPDF() ? -1 : 1;
 
 		float absTranslateX = relOriginX + box.getAbsX();
 		float absTranslateY = relOriginY + box.getAbsY();
@@ -390,7 +390,7 @@ public class Layer {
 		/*
 		 * FlipFactor is -1 for PDF output. We must handle the page margin in this case.
 		 */
-		if (flipFactor == -1) {
+		if (c.getOutputDevice().isPDF()) {
 			RectPropertySet margin = c.getPage().getMargin(c);
 			relTranslateX += margin.left();
 			relTranslateY += margin.top();

@@ -1531,6 +1531,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
 
+    @Override
+    public boolean isPDF() {
+        return true;
+    }
+
     /**
      * Perform any internal cleanup needed
      */
@@ -1538,12 +1543,5 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         if (_fontTextDrawer != null) {
             _fontTextDrawer.close();
         }
-    }
-
-    public float getTransformRotationFlipFactor() {
-        /*
-         * We must flip the angles for the PDF when applying a CSS transform
-         */
-        return -1;
     }
 }
