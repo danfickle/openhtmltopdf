@@ -31,14 +31,13 @@ import java.util.List;
 
 public interface OutputDevice {
 	public void setPaint(Paint paint);
-	public void setAlpha(int alpha);
 
 	// Required for CSS transforms.
 
 	/**
 	 * Apply the given transform on top of the current one in the PDF graphics stream.
 	 * This is a cumulative operation. You should popTransform after the box and children are painted.
-	 * @return 
+	 * @return the list of inverse transforms to undo the effect of this transform
 	 */
 	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms);
 	public void popTransforms(List<AffineTransform> inverse);
@@ -106,5 +105,7 @@ public interface OutputDevice {
      * Draw something using a Graphics2D at the given rectangle.
      */
     public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer);
+
+    public boolean isPDF();
 
 }

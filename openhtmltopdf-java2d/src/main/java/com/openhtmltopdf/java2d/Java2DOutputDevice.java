@@ -22,19 +22,25 @@ package com.openhtmltopdf.java2d;
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
-import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.extend.FSImage;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.render.*;
-import com.openhtmltopdf.swing.AWTFSFont;
 import com.openhtmltopdf.swing.AWTFSImage;
 import com.openhtmltopdf.swing.ImageReplacedElement;
+import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+import java.util.logging.Level;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private Graphics2D _graphics;
@@ -201,24 +207,31 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	}
 
 	@Override
-	public void setAlpha(int alpha) {
-		// TODO Auto-generated method stub
-		
+	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
+		List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
+		AffineTransform gfxTransform = _graphics.getTransform();
+		try {
+			for (AffineTransform transform : transforms) {
+				inverse.add(transform.createInverse());
+				transformStack.push(transform);
+				gfxTransform.concatenate(transform);
+			}
+		} catch (NoninvertibleTransformException e) {
+			XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
+		}
+		_graphics.setTransform(gfxTransform);
+		return inverse;
 	}
-
-    @Override
-    public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
-//		AffineTransform currentTransform  = _graphics.getTransform();
-//		currentTransform.concatenate(transform);
-//        _graphics.setTransform(currentTransform);
-// TODO
-    	return Collections.emptyList();
-    }
 
 	@Override
 	public void popTransforms(List<AffineTransform> inverse) {
-		// TODO Auto-generated method stub
-		
+		AffineTransform gfxTransform = _graphics.getTransform();
+		Collections.reverse(inverse);
+		for (AffineTransform transform : inverse) {
+			gfxTransform.concatenate(transform);
+			transformStack.pop();
+		}
+		_graphics.setTransform(gfxTransform);
 	}
 
 	@Override

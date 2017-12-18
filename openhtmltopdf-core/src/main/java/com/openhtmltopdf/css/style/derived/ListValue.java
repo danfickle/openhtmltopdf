@@ -19,15 +19,14 @@
  */
 package com.openhtmltopdf.css.style.derived;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.DerivedValue;
 
+import java.util.List;
+
 public class ListValue extends DerivedValue {
-    private List _values;
+    private List<?> _values;
     
     public ListValue(CSSName name, PropertyValue value) {
         super(name, value.getPrimitiveType(), value.getCssText(), value.getCssText());
@@ -35,7 +34,7 @@ public class ListValue extends DerivedValue {
         _values = value.getValues();
     }
     
-    public List getValues() {
+    public List<?> getValues() {
         return _values;
     }
     
@@ -46,9 +45,9 @@ public class ListValue extends DerivedValue {
         
         String[] arr = new String[_values.size()];
         int i = 0;
-        
-        for (Iterator iter = _values.iterator(); iter.hasNext();) {
-            arr[i++] = iter.next().toString();
+
+        for (Object _value : _values) {
+            arr[i++] = _value.toString();
         }
         
         return arr;

@@ -90,6 +90,11 @@ public class TestcaseRunner {
 		 */
 		runTestCase("adobe-borderstyle-bugs");
 
+		/*
+		 * CSS Transform Test
+		 */
+		runTestCase("transform");
+
 		/* Add additional test cases here. */
 	}
 

@@ -1,0 +1,168 @@
+<html>
+<head>
+	<style>
+		body {
+			margin: 1cm;
+		}
+
+		div.block > div {
+			border: 1px solid blue;
+			display: inline-block;
+			padding: 5px;
+		}
+
+		div.block {
+			width: 100%;
+			border: 1px solid green;
+			margin-bottom: 3cm;
+		}
+
+		@page {
+			size: A4;
+			margin: 2.5cm 1.8cm 2cm 1.9cm;
+			@bottom-left {
+				content: element(footer);
+				font-size: 9px;
+			}
+			@top-left {
+				font-size: 9px;
+				content: element(header);
+			}
+			@top-left-corner {
+				content: element(topleftcorner);
+			}
+			@top-right-corner {
+				content: element(toprightcorner);
+			}
+			@bottom-left-corner {
+				content: element(bottomleftcorner);
+			}
+			@bottom-right-corner {
+				content: element(bottomrightcorner);
+			}
+			@left-middle {
+				font-size: 9px;
+				content: element(left);
+			}
+			@right-middle {
+				font-size: 9px;
+				content: element(right);
+			}
+		}
+
+		#bottomleftcorner {
+			position: running(bottomleftcorner);
+		}
+
+		#bottomrightcorner {
+			position: running(bottomrightcorner);
+		}
+
+		#topleftcorner {
+			position: running(topleftcorner);
+		}
+
+		#toprightcorner {
+			position: running(toprightcorner);
+		}
+
+		#header {
+			position: running(header);
+			border-bottom: 1px solid black;
+		}
+
+		#footer {
+			position: running(footer);
+			border-top: 1px solid black;
+		}
+
+		#left {
+			position: running(left);
+			width: 10cm;
+		}
+
+		#right {
+			position: running(right);
+			width: 10cm;
+		}
+	</style>
+</head>
+<body>
+
+<div id="header">
+	Sample Header Top
+	<div style="display:inline-block; transform:rotate(180deg)">Sample Header Top -</div>
+</div>
+<div id="footer">
+	Some nice footer
+	<div style="display:inline-block; transform:rotate(180deg)">with rotated text.</div>
+</div>
+<div id="left">
+	<div style="transform: rotate(90deg); text-transform: uppercase">
+		the left border
+	</div>
+</div>
+<div id="right">
+	R
+	<div style="transform: scale(5) rotate(-9deg); text-transform: uppercase">
+		the right border
+	</div>
+</div>
+<div id="topleftcorner" style="transform:rotate(45deg)">
+	TLC
+</div>
+<div id="toprightcorner" style="transform:rotate(-45deg)">
+	TRC
+</div>
+<div id="bottomleftcorner" style="transform:rotate(-5deg)">
+	BLC
+</div>
+<div id="bottomrightcorner" style="transform:rotate(5deg)">
+	BRC
+</div>
+
+<h1>Sample to demonstrate CSS Transform</h1>
+
+<div class="block">
+	<div> 0</div>
+	<div style="transform:rotate(90deg)"> 90</div>
+	<div style="transform:rotate(180deg)"> 180</div>
+	<div style="transform:rotate(270deg)"> 270</div>
+	<div style="transform:rotate(45deg)"> 45</div>
+	<div style="transform:rotate(135deg)"> 135</div>
+</div>
+
+<br/>
+
+<div class="block">
+	<div style="transform:scale(2)"> 0 S</div>
+	<div style="transform:scale(2) rotate(90deg)"> 90 S</div>
+	<div style="transform:scaleX(2) rotate(180deg)"> 180 S</div>
+	<div style="transform:scaleY(2) rotate(270deg)"> 270 S</div>
+	<div style="transform:scaleX(2) rotate(45deg)"> 45 S</div>
+	<div style="transform:scaleY(2) rotate(135deg)"> 135 S</div>
+</div>
+<br/>
+
+<div class="block">
+	<div style="transform:skewX(10deg)"> 0</div>
+	<div style="transform:skew(10deg) rotate(90deg)"> 90 SK</div>
+	<div style="transform:skewX(10deg) rotate(180deg)"> 180 SK</div>
+	<div style="transform:skewY(10deg) rotate(270deg)"> 270 SK</div>
+	<div style="transform:skewX(-10deg) rotate(45deg)"> 45 S</div>
+	<div style="transform:skewY(10deg) rotate(135deg)"> 135 S</div>
+</div>
+<br/>
+
+<div class="block">
+	<div style="transform:scale(2) skewX(10deg)"> 0</div>
+	<div style="transform:scale(2) skew(10deg) rotate(90deg)"> 90 SK</div>
+	<div style="transform:scaleX(2) skewX(10deg) rotate(180deg)"> 180 SK</div>
+	<div style="transform:scaleX(2) skewY(10deg) rotate(270deg)"> 270 SK</div>
+	<div style="transform:scaleY(2) skewX(-10deg) rotate(45deg)"> 45 S</div>
+	<div style="transform:scaleY(2) skewY(10deg) rotate(135deg)"> 135 S</div>
+</div>
+<br/>
+
+</body>
+</html>

@@ -1532,8 +1532,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     @Override
-    public void setAlpha(int alpha) {
-        
+    public boolean isPDF() {
+        return true;
     }
 
     /**
@@ -1544,5 +1544,4 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             _fontTextDrawer.close();
         }
     }
-
 }

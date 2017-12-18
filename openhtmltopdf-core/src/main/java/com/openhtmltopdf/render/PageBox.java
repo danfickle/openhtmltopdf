@@ -312,11 +312,13 @@ public class PageBox {
         
         c.getOutputDevice().paintBackground(c, getStyle(), bounds, bounds, getStyle().getBorder(c));
     }
-    
+
+    private MarginAreaContainer currentMarginAreaContainer;
     public void paintMarginAreas(RenderingContext c, int additionalClearance, short mode) {
         for (int i = 0; i < MARGIN_AREA_DEFS.length; i++) {
             MarginAreaContainer container = _marginAreas[i];
             if (container != null) {
+                currentMarginAreaContainer = container;
                 TableBox table = _marginAreas[i].getTable();
                 Point p = container.getArea().getPaintingPosition(
                         c, this, additionalClearance, mode);
@@ -326,6 +328,13 @@ public class PageBox {
                 c.getOutputDevice().translate(-p.x, -p.y);
             }
         }
+        currentMarginAreaContainer = null;
+    }
+
+    public MarginBoxName[] getCurrentMarginBoxNames() {
+        if( currentMarginAreaContainer == null )
+            return null;
+        return currentMarginAreaContainer.getArea().getMarginBoxNames();
     }
 
     public int getPageNo() {

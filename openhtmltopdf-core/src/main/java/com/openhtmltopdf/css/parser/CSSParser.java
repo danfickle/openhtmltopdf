@@ -19,38 +19,23 @@
  */
 package com.openhtmltopdf.css.parser;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-
-import org.w3c.dom.css.CSSPrimitiveValue;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.MarginBoxName;
 import com.openhtmltopdf.css.extend.TreeResolver;
 import com.openhtmltopdf.css.newmatch.Selector;
 import com.openhtmltopdf.css.parser.property.PropertyBuilder;
-import com.openhtmltopdf.css.sheet.FontFaceRule;
-import com.openhtmltopdf.css.sheet.MediaRule;
-import com.openhtmltopdf.css.sheet.PageRule;
-import com.openhtmltopdf.css.sheet.PropertyDeclaration;
-import com.openhtmltopdf.css.sheet.Ruleset;
-import com.openhtmltopdf.css.sheet.RulesetContainer;
-import com.openhtmltopdf.css.sheet.Stylesheet;
-import com.openhtmltopdf.css.sheet.StylesheetInfo;
+import com.openhtmltopdf.css.sheet.*;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
+import org.w3c.dom.css.CSSPrimitiveValue;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.logging.Level;
 
 public class CSSParser {
     private static final Set SUPPORTED_PSEUDO_ELEMENTS;
@@ -1363,7 +1348,7 @@ public class CSSParser {
 //    ;
     private List expr(boolean literal) throws IOException {
         //System.out.println("expr()");
-        List result = new ArrayList(10);
+        List<PropertyValue> result = new ArrayList<PropertyValue>(10);
         result.add(term(literal));
         LOOP: while (true) {
             Token t = la();
