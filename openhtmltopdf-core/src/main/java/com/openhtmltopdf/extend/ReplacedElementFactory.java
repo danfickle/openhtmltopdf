@@ -19,11 +19,9 @@
  */
 package com.openhtmltopdf.extend;
 
-import org.w3c.dom.Element;
-
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.simple.extend.FormSubmissionListener;
+import org.w3c.dom.Element;
 
 public interface ReplacedElementFactory {
     
@@ -53,11 +51,4 @@ public interface ReplacedElementFactory {
      */
     public void remove(Element e);
 
-    /**
-     * Identifies the FSL which will be used for callbacks when a form submit action is executed; you can use a
-     * {@link com.openhtmltopdf.simple.extend.DefaultFormSubmissionListener} if you don't want any action to be taken.
-     *
-     * @param listener the listener instance to receive callbacks on form submission.
-     */
-    public void setFormSubmissionListener(FormSubmissionListener listener);
 }

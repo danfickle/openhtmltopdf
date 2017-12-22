@@ -24,8 +24,6 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.simple.extend.FormSubmissionListener;
-
 import org.w3c.dom.Element;
 
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
@@ -98,10 +96,11 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                             fsImage.scale(cssWidth, cssHeight);
                         }
                     }
-                    return new PdfBoxImageElement(fsImage);
+                    return new PdfBoxImageElement(e,fsImage);
                 }
             }
         } else if (nodeName.equals("input")) {
+            /* We do nothing here. Form Elements are handled special in PdfBoxOutputDevice.paintBackground() */
             String type = e.getAttribute("type");
 // TODO: Implement form fields.
 //            if (type.equals("hidden")) {
@@ -142,10 +141,6 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
         }
 
         return null;
-    }
-
-    public void setFormSubmissionListener(FormSubmissionListener listener) {
-        // nothing to do, form submission is handled by pdf readers
     }
 
     @Override
