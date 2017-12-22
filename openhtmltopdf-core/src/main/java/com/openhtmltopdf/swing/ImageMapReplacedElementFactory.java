@@ -1,4 +1,4 @@
-/*
+package com.openhtmltopdf.swing;/*
  * {{{ header & license
  * Copyright (c) 2008 elbart0 at free.fr (submitted via email)
  *
@@ -52,7 +52,6 @@ import java.util.logging.Level;
  * Sample is incomplete in current state and meant as a starting point for future work.
  */
 public class ImageMapReplacedElementFactory extends SwingReplacedElementFactory {
-   private final ImageMapListener listener;
    private static final String IMG_USEMAP_ATTR = "usemap";
    private static final String MAP_ELT = "map";
    private static final String MAP_NAME_ATTR = "name";
@@ -67,12 +66,8 @@ public class ImageMapReplacedElementFactory extends SwingReplacedElementFactory 
    private static final String POLY_SHAPE = "poly";
    private static final String POLYGON_SHAPE = "polygon";
 
-   public ImageMapReplacedElementFactory(ImageMapListener listener) {
+   public ImageMapReplacedElementFactory() {
        super(null);
-       if (null == listener) {
-         throw new IllegalArgumentException("listener required");
-      }
-      this.listener = listener;
    }
 
    public ReplacedElement createReplacedElement(LayoutContext context, BlockBox box, UserAgentCallback uac, int cssWidth, int cssHeight) {

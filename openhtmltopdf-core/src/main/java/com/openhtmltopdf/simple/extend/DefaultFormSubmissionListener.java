@@ -22,6 +22,7 @@ package com.openhtmltopdf.simple.extend;
 /**
  * No-op implementation of a FormSubmissionListener; override the submit method in a subclass as needed.
  */
+@Deprecated
 public class DefaultFormSubmissionListener implements FormSubmissionListener {
     /**
      * {@inheritDoc}

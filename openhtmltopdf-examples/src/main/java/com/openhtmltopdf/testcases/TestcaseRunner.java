@@ -95,6 +95,8 @@ public class TestcaseRunner {
 		 */
 		runTestCase("transform");
 
+		runTestCase("quoting");
+
 		/* Add additional test cases here. */
 	}
 

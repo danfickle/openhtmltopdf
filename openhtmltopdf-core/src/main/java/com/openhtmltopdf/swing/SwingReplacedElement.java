@@ -19,12 +19,11 @@
  */
 package com.openhtmltopdf.swing;
 
-import java.awt.*;
-
-import javax.swing.JComponent;
-
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.LayoutContext;
+
+import javax.swing.*;
+import java.awt.*;
 
 public class SwingReplacedElement implements ReplacedElement {
     private JComponent _component;
@@ -59,9 +58,6 @@ public class SwingReplacedElement implements ReplacedElement {
     }
     
     public void detach(LayoutContext c) {
-        if (c.isInteractive()) {
-            ((RootPanel)c.getCanvas()).remove(getJComponent());
-        }
     }
     
     public boolean isRequiresInteractivePaint() {

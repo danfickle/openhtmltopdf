@@ -28,6 +28,7 @@ package com.openhtmltopdf.simple.extend;
  *
  * @author Christophe Marchand
  */
+@Deprecated
 public interface FormSubmissionListener {
     /**
      * Called by XhtmlForm when a form is submitted.
