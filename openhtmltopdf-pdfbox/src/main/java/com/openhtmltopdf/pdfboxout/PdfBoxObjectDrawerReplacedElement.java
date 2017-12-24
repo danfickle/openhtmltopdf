@@ -2,26 +2,31 @@ package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.extend.FSObjectDrawer;
 import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.pdfboxout.PdfBoxLinkManager.IPdfBoxElementWithShapedLinks;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.swing.ImageMapParser;
 import org.w3c.dom.Element;
 
 import java.awt.*;
+import java.util.Map;
 
 /**
  * FSObjectDrawer Element for PDFBox
  */
-public class PdfBoxObjectDrawerReplacedElement implements PdfBoxReplacedElement {
+public class PdfBoxObjectDrawerReplacedElement implements PdfBoxReplacedElement, IPdfBoxElementWithShapedLinks {
 	private final Element e;
 	private Point point = new Point(0, 0);
 	private final FSObjectDrawer drawer;
 	private final int width;
 	private final int height;
 	private final int dotsPerPixel;
+	private final Map<Shape, String> imageMap;
 
 	public PdfBoxObjectDrawerReplacedElement(Element e, FSObjectDrawer drawer, int cssWidth, int cssHeight,
 			int dotsPerPixel) {
 		this.e = e;
+		imageMap = ImageMapParser.findAndParseMap(e);
 		this.drawer = drawer;
 		this.width = cssWidth;
 		this.height = cssHeight;
@@ -70,5 +75,10 @@ public class PdfBoxObjectDrawerReplacedElement implements PdfBoxReplacedElement 
 	@Override
 	public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice, BlockBox box) {
 		drawer.drawObject(e, point.getX(), point.getY(), getIntrinsicWidth(), getIntrinsicHeight(), outputDevice, c, dotsPerPixel);
+	}
+
+	@Override
+	public Map<Shape, String> getLinkMap() {
+		return imageMap;
 	}
 }

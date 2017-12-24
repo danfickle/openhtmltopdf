@@ -19,43 +19,28 @@
  */
 package com.openhtmltopdf.layout;
 
-import java.awt.Font;
-import java.awt.HeadlessException;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.text.BreakIterator;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
+import com.openhtmltopdf.context.StyleReference;
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.EmptyStyle;
+import com.openhtmltopdf.css.value.FontSpecification;
+import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.FSFont;
+import com.openhtmltopdf.render.FSFontMetrics;
+import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.swing.AWTFontResolver;
+import com.openhtmltopdf.util.ThreadCtx;
+import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.openhtmltopdf.context.StyleReference;
-import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.css.style.EmptyStyle;
-import com.openhtmltopdf.css.value.FontSpecification;
-import com.openhtmltopdf.extend.FSCanvas;
-import com.openhtmltopdf.extend.FSTextBreaker;
-import com.openhtmltopdf.extend.FSTextTransformer;
-import com.openhtmltopdf.extend.FontContext;
-import com.openhtmltopdf.extend.FontResolver;
-import com.openhtmltopdf.extend.NamespaceHandler;
-import com.openhtmltopdf.extend.ReplacedElementFactory;
-import com.openhtmltopdf.extend.TextRenderer;
-import com.openhtmltopdf.extend.UserAgentCallback;
-import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.FSFont;
-import com.openhtmltopdf.render.FSFontMetrics;
-import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.simple.extend.FormSubmissionListener;
-import com.openhtmltopdf.swing.AWTFontResolver;
-import com.openhtmltopdf.swing.Java2DTextRenderer;
-import com.openhtmltopdf.swing.SwingReplacedElementFactory;
-import com.openhtmltopdf.util.ThreadCtx;
-import com.openhtmltopdf.util.XRLog;
+import java.awt.*;
+import java.text.BreakIterator;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * The SharedContext stores pseudo global variables.
@@ -142,26 +127,6 @@ public class SharedContext {
     public SharedContext() {
     }
 
-    /**
-     * Constructor for the Context object
-     * @deprecated This stuff should go in the renderers of a specific device.
-     */
-    @Deprecated
-    public SharedContext(UserAgentCallback uac) {
-        fontResolver = new AWTFontResolver();
-        replacedElementFactory = new SwingReplacedElementFactory();
-        setMedia("screen");
-        this.uac = uac;
-        setCss(new StyleReference(uac));
-        XRLog.render("Using CSS implementation from: " + getCss().getClass().getName());
-        setTextRenderer(new Java2DTextRenderer());
-        try {
-            setDPI(Toolkit.getDefaultToolkit().getScreenResolution());
-        } catch (HeadlessException e) {
-            setDPI(DEFAULT_DPI);
-        }
-    }
-
 
     /**
      * Constructor for the Context object
@@ -179,9 +144,6 @@ public class SharedContext {
         setDPI(dpi);
     }
 
-    public void setFormSubmissionListener(FormSubmissionListener fsl) {
-        replacedElementFactory.setFormSubmissionListener(fsl);
-    }
 
     public LayoutContext newLayoutContextInstance() {
         LayoutContext c = new LayoutContext(this);
