@@ -4,6 +4,8 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.pdfboxout.quads.KongAlgo;
+import com.openhtmltopdf.pdfboxout.quads.Triangle;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
@@ -21,10 +23,7 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.w3c.dom.Element;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -195,7 +194,7 @@ public class PdfBoxLinkManager {
 				annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 						(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 				if (linkShape != null)
-					annot.setQuadPoints(mapShapeToQuadPoints(elem, transform, linkShape));
+					annot.setQuadPoints(mapShapeToQuadPoints(elem, transform, linkShape, targetArea, c));
 
 				addLinkToPage(page, annot);
 			}
@@ -212,64 +211,63 @@ public class PdfBoxLinkManager {
 			annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 					(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 			if (linkShape != null)
-				annot.setQuadPoints(mapShapeToQuadPoints(elem, transform, linkShape));
+				annot.setQuadPoints(mapShapeToQuadPoints(elem, transform, linkShape, targetArea, c));
 
 			addLinkToPage(page, annot);
 		}
 	}
 
-	private float[] mapShapeToQuadPoints(Element elem, AffineTransform transform, Shape linkShape) {
-		List<Float> points = new ArrayList<Float>();
-
-		PathIterator pathIterator = new Area(linkShape).getPathIterator(transform, 1.0);
+	private float[] mapShapeToQuadPoints(Element elem, AffineTransform transform, Shape linkShape, Rectangle2D targetArea, RenderingContext c) {
+		List<Point2D.Float> points = new ArrayList<Point2D.Float>();
+		AffineTransform transformForQuads = new AffineTransform();
+		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
+		transformForQuads.scale(transform.getScaleX()*c.getDotsPerPixel(), transform.getScaleY()*c.getDotsPerPixel());
+		Area area = new Area(linkShape);
+		Rectangle2D bounds2D = area.getBounds2D();
+		//transformForQuads.scale(targetArea.getWidth() / bounds2D.getWidth(), targetArea.getHeight() / bounds2D.getHeight());
+		//transformForQuads.scale(_od.getDeviceLength(1), _od.getDeviceLength(1));
+		PathIterator pathIterator = area.getPathIterator(transformForQuads, 1.0);
 		double[] vals = new double[6];
-		double lastX = 0;
-		double lastY = 0;
-		Double firstX = null;
-		Double firstY = null;
 		while (!pathIterator.isDone()) {
 			int type = pathIterator.currentSegment(vals);
 			switch (type) {
 			case PathIterator.SEG_CUBICTO:
 				throw new RuntimeException("Invalid State, Area should never give us a curve here!");
 			case PathIterator.SEG_LINETO:
-				points.add((float) vals[0]);
-				points.add((float) vals[1]);
-				lastX = vals[0];
-				lastY = vals[1];
+				points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
 				break;
 			case PathIterator.SEG_MOVETO:
-				points.add((float) vals[0]);
-				points.add((float) vals[1]);
-				lastX = vals[0];
-				lastY = vals[1];
-				if (firstX == null) {
-					firstX = lastX;
-					firstY = lastY;
-				}
+				points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
 				break;
 			case PathIterator.SEG_QUADTO:
 				throw new RuntimeException("Invalid State, Area should never give us a curve here!");
 			case PathIterator.SEG_CLOSE:
-				if (firstX != null && points.size() % 8 != 0) {
-					points.add((float) (double) firstX);
-					points.add((float) (double) firstY);
-				}
 				break;
 			default:
 				break;
 			}
 			pathIterator.next();
 		}
+		KongAlgo algo = new KongAlgo(points);
+		algo.runKong();
 
-		while (points.size() % 8 != 0) {
-			points.add((float) lastX);
-			points.add((float) lastY);
+		float ret[] = new float[algo.getTriangles().size() * 8];
+		int i = 0; 
+		for (Triangle triangle : algo.getTriangles()) {
+			ret[i++] = triangle.a.x;
+			ret[i++] = triangle.a.y;
+			ret[i++] = triangle.b.x;
+			ret[i++] = triangle.b.y;
+			/*
+			 * To get a quad we add the point between b and c
+			 */
+			ret[i++] = triangle.b.x + (triangle.c.x - triangle.b.x) / 2;
+			ret[i++] = triangle.b.y + (triangle.c.y - triangle.b.y) / 2;
+			
+			ret[i++] = triangle.c.x;
+			ret[i++] = triangle.c.y;
 		}
 
-		float ret[] = new float[points.size()];
-		for (int i = 0; i < ret.length; i++)
-			ret[i] = points.get(0);
 		if (ret.length % 8 != 0)
 			throw new IllegalStateException("Not exact 8xn QuadPoints!");
 		return ret;

@@ -140,11 +140,11 @@ public class ImageMapParser {
 
 	private static Shape getCoords(String[] coordValues, int length) {
 		if ((-1 == length && 0 == coordValues.length % 2) || length == coordValues.length) {
-			int[] coords = new int[coordValues.length];
+			float[] coords = new float[coordValues.length];
 			int i = 0;
 			for (String coord : coordValues) {
 				try {
-					coords[i++] = Integer.parseInt(coord.trim());
+					coords[i++] = Float.parseFloat(coord.trim());
 				} catch (NumberFormatException e) {
 					XRLog.layout(Level.WARNING, "Error while parsing shape coords", e);
 					return null;
@@ -153,15 +153,15 @@ public class ImageMapParser {
 			if (4 == length) {
 				return new Rectangle2D.Float(coords[0], coords[1], coords[2] - coords[0], coords[3] - coords[1]);
 			} else if (3 == length) {
-				final int radius = coords[2];
+				final float radius = coords[2];
 				return new Ellipse2D.Float(coords[0] - radius, coords[1] - radius, radius * 2, radius * 2);
 			} else if (-1 == length) {
 				final int npoints = coords.length / 2;
 				final int[] xpoints = new int[npoints];
 				final int[] ypoints = new int[npoints];
 				for (int c = 0, p = 0; p < npoints; p++) {
-					xpoints[p] = coords[c++];
-					ypoints[p] = coords[c++];
+					xpoints[p] = (int)coords[c++];
+					ypoints[p] = (int)coords[c++];
 				}
 				return new Polygon(xpoints, ypoints, npoints);
 			} else {
