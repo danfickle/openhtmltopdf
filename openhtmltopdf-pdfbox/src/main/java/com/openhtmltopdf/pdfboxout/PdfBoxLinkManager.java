@@ -194,7 +194,7 @@ public class PdfBoxLinkManager {
 				annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 						(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 				if (linkShape != null)
-					annot.setQuadPoints(mapShapeToQuadPoints(elem, transform, linkShape, targetArea, c));
+					annot.setQuadPoints(mapShapeToQuadPoints(transform, linkShape, targetArea, c));
 
 				addLinkToPage(page, annot);
 			}
@@ -211,21 +211,19 @@ public class PdfBoxLinkManager {
 			annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 					(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 			if (linkShape != null)
-				annot.setQuadPoints(mapShapeToQuadPoints(elem, transform, linkShape, targetArea, c));
+				annot.setQuadPoints(mapShapeToQuadPoints(transform, linkShape, targetArea, c));
 
 			addLinkToPage(page, annot);
 		}
 	}
 
-	private float[] mapShapeToQuadPoints(Element elem, AffineTransform transform, Shape linkShape, Rectangle2D targetArea, RenderingContext c) {
+	private float[] mapShapeToQuadPoints(AffineTransform transform, Shape linkShape, Rectangle2D targetArea, RenderingContext c) {
 		List<Point2D.Float> points = new ArrayList<Point2D.Float>();
 		AffineTransform transformForQuads = new AffineTransform();
 		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
-		transformForQuads.scale(transform.getScaleX()*c.getDotsPerPixel(), transform.getScaleY()*c.getDotsPerPixel());
+		transformForQuads.scale(transform.getScaleX() * c.getDotsPerPixel(),
+				transform.getScaleY() * c.getDotsPerPixel());
 		Area area = new Area(linkShape);
-		Rectangle2D bounds2D = area.getBounds2D();
-		//transformForQuads.scale(targetArea.getWidth() / bounds2D.getWidth(), targetArea.getHeight() / bounds2D.getHeight());
-		//transformForQuads.scale(_od.getDeviceLength(1), _od.getDeviceLength(1));
 		PathIterator pathIterator = area.getPathIterator(transformForQuads, 1.0);
 		double[] vals = new double[6];
 		while (!pathIterator.isDone()) {
