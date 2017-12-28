@@ -4,8 +4,7 @@ import static com.openhtmltopdf.testcases.JFreeChartBarDiagramObjectDrawer.build
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.jfree.chart.ChartFactory;
@@ -31,7 +30,7 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 			final double height, OutputDevice outputDevice, RenderingContext ctx, final int dotsPerPixel) {
 		DefaultPieDataset dataset = new DefaultPieDataset();
 		NodeList childNodes = e.getChildNodes();
-		final List<String> urls = new ArrayList<String>();
+		final Map<String, String> urls = new HashMap<String, String>();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node item = childNodes.item(i);
 			if (!(item instanceof Element))
@@ -43,14 +42,14 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 			double value = Double.parseDouble(childElement.getAttribute("value"));
 			String url = childElement.getAttribute("url");
 			dataset.setValue(name, value);
-			urls.add(url);
+			urls.put(name, url);
 		}
 
 		final JFreeChart chart1 = ChartFactory.createPieChart(e.getAttribute("title"), dataset, false, false, true);
 		((PiePlot) chart1.getPlot()).setURLGenerator(new PieURLGenerator() {
 			@Override
 			public String generateURL(PieDataset dataset, Comparable key, int pieIndex) {
-				return urls.get(pieIndex);
+				return urls.get(key.toString());
 			}
 		});
 		final ChartRenderingInfo renderingInfo = new ChartRenderingInfo();
@@ -63,6 +62,6 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 					}
 				});
 
-		return buildShapeLinkMap(renderingInfo);
+		return buildShapeLinkMap(renderingInfo, height, dotsPerPixel);
 	}
 }

@@ -1,6 +1,7 @@
 package com.openhtmltopdf.testcases;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +25,11 @@ import com.openhtmltopdf.render.RenderingContext;
 
 public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 
-	static Map<Shape, String> buildShapeLinkMap(ChartRenderingInfo renderingInfo) {
+	static Map<Shape, String> buildShapeLinkMap(ChartRenderingInfo renderingInfo, double height, int dotsPerPixel) {
 		Map<Shape, String> linkShapes = null;
+		AffineTransform scaleTransform = new AffineTransform();
+		scaleTransform.translate(0, height);
+		scaleTransform.scale(dotsPerPixel, -dotsPerPixel);
 		for (Object entity : renderingInfo.getEntityCollection().getEntities()) {
 			if (!(entity instanceof ChartEntity))
 				continue;
@@ -35,7 +39,7 @@ public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 			if (url != null) {
 				if (linkShapes == null)
 					linkShapes = new HashMap<Shape, String>();
-				linkShapes.put(shape, url);
+				linkShapes.put(scaleTransform.createTransformedShape(shape), url);
 			}
 		}
 		return linkShapes;
@@ -80,6 +84,6 @@ public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 					}
 				});
 
-		return buildShapeLinkMap(renderingInfo);
+		return buildShapeLinkMap(renderingInfo, height, dotsPerPixel);
 	}
 }
