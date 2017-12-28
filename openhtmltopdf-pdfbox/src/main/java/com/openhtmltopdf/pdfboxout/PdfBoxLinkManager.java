@@ -221,8 +221,9 @@ public class PdfBoxLinkManager {
 		List<Point2D.Float> points = new ArrayList<Point2D.Float>();
 		AffineTransform transformForQuads = new AffineTransform();
 		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
-		transformForQuads.scale(transform.getScaleX() * c.getDotsPerPixel(),
-				transform.getScaleY() * c.getDotsPerPixel());
+		transformForQuads.concatenate(transform);
+		//transformForQuads.scale(transform.getScaleX(),
+				//transform.getScaleY());
 		Area area = new Area(linkShape);
 		PathIterator pathIterator = area.getPathIterator(transformForQuads, 1.0);
 		double[] vals = new double[6];
