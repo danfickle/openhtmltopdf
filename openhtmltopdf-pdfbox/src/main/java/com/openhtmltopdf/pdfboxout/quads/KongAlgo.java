@@ -37,8 +37,12 @@ public class KongAlgo {
 	 */
 	private void calcNonConvexPoints() {
 		// safety check, with less than 4 points we have to do nothing
-		if (points.size() <= 3)
+		if (points.size() <= 3) {
+			if (points.size() == 3) {
+				triangles.add(new Triangle(points.get(0), points.get(1), points.get(2)));
+			}
 			return;
+		}
 
 		// actual three points
 		Point2D.Float p;

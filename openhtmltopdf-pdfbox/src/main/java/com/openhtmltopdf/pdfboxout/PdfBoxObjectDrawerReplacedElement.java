@@ -22,7 +22,7 @@ public class PdfBoxObjectDrawerReplacedElement implements PdfBoxReplacedElement,
 	private final int width;
 	private final int height;
 	private final int dotsPerPixel;
-	private final Map<Shape, String> imageMap;
+	private Map<Shape, String> imageMap;
 
 	public PdfBoxObjectDrawerReplacedElement(Element e, FSObjectDrawer drawer, int cssWidth, int cssHeight,
 											 SharedContext c) {
@@ -75,7 +75,9 @@ public class PdfBoxObjectDrawerReplacedElement implements PdfBoxReplacedElement,
 
 	@Override
 	public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice, BlockBox box) {
-		drawer.drawObject(e, point.getX(), point.getY(), getIntrinsicWidth(), getIntrinsicHeight(), outputDevice, c, dotsPerPixel);
+		Map<Shape, String> shapeStringMap = drawer.drawObject(e, point.getX(), point.getY(), getIntrinsicWidth(), getIntrinsicHeight(), outputDevice, c, dotsPerPixel);
+		if(shapeStringMap != null )
+			imageMap = shapeStringMap;
 	}
 
 	@Override

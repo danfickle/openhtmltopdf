@@ -28,6 +28,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class TestcaseRunner {
@@ -180,6 +181,8 @@ public class TestcaseRunner {
 	private static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
 		DefaultObjectDrawerFactory objectDrawerFactory = new DefaultObjectDrawerFactory();
 		objectDrawerFactory.registerDrawer("custom/binary-tree", new SampleObjectDrawerBinaryTree());
+		objectDrawerFactory.registerDrawer("jfreechart/pie", new JFreeChartPieDiagramObjectDrawer());
+		objectDrawerFactory.registerDrawer("jfreechart/bar", new JFreeChartBarDiagramObjectDrawer());
 		return objectDrawerFactory;
 	}
 
@@ -247,8 +250,8 @@ public class TestcaseRunner {
 		int angle;
 
 		@Override
-		public void drawObject(Element e, double x, double y, final double width, final double height,
-				OutputDevice outputDevice, RenderingContext ctx, final int dotsPerPixel) {
+		public Map<Shape,String> drawObject(Element e, double x, double y, final double width, final double height,
+											OutputDevice outputDevice, RenderingContext ctx, final int dotsPerPixel) {
 			final int depth = Integer.parseInt(e.getAttribute("data-depth"));
 			fanout = Integer.parseInt(e.getAttribute("data-fanout"));
 			angle = Integer.parseInt(e.getAttribute("data-angle"));
@@ -287,6 +290,7 @@ public class TestcaseRunner {
 									(int) (realHeight - titleBottomHeight));
 						}
 					});
+			return null;
 		}
 
 		private void renderTree(Graphics2D gfx, double x, double y, double len, double angleDeg, int depth) {
