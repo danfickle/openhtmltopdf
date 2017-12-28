@@ -62,6 +62,6 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 					}
 				});
 
-		return buildShapeLinkMap(renderingInfo, height, dotsPerPixel);
+		return buildShapeLinkMap(renderingInfo, dotsPerPixel);
 	}
 }

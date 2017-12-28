@@ -249,8 +249,8 @@ public class PdfBoxLinkManager {
 	}
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	private boolean placeAnnotation(AffineTransform transform, Shape linkShape,
-									Rectangle2D targetArea, PDAnnotationLink annot) {
+	private boolean placeAnnotation(AffineTransform transform, Shape linkShape, Rectangle2D targetArea,
+			PDAnnotationLink annot) {
 		annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 				(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 		if (linkShape != null) {
@@ -269,6 +269,9 @@ public class PdfBoxLinkManager {
 		List<Point2D.Float> points = new ArrayList<Point2D.Float>();
 		AffineTransform transformForQuads = new AffineTransform();
 		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
+		// We must flip the whole thing upside down
+		transformForQuads.translate(0, targetArea.getHeight());
+		transformForQuads.scale(1, -1);
 		transformForQuads.concatenate(transform);
 		Area area = new Area(linkShape);
 		PathIterator pathIterator = area.getPathIterator(transformForQuads, 1.0);
@@ -282,7 +285,7 @@ public class PdfBoxLinkManager {
 				points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
 				break;
 			case PathIterator.SEG_MOVETO:
-					points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
+				points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
 				break;
 			case PathIterator.SEG_QUADTO:
 				throw new RuntimeException("Invalid State, Area should never give us a curve here!");

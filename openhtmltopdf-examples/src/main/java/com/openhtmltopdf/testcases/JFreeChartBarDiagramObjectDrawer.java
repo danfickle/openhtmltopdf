@@ -25,11 +25,10 @@ import com.openhtmltopdf.render.RenderingContext;
 
 public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 
-	static Map<Shape, String> buildShapeLinkMap(ChartRenderingInfo renderingInfo, double height, int dotsPerPixel) {
+	static Map<Shape, String> buildShapeLinkMap(ChartRenderingInfo renderingInfo, int dotsPerPixel) {
 		Map<Shape, String> linkShapes = null;
 		AffineTransform scaleTransform = new AffineTransform();
-		scaleTransform.translate(0, height);
-		scaleTransform.scale(dotsPerPixel, -dotsPerPixel);
+		scaleTransform.scale(dotsPerPixel, dotsPerPixel);
 		for (Object entity : renderingInfo.getEntityCollection().getEntities()) {
 			if (!(entity instanceof ChartEntity))
 				continue;
@@ -84,6 +83,6 @@ public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 					}
 				});
 
-		return buildShapeLinkMap(renderingInfo, height, dotsPerPixel);
+		return buildShapeLinkMap(renderingInfo, dotsPerPixel);
 	}
 }
