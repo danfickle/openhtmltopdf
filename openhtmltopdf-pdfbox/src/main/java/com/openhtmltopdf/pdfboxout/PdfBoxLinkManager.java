@@ -222,8 +222,6 @@ public class PdfBoxLinkManager {
 		AffineTransform transformForQuads = new AffineTransform();
 		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
 		transformForQuads.concatenate(transform);
-		//transformForQuads.scale(transform.getScaleX(),
-				//transform.getScaleY());
 		Area area = new Area(linkShape);
 		PathIterator pathIterator = area.getPathIterator(transformForQuads, 1.0);
 		double[] vals = new double[6];
@@ -269,6 +267,12 @@ public class PdfBoxLinkManager {
 
 		if (ret.length % 8 != 0)
 			throw new IllegalStateException("Not exact 8xn QuadPoints!");
+		for (; i < ret.length; i += 2) {
+			if (ret[i] < targetArea.getMinX() || ret[i] > targetArea.getMaxX())
+				throw new IllegalStateException("Invalid rectangle calculation");
+			if (ret[i + 1] < targetArea.getMinY() || ret[i + 1] > targetArea.getMaxY())
+				throw new IllegalStateException("Invalid rectangle calculation");
+		}
 		return ret;
 	}
 
