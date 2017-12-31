@@ -22,6 +22,7 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxLinkManager.IPdfBoxElementWithShapedLinks;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -37,9 +38,9 @@ public class PdfBoxImageElement implements PdfBoxReplacedElement, IPdfBoxElement
     private Point _location = new Point(0, 0);
     private final Map<Shape, String> imageMap;
 
-    public PdfBoxImageElement(Element e, FSImage image) {
+    public PdfBoxImageElement(Element e, FSImage image, SharedContext c) {
         _image = image;
-        imageMap = ImageMapParser.findAndParseMap(e);
+        imageMap = ImageMapParser.findAndParseMap(e, c);
     }
 
     public int getIntrinsicWidth() {

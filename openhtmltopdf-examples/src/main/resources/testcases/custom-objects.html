@@ -4,6 +4,7 @@
 		object {
 			border: 2px solid black;
 			margin: 1px;
+			page-break-inside: avoid;
 		}
 	</style>
 </head>
@@ -22,12 +23,42 @@
 </object>
 
 <object type="custom/binary-tree" data-fanout="2" data-depth="10" data-angle="30"
-		style="width:400px; height:300px;clear:both;float:left;">
+		style="width:300px; height:200px;clear:both;float:left;">
 	<!-- This is a simple example for a custom object drawer -->
 </object>
 <object type="custom/binary-tree" data-fanout="2" data-depth="6" data-angle="40"
 		style="width:200px; height:300px;float:right;">
 	<!-- This is a simple example for a custom object drawer -->
 </object>
+
+<object type="jfreechart/pie" style="width:400px;height:400px; float:left;" title="Sample Pie Chart">
+	<data name="Series 1" value="23.2" url="https://www.google.de?q=section1"/>
+	<data name="Series 2" value="33.2"/>
+	<data name="Series 3" value="43.2"/>
+	<data name="Series 4" value="53.2" url="https://www.google.de?q=section2"/>
+	<data name="Something else" value="1.2" url="https://www.google.de?q=misc"/>
+</object>
+
+<br style="-fs-page-break-min-height: 10cm;clear:both;"/>
+A pagebreak should happen here!
+
+
+<object type="jfreechart/pie" style="width:400px;height:400px; float:left" title="Fruit Pie Chart">
+	<data name="Apple" value="23.2" url="https://www.google.de?q=apple-pie"/>
+	<data name="Pear" value="43.2" url="https://www.google.de?q=pear-pie"/>
+	<data name="Orange" value="53.2" url="https://www.google.de?q=orange-pie"/>
+</object>
+
+
+<object type="jfreechart/bar" style="width:400px;height:400px; float:left;" title="Fruit Bar Chart"
+		categories-title="Category" series-title="Series">
+	<data series="Value" category="Apple" value="23.2" url="https://www.google.de?q=apple"/>
+	<data series="Value" category="Pear" value="43.2" url="https://www.google.de?q=pear"/>
+	<data series="Value" category="Orange" value="33.2" url="https://www.google.de?q=orange"/>
+	<data series="Price/kg" category="Apple" value="2.2" url="https://www.google.de?q=apple-price"/>
+	<data series="Price/kg" category="Pear" value="4.2" url="https://www.google.de?q=pear-price"/>
+	<data series="Price/kg" category="Orange" value="5.2" url="https://www.google.de?q=orange-price"/>
+</object>
+
 </body>
 </html>

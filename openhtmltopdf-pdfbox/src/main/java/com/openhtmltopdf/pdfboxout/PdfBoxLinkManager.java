@@ -4,6 +4,8 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.pdfboxout.quads.KongAlgo;
+import com.openhtmltopdf.pdfboxout.quads.Triangle;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
@@ -21,10 +23,7 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.w3c.dom.Element;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -167,6 +166,41 @@ public class PdfBoxLinkManager {
 		}
 	}
 
+	private static boolean isPointEqual(Point2D.Float p1, Point2D.Float p2) {
+		final double epsilon = 0.000001;
+		return Math.abs(p1.x - p2.x) < epsilon && Math.abs(p1.y - p2.y) < epsilon;
+	}
+
+	private static void removeDoublicatePoints(List<Point2D.Float> points) {
+		boolean rerun;
+		do {
+			rerun = false;
+			/*
+			 * We can only form triangles if three points are not the same. So we must
+			 * filter out all points which follow each other and are the same.
+			 */
+			for (int i = 0; i < points.size() - 1; i++) {
+				Point2D.Float p1 = points.get(i);
+				Point2D.Float p2 = points.get(i + 1);
+				if (isPointEqual(p1, p2)) {
+					points.remove(i);
+					rerun = true;
+				}
+			}
+			/*
+			 * And we must filter out the same points with gap of 1 between them
+			 */
+			for (int i = 0; i < points.size() - 2; i++) {
+				Point2D.Float p1 = points.get(i);
+				Point2D.Float p2 = points.get(i + 2);
+				if (isPointEqual(p1, p2)) {
+					points.remove(i);
+					rerun = true;
+				}
+			}
+		} while (rerun);
+	}
+
 	private void addUriAsLink(RenderingContext c, Box box, PDPage page, float pageHeight, AffineTransform transform,
 			Element elem, NamespaceHandler handler, String uri, Shape linkShape) {
 		if (uri.length() > 1 && uri.charAt(0) == '#') {
@@ -192,10 +226,8 @@ public class PdfBoxLinkManager {
 
 				PDAnnotationLink annot = new PDAnnotationLink();
 				annot.setAction(action);
-				annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
-						(float) targetArea.getWidth(), (float) targetArea.getHeight()));
-				if (linkShape != null)
-					annot.setQuadPoints(mapShapeToQuadPoints(elem, transform, linkShape));
+				if (!placeAnnotation(transform, linkShape, targetArea, annot))
+					return;
 
 				addLinkToPage(page, annot);
 			}
@@ -209,52 +241,55 @@ public class PdfBoxLinkManager {
 			}
 			PDAnnotationLink annot = new PDAnnotationLink();
 			annot.setAction(uriAct);
-			annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
-					(float) targetArea.getWidth(), (float) targetArea.getHeight()));
-			if (linkShape != null)
-				annot.setQuadPoints(mapShapeToQuadPoints(elem, transform, linkShape));
+			if (!placeAnnotation(transform, linkShape, targetArea, annot))
+				return;
 
 			addLinkToPage(page, annot);
 		}
 	}
 
-	private float[] mapShapeToQuadPoints(Element elem, AffineTransform transform, Shape linkShape) {
-		List<Float> points = new ArrayList<Float>();
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	private boolean placeAnnotation(AffineTransform transform, Shape linkShape, Rectangle2D targetArea,
+			PDAnnotationLink annot) {
+		annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
+				(float) targetArea.getWidth(), (float) targetArea.getHeight()));
+		if (linkShape != null) {
+			float[] quadPoints = mapShapeToQuadPoints(transform, linkShape, targetArea);
+			/*
+			 * Is this not an area shape? Then we can not setup quads - ignore this shape.
+			 */
+			if (quadPoints.length == 0)
+				return false;
+			annot.setQuadPoints(quadPoints);
+		}
+		return true;
+	}
 
-		PathIterator pathIterator = new Area(linkShape).getPathIterator(transform, 1.0);
+	private float[] mapShapeToQuadPoints(AffineTransform transform, Shape linkShape, Rectangle2D targetArea) {
+		List<Point2D.Float> points = new ArrayList<Point2D.Float>();
+		AffineTransform transformForQuads = new AffineTransform();
+		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
+		// We must flip the whole thing upside down
+		transformForQuads.translate(0, targetArea.getHeight());
+		transformForQuads.scale(1, -1);
+		transformForQuads.concatenate(transform);
+		Area area = new Area(linkShape);
+		PathIterator pathIterator = area.getPathIterator(transformForQuads, 1.0);
 		double[] vals = new double[6];
-		double lastX = 0;
-		double lastY = 0;
-		Double firstX = null;
-		Double firstY = null;
 		while (!pathIterator.isDone()) {
 			int type = pathIterator.currentSegment(vals);
 			switch (type) {
 			case PathIterator.SEG_CUBICTO:
 				throw new RuntimeException("Invalid State, Area should never give us a curve here!");
 			case PathIterator.SEG_LINETO:
-				points.add((float) vals[0]);
-				points.add((float) vals[1]);
-				lastX = vals[0];
-				lastY = vals[1];
+				points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
 				break;
 			case PathIterator.SEG_MOVETO:
-				points.add((float) vals[0]);
-				points.add((float) vals[1]);
-				lastX = vals[0];
-				lastY = vals[1];
-				if (firstX == null) {
-					firstX = lastX;
-					firstY = lastY;
-				}
+				points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
 				break;
 			case PathIterator.SEG_QUADTO:
 				throw new RuntimeException("Invalid State, Area should never give us a curve here!");
 			case PathIterator.SEG_CLOSE:
-				if (firstX != null && points.size() % 8 != 0) {
-					points.add((float) (double) firstX);
-					points.add((float) (double) firstY);
-				}
 				break;
 			default:
 				break;
@@ -262,16 +297,36 @@ public class PdfBoxLinkManager {
 			pathIterator.next();
 		}
 
-		while (points.size() % 8 != 0) {
-			points.add((float) lastX);
-			points.add((float) lastY);
+		removeDoublicatePoints(points);
+
+		KongAlgo algo = new KongAlgo(points);
+		algo.runKong();
+
+		float ret[] = new float[algo.getTriangles().size() * 8];
+		int i = 0;
+		for (Triangle triangle : algo.getTriangles()) {
+			ret[i++] = triangle.a.x;
+			ret[i++] = triangle.a.y;
+			ret[i++] = triangle.b.x;
+			ret[i++] = triangle.b.y;
+			/*
+			 * To get a quad we add the point between b and c
+			 */
+			ret[i++] = triangle.b.x + (triangle.c.x - triangle.b.x) / 2;
+			ret[i++] = triangle.b.y + (triangle.c.y - triangle.b.y) / 2;
+
+			ret[i++] = triangle.c.x;
+			ret[i++] = triangle.c.y;
 		}
 
-		float ret[] = new float[points.size()];
-		for (int i = 0; i < ret.length; i++)
-			ret[i] = points.get(0);
 		if (ret.length % 8 != 0)
 			throw new IllegalStateException("Not exact 8xn QuadPoints!");
+		for (; i < ret.length; i += 2) {
+			if (ret[i] < targetArea.getMinX() || ret[i] > targetArea.getMaxX())
+				throw new IllegalStateException("Invalid rectangle calculation. Map shape is out of bound.");
+			if (ret[i + 1] < targetArea.getMinY() || ret[i + 1] > targetArea.getMaxY())
+				throw new IllegalStateException("Invalid rectangle calculation. Map shape is out of bound.");
+		}
 		return ret;
 	}
 

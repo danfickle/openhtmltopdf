@@ -50,7 +50,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
             int cssMaxWidth = CalculatedStyle.getCSSMaxWidth(c, box);
             int cssMaxHeight = CalculatedStyle.getCSSMaxHeight(c, box);
             
-            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, c.getSharedContext().getDotsPerPixel());
+            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, c.getSharedContext());
         } else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");
             if (srcAttr != null && srcAttr.length() > 0) {
@@ -96,34 +96,11 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                             fsImage.scale(cssWidth, cssHeight);
                         }
                     }
-                    return new PdfBoxImageElement(e,fsImage);
+                    return new PdfBoxImageElement(e,fsImage,c.getSharedContext());
                 }
             }
         } else if (nodeName.equals("input")) {
             /* We do nothing here. Form Elements are handled special in PdfBoxOutputDevice.paintBackground() */
-            String type = e.getAttribute("type");
-// TODO: Implement form fields.
-//            if (type.equals("hidden")) {
-//                return new EmptyReplacedElement(1, 1);
-//            } else if (type.equals("checkbox")) {
-//                return new CheckboxFormField(c, box, cssWidth, cssHeight);
-//            } else if (type.equals("radio")) {
-//                //TODO finish support for Radio button
-//                //RadioButtonFormField result = new RadioButtonFormField(
-//                //			this, c, box, cssWidth, cssHeight);
-//                //		saveResult(e, result);
-//                //return result;
-//                return new EmptyReplacedElement(0, 0);
-//
-//            } else {
-//                return new TextFormField(c, box, cssWidth, cssHeight);
-//            }
-//            /*
-//             } else if (nodeName.equals("select")) {//TODO Support select
-//             return new SelectFormField(c, box, cssWidth, cssHeight);
-//             } else if (isTextarea(e)) {//TODO Review if this is needed the textarea item prints fine currently
-//             return new TextAreaFormField(c, box, cssWidth, cssHeight);
-//             */
         } else if (nodeName.equals("bookmark")) {
             // HACK Add box as named anchor and return placeholder
             BookmarkElement result = new BookmarkElement();
@@ -137,7 +114,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
 			FSObjectDrawer drawer = _objectDrawerFactory.createDrawer(e);
 			if (drawer != null)
 				return new PdfBoxObjectDrawerReplacedElement(e, drawer, cssWidth, cssHeight,
-						c.getSharedContext().getDotsPerPixel());
+						c.getSharedContext());
         }
 
         return null;

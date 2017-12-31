@@ -15,6 +15,12 @@ Some examples how inline SVG is rendered.
 <h2>JSON-Symbol</h2>
 
 <!-- Taken from https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/ -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 102" width="200" height="200" usemap="#jsonmap" style="transform:skewX(45deg); rotate(10deg); float:right; margin-right:100px">
+	<radialGradient id="jsongrad" cx="65" cy="90" r="100" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#EEF"/><stop offset="1"/></radialGradient>
+	<path d="M61,02 A 49,49 0,0,0 39,98 C 9,79 10,24 45,25 C 72,24 65,75 50,75 C 93,79 91,21 62,02" id="jsonswirl" fill="url(#jsongrad)"/>
+	<use xlink:href="#jsonswirl" transform="rotate(180 50,50)"/>
+</svg>
+
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 102" width="200" height="200" usemap="#jsonmap">
 	<radialGradient id="jsongrad" cx="65" cy="90" r="100" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#EEF"/><stop offset="1"/></radialGradient>
 	<path d="M61,02 A 49,49 0,0,0 39,98 C 9,79 10,24 45,25 C 72,24 65,75 50,75 C 93,79 91,21 62,02" id="jsonswirl" fill="url(#jsongrad)"/>
@@ -22,8 +28,9 @@ Some examples how inline SVG is rendered.
 </svg>
 
 <map name="jsonmap">
-    <area shape="rect" coords="0,0,100,200" href="https://www.google.de?q=left"/>
-	<area shape="rect" coords="100,0,200,200" href="https://www.google.de?q=right"/>
+    <area shape="rect" coords="0,0,50,200" href="https://www.google.de?q=left"/>
+	<area shape="rect" coords="150,0,200,200" href="https://www.google.de?q=right"/>
+	<area shape="circle" coords="100,100,50" href="https://www.google.de?q=inner-circle"/>
 </map>
 
 <h2>Barchart</h2>

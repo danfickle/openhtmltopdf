@@ -19,6 +19,7 @@ package com.openhtmltopdf.swing;
  * }}}
  */
 
+import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -26,6 +27,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collections;
@@ -51,7 +53,7 @@ public class ImageMapParser {
 	private static final String POLY_SHAPE = "poly";
 	private static final String POLYGON_SHAPE = "polygon";
 
-	public static Map<Shape, String> findAndParseMap(Element elem) {
+	public static Map<Shape, String> findAndParseMap(Element elem, SharedContext c) {
 		String usemapAttr = elem.getAttribute(IMG_USEMAP_ATTR);
 		if (usemapAttr == null || usemapAttr.isEmpty())
 			return null;
@@ -73,7 +75,7 @@ public class ImageMapParser {
 				return null;
 			}
 		}
-		return parseMap(map);
+		return parseMap(map, c);
 	}
 
 	private static boolean areEqual(String str1, String str2) {
@@ -84,10 +86,11 @@ public class ImageMapParser {
 		return (str1 == null && str2 == null) || (str1 != null && str1.equalsIgnoreCase(str2));
 	}
 
-	private static Map<Shape, String> parseMap(Node map) {
+	private static Map<Shape, String> parseMap(Node map, SharedContext c) {
 		if (null == map) {
 			return Collections.emptyMap();
 		} else if (map.hasChildNodes()) {
+			AffineTransform scaleInstance = AffineTransform.getScaleInstance(c.getDotsPerPixel(), c.getDotsPerPixel());
 			final NodeList children = map.getChildNodes();
 			final Map<Shape, String> areas = new HashMap<Shape, String>(children.getLength());
 			for (int i = 0; i < children.getLength(); i++) {
@@ -105,19 +108,19 @@ public class ImageMapParser {
 								|| areEqualIgnoreCase(RECTANGLE_SHAPE, shapeAttr)) {
 							final Shape shape = getCoords(coords, 4);
 							if (null != shape) {
-								areas.put(shape, href);
+								areas.put(scaleInstance.createTransformedShape(shape), href);
 							}
 						} else if (areEqualIgnoreCase(CIRC_SHAPE, shapeAttr)
 								|| areEqualIgnoreCase(CIRCLE_SHAPE, shapeAttr)) {
 							final Shape shape = getCoords(coords, 3);
 							if (null != shape) {
-								areas.put(shape, href);
+								areas.put(scaleInstance.createTransformedShape(shape), href);
 							}
 						} else if (areEqualIgnoreCase(POLY_SHAPE, shapeAttr)
 								|| areEqualIgnoreCase(POLYGON_SHAPE, shapeAttr)) {
 							final Shape shape = getCoords(coords, -1);
 							if (null != shape) {
-								areas.put(shape, href);
+								areas.put(scaleInstance.createTransformedShape(shape), href);
 							}
 						} else {
 							if (XRLog.isLoggingEnabled()) {
@@ -140,11 +143,11 @@ public class ImageMapParser {
 
 	private static Shape getCoords(String[] coordValues, int length) {
 		if ((-1 == length && 0 == coordValues.length % 2) || length == coordValues.length) {
-			int[] coords = new int[coordValues.length];
+			float[] coords = new float[coordValues.length];
 			int i = 0;
 			for (String coord : coordValues) {
 				try {
-					coords[i++] = Integer.parseInt(coord.trim());
+					coords[i++] = Float.parseFloat(coord.trim());
 				} catch (NumberFormatException e) {
 					XRLog.layout(Level.WARNING, "Error while parsing shape coords", e);
 					return null;
@@ -153,15 +156,15 @@ public class ImageMapParser {
 			if (4 == length) {
 				return new Rectangle2D.Float(coords[0], coords[1], coords[2] - coords[0], coords[3] - coords[1]);
 			} else if (3 == length) {
-				final int radius = coords[2];
+				final float radius = coords[2];
 				return new Ellipse2D.Float(coords[0] - radius, coords[1] - radius, radius * 2, radius * 2);
 			} else if (-1 == length) {
 				final int npoints = coords.length / 2;
 				final int[] xpoints = new int[npoints];
 				final int[] ypoints = new int[npoints];
 				for (int c = 0, p = 0; p < npoints; p++) {
-					xpoints[p] = coords[c++];
-					ypoints[p] = coords[c++];
+					xpoints[p] = (int)coords[c++];
+					ypoints[p] = (int)coords[c++];
 				}
 				return new Polygon(xpoints, ypoints, npoints);
 			} else {

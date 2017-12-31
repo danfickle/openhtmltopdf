@@ -2,6 +2,7 @@ package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.extend.FSObjectDrawer;
 import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxLinkManager.IPdfBoxElementWithShapedLinks;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -21,16 +22,16 @@ public class PdfBoxObjectDrawerReplacedElement implements PdfBoxReplacedElement,
 	private final int width;
 	private final int height;
 	private final int dotsPerPixel;
-	private final Map<Shape, String> imageMap;
+	private Map<Shape, String> imageMap;
 
 	public PdfBoxObjectDrawerReplacedElement(Element e, FSObjectDrawer drawer, int cssWidth, int cssHeight,
-			int dotsPerPixel) {
+											 SharedContext c) {
 		this.e = e;
-		imageMap = ImageMapParser.findAndParseMap(e);
+		imageMap = ImageMapParser.findAndParseMap(e, c);
 		this.drawer = drawer;
 		this.width = cssWidth;
 		this.height = cssHeight;
-		this.dotsPerPixel = dotsPerPixel;
+		this.dotsPerPixel = c.getDotsPerPixel();
 	}
 
 	@Override
@@ -74,7 +75,9 @@ public class PdfBoxObjectDrawerReplacedElement implements PdfBoxReplacedElement,
 
 	@Override
 	public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice, BlockBox box) {
-		drawer.drawObject(e, point.getX(), point.getY(), getIntrinsicWidth(), getIntrinsicHeight(), outputDevice, c, dotsPerPixel);
+		Map<Shape, String> shapeStringMap = drawer.drawObject(e, point.getX(), point.getY(), getIntrinsicWidth(), getIntrinsicHeight(), outputDevice, c, dotsPerPixel);
+		if(shapeStringMap != null )
+			imageMap = shapeStringMap;
 	}
 
 	@Override
