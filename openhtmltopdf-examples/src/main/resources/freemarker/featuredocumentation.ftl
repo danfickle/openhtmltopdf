@@ -167,13 +167,21 @@ and so on. To use them include the openhtmltopdf-objects dependency in your pom:
 [/@pomCode]
 
 <h3>Merge Background PDF</h3>
-You can let
+
+You can add a watermark / background to your document. To do so you should place
+
+[@htmlCode]
+	<object type="pdf/background" pdfsrc="background.pdf" style="width:1px;height:1px"></object>
+[/@htmlCode]
+
+into the top-left corner of the document. This must be the first element drawn, as otherwise it would override override
+the already drawn content. Look at the source of this document for more details.
 
 <h3>JFreeGraph</h3>
 
 For simple charts you can use the builtin objects for JFreeGraph. Note: You must specify the dependency to JFreeMarker
 in your
-POM, because it is declared an optional dependency on openhtmltopdf-objects.
+POM, because it is declared as a optional dependency on openhtmltopdf-objects.
 
 [@pomCode]
 <dependency>
