@@ -681,6 +681,10 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         return _cp;
     }
 
+    public PDPage getPage(){
+        return _page;
+    }
+
     private void followPath(Shape s, int drawType) {
         if (s == null)
             return;

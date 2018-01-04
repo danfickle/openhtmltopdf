@@ -9,6 +9,7 @@ import com.openhtmltopdf.java2d.api.BufferedImagePageProcessor;
 import com.openhtmltopdf.java2d.api.DefaultPageProcessor;
 import com.openhtmltopdf.java2d.api.FSPageOutputStreamSupplier;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
+import com.openhtmltopdf.objects.StandardObjectDrawerFactory;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
@@ -179,10 +180,8 @@ public class TestcaseRunner {
 	}
 
 	private static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
-		DefaultObjectDrawerFactory objectDrawerFactory = new DefaultObjectDrawerFactory();
+		DefaultObjectDrawerFactory objectDrawerFactory = new StandardObjectDrawerFactory();
 		objectDrawerFactory.registerDrawer("custom/binary-tree", new SampleObjectDrawerBinaryTree());
-		objectDrawerFactory.registerDrawer("jfreechart/pie", new JFreeChartPieDiagramObjectDrawer());
-		objectDrawerFactory.registerDrawer("jfreechart/bar", new JFreeChartBarDiagramObjectDrawer());
 		return objectDrawerFactory;
 	}
 
