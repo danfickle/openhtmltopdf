@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
-    <version>0.0.1-RC12-SNAPSHOT</version>
+    <version>0.0.1-RC12-inqool</version>
   </parent>
 
   <artifactId>openhtmltopdf-pdfbox</artifactId>
@@ -35,10 +35,11 @@
     </license>
   </licenses>
   <distributionManagement>
-    <repository>
-      <id>bintray</id>
-      <url>https://api.bintray.com/maven/danfickle/maven/com.openhtmltopdf:openhtmltopdf-parent</url>
-    </repository>
+      <repository>
+          <id>nexus.inqool.cz</id>
+          <name>nexus.inqool.cz</name>
+          <url>http://nexus.inqool.cz/repository/maven-releases/</url>
+      </repository>
   </distributionManagement>
   <dependencies>
     <dependency>
@@ -50,8 +51,14 @@
     <dependency>
     	<groupId>org.apache.pdfbox</groupId>
     	<artifactId>pdfbox</artifactId>
-    	<version>2.0.7</version>
+        <!-- reverted back because of custom changes -->
+    	<version>2.0.5-inqool</version>
     </dependency>
+      <dependency>
+          <groupId>org.apache.pdfbox</groupId>
+          <artifactId>xmpbox</artifactId>
+          <version>2.0.5-inqool</version>
+      </dependency>
     <dependency>
       <groupId>com.openhtmltopdf</groupId>
       <artifactId>openhtmltopdf-core</artifactId>

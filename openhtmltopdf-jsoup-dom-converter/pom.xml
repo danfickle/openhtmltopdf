@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
-    <version>0.0.1-RC12-SNAPSHOT</version>
+    <version>0.0.1-RC12-inqool</version>
   </parent>
 
   <artifactId>openhtmltopdf-jsoup-dom-converter</artifactId>
@@ -24,10 +24,11 @@
   </licenses>
 
   <distributionManagement>
-    <repository>
-      <id>bintray</id>
-      <url>https://api.bintray.com/maven/danfickle/maven/com.openhtmltopdf:openhtmltopdf-parent</url>
-    </repository>
+      <repository>
+          <id>nexus.inqool.cz</id>
+          <name>nexus.inqool.cz</name>
+          <url>http://nexus.inqool.cz/repository/maven-releases/</url>
+      </repository>
   </distributionManagement>
 
   <dependencies>
