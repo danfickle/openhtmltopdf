@@ -109,7 +109,7 @@ public class PdfBoxRenderer implements Closeable {
             OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
             PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode,
             FSObjectDrawerFactory objectDrawerFactory, String preferredTransformerFactoryImplementationClass,
-            String producer) {
+            String producer, SVGDrawer mathmlImpl) {
         
         _pdfDoc = new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
@@ -149,7 +149,7 @@ public class PdfBoxRenderer implements Closeable {
         PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc);
         _sharedContext.setFontResolver(fontResolver);
 
-        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, svgImpl, objectDrawerFactory);
+        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, svgImpl, objectDrawerFactory, mathmlImpl);
         _sharedContext.setReplacedElementFactory(replacedElementFactory);
 
         _sharedContext.setTextRenderer(new PdfBoxTextRenderer());

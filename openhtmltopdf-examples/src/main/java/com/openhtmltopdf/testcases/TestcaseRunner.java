@@ -9,6 +9,7 @@ import com.openhtmltopdf.java2d.api.BufferedImagePageProcessor;
 import com.openhtmltopdf.java2d.api.DefaultPageProcessor;
 import com.openhtmltopdf.java2d.api.FSPageOutputStreamSupplier;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
+import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
@@ -17,11 +18,13 @@ import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.util.JDKXRLogger;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRLogger;
+
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
 import org.w3c.dom.Element;
 
 import javax.imageio.ImageIO;
+
 import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
@@ -97,6 +100,8 @@ public class TestcaseRunner {
 		runTestCase("transform");
 
 		runTestCase("quoting");
+		
+		runTestCase("math-ml");
 
 		/* Add additional test cases here. */
 	}
@@ -168,6 +173,7 @@ public class TestcaseRunner {
 			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
 			builder.defaultTextDirection(TextDirection.LTR);
 			builder.useSVGDrawer(new BatikSVGDrawer());
+			builder.useMathMLDrawer(new MathMLDrawer());
 			builder.useObjectDrawerFactory(buildObjectDrawerFactory());
 
 			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());

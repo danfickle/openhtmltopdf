@@ -46,6 +46,11 @@
     </dependency>
     <dependency>
       <groupId>com.openhtmltopdf</groupId>
+      <artifactId>openhtmltopdf-mathml-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.openhtmltopdf</groupId>
       <artifactId>openhtmltopdf-java2d</artifactId>
       <version>${project.version}</version>
     </dependency>

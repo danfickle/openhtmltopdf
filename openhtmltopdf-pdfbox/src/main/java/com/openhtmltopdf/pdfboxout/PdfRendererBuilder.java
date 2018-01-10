@@ -42,6 +42,7 @@ public class PdfRendererBuilder
     private FSUriResolver _resolver;
     private FSCache _cache;
     private SVGDrawer _svgImpl;
+    private SVGDrawer _mathmlImpl;
     private Float _pageWidth;
     private Float _pageHeight;
     private boolean _isPageSizeInches;
@@ -109,7 +110,7 @@ public class PdfRendererBuilder
                 doc, unicode, _httpStreamFactory, _os, _resolver,
                 _cache, _svgImpl, pageSize, _pdfVersion, _replacementText,
                 _testMode, _objectDrawerFactory, _preferredTransformerFactoryImplementationClass,
-                _producer);
+                _producer, _mathmlImpl);
 
         /*
          * Register all Fonts
@@ -275,6 +276,16 @@ public class PdfRendererBuilder
      */
     public PdfRendererBuilder useSVGDrawer(SVGDrawer svgImpl) {
         this._svgImpl = svgImpl;
+        return this;
+    }
+    
+    /**
+     * Use the specified MathML implementation.
+     * @param mathMlImpl
+     * @return this for method chaining
+     */
+    public PdfRendererBuilder useMathMLDrawer(SVGDrawer mathMlImpl) {
+        this._mathmlImpl = mathMlImpl;
         return this;
     }
 
