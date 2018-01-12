@@ -1,6 +1,7 @@
 package com.openhtmltopdf.mathmlsupport;
 
 import java.awt.Graphics2D;
+
 import net.sourceforge.jeuclid.DOMBuilder;
 import net.sourceforge.jeuclid.context.LayoutContextImpl;
 import net.sourceforge.jeuclid.context.Parameter;
@@ -8,6 +9,7 @@ import net.sourceforge.jeuclid.elements.generic.DocumentElement;
 import net.sourceforge.jeuclid.layout.JEuclidView;
 
 import org.w3c.dom.Element;
+
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
@@ -27,6 +29,18 @@ public class MathMLImage implements SVGImage {
 		private static final long serialVersionUID = 1;
 	}
 	
+	private boolean haveValue(double val) {
+		return val >= 0;
+	}
+	
+	private double minIgnoringNoValues(double spec, double max) {
+		if (haveValue(spec) && haveValue(max)) {
+			return Math.min(spec,  max);
+		} else {
+			return haveValue(spec) ? spec : max;
+		}
+	}
+	
 	public MathMLImage(Element mathMlElement, double cssWidth,
 			double cssHeight, double cssMaxWidth, double cssMaxHeight,
 			double dotsPerPixel) {
@@ -34,46 +48,65 @@ public class MathMLImage implements SVGImage {
 		this._mathDoc = DOMBuilder.getInstance().createJeuclidDom(mathMlElement);
 		this._context.setParameter(Parameter.MATHSIZE, 16f); // TODO: Proper font size pickup from CSS.
 		this._view = new JEuclidView(this._mathDoc, this._context, null);
+
+		if (this.getViewWidthInOutputDeviceDots() <= 0 || this.getViewHeightInOutputDeviceDots() <= 0) {
+			this._scaledWidthInOutputDeviceDots = 0;
+			this._scaledHeightInOutputDeviceDots = 0;
+			return;
+		}
+		
+		boolean haveBoth = haveValue(cssWidth) && haveValue(cssHeight);
+		boolean haveNone = !haveValue(cssWidth) && !haveValue(cssHeight);
+		boolean haveOne = !haveBoth && !haveNone;
 		
 		double w = -1f;
 		double h = -1f;
 		
-		// If either width or max-width is available, use the lesser of the two (min-xxx not implemented at this time).
-		if (cssWidth >= 0) {
-			w = cssWidth;
-		}
-		if (cssMaxWidth >= 0 && w > cssMaxWidth) {
-			w = cssMaxWidth;
-		}
-		if (cssHeight >= 0) {
-			h = cssHeight;
-		}
-		if (cssMaxHeight >= 0 && h > cssMaxHeight) {
-			h = cssMaxHeight;
+		if (haveBoth) {
+			// Have both from CSS, use them constrained by max-xxx values, don't keep aspect ratio.
+			w = minIgnoringNoValues(cssWidth, cssMaxWidth);
+			h = minIgnoringNoValues(cssHeight, cssMaxHeight);
+		} else if (haveNone) {
+			// Use rendered view size with max-xxx constraints, keeping aspect ratio.
+			double prelimW = minIgnoringNoValues(this.getViewWidthInOutputDeviceDots(), cssMaxWidth); 
+			double prelimH = minIgnoringNoValues(this.getViewHeightInOutputDeviceDots(), cssMaxHeight);
+			
+			double prelimScaleX = prelimW / this.getViewWidthInOutputDeviceDots();
+			double prelimScaleY = prelimH / this.getViewHeightInOutputDeviceDots();
+			
+			double scale = Math.min(prelimScaleX, prelimScaleY);
+			
+			w = scale * this.getViewWidthInOutputDeviceDots();
+			h = scale * this.getViewHeightInOutputDeviceDots();
+		} else if (haveOne) {
+			if (haveValue(cssWidth)) {
+				// Keep aspect ratio, if we have both a width and a conflicting max-height, the max-height wins out.
+				double prelimW = minIgnoringNoValues(cssWidth, cssMaxWidth);
+				double prelimScale = prelimW / this.getViewWidthInOutputDeviceDots();
+				double prelimH = this.getViewHeightInOutputDeviceDots() * prelimScale;
+				
+				double scale = (haveValue(cssMaxHeight) && prelimH > cssMaxHeight) ? cssMaxHeight / this.getViewHeightInOutputDeviceDots() : prelimScale;
+				
+				w = scale * this.getViewWidthInOutputDeviceDots();
+				h = scale * this.getViewHeightInOutputDeviceDots();
+			} else if (haveValue(cssHeight)) {
+				// Keep aspect ratio, if we have both a height and a conflicting max-width, the max-width wins out.
+				double prelimH = minIgnoringNoValues(cssHeight, cssMaxHeight);
+				double prelimScale = prelimH / this.getViewHeightInOutputDeviceDots();
+				double prelimW = this.getViewWidthInOutputDeviceDots() * prelimScale;
+				
+				double scale = (haveValue(cssMaxWidth) && prelimW > cssMaxWidth) ? cssMaxWidth / this.getViewWidthInOutputDeviceDots() : prelimScale;
+
+				w = scale * this.getViewWidthInOutputDeviceDots();
+				h = scale * this.getViewHeightInOutputDeviceDots();
+			}
 		}
 		
-		// If width or height is specified in first step, then calculate scale factors.
-		if (w > 0 && this.getViewWidthInOutputDeviceDots() > 0) {
-			_sx = w / this.getViewWidthInOutputDeviceDots();
-		}
-		if (h > 0 && this.getViewHeightInOutputDeviceDots() > 0) {
-			_sy = h / this.getViewHeightInOutputDeviceDots();
-		}
+		_sx = w / this.getViewWidthInOutputDeviceDots();
+		_sy = h / this.getViewHeightInOutputDeviceDots();
 		
-		if (_sy == 1 && _sx != 1 && h < 0) {
-			// Width without height, so keep aspect ratio.
-			_sy = _sx;
-			h = this.getViewHeightInOutputDeviceDots() * _sy;
-		}
-		if (_sx == 1 && _sy != 1 && w < 0) {
-			// Height without width, so keep aspect ratio.
-			_sx = _sy;
-			w = this.getViewWidthInOutputDeviceDots() * _sx;
-		}
-		
-		// If we still don't have width or height, use whatever JEuclid calculates is needed.
-		this._scaledWidthInOutputDeviceDots = w >= 0 ? w : this.getViewWidthInOutputDeviceDots();
-		this._scaledHeightInOutputDeviceDots = h >= 0 ? h : this.getViewHeightInOutputDeviceDots();
+		this._scaledWidthInOutputDeviceDots = w;
+		this._scaledHeightInOutputDeviceDots = h;
 	}
 	
 	private double getViewWidthInOutputDeviceDots() {

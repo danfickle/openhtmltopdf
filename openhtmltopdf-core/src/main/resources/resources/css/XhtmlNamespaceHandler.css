@@ -6,7 +6,8 @@ frame, frameset,
 h1, h2, h3, h4,
 h5, h6, noframes,
 ol, p, ul, center,
-dir, hr, menu, pre, object, svg, math   { display: block }
+dir, hr, menu, pre, object, svg { display: block }
+math { display: inline-block; }
 li              { display: list-item }
 head, script    { display: none }
 body            { margin: 8px }
