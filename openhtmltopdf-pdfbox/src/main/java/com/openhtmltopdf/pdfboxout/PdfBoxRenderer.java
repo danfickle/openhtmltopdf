@@ -96,6 +96,7 @@ public class PdfBoxRenderer implements Closeable {
     
     private OutputStream _os;
     private SVGDrawer _svgImpl;
+    private SVGDrawer _mathmlImpl;
     
     private BidiSplitterFactory _splitterFactory;
     private byte _defaultTextDirection = BidiSplitter.LTR;
@@ -117,6 +118,7 @@ public class PdfBoxRenderer implements Closeable {
         _producer = producer;
 
         _svgImpl = svgImpl;
+        _mathmlImpl = mathmlImpl;
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = testMode;
         _outputDevice = new PdfBoxOutputDevice(DEFAULT_DOTS_PER_POINT, testMode);
@@ -276,6 +278,10 @@ public class PdfBoxRenderer implements Closeable {
         
         if (_svgImpl != null) {
             _svgImpl.importFontFaceRules(_sharedContext.getCss().getFontFaceRules(), _sharedContext);
+        }
+        
+        if (_mathmlImpl != null) {
+            _mathmlImpl.importFontFaceRules(_sharedContext.getCss().getFontFaceRules(), _sharedContext);
         }
     }
     
@@ -698,6 +704,20 @@ public class PdfBoxRenderer implements Closeable {
         _outputDevice.close();
         _sharedContext.removeFromThread();
         ThreadCtx.cleanup();
+        
+        if (_svgImpl != null) {
+            try {
+                _svgImpl.close();
+            } catch (IOException e) {
+            }
+        }
+        
+        if (_mathmlImpl != null) {
+            try {
+                _mathmlImpl.close();
+            } catch (IOException e) {
+            }
+        }
     }
 
     /**

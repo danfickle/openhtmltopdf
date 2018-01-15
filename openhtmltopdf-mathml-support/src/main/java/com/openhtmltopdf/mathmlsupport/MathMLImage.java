@@ -1,6 +1,8 @@
 package com.openhtmltopdf.mathmlsupport;
 
 import java.awt.Graphics2D;
+import java.util.Arrays;
+import java.util.List;
 
 import net.sourceforge.jeuclid.DOMBuilder;
 import net.sourceforge.jeuclid.context.LayoutContextImpl;
@@ -43,9 +45,18 @@ public class MathMLImage implements SVGImage {
 	
 	public MathMLImage(Element mathMlElement, double cssWidth,
 			double cssHeight, double cssMaxWidth, double cssMaxHeight,
-			double dotsPerPixel) {
+			double dotsPerPixel, List<String> fonts) {
 		this._dotsPerPixel = dotsPerPixel;
 		this._mathDoc = DOMBuilder.getInstance().createJeuclidDom(mathMlElement);
+		
+		this._context.setParameter(Parameter.FONTS_SERIF, fonts);
+		this._context.setParameter(Parameter.FONTS_DOUBLESTRUCK, fonts);
+		this._context.setParameter(Parameter.FONTS_FRAKTUR, fonts);
+		this._context.setParameter(Parameter.FONTS_MONOSPACED, fonts);
+		this._context.setParameter(Parameter.FONTS_SANSSERIF, fonts);
+		this._context.setParameter(Parameter.FONTS_SCRIPT, fonts);
+		
+		
 		this._context.setParameter(Parameter.MATHSIZE, 16f); // TODO: Proper font size pickup from CSS.
 		this._view = new JEuclidView(this._mathDoc, this._context, null);
 

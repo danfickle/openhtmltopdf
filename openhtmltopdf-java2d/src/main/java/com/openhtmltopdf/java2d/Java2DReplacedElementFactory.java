@@ -31,10 +31,7 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 
 		String nodeName = e.getNodeName();
 		if (nodeName.equals("svg") && _svgImpl != null) {
-			int cssMaxWidth = CalculatedStyle.getCSSMaxWidth(context, box);
-			int cssMaxHeight = CalculatedStyle.getCSSMaxHeight(context, box);
-
-			return new Java2DSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight);
+			return new Java2DSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, box, context);
 		} else if (nodeName.equals("object") && _objectDrawerFactory != null) {
 			FSObjectDrawer drawer = _objectDrawerFactory.createDrawer(e);
 			if (drawer != null)

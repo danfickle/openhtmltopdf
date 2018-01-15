@@ -1,13 +1,16 @@
 package com.openhtmltopdf.pdfboxout;
 
+import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxLinkManager.IPdfBoxElementWithShapedLinks;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.swing.ImageMapParser;
+
 import org.w3c.dom.Element;
 
 import java.awt.*;
@@ -18,8 +21,8 @@ public class PdfBoxSVGReplacedElement implements PdfBoxReplacedElement, IPdfBoxE
     private final Map<Shape, String> imageMap;
     private Point point = new Point(0, 0);
     
-    public PdfBoxSVGReplacedElement(Element e, SVGDrawer svgImpl, int cssWidth, int cssHeight, int cssMaxWidth, int cssMaxHeight, SharedContext c) {
-        this.svgImage = svgImpl.buildSVGImage(e, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, c.getDotsPerPixel());
+    public PdfBoxSVGReplacedElement(Element e, SVGDrawer svgImpl, int cssWidth, int cssHeight, Box box, CssContext css, SharedContext c) {
+        this.svgImage = svgImpl.buildSVGImage(e, box, css, cssWidth, cssHeight, c.getDotsPerPixel());
         imageMap = ImageMapParser.findAndParseMap(e, c);
     }
 
