@@ -3,6 +3,10 @@
 OPEN HTML TO PDF
 ---------
 
+CURRENTY SEEKING FEEDBACK
+========
++ [Roadmap for version 1](https://github.com/danfickle/openhtmltopdf/issues/170)
+
 OVERVIEW
 ========
 Open HTML to PDF is a pure-Java library for rendering arbitrary well-formed XML/XHTML (and even HTML5)
