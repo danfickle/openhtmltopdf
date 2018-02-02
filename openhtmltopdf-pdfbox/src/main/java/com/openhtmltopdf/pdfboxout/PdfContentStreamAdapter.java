@@ -311,11 +311,11 @@ public class PdfContentStreamAdapter {
         }
     }
 
-    public void setPdfMatrix(AffineTransform transform) {
+    public void applyPdfMatrix(AffineTransform transform) {
         try {
            cs.transform(new Matrix(transform));
         } catch (IOException e) {
-            logAndThrow("setPdfMatrix", e);
+            logAndThrow("applyPdfMatrix", e);
         }
     }
 

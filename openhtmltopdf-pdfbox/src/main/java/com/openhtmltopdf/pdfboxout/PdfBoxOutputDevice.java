@@ -1467,15 +1467,18 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     
     @Override
     public void popTransforms(List<AffineTransform> inverse) {
-       Collections.reverse(inverse);
-       for (AffineTransform transform : inverse) {
-           transformStack.pop();
-           _cp.setPdfMatrix(transform);
-       }
+		// We don't apply the inverse here, we just restore the graphics state.
+		// Applying the inverse would work, but just save/restore is way smaller in the content stream
+        // then putting out many matrices
+		for (int i = 0; i < inverse.size(); i++)
+			transformStack.pop();
+		_cp.restoreGraphics();
     }
     
     @Override
     public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
+        // We simply do a saveGraphics here, so we don't have to apply the inverse later to restore
+        _cp.saveGraphics();
         List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
         try {
             for (AffineTransform transform : transforms) {
@@ -1488,7 +1491,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                 AffineTransform normalized = new AffineTransform(mx);
                 inverse.add(normalized.createInverse());
                 transformStack.push(normalized);
-                _cp.setPdfMatrix(normalized);
+                _cp.applyPdfMatrix(normalized);
             }
         } catch (NoninvertibleTransformException e) {
             XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
@@ -1503,7 +1506,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         for (Iterator<AffineTransform> iter = transformStack.descendingIterator(); iter.hasNext(); ) {
             AffineTransform transform = iter.next();
             if (idx >= clipTransformIndex) {
-                _cp.setPdfMatrix(transform);
+                _cp.applyPdfMatrix(transform);
             }
             idx++;
         }

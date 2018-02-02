@@ -429,6 +429,16 @@ public class Layer {
 			RectPropertySet margin = c.getPage().getMargin(c);
 			relTranslateX += margin.left();
 			relTranslateY += margin.top();
+			
+			/*
+			 * We must apply the top/bottom margins from the previous pages, otherwise 
+			 * our transform center is wrong.
+			 */
+			for (int i = 0; i < c.getPageNo(); i++) {
+				RectPropertySet prevMargin = getPages().get(i).getMargin(c);
+				relTranslateY += prevMargin.top() + prevMargin.bottom();
+			}
+			
 
 			MarginBoxName[] marginBoxNames = c.getPage().getCurrentMarginBoxNames();
 			if (marginBoxNames != null) {
@@ -494,6 +504,14 @@ public class Layer {
 
 		resultTransforms.add(translateToOrigin);
 
+		applyTransformFunctions(flipFactor, transformList, resultTransforms);
+
+		resultTransforms.add(translateBackFromOrigin);
+
+		return c.getOutputDevice().pushTransforms(resultTransforms);
+	}
+
+	private void applyTransformFunctions(float flipFactor, List<PropertyValue> transformList, List<AffineTransform> resultTransforms) {
 		for (PropertyValue transform : transformList) {
 			String fName = transform.getFunction().getName();
 			List<PropertyValue> params = transform.getFunction().getParameters();
@@ -536,13 +554,9 @@ public class Layer {
 				XRLog.layout(Level.WARNING, "translateY function not implemented at this time");
 			}
 		}
-
-		resultTransforms.add(translateBackFromOrigin);
-
-		return c.getOutputDevice().pushTransforms(resultTransforms);
 	}
 
-    private Box find(CssContext cssCtx, int absX, int absY, List layers, boolean findAnonymous) {
+	private Box find(CssContext cssCtx, int absX, int absY, List layers, boolean findAnonymous) {
         Box result = null;
         // Work backwards since layers are painted forwards and we're looking
         // for the top-most box
@@ -904,7 +918,9 @@ public class Layer {
     }
 
     public List<PageBox> getPages() {
-        return _pages == null ? Collections.<PageBox>emptyList(): _pages;
+		if (_pages == null)
+			return _parent == null ? Collections.<PageBox> emptyList() : _parent.getPages();
+		return _pages;
     }
 
     public void setPages(List<PageBox> pages) {
