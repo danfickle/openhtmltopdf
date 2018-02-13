@@ -1,0 +1,104 @@
+<html>
+<head>
+<style>
+body {
+  margin:0;
+  padding: 5px;
+  background-color: pink;
+  font-family: sans-serif;
+  font-size: 12px;
+}
+math {
+}
+#math2 {
+  width: 100%;
+}
+#math3 {
+  width: 100%;
+  max-width: 50%;
+}
+#math4 {
+  width: 100%;
+  max-height: 40px;
+}
+#math5 {
+  height: 200px;
+  max-width: 150px;
+}
+#math6 {
+  max-width: 30px;
+}
+#math7 {
+  height: 30px;
+  max-width: 1000px; 
+}
+#math8 {
+  height: 100px;
+  width: 100px;
+}
+</style>
+
+
+</head>
+<body>
+
+
+natural size:
+<math id="math1" xmlns="http://www.w3.org/1998/Math/MathML" mathbackground="#fff">
+ <mrow> <msup> <mrow> <mi>a</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> <mo>+</mo> <msup> <mrow> <mi>b</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> </mrow>
+</math><hr/>
+
+w = 100%:
+<math id="math2" xmlns="http://www.w3.org/1998/Math/MathML" mathbackground="#fff">
+ <mrow> <msup> <mrow> <mi>a</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> <mo>+</mo> <msup> <mrow> <mi>b</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> </mrow>
+</math><hr/>
+
+w = 100%, max-w = 50% (max-w wins):
+<math id="math3" xmlns="http://www.w3.org/1998/Math/MathML" mathbackground="#fff">
+ <mrow> <msup> <mrow> <mi>a</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> <mo>+</mo> <msup> <mrow> <mi>b</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> </mrow>
+</math><hr/>
+
+w = 100%, max-h = 40px (max-h wins):
+<math id="math4" xmlns="http://www.w3.org/1998/Math/MathML" mathbackground="#fff">
+ <mrow> <msup> <mrow> <mi>a</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> <mo>+</mo> <msup> <mrow> <mi>b</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> </mrow>
+</math><hr/>
+
+h = 200px, max-w = 150px (max-w wins):
+<math id="math5" xmlns="http://www.w3.org/1998/Math/MathML" mathbackground="#fff">
+ <mrow> <msup> <mrow> <mi>a</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> <mo>+</mo> <msup> <mrow> <mi>b</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> </mrow>
+</math><hr/>
+
+max-w = 30px (max-w wins):
+<math id="math6" xmlns="http://www.w3.org/1998/Math/MathML" mathbackground="#fff">
+ <mrow> <msup> <mrow> <mi>a</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> <mo>+</mo> <msup> <mrow> <mi>b</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> </mrow>
+</math><hr/>
+
+h = 30px, max-w = 1000px (h wins):
+<math id="math7" xmlns="http://www.w3.org/1998/Math/MathML" mathbackground="#fff">
+ <mrow> <msup> <mrow> <mi>a</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> <mo>+</mo> <msup> <mrow> <mi>b</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> </mrow>
+</math><hr/>
+
+h = 100px, w = 100px (both win, aspect ratio destroyed):
+<math id="math8" xmlns="http://www.w3.org/1998/Math/MathML" mathbackground="#fff">
+ <mrow> <msup> <mrow> <mi>a</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> <mo>+</mo> <msup> <mrow> <mi>b</mi> </mrow> <mrow> <mn>2</mn> </mrow> </msup> </mrow>
+</math><hr/>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+	<mrow>
+	<mi>a</mi>
+	<mo>x</mo>
+		<mfenced open="(" close=")">
+		<mrow>
+		<mi>b</mi>
+		<mo>+</mo>
+		<mi>c</mi>
+		</mrow>
+		</mfenced>
+	</mrow>
+</math>
+
+
+<div style="position:fixed; bottom: 10px; left: 10px; right: 10px; text-align: center;">Examples from <a href="http://gorupec.awardspace.com/mathml.html">Danijel Gorupec</a></div>
+
+</body>
+</html>

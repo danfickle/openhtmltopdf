@@ -32,6 +32,7 @@
     <module>openhtmltopdf-svg-support</module>
     <module>openhtmltopdf-java2d</module>
     <module>openhtmltopdf-objects</module>
+    <module>openhtmltopdf-mathml-support</module>
   </modules>
 
   <scm>

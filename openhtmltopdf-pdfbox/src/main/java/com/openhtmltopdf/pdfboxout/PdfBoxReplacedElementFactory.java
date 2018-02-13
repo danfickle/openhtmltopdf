@@ -29,12 +29,14 @@ import org.w3c.dom.Element;
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
     private final PdfBoxOutputDevice _outputDevice;
     private final SVGDrawer _svgImpl;
+    private final SVGDrawer _mathmlImpl;
     private final FSObjectDrawerFactory _objectDrawerFactory;
 
-    public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice, SVGDrawer svgImpl, FSObjectDrawerFactory objectDrawerFactory) {
+    public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice, SVGDrawer svgImpl, FSObjectDrawerFactory objectDrawerFactory, SVGDrawer mathmlImpl) {
         _outputDevice = outputDevice;
         _svgImpl = svgImpl;
         _objectDrawerFactory = objectDrawerFactory;
+        _mathmlImpl = mathmlImpl;
     }
 
     public ReplacedElement createReplacedElement(LayoutContext c, BlockBox box,
@@ -46,11 +48,11 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
 
         String nodeName = e.getNodeName();
 
-        if (nodeName.equals("svg") && _svgImpl != null) {
-            int cssMaxWidth = CalculatedStyle.getCSSMaxWidth(c, box);
-            int cssMaxHeight = CalculatedStyle.getCSSMaxHeight(c, box);
-            
-            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, c.getSharedContext());
+        
+        if (nodeName.equals("math") && _mathmlImpl != null) {
+            return new PdfBoxSVGReplacedElement(e, _mathmlImpl, cssWidth, cssHeight, box, c, c.getSharedContext());
+        } else if (nodeName.equals("svg") && _svgImpl != null) {
+            return new PdfBoxSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, box, c, c.getSharedContext());
         } else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");
             if (srcAttr != null && srcAttr.length() > 0) {
