@@ -77,11 +77,9 @@
 </head>
 <body>
 
-<div id="topleftcorner">
-	<object type="pdf/background" pdfsrc="background.pdf" style="width:1px;height:1px"></object>
-</div>
 <div id="header">
 	OpenHtmlToPdf Feature Documentation
+	<object type="pdf/background" pdfsrc="background.pdf" style="width:1px;height:1px"></object>
 </div>
 <div id="footer">
 	File: ${.template_name}
@@ -171,11 +169,14 @@ and so on. To use them include the openhtmltopdf-objects dependency in your pom:
 You can add a watermark / background to your document. To do so you should place
 
 [@htmlCode]
-	<object type="pdf/background" pdfsrc="background.pdf" style="width:1px;height:1px"></object>
+	<object type="pdf/background" pdfsrc="background.pdf" pdfpage="1" style="width:1px;height:1px"></object>
 [/@htmlCode]
 
-into the top-left corner of the document. This must be the first element drawn, as otherwise it would override override
-the already drawn content. Look at the source of this document for more details.
+into the header or footer of the document. The document will be placed unscaled in the PDF origin, i.e. in the left lower corner.
+<ul>
+	<li><b>pdfsrc</b>: URI of the PDFFile to use</li>
+	<li><b>pdfpage</b>: Page to import from the PDF file.</li>
+</ul>
 
 <h3>JFreeGraph</h3>
 
