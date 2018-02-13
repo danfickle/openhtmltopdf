@@ -1467,15 +1467,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     
     @Override
     public void popTransforms(List<AffineTransform> inverse) {
-		// We don't apply the inverse here, we just restore the graphics state.
-		// Applying the inverse would work, but just save/restore is way smaller in the content stream
-        // then putting out many matrices
-		for (int i = 0; i < inverse.size(); i++)
-			transformStack.pop();
-		if (inverse.size() > 0) {
-			// Only restore the state if we really had something to apply
-			_cp.restoreGraphics();
-		}
+        Collections.reverse(inverse);
+        for (AffineTransform transform : inverse) {
+            transformStack.pop();
+            _cp.applyPdfMatrix(transform);
+        }
     }
     
     @Override
@@ -1483,7 +1479,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 		if (transforms.size() == 0)
 			return Collections.emptyList();
         // We simply do a saveGraphics here, so we don't have to apply the inverse later to restore
-        _cp.saveGraphics();
         List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
         try {
             for (AffineTransform transform : transforms) {
