@@ -73,6 +73,9 @@
 			content: counter(pages);
 		}
 
+		h1, h2, h3, h4 {
+			-fs-page-break-min-height: 4cm;
+		}
 	</style>
 </head>
 <body>
@@ -90,7 +93,6 @@
 	</div>
 </div>
 <div id="topleftcorner">
-
 </div>
 <div id="bottomright">
 	Page <span id="pagenum"></span> / <span id="pagecount"></span>
@@ -110,7 +112,7 @@
 	[#if countNewLines == 0]
 		[#local inlineClass = "htmlCodeInline"]
 	[/#if]
-<pre class="htmlCode ${inlineClass}" style="-fs-page-break-min-height:${spaceNeeded}cm">${content?trim?html}
+<pre class="htmlCode ${inlineClass}" style="-fs-page-break-min-height:${spaceNeeded?c}cm">${content?trim?html}
 </pre>
 [/#macro]
 
@@ -119,7 +121,7 @@
 [/#compress]${content}
 	[#local countNewLines = countChar(content,"\n")]
 	[#local spaceNeeded = countNewLines * 0.5]
-<pre class="htmlCode" style="-fs-page-break-min-height:${spaceNeeded}cm">${content?trim?html}
+<pre class="htmlCode" style="-fs-page-break-min-height:${spaceNeeded?c}cm">${content?trim?html}
 </pre>
 [/#macro]
 
@@ -172,7 +174,8 @@ You can add a watermark / background to your document. To do so you should place
 	<object type="pdf/background" pdfsrc="background.pdf" pdfpage="1" style="width:1px;height:1px"></object>
 [/@htmlCode]
 
-into the header or footer of the document. The document will be placed unscaled in the PDF origin, i.e. in the left lower corner.
+into the header or footer of the document. The document will be placed unscaled in the PDF origin, i.e. in the left
+lower corner.
 <ul>
 	<li><b>pdfsrc</b>: URI of the PDFFile to use</li>
 	<li><b>pdfpage</b>: Page to import from the PDF file.</li>
