@@ -1,5 +1,20 @@
 package com.openhtmltopdf.testcases;
 
+import java.awt.*;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.logging.Level;
+
+import javax.imageio.ImageIO;
+
+import org.apache.pdfbox.io.IOUtils;
+import org.apache.pdfbox.util.Charsets;
+import org.w3c.dom.Element;
+
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.extend.FSObjectDrawer;
@@ -10,6 +25,7 @@ import com.openhtmltopdf.java2d.api.DefaultPageProcessor;
 import com.openhtmltopdf.java2d.api.FSPageOutputStreamSupplier;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
+import com.openhtmltopdf.objects.StandardObjectDrawerFactory;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
@@ -19,20 +35,6 @@ import com.openhtmltopdf.util.JDKXRLogger;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRLogger;
 
-import org.apache.pdfbox.io.IOUtils;
-import org.apache.pdfbox.util.Charsets;
-import org.w3c.dom.Element;
-
-import javax.imageio.ImageIO;
-
-import java.awt.*;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.logging.Level;
 
 public class TestcaseRunner {
 
@@ -100,7 +102,7 @@ public class TestcaseRunner {
 		runTestCase("transform");
 
 		runTestCase("quoting");
-		
+
 		runTestCase("math-ml");
 
 		/*
@@ -112,9 +114,6 @@ public class TestcaseRunner {
 
 	/**
 	 * Will throw an exception if a SEVERE or WARNING message is logged.
-	 *
-	 * @param testCaseFile
-	 * @throws Exception
 	 */
 	public static void runTestWithoutOutput(String testCaseFile) throws Exception {
 		runTestWithoutOutput(testCaseFile, false);
@@ -122,9 +121,6 @@ public class TestcaseRunner {
 
 	/**
 	 * Will silently let ALL log messages through.
-	 *
-	 * @param testCaseFile
-	 * @throws Exception
 	 */
 	public static void runTestWithoutOutputAndAllowWarnings(String testCaseFile) throws Exception {
 		runTestWithoutOutput(testCaseFile, true);
@@ -189,10 +185,8 @@ public class TestcaseRunner {
 	}
 
 	private static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
-		DefaultObjectDrawerFactory objectDrawerFactory = new DefaultObjectDrawerFactory();
+		DefaultObjectDrawerFactory objectDrawerFactory = new StandardObjectDrawerFactory();
 		objectDrawerFactory.registerDrawer("custom/binary-tree", new SampleObjectDrawerBinaryTree());
-		objectDrawerFactory.registerDrawer("jfreechart/pie", new JFreeChartPieDiagramObjectDrawer());
-		objectDrawerFactory.registerDrawer("jfreechart/bar", new JFreeChartBarDiagramObjectDrawer());
 		return objectDrawerFactory;
 	}
 

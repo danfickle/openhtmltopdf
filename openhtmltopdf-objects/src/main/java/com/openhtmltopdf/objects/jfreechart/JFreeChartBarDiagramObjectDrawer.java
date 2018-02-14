@@ -1,11 +1,9 @@
-package com.openhtmltopdf.testcases;
+package com.openhtmltopdf.objects.jfreechart;
 
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.openhtmltopdf.extend.FSObjectDrawer;
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.render.RenderingContext;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
@@ -18,10 +16,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.openhtmltopdf.extend.FSObjectDrawer;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
-import com.openhtmltopdf.render.RenderingContext;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 
@@ -55,7 +54,8 @@ public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 			if (!(item instanceof Element))
 				continue;
 			Element childElement = (Element) item;
-			if (!((Element) item).getTagName().equals("data"))
+			String tagName = ((Element) item).getTagName();
+			if (!tagName.equals("data"))
 				continue;
 			String series = childElement.getAttribute("series");
 			String categorie = childElement.getAttribute("category");
