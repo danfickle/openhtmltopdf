@@ -103,6 +103,10 @@ public class TestcaseRunner {
 		
 		runTestCase("math-ml");
 
+		/*
+		 * Broken rotate() on the second page
+		 */
+		runTestCase("RepeatedTableTransformSample");
 		/* Add additional test cases here. */
 	}
 

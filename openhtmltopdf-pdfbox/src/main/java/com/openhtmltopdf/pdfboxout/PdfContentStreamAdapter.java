@@ -217,14 +217,19 @@ public class PdfContentStreamAdapter {
 
     public void restoreGraphics() {
         try {
+            saveGraphicsCounter--;
             cs.restoreGraphicsState();
+			if (saveGraphicsCounter < 0)
+				throw new IllegalStateException("Invalid save/restore pairing!");
         } catch (IOException e) {
             logAndThrow("restoreGraphics", e);
         }
     }
 
+    private int saveGraphicsCounter = 0;
     public void saveGraphics() {
         try {
+            saveGraphicsCounter++;
             cs.saveGraphicsState();
         } catch (IOException e) {
             logAndThrow("saveGraphics", e);
@@ -311,11 +316,11 @@ public class PdfContentStreamAdapter {
         }
     }
 
-    public void setPdfMatrix(AffineTransform transform) {
+    public void applyPdfMatrix(AffineTransform transform) {
         try {
            cs.transform(new Matrix(transform));
         } catch (IOException e) {
-            logAndThrow("setPdfMatrix", e);
+            logAndThrow("applyPdfMatrix", e);
         }
     }
 
