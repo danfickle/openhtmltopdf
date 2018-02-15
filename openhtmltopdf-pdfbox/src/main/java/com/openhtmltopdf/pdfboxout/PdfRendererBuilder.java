@@ -5,7 +5,7 @@ import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
-import com.openhtmltopdf.outputdevice.helper.FSDOMMutator;
+import com.openhtmltopdf.extend.FSDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.util.XRLog;

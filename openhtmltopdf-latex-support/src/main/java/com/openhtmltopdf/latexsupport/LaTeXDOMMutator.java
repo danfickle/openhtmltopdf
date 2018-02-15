@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.openhtmltopdf.outputdevice.helper.FSDOMMutator;
+import com.openhtmltopdf.extend.FSDOMMutator;
 import uk.ac.ed.ph.snuggletex.utilities.CSSUtilities;
 
 /**
