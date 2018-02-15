@@ -434,7 +434,7 @@ public class Layer {
 			 * We must apply the top/bottom margins from the previous pages, otherwise 
 			 * our transform center is wrong.
 			 */
-			for (int i = 0; i < c.getPageNo(); i++) {
+			for (int i = 0; i < c.getPageNo() && i < getPages().size(); i++) {
 				RectPropertySet prevMargin = getPages().get(i).getMargin(c);
 				relTranslateY += prevMargin.top() + prevMargin.bottom();
 			}

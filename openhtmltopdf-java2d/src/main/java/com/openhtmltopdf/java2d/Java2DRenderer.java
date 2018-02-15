@@ -1,5 +1,13 @@
 package com.openhtmltopdf.java2d;
 
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.io.*;
+import java.util.List;
+
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
@@ -26,21 +34,12 @@ import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-
-public class Java2DRenderer implements IJava2DRenderer {
-	private Document _doc;
+public class Java2DRenderer implements IJava2DRenderer, Closeable {
+    private final List<FSDOMMutator> _domMutators;
+    private final SVGDrawer _mathMLImpl;
 	private BlockBox _root;
 	
 	private final SharedContext _sharedContext;
@@ -51,6 +50,7 @@ public class Java2DRenderer implements IJava2DRenderer {
     private BidiReorderer _reorderer;
     
     private final SVGDrawer _svgImpl;
+    private Document _doc;
     private final FSObjectDrawerFactory _objectDrawerFactory;
 	private final FSPageProcessor _pageProcessor;
     
@@ -63,7 +63,9 @@ public class Java2DRenderer implements IJava2DRenderer {
 
     /**
 	 * Subject to change. Not public API. Used exclusively by the Java2DRendererBuilder class. 
-     * @param preferredTransformerFactoryImplementationClass 
+	 * @param _svgImpl
+	 * @param preferredTransformerFactoryImplementationClass
+	 * @param _domMutators
 	 */
 	public Java2DRenderer(
 			BaseDocument doc,
@@ -71,20 +73,22 @@ public class Java2DRenderer implements IJava2DRenderer {
 			HttpStreamFactory httpStreamFactory,
 			FSUriResolver resolver,
 			FSCache cache,
-			SVGDrawer svgImpl,
+			SVGDrawer _svgImpl, SVGDrawer _mathMLImpl,
 			PageDimensions pageSize,
 			String replacementText,
 			boolean testMode,
 			FSPageProcessor pageProcessor,
 			Graphics2D layoutGraphics,
 			int initialPageNumber, short pagingMode,
-            FSObjectDrawerFactory objectDrawerFactory,
-            String preferredTransformerFactoryImplementationClass) {
+			FSObjectDrawerFactory objectDrawerFactory,
+			String preferredTransformerFactoryImplementationClass, List<FSDOMMutator> _domMutators) {
 
 	    _pagingMode = pagingMode;
 		_pageProcessor = pageProcessor;
 		_initialPageNo = initialPageNumber;		
-		_svgImpl = svgImpl;
+		this._svgImpl = _svgImpl;
+        this._mathMLImpl = _mathMLImpl;
+        this._domMutators = _domMutators;
         _objectDrawerFactory = objectDrawerFactory;
 		_outputDevice = new Java2DOutputDevice(layoutGraphics);
 		
@@ -115,7 +119,8 @@ public class Java2DRenderer implements IJava2DRenderer {
         Java2DFontResolver fontResolver = new Java2DFontResolver(_sharedContext);
         _sharedContext.setFontResolver(fontResolver);
         
-        Java2DReplacedElementFactory replacedFactory = new Java2DReplacedElementFactory(_svgImpl, _objectDrawerFactory);
+		Java2DReplacedElementFactory replacedFactory = new Java2DReplacedElementFactory(this._svgImpl,
+				_objectDrawerFactory, this._mathMLImpl);
         _sharedContext.setReplacedElementFactory(replacedFactory);
         
         _sharedContext.setTextRenderer(new Java2DTextRenderer());
@@ -204,6 +209,12 @@ public class Java2DRenderer implements IJava2DRenderer {
     
     private void setDocument(Document doc, String url, NamespaceHandler nsh) {
         _doc = doc;
+        
+        /*
+         * Apply potential DOM mutations
+         */
+        for (FSDOMMutator domMutator : _domMutators)
+            domMutator.mutateDocument(doc);
 
         //TODOgetFontResolver().flushFontFaceFonts();
 
@@ -221,6 +232,10 @@ public class Java2DRenderer implements IJava2DRenderer {
         
         if (_svgImpl != null) {
             _svgImpl.importFontFaceRules(_sharedContext.getCss().getFontFaceRules(), _sharedContext);
+        }
+        
+        if (_mathMLImpl != null) {
+            _mathMLImpl.importFontFaceRules(_sharedContext.getCss().getFontFaceRules(), _sharedContext);
         }
     }
     
@@ -383,7 +398,7 @@ public class Java2DRenderer implements IJava2DRenderer {
             _pageProcessor.finishPage(pg);
             
             if (i != pageCount - 1) {
-                PageBox nextPage = (PageBox) pages.get(i + 1);
+                PageBox nextPage = pages.get(i + 1);
                 Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / DEFAULT_DOTS_PER_PIXEL,
                         nextPage.getHeight(c) / DEFAULT_DOTS_PER_PIXEL);
                 
@@ -395,7 +410,7 @@ public class Java2DRenderer implements IJava2DRenderer {
         _outputDevice.finish(c, _root);
     }
     
-    private void paintPage(RenderingContext c, PageBox page) throws IOException {
+    private void paintPage(RenderingContext c, PageBox page) {
         page.paintBackground(c, 0, _pagingMode);
         page.paintMarginAreas(c, 0, _pagingMode);
         page.paintBorder(c, 0, _pagingMode);
@@ -415,4 +430,23 @@ public class Java2DRenderer implements IJava2DRenderer {
         _outputDevice.setClip(working);
     }
 
+    @Override
+    public void close() {
+        _sharedContext.removeFromThread();
+        ThreadCtx.cleanup();
+
+        if (_svgImpl != null) {
+            try {
+                _svgImpl.close();
+            } catch (IOException ignored) {
+            }
+        }
+
+        if (_mathMLImpl != null) {
+            try {
+                _mathMLImpl.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
 }

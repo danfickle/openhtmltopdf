@@ -6,6 +6,7 @@ import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.extend.FSDOMMutator;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.util.XRLog;
@@ -18,41 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-public class PdfRendererBuilder {
-
-	public static final float PAGE_SIZE_LETTER_WIDTH = 8.5f;
-	public static final float PAGE_SIZE_LETTER_HEIGHT = 11.0f;
-	public static final PageSizeUnits PAGE_SIZE_LETTER_UNITS = PageSizeUnits.INCHES;
+public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> {
 	private final List<AddedFont> _fonts = new ArrayList<AddedFont>();
-	private boolean _textDirection = false;
-	private boolean _testMode = false;
-	private HttpStreamFactory _httpStreamFactory;
-	private BidiSplitterFactory _splitter;
-	private BidiReorderer _reorderer;
-	private String _html;
-	private Document _document;
-	private String _baseUri;
-	private String _uri;
-	private File _file;
 	private OutputStream _os;
-	private FSUriResolver _resolver;
-	private FSCache _cache;
-	private SVGDrawer _svgImpl;
-	private SVGDrawer _mathmlImpl;
-	private Float _pageWidth;
-	private Float _pageHeight;
-	private boolean _isPageSizeInches;
 	private float _pdfVersion = 1.7f;
-	private String _replacementText;
 	private String _producer;
-	private FSTextBreaker _lineBreaker;
-	private FSTextBreaker _charBreaker;
-	private FSTextTransformer _unicodeToUpperTransformer;
-	private FSTextTransformer _unicodeToLowerTransformer;
-	private FSTextTransformer _unicodeToTitleTransformer;
-	private FSObjectDrawerFactory _objectDrawerFactory;
-	private String _preferredTransformerFactoryImplementationClass = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
-	private List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
 
 	/**
 	 * Run the XHTML/XML to PDF conversion and output to an output stream set by
@@ -121,137 +92,6 @@ public class PdfRendererBuilder {
 	}
 
 	/**
-	 * The default text direction of the document. LTR by default.
-	 *
-	 * @param textDirection
-	 * @return
-	 */
-	public PdfRendererBuilder defaultTextDirection(TextDirection textDirection) {
-		this._textDirection = textDirection == TextDirection.RTL;
-		return this;
-	}
-
-	/**
-	 * Whether to use test mode and output the PDF uncompressed. Turned off by
-	 * default.
-	 *
-	 * @param mode
-	 * @return
-	 */
-	public PdfRendererBuilder testMode(boolean mode) {
-		this._testMode = mode;
-		return this;
-	}
-
-	/**
-	 * Provides an HttpStreamFactory implementation if the user desires to use an
-	 * external HTTP/HTTPS implementation. Uses URL::openStream by default.
-	 *
-	 * @param factory
-	 * @return
-	 */
-	public PdfRendererBuilder useHttpStreamImplementation(HttpStreamFactory factory) {
-		this._httpStreamFactory = factory;
-		return this;
-	}
-
-	/**
-	 * Provides a uri resolver to resolve relative uris or private uri schemes.
-	 *
-	 * @param resolver
-	 * @return
-	 */
-	public PdfRendererBuilder useUriResolver(FSUriResolver resolver) {
-		this._resolver = resolver;
-		return this;
-	}
-
-	/**
-	 * Provides an external cache which can choose to cache items between runs, such
-	 * as fonts or logo images.
-	 *
-	 * @param cache
-	 * @return
-	 */
-	public PdfRendererBuilder useCache(FSCache cache) {
-		this._cache = cache;
-		return this;
-	}
-
-	/**
-	 * Provides a text splitter to split text into directional runs. Does nothing by
-	 * default.
-	 *
-	 * @param splitter
-	 * @return
-	 */
-	public PdfRendererBuilder useUnicodeBidiSplitter(BidiSplitterFactory splitter) {
-		this._splitter = splitter;
-		return this;
-	}
-
-	/**
-	 * Provides a reorderer to properly reverse RTL text. No-op by default.
-	 *
-	 * @param reorderer
-	 * @return
-	 */
-	public PdfRendererBuilder useUnicodeBidiReorderer(BidiReorderer reorderer) {
-		this._reorderer = reorderer;
-		return this;
-	}
-
-	/**
-	 * Provides a string containing XHTML/XML to convert to PDF.
-	 *
-	 * @param html
-	 * @param baseUri
-	 * @return
-	 */
-	public PdfRendererBuilder withHtmlContent(String html, String baseUri) {
-		this._html = html;
-		this._baseUri = baseUri;
-		return this;
-	}
-
-	/**
-	 * Provides a w3c DOM Document acquired from an external source.
-	 *
-	 * @param doc
-	 * @param baseUri
-	 * @return
-	 */
-	public PdfRendererBuilder withW3cDocument(org.w3c.dom.Document doc, String baseUri) {
-		this._document = doc;
-		this._baseUri = baseUri;
-		return this;
-	}
-
-	/**
-	 * Provides a URI to convert to PDF. The URI MUST point to a strict XHTML/XML
-	 * document.
-	 *
-	 * @param uri
-	 * @return
-	 */
-	public PdfRendererBuilder withUri(String uri) {
-		this._uri = uri;
-		return this;
-	}
-
-	/**
-	 * Provides a file to convert to PDF. The file MUST contain XHTML/XML in UTF-8
-	 * encoding.
-	 *
-	 * @param file
-	 * @return
-	 */
-	public PdfRendererBuilder withFile(File file) {
-		this._file = file;
-		return this;
-	}
-
-	/**
 	 * An output stream to output the resulting PDF. The caller is required to close
 	 * the output stream after calling run.
 	 *
@@ -260,46 +100,6 @@ public class PdfRendererBuilder {
 	 */
 	public PdfRendererBuilder toStream(OutputStream out) {
 		this._os = out;
-		return this;
-	}
-
-	/**
-	 * Uses the specified SVG drawer implementation.
-	 *
-	 * @param svgImpl
-	 * @return
-	 */
-	public PdfRendererBuilder useSVGDrawer(SVGDrawer svgImpl) {
-		this._svgImpl = svgImpl;
-		return this;
-	}
-
-	/**
-	 * Use the specified MathML implementation.
-	 *
-	 * @param mathMlImpl
-	 * @return this for method chaining
-	 */
-	public PdfRendererBuilder useMathMLDrawer(SVGDrawer mathMlImpl) {
-		this._mathmlImpl = mathMlImpl;
-		return this;
-	}
-
-	/**
-	 * Specifies the default page size to use if none is specified in CSS.
-	 *
-	 * @param pageWidth
-	 * @param pageHeight
-	 * @param units
-	 *            either mm or inches.
-	 * @see {@link #PAGE_SIZE_LETTER_WIDTH}, {@link #PAGE_SIZE_LETTER_HEIGHT} and
-	 *      {@link #PAGE_SIZE_LETTER_UNITS}
-	 * @return
-	 */
-	public PdfRendererBuilder useDefaultPageSize(float pageWidth, float pageHeight, PageSizeUnits units) {
-		this._pageWidth = pageWidth;
-		this._pageHeight = pageHeight;
-		this._isPageSizeInches = (units == PageSizeUnits.INCHES);
 		return this;
 	}
 
@@ -315,86 +115,7 @@ public class PdfRendererBuilder {
 		return this;
 	}
 
-	/**
-	 * The replacement text to use if a character is cannot be renderered by any of
-	 * the specified fonts. This is not broken across lines so should be one or zero
-	 * characters for best results. Also, make sure it can be rendered by at least
-	 * one of your specified fonts! The default is the # character.
-	 *
-	 * @param replacement
-	 * @return
-	 */
-	public PdfRendererBuilder useReplacementText(String replacement) {
-		this._replacementText = replacement;
-		return this;
-	}
 
-	/**
-	 * Specify the line breaker. By default a Java default BreakIterator line
-	 * instance is used with US locale. Additionally, this is wrapped with
-	 * UrlAwareLineBreakIterator to also break before the forward slash (/)
-	 * character so that long URIs can be broken on to multiple lines.
-	 *
-	 * You may want to use a BreakIterator with a different locale (wrapped by
-	 * UrlAwareLineBreakIterator or not) or a more advanced BreakIterator from icu4j
-	 * (see the rtl-support module for an example).
-	 *
-	 * @param breaker
-	 * @return
-	 */
-	public PdfRendererBuilder useUnicodeLineBreaker(FSTextBreaker breaker) {
-		this._lineBreaker = breaker;
-		return this;
-	}
-
-	/**
-	 * Specify the character breaker. By default a break iterator character instance
-	 * is used with US locale. Currently this is used when
-	 * <code>word-wrap: break-word</code> is in effect.
-	 *
-	 * @param breaker
-	 * @return
-	 */
-	public PdfRendererBuilder useUnicodeCharacterBreaker(FSTextBreaker breaker) {
-		this._charBreaker = breaker;
-		return this;
-	}
-
-	/**
-	 * Specify a transformer to use to upper case strings. By default
-	 * <code>String::toUpperCase(Locale.US)</code> is used.
-	 *
-	 * @param tr
-	 * @return
-	 */
-	public PdfRendererBuilder useUnicodeToUpperTransformer(FSTextTransformer tr) {
-		this._unicodeToUpperTransformer = tr;
-		return this;
-	}
-
-	/**
-	 * Specify a transformer to use to lower case strings. By default
-	 * <code>String::toLowerCase(Locale.US)</code> is used.
-	 *
-	 * @param tr
-	 * @return
-	 */
-	public PdfRendererBuilder useUnicodeToLowerTransformer(FSTextTransformer tr) {
-		this._unicodeToLowerTransformer = tr;
-		return this;
-	}
-
-	/**
-	 * Specify a transformer to title case strings. By default a best effort
-	 * implementation (non locale aware) is used.
-	 *
-	 * @param tr
-	 * @return
-	 */
-	public PdfRendererBuilder useUnicodeToTitleTransformer(FSTextTransformer tr) {
-		this._unicodeToTitleTransformer = tr;
-		return this;
-	}
 
 	/**
 	 * Add a font programmatically. If the font is NOT subset, it will be downloaded
@@ -457,35 +178,6 @@ public class PdfRendererBuilder {
 		return this.useFont(fontFile, fontFamily, 400, FontStyle.NORMAL, true);
 	}
 
-	/**
-	 * Set a factory for &lt;object&gt; drawers
-	 *
-	 * @param objectDrawerFactory
-	 *            Object Drawer Factory
-	 * @return this for method chaining
-	 */
-	public PdfRendererBuilder useObjectDrawerFactory(FSObjectDrawerFactory objectDrawerFactory) {
-		this._objectDrawerFactory = objectDrawerFactory;
-		return this;
-	}
-
-	/**
-	 * This method should be considered advanced and is not required for most
-	 * setups. Set a preferred implementation class for use as
-	 * javax.xml.transform.TransformerFactory. Use null to let a default
-	 * implementation class be used. The default is
-	 * "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl". This
-	 * seems to work with most systems but not JBoss Wildfly and related setups. In
-	 * this case you can use null to let the container use whatever
-	 * TransformerFactory it has available.
-	 *
-	 * @param transformerFactoryClass
-	 * @return this for method chaining
-	 */
-	public PdfRendererBuilder useTransformerFactoryImplementationClass(String transformerFactoryClass) {
-		this._preferredTransformerFactoryImplementationClass = transformerFactoryClass;
-		return this;
-	}
 
 	/**
 	 * Set a producer on the output document
@@ -499,31 +191,6 @@ public class PdfRendererBuilder {
 		return this;
 	}
 
-	/**
-	 * Add a DOM mutator to this builder. DOM mutators allow to modify the DOM
-	 * before it is rendered. e.g. LaTeXDOMMutator can be used to translate latex
-	 * text within a &lt;latex&gt; node to HTMl and MathML.
-	 *
-	 * @param domMutator
-	 *            the DOM Mutator
-	 * @return this for method chaining
-	 */
-	public PdfRendererBuilder addDOMMutator(FSDOMMutator domMutator) {
-		_domMutators.add(domMutator);
-		return this;
-	}
-
-	public static enum TextDirection {
-		RTL, LTR;
-	}
-
-	public static enum PageSizeUnits {
-		MM, INCHES
-	}
-
-	public static enum FontStyle {
-		NORMAL, ITALIC, OBLIQUE
-	}
 
 	private static class AddedFont {
 		private final FSSupplier<InputStream> supplier;

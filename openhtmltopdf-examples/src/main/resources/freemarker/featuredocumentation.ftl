@@ -76,6 +76,15 @@
 		h1, h2, h3, h4 {
 			-fs-page-break-min-height: 4cm;
 		}
+
+		/* does not seem to work (yet?) */
+		#tocPlaceholder:after {
+			content:element(toc);
+			display:block;
+			min-height:20px;
+			min-width:20px;
+			border:2px solid black;
+		}
 	</style>
 </head>
 <body>
@@ -98,7 +107,29 @@
 	Page <span id="pagenum"></span> / <span id="pagecount"></span>
 </div>
 
+[#assign tableOfContentHTML = ""]
+[#assign sectionAnchorCounter = 0]
+[#macro hn level]
+	[#assign sectionAnchorCounter = sectionAnchorCounter + 1]
+	<a id="sa${sectionAnchorCounter?c}"></a>
+	[#local content][#nested][/#local]
+	<h${level}>${content}</h${level}>
+	[#assign tableOfContentHTML]
+	${tableOfContentHTML}
+	<li>	<a href="#sa${sectionAnchorCounter?c}">${content}</a> </li>
+	[/#assign]
+[/#macro]
+[#macro h1][@hn 1][#nested][/@hn][/#macro]
+[#macro h2][@hn 2][#nested][/@hn][/#macro]
+[#macro h3][@hn 3][#nested][/@hn][/#macro]
+[#macro h4][@hn 4][#nested][/@hn][/#macro]
+
 [#macro pomCode]
+	[#local content][#nested][/#local]
+<pre class="pomCode">${content?trim?html}
+</pre>
+[/#macro]
+[#macro javaCode]
 	[#local content][#nested][/#local]
 <pre class="pomCode">${content?trim?html}
 </pre>
@@ -125,7 +156,9 @@
 </pre>
 [/#macro]
 
-<h1>OpenHtmlToPdf Feature Documentation</h1>
+<div id="tocPlaceholder"></div>
+
+[@h1]OpenHtmlToPdf Feature Documentation[/@h1]
 <a name="start"></a>
 
 This documentation tries to show the advanced features of OpenHtmlToPdf. To generate the documentation a
@@ -136,7 +169,7 @@ IDEA IDE this is a very productive environment to build reports.
 
 Please lookup the source of this document if you want to know some tricks not explicit mentioned in this documentation.
 
-<h2>Pagebreak Tuning</h2>
+[@h2]Pagebreak Tuning[/@h2]
 
 In a perfect world [@htmlCode]style="page-break-inside: avoid"[/@htmlCode] would just work and all reports would look
 beautiful. OpenHtmlToPdf tries its best to avoid a page break inside. But this is not always possible and also rather
@@ -153,7 +186,68 @@ Example:
 </div>
 [/@htmlCode]
 
-<h2>Objects</h2>
+[@h2]MathML &amp; LaTeX[/@h2]
+To display math you can use MathML and latex. To do so you need the dependencies:
+
+[@pomCode]
+<dependency>
+	<groupId>com.openhtmltopdf</groupId>
+	<artifactId>openhtmltopdf-mathml-support</artifactId>
+	<version>...</version>
+</dependency>
+<dependency>
+	<groupId>com.openhtmltopdf</groupId>
+	<artifactId>openhtmltopdf-latex-support</artifactId>
+	<version>...</version>
+</dependency>
+[/@pomCode]
+
+If you don't use the LaTeX feature you don't need to include the openhtmltopdf-latex-support.
+You must activate the support in the Builder to use it:
+
+[@javaCode]
+builder.useMathMLDrawer(new MathMLDrawer());
+builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+[/@javaCode]
+
+The LaTeX support translates a LaTeX fragment using SnuggleTeX to HTML+MathML, which is then
+rendered using the MathML support.
+
+[@htmlCodeAndExec]
+<latex>
+	This is a small inline formular: $$a^2 + b^2 = c^2$$. You can use many LaTeX
+	features and environments. The exact amount of supported features is depending on
+	StruggleTex and JEuclid which are the backing libraries for the LaTeX and MathML support.
+
+	$$\sum\limits_{i=1}^n i^2 = \frac{n(n+1)(2n+1)}{6}$$
+
+	$\prod\limits_{i=1}^n x = x^n$
+</latex>
+[/@htmlCodeAndExec]
+
+Here is some pure MathML:
+
+[@htmlCodeAndExec]
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+	<mrow>
+		<mi>a</mi>
+		<mo>x</mo>
+		<mfenced open="(" close=")">
+			<mrow>
+				<mi>b</mi>
+				<mo>+</mo>
+				<mi>c</mi>
+			</mrow>
+		</mfenced>
+	</mrow>
+</math>
+
+<br/>
+If you are writing the document by hand it may be just simpler to use LaTeX:
+<latex>$$a x (b+c)$$</latex>
+[/@htmlCodeAndExec]
+
+[@h2]Objects[/@h2]
 
 OpenHtmlToPdf comes with some builtin objects, which you can use to quickly create diagrams, add background PDF images
 and so on. To use them include the openhtmltopdf-objects dependency in your pom:
@@ -166,7 +260,7 @@ and so on. To use them include the openhtmltopdf-objects dependency in your pom:
 </dependency>
 [/@pomCode]
 
-<h3>Merge Background PDF</h3>
+[@h3]Merge Background PDF[/@h3]
 
 You can add a watermark / background to your document. To do so you should place
 
@@ -181,7 +275,7 @@ lower corner.
 	<li><b>pdfpage</b>: Page to import from the PDF file.</li>
 </ul>
 
-<h3>JFreeGraph</h3>
+[@h3]JFreeGraph[/@h3]
 
 For simple charts you can use the builtin objects for JFreeGraph. Note: You must specify the dependency to JFreeMarker
 in your
@@ -198,7 +292,7 @@ POM, because it is declared as a optional dependency on openhtmltopdf-objects.
 If you specify a URL for a data point then the segment in the diagram used for that datapoint is a link to that URL.
 Note: This only works in Acrobat Reader, all other PDF Viewer ignore this feature.
 
-<h4>The Pie Diagram</h4>
+[@h4]The Pie Diagram[/@h4]
 [@htmlCodeAndExec]
 <object type="jfreechart/pie"
 		style="width:400px;height:400px;-fs-page-break-min-height:400px"
@@ -209,7 +303,7 @@ Note: This only works in Acrobat Reader, all other PDF Viewer ignore this featur
 </object>
 [/@htmlCodeAndExec]
 
-<h4>The Bar Diagram</h4>
+[@h4]The Bar Diagram[/@h4]
 [@htmlCodeAndExec]
 <object type="jfreechart/bar"
 		style="width:400px;height:400px; -fs-page-break-min-height:400px"
@@ -224,6 +318,14 @@ Note: This only works in Acrobat Reader, all other PDF Viewer ignore this featur
 </object>
 [/@htmlCodeAndExec]
 
+<br style="page-break-after: always"/>
+
+<div id="toc">
+	<b>Table of Content</b>
+	<ul>
+	${tableOfContentHTML}
+	</ul>
+</div>
 
 </body>
 </html>

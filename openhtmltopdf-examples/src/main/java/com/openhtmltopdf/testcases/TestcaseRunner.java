@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
 import org.w3c.dom.Element;
@@ -28,7 +29,6 @@ import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.StandardObjectDrawerFactory;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -175,7 +175,7 @@ public class TestcaseRunner {
 			PdfRendererBuilder builder = new PdfRendererBuilder();
 			builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
 			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
-			builder.defaultTextDirection(TextDirection.LTR);
+			builder.defaultTextDirection(BaseRendererBuilder.TextDirection.LTR);
 			builder.useSVGDrawer(new BatikSVGDrawer());
 			builder.useMathMLDrawer(new MathMLDrawer());
 			builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
@@ -198,6 +198,8 @@ public class TestcaseRunner {
 	private static void renderPNG(String html, final String filename) throws Exception {
 		Java2DRendererBuilder builder = new Java2DRendererBuilder();
 		builder.useSVGDrawer(new BatikSVGDrawer());
+		builder.useMathMLDrawer(new MathMLDrawer());
+		builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
 		builder.useObjectDrawerFactory(buildObjectDrawerFactory());
 		builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
 		BufferedImagePageProcessor bufferedImagePageProcessor = new BufferedImagePageProcessor(

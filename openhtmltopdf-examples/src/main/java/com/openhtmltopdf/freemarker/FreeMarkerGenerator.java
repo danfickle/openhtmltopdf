@@ -2,9 +2,12 @@ package com.openhtmltopdf.freemarker;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
+import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.StandardObjectDrawerFactory;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.swing.NaiveUserAgent.DefaultUriResolver;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.*;
@@ -62,6 +65,9 @@ public class FreeMarkerGenerator {
 		builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
 		builder.defaultTextDirection(PdfRendererBuilder.TextDirection.LTR);
 		builder.withHtmlContent(html, "/freemarker");
+		builder.useSVGDrawer(new BatikSVGDrawer());
+		builder.useMathMLDrawer(new MathMLDrawer());
+		builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
 		builder.useUriResolver(new DefaultUriResolver() {
 			@Override
 			public String resolveURI(String baseUri, String uri) {
@@ -85,7 +91,7 @@ public class FreeMarkerGenerator {
 		try {
 			pdfBoxRenderer.layout();
 			pdfBoxRenderer.createPDF();
-		} catch (Exception e) {
+		} finally {
 			pdfBoxRenderer.close();
 		}
 		outputStream.close();
