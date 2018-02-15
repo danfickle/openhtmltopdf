@@ -11,6 +11,7 @@ import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
+import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
 import org.w3c.dom.Element;
@@ -105,10 +106,13 @@ public class TestcaseRunner {
 
 		runTestCase("math-ml");
 
+		runTestCase("latex-sample");
+
 		/*
 		 * Broken rotate() on the second page
 		 */
 		runTestCase("RepeatedTableTransformSample");
+
 		/* Add additional test cases here. */
 	}
 
@@ -174,6 +178,7 @@ public class TestcaseRunner {
 			builder.defaultTextDirection(TextDirection.LTR);
 			builder.useSVGDrawer(new BatikSVGDrawer());
 			builder.useMathMLDrawer(new MathMLDrawer());
+			builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
 			builder.useObjectDrawerFactory(buildObjectDrawerFactory());
 
 			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());

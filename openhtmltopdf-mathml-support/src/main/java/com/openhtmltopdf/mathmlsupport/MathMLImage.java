@@ -1,7 +1,6 @@
 package com.openhtmltopdf.mathmlsupport;
 
 import java.awt.Graphics2D;
-import java.util.Arrays;
 import java.util.List;
 
 import net.sourceforge.jeuclid.DOMBuilder;

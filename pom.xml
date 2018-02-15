@@ -33,6 +33,7 @@
     <module>openhtmltopdf-java2d</module>
     <module>openhtmltopdf-objects</module>
     <module>openhtmltopdf-mathml-support</module>
+    <module>openhtmltopdf-latex-support</module>
   </modules>
 
   <scm>

@@ -31,6 +31,7 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
+import com.openhtmltopdf.outputdevice.helper.FSDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.pdfboxout.PdfBoxOutputDevice.Metadata;
@@ -75,6 +76,7 @@ public class PdfBoxRenderer implements Closeable {
 
     private final SharedContext _sharedContext;
     private final PdfBoxOutputDevice _outputDevice;
+    private final List<FSDOMMutator> _domMutators;
 
     private Document _doc;
     private BlockBox _root;
@@ -105,12 +107,12 @@ public class PdfBoxRenderer implements Closeable {
     /**
      * This method is constantly changing as options are added to the builder.
      */
-    PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode, 
-            HttpStreamFactory httpStreamFactory, 
-            OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
-            PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode,
-            FSObjectDrawerFactory objectDrawerFactory, String preferredTransformerFactoryImplementationClass,
-            String producer, SVGDrawer mathmlImpl) {
+    PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode,
+                   HttpStreamFactory httpStreamFactory,
+                   OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
+                   PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode,
+                   FSObjectDrawerFactory objectDrawerFactory, String preferredTransformerFactoryImplementationClass,
+                   String producer, SVGDrawer mathmlImpl, List<FSDOMMutator> domMutators) {
         
         _pdfDoc = new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
@@ -196,7 +198,9 @@ public class PdfBoxRenderer implements Closeable {
         }
         
         this._defaultTextDirection = unicode.textDirection ? BidiSplitter.RTL : BidiSplitter.LTR;
-        
+
+        this._domMutators = domMutators;
+
         if (doc.html != null) {
             this.setDocumentFromStringP(doc.html, doc.baseUri);
         }
@@ -262,6 +266,12 @@ public class PdfBoxRenderer implements Closeable {
     
     private void setDocumentP(Document doc, String url, NamespaceHandler nsh) {
         _doc = doc;
+
+        /*
+         * Apply potential DOM mutations
+         */
+        for (FSDOMMutator domMutator : _domMutators)
+            domMutator.mutateDocument(doc);
 
         getFontResolver().flushFontFaceFonts();
 
