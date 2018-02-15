@@ -36,10 +36,8 @@ public class MathMLDrawer implements SVGDrawer {
 	private final Map<String, List<String>> _availabelFontFamilies = new HashMap<String, List<String>>();
 
 	public MathMLDrawer() {
-		this._fontFactory = FontFactory.getInstance();
-		// TODO: instead... 
-//		this._fontFactory = new DefaultFontFactory();
-//		FontFactory.setThreadFontFactory(factory);
+		this._fontFactory = new DefaultFontFactory();
+		FontFactory.setThreadFontFactory(this._fontFactory);
 	}
 	
 	@Override
@@ -120,13 +118,12 @@ public class MathMLDrawer implements SVGDrawer {
 		List<String> fontList = Arrays.asList(fonts);
 		
 		MathMLImage img = new MathMLImage(mathMlElement, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, dotsPerPixel, fontList);
-		
+
 		return img;
 	}
 
 	@Override
 	public void close() throws IOException {
-		// TODO:
-		// FontFactory.clearThreadFontFactory();
+		FontFactory.clearThreadFontFactory();
 	}
 }
