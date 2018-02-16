@@ -15,10 +15,13 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 
 	private final SVGDrawer _svgImpl;
 	private final FSObjectDrawerFactory _objectDrawerFactory;
+	private final SVGDrawer _mathMLImpl;
 
-	public Java2DReplacedElementFactory(SVGDrawer svgImpl, FSObjectDrawerFactory objectDrawerFactory) {
+	public Java2DReplacedElementFactory(SVGDrawer svgImpl, FSObjectDrawerFactory objectDrawerFactory, SVGDrawer
+			mathMLImpl) {
 		this._svgImpl = svgImpl;
 		this._objectDrawerFactory = objectDrawerFactory;
+		this._mathMLImpl = mathMLImpl;
 	}
 	
 	@Override
@@ -30,7 +33,9 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 		}
 
 		String nodeName = e.getNodeName();
-		if (nodeName.equals("svg") && _svgImpl != null) {
+		if (nodeName.equals("math") && _mathMLImpl != null) {
+			return new Java2DSVGReplacedElement(e, _mathMLImpl, cssWidth, cssHeight, box, context);
+		} else if (nodeName.equals("svg") && _svgImpl != null) {
 			return new Java2DSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, box, context);
 		} else if (nodeName.equals("object") && _objectDrawerFactory != null) {
 			FSObjectDrawer drawer = _objectDrawerFactory.createDrawer(e);

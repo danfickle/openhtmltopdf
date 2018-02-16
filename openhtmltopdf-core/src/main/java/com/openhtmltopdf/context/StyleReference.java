@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.css.sheet.FontFaceRule;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -281,7 +282,7 @@ public class StyleReference {
         }
     }
     
-    public List getFontFaceRules() {
+    public List<FontFaceRule> getFontFaceRules() {
         return _matcher.getFontFaceRules();
     }
     

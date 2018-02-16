@@ -1,0 +1,122 @@
+<html>
+<head><title>Sample LaTeX based HTML document</title></head>
+<body>
+<h1>Creating Math using LaTeX</h1>
+
+<latex>
+	$\sqrt[5]{\frac{123.45}{678.12}}$
+</latex>
+
+<br/>
+<latex>$$ a^2 = b^2 + c^2 $$</latex>
+<br/>
+
+<latex>$$
+	\left [ \mathbb{P}\mathbb{Z}\infty \right ]
+	\sum \sqrt[4]{10} $$
+</latex>
+
+In the source you must quote &amp;:
+<latex>
+	\begin{tabular}{ l c r }
+	1 &amp; 2 &amp; 3 \\
+	4 &amp; 5 &amp; 6 \\
+	7 &amp; 8 &amp; 9 \\
+	\end{tabular}
+</latex>
+
+or just use CDATA:
+
+<latex style="page-break-inside: avoid; padding:5px; font-family:monospace; display:block;"><![CDATA[
+	Here is a simple table without column lines:
+
+	\begin{tabular}{ l c r }
+	1 & 2 & 3 \\
+	4 & 5 & 6 \\
+	7 & 8 & 9 \\
+	\end{tabular}
+
+	In this table you get column lines:
+
+	\begin{tabular}{ l | c | r }
+	1 & 2 & 3 \\
+	4 & 5 & 6 \\
+	7 & 8 & 9 \\
+	\end{tabular}
+
+	And of course you can get both:
+	\begin{tabular}{ l | c | r }
+	\hline
+	1 & 2 & 3 \\
+	4 & 5 & 6 \\
+	7 & 8 & 9 \\
+	\hline
+	\end{tabular}
+	]]>
+</latex>
+<latex style="page-break-inside: avoid; padding:5px; font-family:monospace; display:block;"><![CDATA[
+	And even fancier:
+	\begin{center}
+	\begin{tabular}{ | l | c | r }
+	\hline
+	1 & 2 & 3 \\ \hline
+	4 & 5 & 6 \\ \hline
+	7 & 8 & 9 \\
+	\hline
+	\end{tabular}
+	\end{center}
+
+	The full possibilities of $L^AT_EX$:
+
+	\begin{tabular}{|r|l|}
+	\hline
+	7C0 & hexadecimal \\
+	3700 & octal \\ \cline{2-2}
+	11111000000 & binary \\
+	\hline \hline
+	1984 & decimal \\
+	\hline
+	\end{tabular}
+	]]>
+</latex>
+
+<latex style="page-break-inside: avoid; padding:5px; font-family:monospace; display:block;"><![CDATA[
+	This is a "advanced" sample, which just does not really work. mutlicolumn is
+	not supported by SnuggleTex.
+
+	Using a tabular:
+
+	\begin{tabular}{llr}
+	\hline
+	\multicolumn{2}{c}{Item} \\
+	\cline{1-2}
+	Animal & Description & Price (\$) \\
+	\hline
+	Gnat & per gram & 13.65 \\
+	& each & 0.01 \\
+	Gnu & stuffed & 92.50 \\
+	Emu & stuffed & 33.33 \\
+	Armadillo & frozen & 8.99 \\
+	\hline
+	\end{tabular}
+
+	Using a array:
+
+	\begin{tabular}{llr}
+	\firsthline
+	\multicolumn{2}{c}{Item} \\
+	\cline{1-2}
+	Animal    & Description & Price (\$) \\
+	\hline
+	Gnat      & per gram    & 13.65      \\
+	& each        & 0.01       \\
+	Gnu       & stuffed     & 92.50      \\
+	Emu       & stuffed     & 33.33      \\
+	Armadillo & frozen      & 8.99       \\
+	\lasthline
+	\end{tabular}
+	]]>
+</latex>
+
+</body>
+</html>

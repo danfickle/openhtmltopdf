@@ -59,6 +59,11 @@
       <artifactId>openhtmltopdf-objects</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.openhtmltopdf</groupId>
+      <artifactId>openhtmltopdf-latex-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
     <groupId>com.vladsch.flexmark</groupId>

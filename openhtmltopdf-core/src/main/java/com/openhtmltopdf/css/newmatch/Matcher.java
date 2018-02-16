@@ -34,10 +34,7 @@ import java.util.TreeMap;
 import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.StylesheetFactory;
 import com.openhtmltopdf.css.extend.TreeResolver;
-import com.openhtmltopdf.css.sheet.MediaRule;
-import com.openhtmltopdf.css.sheet.PageRule;
-import com.openhtmltopdf.css.sheet.Ruleset;
-import com.openhtmltopdf.css.sheet.Stylesheet;
+import com.openhtmltopdf.css.sheet.*;
 import com.openhtmltopdf.util.Util;
 import com.openhtmltopdf.util.XRLog;
 
@@ -61,7 +58,7 @@ public class Matcher {
     private Set _visitElements;
     
     private List _pageRules;
-    private List _fontFaceRules;
+    private List<FontFaceRule> _fontFaceRules;
     
     public Matcher(
             TreeResolver tr, AttributeResolver ar, StylesheetFactory factory, List stylesheets, String medium) {
@@ -71,7 +68,7 @@ public class Matcher {
         _styleFactory = factory;
         
         _pageRules = new ArrayList();
-        _fontFaceRules = new ArrayList();
+        _fontFaceRules = new ArrayList<FontFaceRule>();
         docMapper = createDocumentMapper(stylesheets, medium);
     }
     
@@ -125,7 +122,7 @@ public class Matcher {
         return new PageInfo(props, style, marginBoxes);
     }
     
-    public List getFontFaceRules() {
+    public List<FontFaceRule> getFontFaceRules() {
         return _fontFaceRules;
     }
     
