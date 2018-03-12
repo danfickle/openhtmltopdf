@@ -30,6 +30,7 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -56,9 +57,6 @@ import java.util.logging.Level;
  * @author Patrick Wright
  */
 public class FSCatalog {
-    /**
-     * Default constructor
-     */
     public FSCatalog() {
     }
 
@@ -68,9 +66,9 @@ public class FSCatalog {
      *
      * @param catalogURI A String URI to a catalog XML file on the classpath.
      */
-    public Map parseCatalog(String catalogURI) {
+    public Map<String, String> parseCatalog(String catalogURI) {
         URL url;
-        Map map = null;
+        Map<String, String> map = null;
         InputStream s = null;
         try {
             url = FSCatalog.class.getClassLoader().getResource(catalogURI);
@@ -78,7 +76,7 @@ public class FSCatalog {
             map = parseCatalog(new InputSource(s));
         } catch (Exception ex) {
             XRLog.xmlEntities(Level.WARNING, "Could not open XML catalog from URI '" + catalogURI + "'", ex);
-            map = new HashMap();
+            map = Collections.emptyMap();
         } finally {
             try {
                 if (s != null) {
@@ -97,7 +95,7 @@ public class FSCatalog {
      *
      * @param inputSource A SAX InputSource to a catalog XML file on the classpath.
      */
-    public Map parseCatalog(InputSource inputSource) {
+    public Map<String, String> parseCatalog(InputSource inputSource) {
         XMLReader xmlReader = XMLResource.newXMLReader();
 
         CatalogContentHandler ch = new CatalogContentHandler();
@@ -151,16 +149,16 @@ public class FSCatalog {
      * parse, then call getEntityMap().
      */
     private static class CatalogContentHandler extends DefaultHandler {
-        private Map entityMap;
+        private final Map<String, String> entityMap;
 
         public CatalogContentHandler() {
-            this.entityMap = new HashMap();
+            this.entityMap = new HashMap<String, String>();
         }
 
         /**
          * Returns a Map of public Ids to local URIs
          */
-        public Map getEntityMap() {
+        public Map<String, String> getEntityMap() {
             return entityMap;
         }
 
@@ -197,5 +195,4 @@ public class FSCatalog {
                     featureUri + ". Feature may be properly named, but not recognized by this parser.");
         }
     }
-}// end class
-
+}

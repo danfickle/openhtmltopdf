@@ -5,6 +5,33 @@
 ## Welcome
 Welcome to the template guide for [OpenHTMLToPDF](https://github.com/danfickle/openhtmltopdf). This guide assumes a basic knowledge of CSS and HTML. If you find any problems with this documentation or have a question please raise an issue at the project home.
 
+## General
+
+### Character Entities
+By default XML allows the use of five character entities being ````&amp;````, ````&quot;````, ````&apos;````, ````&lt;```` and ````&gt;````.
+If you'd like to use other character entities derived from XHTML such as ````&nbsp;```` then you can use the special project doctype:
+````html
+<!DOCTYPE html PUBLIC
+ "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
+<html>
+<body>
+&nbsp; &yen;
+</body>
+</html>
+````
+If using MathML plugin, you can use a doctype containing both XHTML and MathML character entities:
+````html
+<!DOCTYPE html PUBLIC
+"-//OPENHTMLTOPDF//MATH XHTML Character Entities With MathML 1.0//EN"
+"">
+<html>
+<body>
+&InvisibleTimes; &DoubleRightArrow; &nbsp;
+</body>
+</html>
+````
+All other doctypes will be ignored.
+
 ## Fonts
 
 ### Notes on Fonts

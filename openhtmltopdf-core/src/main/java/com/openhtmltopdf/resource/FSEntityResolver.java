@@ -29,7 +29,9 @@ import com.openhtmltopdf.util.XRLog;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -57,49 +59,26 @@ public class FSEntityResolver implements EntityResolver {
     /**
      * Singleton instance, use {@link #instance()} to retrieve.
      */
-    private static FSEntityResolver instance;
+    private static final FSEntityResolver instance = new FSEntityResolver();
 
-    private final Map entities = new HashMap();
-
-    // fill the list of URLs
+    private final Map<String, String> entities = new HashMap<String, String>();
+    
     /**
-     * Constructor for the FSEntityResolver object
+     * Constructor for the FSEntityResolver object, fill the map of public ids to local urls.
      */
     private FSEntityResolver() {
         FSCatalog catalog = new FSCatalog();
         
-        // The HTML 4.01 DTDs; includes entities. Load from catalog file.
-        entities.putAll(catalog.parseCatalog("resources/schema/html-4.01/catalog-html-4.01.xml"));
-        
-        // XHTML common (shared declarations)
-        entities.putAll(catalog.parseCatalog("resources/schema/xhtml/catalog-xhtml-common.xml"));
-
-        // The XHTML 1.0 DTDs
-        entities.putAll(catalog.parseCatalog("resources/schema/xhtml/catalog-xhtml-1.0.xml"));
-        
-        // The XHMTL 1.1 DTD
-        entities.putAll(catalog.parseCatalog("resources/schema/xhtml/catalog-xhtml-1.1.xml"));
-        
-        // DocBook DTDs
-        entities.putAll(catalog.parseCatalog("resources/schema/docbook/catalog-docbook.xml"));
-
-        // The XHTML 1.1 element sets
+        entities.putAll(catalog.parseCatalog("resources/schema/openhtmltopdf/catalog-special.xml"));
     }
 
-    /**
-     * Description of the Method
-     *
-     * @param publicID PARAM
-     * @param systemID PARAM
-     * @return Returns
-     * @throws SAXException Throws
-     */
+    @Override
     public InputSource resolveEntity(String publicID,
                                      String systemID)
             throws SAXException {
-
         InputSource local = null;
-        String url = (String) getEntities().get(publicID);
+        String url = getEntities().get(publicID);
+
         if (url != null) {
             URL realUrl = GeneralUtil.getURLFromClasspath(this, url);
             InputStream is = null;
@@ -123,7 +102,8 @@ public class FSEntityResolver implements EntityResolver {
             XRLog.xmlEntities(Level.FINE, "Entity public: " + publicID + " -> " + url +
                     (local == null ? ", NOT FOUND" : " (local)"));
         } else {
-            XRLog.xmlEntities("Entity public: " + publicID + ", no local mapping. Parser will probably pull from network.");
+            XRLog.xmlEntities("Entity public: " + publicID + ", no local mapping. Returning empty entity to avoid pulling from network.");
+            local = new InputSource(new StringReader(""));
         }
         return local;
     }
@@ -131,55 +111,17 @@ public class FSEntityResolver implements EntityResolver {
     /**
      * Gets an instance of this class.
      *
-     * @return An instance of .
+     * @return An instance of FSEntityResolver.
      */
-    public static synchronized FSEntityResolver instance() {
-        if (instance == null) {
-            instance = new FSEntityResolver();
-        }
+    public static FSEntityResolver instance() {
         return instance;
     }
 
     /**
-     * Returns a map of entities parsed by this resolver.
-     * @return a map of entities parsed by this resolver. 
+     * Returns an unmodifiable map of entities parsed by this resolver.
+     * @return an unmodifiable map of entities parsed by this resolver. 
      */
-    public Map getEntities() {
-        return new HashMap(entities);
+    public Map<String, String> getEntities() {
+        return Collections.unmodifiableMap(entities);
     }
 }
-
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.8  2008/12/01 20:37:24  pdoubleya
- * Expose copy of parsed entities from catalog.
- *
- * Revision 1.7  2007/05/21 22:13:02  peterbrant
- * Code cleanup (patch from Sean Bright)
- *
- * Revision 1.6  2007/05/20 23:25:34  peterbrant
- * Various code cleanups (e.g. remove unused imports)
- *
- * Patch from Sean Bright
- *
- * Revision 1.5  2005/06/13 06:50:15  tobega
- * Fixed a bug in table content resolution.
- * Various "tweaks" in other stuff.
- *
- * Revision 1.4  2005/03/28 14:24:48  pdoubleya
- * Changed to resolve all entities using simple catalog files.
- *
- * Revision 1.3  2005/03/27 18:36:26  pdoubleya
- * Added separate logging for entity resolution.
- *
- * Revision 1.2  2005/03/21 09:13:50  pdoubleya
- * Added XHTML 1.1 references (Kevin).
- *
- * Revision 1.1  2005/02/03 20:39:34  pdoubleya
- * Added to CVS.
- *
- *
- */
-

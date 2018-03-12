@@ -173,7 +173,7 @@ public class XMLResource extends AbstractResource {
           	 xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
            	 xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
            	 xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-           	 xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+           	 xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", true);
            	 xmlReader.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
            } catch (SAXNotSupportedException e) {
            	 XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
