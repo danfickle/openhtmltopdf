@@ -152,6 +152,7 @@ public class ParagraphSplitter {
         }
 	}
 	
+	private final List<Paragraph> allParagraphs = new ArrayList<Paragraph>();
     private final Map<Text, Paragraph> paragraphs = new HashMap<Text, Paragraph>();
     private final Map<Element, Paragraph> blocks = new HashMap<Element, Paragraph>();
     
@@ -181,7 +182,7 @@ public class ParagraphSplitter {
      * Run bidi splitting on the document's paragraphs.
      */
     public void runBidiOnParagraphs(LayoutContext c) {
-    	for (Paragraph p : paragraphs.values())
+    	for (Paragraph p : allParagraphs)
     	{
     		p.runBidiSplitter(c.getBidiSplitterFactory().createBidiSplitter(), c);
     	}
@@ -215,6 +216,7 @@ public class ParagraphSplitter {
                 if (style.isSpecifiedAsBlock() || element.hasAttribute("dir") || element.getNodeName().equals("bdi")) {
                 	// If a element has a dir attribute or is a bdi tag it sits in its own direction isolate.
                 	Paragraph para = new Paragraph(style.getDirection());
+                	allParagraphs.add(para);
               		blocks.put(element, para);
                 	splitParagraphs(c, element, para);
                 }

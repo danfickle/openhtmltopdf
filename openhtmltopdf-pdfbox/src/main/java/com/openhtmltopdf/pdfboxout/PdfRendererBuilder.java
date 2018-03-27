@@ -1,17 +1,14 @@
 package com.openhtmltopdf.pdfboxout;
 
-import com.openhtmltopdf.bidi.BidiReorderer;
-import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
-import com.openhtmltopdf.extend.FSDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.util.XRLog;
-import org.w3c.dom.Document;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,6 +21,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	private OutputStream _os;
 	private float _pdfVersion = 1.7f;
 	private String _producer;
+	private PDDocument pddocument;
 
 	/**
 	 * Run the XHTML/XML to PDF conversion and output to an output stream set by
@@ -60,7 +58,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 
 		PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl,
 				pageSize, _pdfVersion, _replacementText, _testMode, _objectDrawerFactory,
-				_preferredTransformerFactoryImplementationClass, _producer, _mathmlImpl, _domMutators);
+				_preferredTransformerFactoryImplementationClass, _producer, _mathmlImpl, _domMutators, pddocument);
 
 		/*
 		 * Register all Fonts
@@ -114,8 +112,19 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 		this._pdfVersion = version;
 		return this;
 	}
-
-
+	
+	/**
+	 * By default, this project creates an entirely in-memory <code>PDDocument</code>.
+	 * The user can use this method to create a document either entirely on-disk
+	 * or a mix of in-memory and on-disk using the <code>PDDocument</code> constructor
+	 * that takes a <code>MemoryUsageSetting</code>.
+	 * @param doc a (usually empty) PDDocument
+	 * @return this for method chaining
+	 */
+	public PdfRendererBuilder usePDDocument(PDDocument doc) {
+	    this.pddocument = doc;
+	    return this;
+	}
 
 	/**
 	 * Add a font programmatically. If the font is NOT subset, it will be downloaded

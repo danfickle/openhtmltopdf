@@ -112,9 +112,9 @@ public class PdfBoxRenderer implements Closeable {
                    OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
                    PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode,
                    FSObjectDrawerFactory objectDrawerFactory, String preferredTransformerFactoryImplementationClass,
-                   String producer, SVGDrawer mathmlImpl, List<FSDOMMutator> domMutators) {
+                   String producer, SVGDrawer mathmlImpl, List<FSDOMMutator> domMutators, PDDocument pdocument) {
         
-        _pdfDoc = new PDDocument();
+        _pdfDoc = pdocument != null ? pdocument : new PDDocument();
         _pdfDoc.setVersion(pdfVersion);
 
         _producer = producer;
