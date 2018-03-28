@@ -58,7 +58,8 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 
 		PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl,
 				pageSize, _pdfVersion, _replacementText, _testMode, _objectDrawerFactory,
-				_preferredTransformerFactoryImplementationClass, _producer, _mathmlImpl, _domMutators, pddocument);
+				_preferredTransformerFactoryImplementationClass,  _preferredDocumentBuilderFactoryImplementationClass,
+				_producer, _mathmlImpl, _domMutators, pddocument);
 
 		/*
 		 * Register all Fonts

@@ -25,6 +25,7 @@ import java.util.logging.Level;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -214,6 +215,15 @@ public class XMLResource extends AbstractResource {
             }
     	}
     	
+    	private DocumentBuilderFactory loadPreferredDocumentBuilderFactory(String preferredImpl) {
+            try {
+            	return preferredImpl == null ? DocumentBuilderFactory.newInstance() : DocumentBuilderFactory.newInstance(preferredImpl, null);
+            } catch (FactoryConfigurationError e) {
+            	XRLog.load(Level.SEVERE, "Could not load preferred XML document builder, using default which may not be secure.");
+            	return DocumentBuilderFactory.newInstance();
+            }
+    	}
+
     	private XMLResource createXMLResource(XMLResource target) {
             Source input = null;
             DOMResult output = null;
@@ -232,7 +242,8 @@ public class XMLResource extends AbstractResource {
             try {
                 input = new SAXSource(xmlReader, target.getResourceInputSource());
                 
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                String preferredDocumentBuilderFactory = ThreadCtx.get().sharedContext()._preferredDocumentBuilderFactoryImplementationClass;
+                DocumentBuilderFactory dbf = loadPreferredDocumentBuilderFactory(preferredDocumentBuilderFactory);
                 
                 setDocumentBuilderSecurityFeatures(dbf);
                 dbf.setNamespaceAware(true);

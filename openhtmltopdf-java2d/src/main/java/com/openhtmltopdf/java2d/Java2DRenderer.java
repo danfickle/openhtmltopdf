@@ -81,7 +81,9 @@ public class Java2DRenderer implements IJava2DRenderer, Closeable {
 			Graphics2D layoutGraphics,
 			int initialPageNumber, short pagingMode,
 			FSObjectDrawerFactory objectDrawerFactory,
-			String preferredTransformerFactoryImplementationClass, List<FSDOMMutator> _domMutators) {
+			String preferredTransformerFactoryImplementationClass,
+			String preferredDocumentBuilderFactoryImplementationClass,
+			List<FSDOMMutator> _domMutators) {
 
 	    _pagingMode = pagingMode;
 		_pageProcessor = pageProcessor;
@@ -110,6 +112,7 @@ public class Java2DRenderer implements IJava2DRenderer, Closeable {
         _sharedContext.registerWithThread();
         
         _sharedContext._preferredTransformerFactoryImplementationClass = preferredTransformerFactoryImplementationClass;
+        _sharedContext._preferredDocumentBuilderFactoryImplementationClass = preferredDocumentBuilderFactoryImplementationClass;
         
         _sharedContext.setUserAgentCallback(uac);
         _sharedContext.setCss(new StyleReference(uac));
