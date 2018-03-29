@@ -46,6 +46,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	protected short _pagingMode = Layer.PAGED_MODE_PRINT;
 	protected FSObjectDrawerFactory _objectDrawerFactory;
 	protected String _preferredTransformerFactoryImplementationClass = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
+	protected String _preferredDocumentBuilderFactoryImplementationClass = "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl";
 
 	/**
 	 * Add a DOM mutator to this builder. DOM mutators allow to modify the DOM
@@ -78,6 +79,23 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 		this._preferredTransformerFactoryImplementationClass = transformerFactoryClass;
 		return (TFinalClass) this;
 	}
+
+	/**
+	 * This method should be considered advanced and is not required for most
+	 * setups. Set a preferred implementation class for use as
+	 * javax.xml.parsers.DocumentBuilderFactory. Use null to let a default
+	 * implementation class be used. The default is
+	 * "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl".
+	 * If the default does not work you can use null to let the container use whatever
+	 * DocumentBuilderFactory it has available.
+	 *
+	 * @param documentBuilderFactoryClass
+	 * @return this for method chaining
+	 */
+		public final TFinalClass useDocumentBuilderFactoryImplementationClass(String documentBuilderFactoryClass) {
+				this._preferredDocumentBuilderFactoryImplementationClass = documentBuilderFactoryClass;
+				return (TFinalClass) this;
+		}
 
 	/**
 	 * The default text direction of the document. LTR by default.

@@ -123,6 +123,7 @@ public class SharedContext {
 	private FSTextTransformer _unicodeToTitleTransformer = new TextUtil.DefaultToTitleTransformer();
 
 	public String _preferredTransformerFactoryImplementationClass = null;
+	public String _preferredDocumentBuilderFactoryImplementationClass = null;
     
     public SharedContext() {
     }

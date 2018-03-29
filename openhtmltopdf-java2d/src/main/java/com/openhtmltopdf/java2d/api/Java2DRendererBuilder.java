@@ -158,7 +158,8 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 
 		return new Java2DRenderer(doc, unicode, _httpStreamFactory, _resolver, _cache, _svgImpl, _mathmlImpl, pageSize,
 				_replacementText, _testMode, _pageProcessor, _layoutGraphics, _initialPageNumber, _pagingMode,
-				_objectDrawerFactory, _preferredTransformerFactoryImplementationClass, _domMutators);
+				_objectDrawerFactory, _preferredTransformerFactoryImplementationClass,
+				_preferredDocumentBuilderFactoryImplementationClass,_domMutators);
 	}
 
 	private static class AddedFont {
