@@ -46,7 +46,8 @@ Open HTML to PDF is based on [Flying-saucer](https://github.com/flyingsaucerproj
 FAQ
 ===
 + OPEN HTML TO PDF is tested with OpenJDK 7 and Oracle JDK 8.
-+ No, you can not use it on Android or Google App Engine.
++ No, you can not use it on Android.
++ You should be able to use it on Google App Engine (Java 8 or greater environment). [Let us know your experience](https://github.com/danfickle/openhtmltopdf/issues/179).
 + <s>Flowing columns are not implemented.</s> Implemented in RC12.
 + No, it's not a web browser.
 
@@ -62,6 +63,17 @@ CHANGELOG
 
 head - 0.0.1-RC13-SNAPSHOT
 ========
++ [Use common base class for PDF and Java2D builder - SOME IMPORTS MAY CHANGE](https://github.com/danfickle/openhtmltopdf/pull/177) Thanks @rototor
++ Major work on transforms, we're getting there, but still test well before use. Thanks @rototor
++ [Make it possible to set a PDF producer](https://github.com/danfickle/openhtmltopdf/pull/158) Thanks @schmitch
++ [Support for JFreeCharts diagrams with simple markup](https://github.com/danfickle/openhtmltopdf/pull/165) Thanks @rototor
++ [Ability to stamp another PDF on page](https://github.com/danfickle/openhtmltopdf/pull/165) Thanks @rototor
++ [Support for Latex](https://github.com/danfickle/openhtmltopdf/pull/177) Thanks @rototor
++ [Support for MathML](https://github.com/danfickle/openhtmltopdf/issues/161#issuecomment-365844595) Thanks @m-a-t
++ [Support for HTML and MathML character entities such as nbsp, etc](https://github.com/danfickle/openhtmltopdf/blob/19828ff579863fdbd0ffe28108d3b14626ec64da/openhtmltopdf-examples/src/main/resources/documentation/documentation.md#character-entities)
++ [Allow user to construct their own PDDocument so memory options can be specified](https://github.com/danfickle/openhtmltopdf/issues/180) Thanks @rajaningle, @javimartinez
++ [Fixed silly bug and got dramatic performance improvement for large documents](https://github.com/danfickle/openhtmltopdf/issues/170#issuecomment-376441271)
++ [Fix for XML loading problems where older version of xerces was being picked up](https://github.com/danfickle/openhtmltopdf/issues/187) Thanks @sosnut
 + [Fix for XML loading problems with JBoss,Wildfly](https://github.com/danfickle/openhtmltopdf/issues/54) Thanks @estevandiedrich, @alanhay
 + [Support image maps on img, object and svg](https://github.com/danfickle/openhtmltopdf/pull/163) Uses a kong polygon tesselation implementation by [sunshine2k](https://www.sunshine2k.de/coding/java/Polygon/Kong/Kong.html)
 + API BREAKING CHANGE: [Support custom shape <=> link maps in object drawers](https://github.com/danfickle/openhtmltopdf/pull/163)
