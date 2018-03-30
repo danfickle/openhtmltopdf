@@ -45,7 +45,7 @@ Open HTML to PDF is based on [Flying-saucer](https://github.com/flyingsaucerproj
 
 FAQ
 ===
-+ OPEN HTML TO PDF is tested with OpenJDK 7 and Oracle JDK 8.
++ OPEN HTML TO PDF is tested with OpenJDK 7, Oracle JDK 8 and Oracle JDK 9.
 + No, you can not use it on Android.
 + You should be able to use it on Google App Engine (Java 8 or greater environment). [Let us know your experience](https://github.com/danfickle/openhtmltopdf/issues/179).
 + <s>Flowing columns are not implemented.</s> Implemented in RC12.
