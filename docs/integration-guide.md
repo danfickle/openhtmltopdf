@@ -65,11 +65,20 @@ Add these to your maven dependencies section as needed:
   	</dependency>
 
   	<dependency>
-  	    <!-- Optional, leave out if you do not SVG support. -->
+  	    <!-- Optional, leave out if you do not need SVG support. -->
   		<groupId>com.openhtmltopdf</groupId>
   		<artifactId>openhtmltopdf-svg-support</artifactId>
   		<version>${openhtml.version}</version>
   	</dependency>
+
+  	<dependency>
+  	    <!-- Optional, leave out if you do not need MathML support. -->
+  	    <!-- Introduced in RC-13. -->
+  		<groupId>com.openhtmltopdf</groupId>
+  		<artifactId>openhtmltopdf-mathml-support</artifactId>
+  		<version>${openhtml.version}</version>
+  	</dependency>
+
 ````
 
 MINIMAL USAGE
@@ -204,6 +213,8 @@ The library should close the reader or stream when it is finished with it.
 
 CACHE BETWEEN RUNS
 =======
+IMPORTANT: This cache system should now be considered deprecated as it is not thread safe. It will be replaced with a simple byte array cache system in the future.
+
 By default, Open HTML to PDF should not cache anything between runs. However, it allows the user to plugin an external cache. It should
 be noted that the URI received by the cache is already resolved (see below). Here is a simple external cache:
 ````java
@@ -274,11 +285,15 @@ Add the appropriate maven module, then at the start of your code, before calling
   XRLog.setLoggerImpl(new Log4JXRLogger());    
 ````
 
-SVG SUPPORT
+SVG AND MATHML SUPPORT
 =======
-Add the appropriate maven module and include this line in your builder code:
+Add the appropriate maven module and include this line in your builder code for SVG support.
 ````java
   builder.useSVGDrawer(new BatikSVGDrawer());
+````
+For MathML support:
+````java
+  builder..useMathMLDrawer(new MathMLDrawer());
 ````
 
 IMAGE OUTPUT

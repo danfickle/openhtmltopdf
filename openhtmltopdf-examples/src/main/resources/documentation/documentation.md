@@ -267,7 +267,7 @@ This example is taken from [SVG Getting Started](https://developer.mozilla.org/e
 </html>
 ````
 The output of this example is shown below:
-<div>
+<div style="page-break-inside: avoid;">
 <svg version="1.1"
      baseProfile="full"
      width="300" height="200"
@@ -279,6 +279,114 @@ The output of this example is shown below:
      text-anchor="middle" fill="white">SVG</text>
 </svg>
 </div>
+
+## MathML Support
+
+### Notes on MathML support
++ The project supports MathML 2.0, not the later 3.0 version.
++ MathML supports fonts embedded via font-face rules.
++ It is recommended you download and use the [STIX-Fonts package with provided stylesheet](https://github.com/danfickle/openhtmltopdf/issues/161#issuecomment-365844595).
++ The size properties supported by MathML objects are ```width```, ```height```, ```max-width``` and ```max-height```. By default ```width``` and ```height``` are ```auto```.
++ You will probably need to use the project provided doctype with MathML character entities.
+
+### MathML Example
++ This example is taken from [MathML samples](http://www.freedomscientific.com/content/html/jawshq/MathML-Samples.html).
+````html
+<!DOCTYPE html PUBLIC
+"-//OPENHTMLTOPDF//MATH XHTML Character Entities With MathML 1.0//EN"
+"">
+<html>
+<head>
+<link rel="stylesheet" href="stix-fonts/stylesheet.css" />
+<style>
+body {
+ font-family: sans-serif;
+}
+math {
+  width: 100%;
+}
+</style>
+</head>
+<body>
+<h1>MathML</h1>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mrow>
+  <mi>x</mi>
+  <mo>=</mo>
+  <mfrac>
+    <mrow>
+      <mrow>
+        <mo>-</mo>
+        <mi>b</mi>
+      </mrow>
+      <mo>±</mo>
+      <msqrt>
+        <mrow>
+          <msup>
+            <mi>b</mi>
+            <mn>2</mn>
+          </msup>
+          <mo>-</mo>
+          <mrow>
+            <mn>4</mn>
+            <mo>⁢</mo>
+            <mi>a</mi>
+            <mo>⁢</mo>
+            <mi>c</mi>
+          </mrow>
+        </mrow>
+      </msqrt>
+    </mrow>
+    <mrow>
+      <mn>2</mn>
+      <mo>⁢</mo>
+      <mi>a</mi>
+    </mrow>
+  </mfrac>
+</mrow>
+</math>
+<h2>End</h2>
+````
+The output of this example is shown below:
+<div>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+<mrow>
+  <mi>x</mi>
+  <mo>=</mo>
+  <mfrac>
+    <mrow>
+      <mrow>
+        <mo>-</mo>
+        <mi>b</mi>
+      </mrow>
+      <mo>±</mo>
+      <msqrt>
+        <mrow>
+          <msup>
+            <mi>b</mi>
+            <mn>2</mn>
+          </msup>
+          <mo>-</mo>
+          <mrow>
+            <mn>4</mn>
+            <mo>⁢</mo>
+            <mi>a</mi>
+            <mo>⁢</mo>
+            <mi>c</mi>
+          </mrow>
+        </mrow>
+      </msqrt>
+    </mrow>
+    <mrow>
+      <mn>2</mn>
+      <mo>⁢</mo>
+      <mi>a</mi>
+    </mrow>
+  </mfrac>
+</mrow>
+</math>
+</div>
+
 
 ## Still to Document
 + The ````content```` property.
