@@ -55,7 +55,7 @@ public class ParagraphSplitter {
 	 */
 	public static class Paragraph {
         private final StringBuilder builder = new StringBuilder();
-        private final List<TextRun> textRuns = new ArrayList<TextRun>();
+        private final Map<Text, TextRun> textRuns = new HashMap<Text, TextRun>();
         private final TreeMap<Integer, BidiTextRun> splitPoints = new TreeMap<Integer, BidiTextRun>();
         private final IdentValue cssDirection; // One of LTR, RTL or AUTO.
         private byte actualDirection = BidiSplitter.LTR;
@@ -72,7 +72,7 @@ public class ParagraphSplitter {
             builder.append(text);
             int endIndex = builder.length();
            
-            textRuns.add(new TextRun(textNode, startIndex, endIndex));
+            textRuns.put(textNode, new TextRun(textNode, startIndex, endIndex));
         }
         
         /**
@@ -97,14 +97,7 @@ public class ParagraphSplitter {
          * @return the first char index into this paragraph from a Text node.
          */
         public int getFirstCharIndexInParagraph(Text text) {
-            for (TextRun t : textRuns) {
-                if (text == t.domText) {
-                    return t.startIndexInParagraph;
-                }
-            }
-        	
-            assert(false);
-        	return -1;
+        	return textRuns.get(text).startIndexInParagraph;
         }
         
         /**
