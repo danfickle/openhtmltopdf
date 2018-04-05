@@ -176,7 +176,7 @@ public class LengthValue extends DerivedValue {
                 break;
             default:
                 // nothing to do, we only convert those listed above
-                XRLog.cascade(Level.SEVERE,
+                XRLog.cascade(Level.WARNING,
                         "Asked to convert " + cssName + " from relative to absolute, " +
                         " don't recognize the datatype " +
                         "'" + ValueConstants.stringForSACPrimitiveType(primitiveType) + "' "
