@@ -216,11 +216,11 @@ public class Matcher {
     }
 
     private void newMaps() {
-        _map = Collections.synchronizedMap(new java.util.HashMap());
-        _hoverElements = Collections.synchronizedSet(new java.util.HashSet());
-        _activeElements = Collections.synchronizedSet(new java.util.HashSet());
-        _focusElements = Collections.synchronizedSet(new java.util.HashSet());
-        _visitElements = Collections.synchronizedSet(new java.util.HashSet());
+        _map = new java.util.HashMap<Object, Mapper>();
+        _hoverElements = new java.util.HashSet();
+        _activeElements = new java.util.HashSet();
+        _focusElements = new java.util.HashSet();
+        _visitElements = new java.util.HashSet();
     }
 
     private Mapper getMapper(Object e) {
