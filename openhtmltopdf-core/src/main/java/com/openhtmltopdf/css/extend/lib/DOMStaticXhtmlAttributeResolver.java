@@ -82,7 +82,7 @@ public class DOMStaticXhtmlAttributeResolver implements AttributeResolver {
 
     public String getElementStyling(Object el) {
         Element e = ((Element) el);
-        StringBuffer style = new StringBuffer();
+        StringBuilder style = new StringBuilder();
         if (e.getNodeName().equals("td")) {
             String s;
             if (!(s = e.getAttribute("colspan")).equals("")) {
@@ -114,8 +114,7 @@ public class DOMStaticXhtmlAttributeResolver implements AttributeResolver {
 
     public boolean isLink(Object el) {
         Element e = ((Element) el);
-        if (e.getNodeName().equalsIgnoreCase("a") && !e.getAttribute("href").equals("")) return true;
-        return false;
+        return e.getNodeName().equalsIgnoreCase("a") && !e.getAttribute("href").equals("");
     }
 
     public boolean isVisited(Object e) {

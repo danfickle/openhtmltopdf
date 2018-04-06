@@ -110,6 +110,59 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         return result.length() == 0 ? null : result;
     }
 
+    private static String readTextContent(Element element) {
+        StringBuilder result = new StringBuilder();
+        Node current = element.getFirstChild();
+        while (current != null) {
+            short nodeType = current.getNodeType();
+            if (nodeType == Node.TEXT_NODE || nodeType == Node.CDATA_SECTION_NODE) {
+                Text t = (Text)current;
+                result.append(t.getData());
+            }
+            current = current.getNextSibling();
+        }
+        return result.toString();
+    }
+    private static String collapseWhiteSpace(String text) {
+        StringBuilder result = new StringBuilder();
+        int l = text.length();
+        for (int i = 0; i < l; i++) {
+            char c = text.charAt(i);
+            if (Character.isWhitespace(c)) {
+                result.append(' ');
+                while (++i < l) {
+                    c = text.charAt(i);
+                    if (! Character.isWhitespace(c)) {
+                        i--;
+                        break;
+                    }
+                }
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+    /**
+     * Gets the linkUri attribute of the XhtmlNamespaceHandler object
+     *
+     * @param e PARAM
+     * @return The linkUri value
+     */
+    public String getLinkUri(org.w3c.dom.Element e) {
+        String href = null;
+        if (e.getNodeName().equalsIgnoreCase("a") && e.hasAttribute("href")) {
+            href = e.getAttribute("href");
+        }
+        return href;
+    }
+    public String getAnchorName(Element e) {
+        if (e != null && e.getNodeName().equalsIgnoreCase("a") &&
+                e.hasAttribute("name")) {
+            return e.getAttribute("name");
+        }
+        return null;
+    }
     /**
      * Gets the elementStyling attribute of the XhtmlNamespaceHandler object
      *
@@ -117,7 +170,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
      * @return The elementStyling value
      */
     public String getElementStyling(org.w3c.dom.Element e) {
-        StringBuffer style = new StringBuffer();
+        StringBuilder style = new StringBuilder();
         if (e.getNodeName().equals("td") || e.getNodeName().equals("th")) {
             String s;
             s = getAttribute(e, "colspan");
@@ -166,63 +219,6 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     }
 
     /**
-     * Gets the linkUri attribute of the XhtmlNamespaceHandler object
-     *
-     * @param e PARAM
-     * @return The linkUri value
-     */
-    public String getLinkUri(org.w3c.dom.Element e) {
-        String href = null;
-        if (e.getNodeName().equalsIgnoreCase("a") && e.hasAttribute("href")) {
-            href = e.getAttribute("href");
-        }
-        return href;
-    }
-
-    public String getAnchorName(Element e) {
-        if (e != null && e.getNodeName().equalsIgnoreCase("a") &&
-                e.hasAttribute("name")) {
-            return e.getAttribute("name");
-        }
-        return null;
-    }
-
-    private static String readTextContent(Element element) {
-        StringBuffer result = new StringBuffer();
-        Node current = element.getFirstChild();
-        while (current != null) {
-            short nodeType = current.getNodeType();
-            if (nodeType == Node.TEXT_NODE || nodeType == Node.CDATA_SECTION_NODE) {
-                Text t = (Text)current;
-                result.append(t.getData());
-            }
-            current = current.getNextSibling();
-        }
-        return result.toString();
-    }
-
-    private static String collapseWhiteSpace(String text) {
-        StringBuffer result = new StringBuffer();
-        int l = text.length();
-        for (int i = 0; i < l; i++) {
-            char c = text.charAt(i);
-            if (Character.isWhitespace(c)) {
-                result.append(' ');
-                while (++i < l) {
-                    c = text.charAt(i);
-                    if (! Character.isWhitespace(c)) {
-                        i--;
-                        break;
-                    }
-                }
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-
-    /**
      * Returns the title of the document as located in the contents of /html/head/title, or "" if none could be found.
      *
      * @param doc the document to search for a title
@@ -254,7 +250,6 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
 
         return null;
     }
-
     protected StylesheetInfo readStyleElement(Element style) {
         String media = style.getAttribute("media");
         if ("".equals(media)) {
@@ -266,7 +261,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         info.setTitle(style.getAttribute("title"));
         info.setOrigin(StylesheetInfo.AUTHOR);
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         Node current = style.getFirstChild();
         while (current != null) {
             if (current instanceof CharacterData) {
@@ -277,7 +272,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
 
         String css = buf.toString().trim();
         if (css.length() > 0) {
-            info.setContent(css.toString());
+            info.setContent(css);
 
             return info;
         } else {

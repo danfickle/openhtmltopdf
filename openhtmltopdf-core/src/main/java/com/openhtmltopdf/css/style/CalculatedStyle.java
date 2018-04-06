@@ -614,7 +614,7 @@ public class CalculatedStyle {
     }
 
     private String genStyleKey() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder  sb = new StringBuilder();
         for (int i = 0; i < _derivedValuesById.length; i++) {
             CSSName name = CSSName.getByID(i);
             FSDerivedValue val = _derivedValuesById[i];

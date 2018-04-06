@@ -103,7 +103,7 @@ public abstract class Box implements Styleable {
 
     protected void dumpBoxes(
             LayoutContext c, String indent, List boxes,
-            int which, StringBuffer result) {
+            int which, StringBuilder result) {
         for (Iterator i = boxes.iterator(); i.hasNext(); ) {
             Box b = (Box)i.next();
             result.append(b.dump(c, indent + "  ", which));
@@ -118,7 +118,7 @@ public abstract class Box implements Styleable {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("Box: ");
         sb.append(" (" + getAbsX() + "," + getAbsY() + ")->(" + getWidth() + " x " + getHeight() + ")");
         return sb.toString();
@@ -602,7 +602,7 @@ public abstract class Box implements Styleable {
             }
 
             if (pageBreakCount == 2) {
-                page = (PageBox)c.getRootLayer().getPages().get(page.getPageNo()+1);
+                page = c.getRootLayer().getPages().get(page.getPageNo()+1);
                 delta += page.getContentHeight(c);
 
                 if (pendingPageName) {
@@ -638,7 +638,7 @@ public abstract class Box implements Styleable {
             }
 
             if (needSecondPageBreak) {
-                page = (PageBox)c.getRootLayer().getPages().get(page.getPageNo()+1);
+                page = c.getRootLayer().getPages().get(page.getPageNo()+1);
                 delta += page.getContentHeight(c);
 
                 if (page == c.getRootLayer().getLastPage()) {
@@ -1005,7 +1005,7 @@ public abstract class Box implements Styleable {
         setHeight(dimensions.getHeight());
     }
 
-    public void collectText(RenderingContext c, StringBuffer buffer) throws IOException {
+    public void collectText(RenderingContext c, StringBuilder buffer) {
         for (Iterator i = getChildIterator(); i.hasNext(); ) {
             Box b = (Box)i.next();
             b.collectText(c, buffer);
@@ -1014,7 +1014,7 @@ public abstract class Box implements Styleable {
 
     public void exportText(RenderingContext c, Writer writer) throws IOException {
         if (c.isPrint() && isRoot()) {
-            c.setPage(0, (PageBox)c.getRootLayer().getPages().get(0));
+            c.setPage(0, c.getRootLayer().getPages().get(0));
             c.getPage().exportLeadingText(c, writer);
         }
         for (Iterator i = getChildIterator(); i.hasNext(); ) {

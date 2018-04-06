@@ -73,7 +73,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     }
     
     private String applyImgStyles(Element e) {
-        StringBuffer style = new StringBuffer();
+        StringBuilder style = new StringBuilder();
         applyFloatingAlign(e, style);
         return style.toString();
     }
@@ -113,7 +113,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     }
     
     private String applyTableCellStyles(Element e) {
-        StringBuffer style = new StringBuffer();
+        StringBuilder style = new StringBuilder();
         String s;
         //check for cellpadding
         Element table = findTable(e);
@@ -164,7 +164,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     }
 
     private String applyTableStyles(Element e) {
-        StringBuffer style = new StringBuffer();
+        StringBuilder style = new StringBuilder();
         String s;
         s = getAttribute(e, "width");
         if (s != null) {
@@ -207,12 +207,12 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     }
     
     private String applyTableRowStyles(Element e) {
-        StringBuffer style = new StringBuffer();
+        StringBuilder style = new StringBuilder();
         applyAlignment(e, style);
         return style.toString();
     }
     
-    private void applyFloatingAlign(Element e, StringBuffer style) {
+    private void applyFloatingAlign(Element e, StringBuilder style) {
         String s;
         s = getAttribute(e, "align");
         if (s != null) {
@@ -227,7 +227,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
         }
     }
     
-    private void applyAlignment(Element e, StringBuffer style) {
+    private void applyAlignment(Element e, StringBuilder style) {
         String s;
         s = getAttribute(e, "align");
         if (s != null) {

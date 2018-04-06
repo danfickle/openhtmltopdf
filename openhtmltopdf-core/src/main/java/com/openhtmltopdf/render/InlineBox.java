@@ -403,7 +403,7 @@ public class InlineBox implements Styleable {
     }
 
     public String toString() {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         result.append("InlineBox: ");
         if (getElement() != null) {
             result.append("<");
@@ -436,7 +436,7 @@ public class InlineBox implements Styleable {
         return result.toString();
     }
 
-    protected void appendPositioningInfo(StringBuffer result) {
+    protected void appendPositioningInfo(StringBuilder result) {
         if (getStyle().isRelative()) {
             result.append("(relative) ");
         }
@@ -455,7 +455,7 @@ public class InlineBox implements Styleable {
         if (_text == null) {
             return null;
         } else {
-            StringBuffer result = new StringBuffer();
+            StringBuilder result = new StringBuilder();
             for (int i = 0; i < _text.length() && i < 40; i++) {
                 char c = _text.charAt(i);
                 if (c == '\n') {

@@ -522,7 +522,7 @@ public class PdfBoxRenderer implements Closeable {
             _outputDevice.finishPage();
             
             if (i != pageCount - 1) {
-                PageBox nextPage = (PageBox) pages.get(i + 1);
+                PageBox nextPage = pages.get(i + 1);
                 Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
                         nextPage.getHeight(c) / _dotsPerPoint);
                 PDPage pageNext = new PDPage(new PDRectangle((float) nextPageSize.getWidth(), (float) nextPageSize.getHeight()));
@@ -569,7 +569,7 @@ public class PdfBoxRenderer implements Closeable {
         doc.setDocumentInformation(info);
     }
 
-    private void paintPage(RenderingContext c, PageBox page) throws IOException {
+    private void paintPage(RenderingContext c, PageBox page) {
         // TODO: provideMetadataToPage(_pdfDoc, page);
 
         page.paintBackground(c, 0, Layer.PAGED_MODE_PRINT);
@@ -646,7 +646,7 @@ public class PdfBoxRenderer implements Closeable {
     }
 
     private String createXPacket(String metadata) {
-        StringBuffer result = new StringBuffer(metadata.length() + 50);
+        StringBuilder result = new StringBuilder(metadata.length() + 50);
         result.append("<?xpacket begin='\uFEFF' id='W5M0MpCehiHzreSzNTczkc9d'?>\n");
         result.append(metadata);
         result.append("\n<?xpacket end='r'?>");
@@ -736,7 +736,7 @@ public class PdfBoxRenderer implements Closeable {
      * Cleanup thread resources. MUST be called after finishing with the renderer.
      */
     @Override
-    public void close() throws IOException {
+    public void close() {
         this.cleanup();
     }
 }

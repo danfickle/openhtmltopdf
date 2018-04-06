@@ -122,7 +122,7 @@ public class BlockBox extends Box implements InlinePaintable {
     }
     
     public String toString() {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String className = getClass().getName();
         result.append(className.substring(className.lastIndexOf('.') + 1));
         result.append(": ");
@@ -168,7 +168,7 @@ public class BlockBox extends Box implements InlinePaintable {
         return result.toString();
     }
 
-    protected void appendPositioningInfo(StringBuffer result) {
+    protected void appendPositioningInfo(StringBuilder result) {
         if (getStyle().isRelative()) {
             result.append("(relative) ");
         }
@@ -184,7 +184,7 @@ public class BlockBox extends Box implements InlinePaintable {
     }
 
     public String dump(LayoutContext c, String indent, int which) {
-        StringBuffer result = new StringBuffer(indent);
+        StringBuilder result = new StringBuilder(indent);
 
         ensureChildren(c);
 
@@ -1053,7 +1053,7 @@ public class BlockBox extends Box implements InlinePaintable {
 
                 noContentLBs = 0;
                 i = cCount-1;
-                while (i >= 0 && ((LineBox)getChild(i)).getAbsY() >= lastPage.getTop()) {
+                while (i >= 0 && getChild(i).getAbsY() >= lastPage.getTop()) {
                     LineBox lB = (LineBox)getChild(i);
                     if (lB.getAbsY() < lastPage.getTop()) {
                         break;
@@ -1394,11 +1394,7 @@ public class BlockBox extends Box implements InlinePaintable {
             Box cb = getContainingBlock();
             if (cb.isStyled() && (cb instanceof BlockBox)) {
                 return ((BlockBox)cb).isAutoHeight();
-            } else if (cb instanceof BlockBox && ((BlockBox)cb).isInitialContainingBlock()) {
-                return false;
-            } else {
-                return true;
-            }
+            } else return !(cb instanceof BlockBox) || !cb.isInitialContainingBlock();
         }
     }
 

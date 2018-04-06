@@ -96,12 +96,9 @@ public class XhtmlForm {
 
     private static boolean isFormField(Element e) {
         String nodeName = e.getNodeName();
-        
-        if (nodeName.equals("input") || nodeName.equals("select") || nodeName.equals("textarea")) {
-            return true;
-        }
-        
-        return false;
+
+        return nodeName.equals("input") || nodeName.equals("select") || nodeName.equals("textarea");
+
     }
 
     public FormField addComponent(Element e, LayoutContext context, BlockBox box) {
@@ -139,43 +136,8 @@ public class XhtmlForm {
             ((FormField) fields.next()).reset();
         }
     }
-
-    public void submit(JComponent source) {
-        // If we don't have a <form> to tell us what to do, don't
-        // do anything.
-        if (_parentFormElement == null) {
-            return;
-        }
-
-        StringBuffer data = new StringBuffer();
-        String action = _parentFormElement.getAttribute("action");
-        data.append(action).append("?");
-        Iterator fields = _componentCache.entrySet().iterator();
-        boolean first=true;
-        while (fields.hasNext()) {
-            Map.Entry entry = (Map.Entry) fields.next();
-
-            FormField field = (FormField) entry.getValue();
-            
-            if (field.includeInSubmission(source)) {
-                String [] dataStrings = field.getFormDataStrings();
-                
-                for (int i = 0; i < dataStrings.length; i++) {
-                    if (!first) {
-                        data.append('&');
-                    }
-    
-                    data.append(dataStrings[i]);
-                    first=false;
-                }
-            }
-        }
-        
-        if(_formSubmissionListener !=null) _formSubmissionListener.submit(data.toString());
-    }
-
     public static String collectText(Element e) {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         Node node = e.getFirstChild();
         if (node != null) {
             do {
@@ -187,6 +149,39 @@ public class XhtmlForm {
             } while ((node = node.getNextSibling()) != null);
         }
         return result.toString().trim();
+    }
+    public void submit(JComponent source) {
+        // If we don't have a <form> to tell us what to do, don't
+        // do anything.
+        if (_parentFormElement == null) {
+            return;
+        }
+
+        StringBuilder data = new StringBuilder();
+        String action = _parentFormElement.getAttribute("action");
+        data.append(action).append("?");
+        Iterator fields = _componentCache.entrySet().iterator();
+        boolean first=true;
+        while (fields.hasNext()) {
+            Map.Entry entry = (Map.Entry) fields.next();
+
+            FormField field = (FormField) entry.getValue();
+
+            if (field.includeInSubmission(source)) {
+                String [] dataStrings = field.getFormDataStrings();
+
+                for (int i = 0; i < dataStrings.length; i++) {
+                    if (!first) {
+                        data.append('&');
+                    }
+
+                    data.append(dataStrings[i]);
+                    first=false;
+                }
+            }
+        }
+
+        if(_formSubmissionListener !=null) _formSubmissionListener.submit(data.toString());
     }
     
     private static class ButtonGroupWrapper {
