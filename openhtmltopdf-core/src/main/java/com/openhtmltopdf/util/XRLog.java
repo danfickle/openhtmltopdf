@@ -33,7 +33,7 @@ import java.util.logging.Level;
  * @author empty
  */
 public class XRLog {
-    private static final List LOGGER_NAMES = new ArrayList(20);
+    private static final List<String> LOGGER_NAMES = new ArrayList<String>(20);
     public final static String CONFIG = registerLoggerByName("com.openhtmltopdf.config");
     public final static String EXCEPTION = registerLoggerByName("com.openhtmltopdf.exception");
     public final static String GENERAL = registerLoggerByName("com.openhtmltopdf.general");
