@@ -78,7 +78,7 @@ public class Matcher {
     }
 
     public CascadedStyle getCascadedStyle(Object e, boolean restyle) {
-        synchronized (e) {
+        //synchronized (e) {
             Mapper em;
             if (!restyle) {
                 em = getMapper(e);
@@ -86,7 +86,7 @@ public class Matcher {
                 em = matchElement(e);
             }
             return em.getCascadedStyle(e);
-        }
+        //}
     }
 
     /**
@@ -94,10 +94,10 @@ public class Matcher {
      * We assume that restyle has already been done by a getCascadedStyle if necessary.
      */
     public CascadedStyle getPECascadedStyle(Object e, String pseudoElement) {
-        synchronized (e) {
+        //synchronized (e) {
             Mapper em = getMapper(e);
             return em.getPECascadedStyle(e, pseudoElement);
-        }
+        //}
     }
     
     public PageInfo getPageCascadedStyle(String pageName, String pseudoPage) {
@@ -142,7 +142,7 @@ public class Matcher {
     }
 
     protected Mapper matchElement(Object e) {
-        synchronized (e) {
+        //synchronized (e) {
             Object parent = _treeRes.getParentElement(e);
             Mapper child;
             if (parent != null) {
@@ -152,7 +152,7 @@ public class Matcher {
                 child = docMapper.mapChild(e);
             }
             return child;
-        }
+        //}
     }
 
     Mapper createDocumentMapper(List<Stylesheet> stylesheets, String medium) {
@@ -275,7 +275,7 @@ public class Matcher {
     }
 
     private com.openhtmltopdf.css.sheet.Ruleset getElementStyle(Object e) {
-        synchronized (e) {
+        //synchronized (e) {
             if (_attRes == null || _styleFactory == null) {
                 return null;
             }
@@ -286,11 +286,11 @@ public class Matcher {
             }
             
             return _styleFactory.parseStyleDeclaration(com.openhtmltopdf.css.sheet.StylesheetInfo.AUTHOR, style);
-        }
+        //}
     }
 
     private com.openhtmltopdf.css.sheet.Ruleset getNonCssStyle(Object e) {
-        synchronized (e) {
+        //synchronized (e) {
             if (_attRes == null || _styleFactory == null) {
                 return null;
             }
@@ -299,7 +299,7 @@ public class Matcher {
                 return null;
             }
             return _styleFactory.parseStyleDeclaration(com.openhtmltopdf.css.sheet.StylesheetInfo.AUTHOR, style);
-        }
+        //}
     }
 
     /**
@@ -398,7 +398,7 @@ public class Matcher {
 
         CascadedStyle getCascadedStyle(Object e) {
             CascadedStyle result;
-            synchronized (e) {
+            //synchronized (e) {
                 CascadedStyle cs = null;
                 com.openhtmltopdf.css.sheet.Ruleset elementStyling = getElementStyle(e);
                 com.openhtmltopdf.css.sheet.Ruleset nonCssStyling = getNonCssStyle(e);
@@ -423,7 +423,7 @@ public class Matcher {
                 }
 
                 result = cs;
-            }
+            //}
             return result;
         }
 
