@@ -147,7 +147,7 @@
 [#macro h4][@hn 4][#nested][/@hn][/#macro]
 
 
-[#list 1..5000 as page]
+[#list 1..100 as page]
 	[@h1]H1 on Page ${page}[/@h1]
 Some nice text, just to fill ${page?c} with something...
 
