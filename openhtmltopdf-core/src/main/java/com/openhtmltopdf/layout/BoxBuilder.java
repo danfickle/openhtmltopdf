@@ -543,11 +543,11 @@ public class BoxBuilder {
      * If not, the table is returned.
      */
     private static BlockBox reorderTableContent(LayoutContext c, TableBox table) {
-        List topCaptions = new LinkedList();
+        List<Box> topCaptions = new ArrayList<Box>();
         Box header = null;
-        List bodies = new LinkedList();
+        List<Box> bodies = new ArrayList<Box>();
         Box footer = null;
-        List bottomCaptions = new LinkedList();
+        List<Box> bottomCaptions = new ArrayList<Box>();
 
         for (Iterator i = table.getChildIterator(); i.hasNext();) {
             Box b = (Box) i.next();
@@ -1357,8 +1357,8 @@ public class BoxBuilder {
             SharedContext c, Box parent, List children, boolean layoutRunningBlocks) {
         List inline = new ArrayList();
 
-        LinkedList parents = new LinkedList();
-        List savedParents = null;
+        LinkedList<InlineBox> parents = new LinkedList<InlineBox>();
+        List<InlineBox> savedParents = null;
 
         for (Iterator i = children.iterator(); i.hasNext();) {
             Styleable child = (Styleable) i.next();
@@ -1379,7 +1379,7 @@ public class BoxBuilder {
                 if (inline.size() > 0) {
                     createAnonymousBlock(c, parent, inline, savedParents);
                     inline = new ArrayList();
-                    savedParents = new ArrayList(parents);
+                    savedParents = new ArrayList<InlineBox>(parents);
                 }
                 parent.addChild((Box) child);
             }

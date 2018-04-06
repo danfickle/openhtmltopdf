@@ -83,7 +83,7 @@ public class BlockBox extends Box implements InlinePaintable {
 
     private int _childrenContentType;
 
-    private List _inlineContent;
+    private List<Styleable> _inlineContent;
 
     private boolean _topMarginCalculated;
     private boolean _bottomMarginCalculated;
@@ -1089,15 +1089,14 @@ public class BlockBox extends Box implements InlinePaintable {
         _childrenContentType = contentType;
     }
 
-    public List getInlineContent() {
+    public List<Styleable> getInlineContent() {
         return _inlineContent;
     }
 
-    public void setInlineContent(List inlineContent) {
+    public void setInlineContent(List<Styleable> inlineContent) {
         _inlineContent = inlineContent;
         if (inlineContent != null) {
-            for (Iterator i = inlineContent.iterator(); i.hasNext();) {
-                Styleable child = (Styleable) i.next();
+            for (Styleable child : inlineContent) {
                 if (child instanceof Box) {
                     ((Box) child).setContainingBlock(this);
                 }
@@ -1652,9 +1651,7 @@ public class BlockBox extends Box implements InlinePaintable {
 
         InlineBox trimmableIB = null;
 
-        for (Iterator i = _inlineContent.iterator(); i.hasNext();) {
-            Styleable child = (Styleable) i.next();
-
+        for (Styleable child : _inlineContent) {
             if (child.getStyle().isAbsolute() || child.getStyle().isFixed() || child.getStyle().isRunning()) {
                 continue;
             }
@@ -1778,10 +1775,10 @@ public class BlockBox extends Box implements InlinePaintable {
     // FIXME Should be expanded into generic restyle facility
     public void styleText(LayoutContext c, CalculatedStyle style) {
         if (getChildrenContentType() == CONTENT_INLINE) {
-            LinkedList styles = new LinkedList();
+            LinkedList<CalculatedStyle> styles = new LinkedList<CalculatedStyle>();
             styles.add(style);
-            for (Iterator i = _inlineContent.iterator(); i.hasNext();) {
-                Styleable child = (Styleable) i.next();
+            for (Object a_inlineContent : _inlineContent) {
+                Styleable child = (Styleable) a_inlineContent;
                 if (child instanceof InlineBox) {
                     InlineBox iB = (InlineBox) child;
 
@@ -1794,13 +1791,13 @@ public class BlockBox extends Box implements InlinePaintable {
                                 cs = c.getCss().getPseudoElementStyle(
                                         iB.getElement(), iB.getPseudoElementOrClass());
                             }
-                            styles.add(((CalculatedStyle) styles.getLast()).deriveStyle(cs));
+                            styles.add(styles.getLast().deriveStyle(cs));
                         } else {
                             styles.add(style.createAnonymousStyle(IdentValue.INLINE));
                         }
                     }
 
-                    iB.setStyle(((CalculatedStyle) styles.getLast()));
+                    iB.setStyle(styles.getLast());
                     iB.applyTextTransform();
 
                     if (iB.isEndsHere()) {

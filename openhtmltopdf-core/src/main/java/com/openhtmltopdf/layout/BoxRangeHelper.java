@@ -27,7 +27,7 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.XRRuntimeException;
 
 public class BoxRangeHelper {
-    private LinkedList _clipRegionStack = new LinkedList();
+    private LinkedList<BoxRangeData> _clipRegionStack = new LinkedList<BoxRangeData>();
     
     private OutputDevice _outputDevice;
     private List _rangeList;
@@ -67,7 +67,7 @@ public class BoxRangeHelper {
     
     public void popClipRegions(RenderingContext c, int contentIndex) {
         while (_clipRegionStack.size() > 0) {
-            BoxRangeData data = (BoxRangeData)_clipRegionStack.getLast();
+            BoxRangeData data = _clipRegionStack.getLast();
             if (data.getRange().getEnd() == contentIndex) {
                 _outputDevice.setClip(data.getClip());
                 _clipRegionStack.removeLast();

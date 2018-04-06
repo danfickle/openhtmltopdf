@@ -42,9 +42,9 @@ public class XhtmlForm {
         _method = method;
     }
 
-    protected List _controls = new LinkedList();
+    protected List<FormControl> _controls = new ArrayList<FormControl>();
 
-    private List _listeners = new ArrayList();
+    private List<FormListener> _listeners = new ArrayList<FormListener>();
 
     public void addFormListener(FormListener listener) {
         _listeners.add(listener);
@@ -55,8 +55,7 @@ public class XhtmlForm {
     }
 
     public FormControl getControl(String name) {
-        for (Iterator iter = _controls.iterator(); iter.hasNext();) {
-            FormControl control = (FormControl) iter.next();
+        for (FormControl control : _controls) {
             if (control.getName().equals(name)) {
                 return control;
             }
@@ -64,10 +63,9 @@ public class XhtmlForm {
         return null;
     }
 
-    public List getAllControls(String name) {
-        List result = new ArrayList();
-        for (Iterator iter = _controls.iterator(); iter.hasNext();) {
-            FormControl control = (FormControl) iter.next();
+    public List<FormControl> getAllControls(String name) {
+        List<FormControl> result = new ArrayList<FormControl>();
+        for (FormControl control : _controls) {
             if (control.getName().equals(name)) {
                 result.add(control);
             }
@@ -75,7 +73,7 @@ public class XhtmlForm {
         return result;
     }
 
-    public Iterator getControls() {
+    public Iterator<FormControl> getControls() {
         return _controls.iterator();
     }
 
@@ -120,8 +118,8 @@ public class XhtmlForm {
     }
 
     public void reset() {
-        for (Iterator iter = _listeners.iterator(); iter.hasNext();) {
-            ((FormListener) iter.next()).resetted(this);
+        for (FormListener _listener : _listeners) {
+            (_listener).resetted(this);
         }
     }
 
@@ -133,13 +131,13 @@ public class XhtmlForm {
             if (control.isSuccessful()) {
                 if (control.isMultiple()) {
                     String[] values = control.getMultipleValues();
-                    for (int i = 0; i < values.length; i++) {
+                    for (String value : values) {
                         if (data.length() > 0) {
                             data.append('&');
                         }
                         data.append(URLUTF8Encoder.encode(control.getName()));
                         data.append('=');
-                        data.append(URLUTF8Encoder.encode(values[i]));
+                        data.append(URLUTF8Encoder.encode(value));
                     }
                 } else {
                     if (data.length() > 0) {
@@ -158,8 +156,8 @@ public class XhtmlForm {
         System.out.println("Method: ".concat(_method));
         System.out.println("Data: ".concat(data.toString()));
 
-        for (Iterator iter = _listeners.iterator(); iter.hasNext();) {
-            ((FormListener) iter.next()).submitted(this);
+        for (FormListener _listener : _listeners) {
+            (_listener).submitted(this);
         }
     }
 

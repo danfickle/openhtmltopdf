@@ -237,8 +237,8 @@ public class StyleReference {
      *
      * @return The stylesheets value
      */
-    private List getStylesheets() {
-        List infos = new LinkedList();
+    private List<StylesheetInfo> getStylesheets() {
+        List<StylesheetInfo> infos = new ArrayList<StylesheetInfo>();
         long st = System.currentTimeMillis();
 
         StylesheetInfo defaultStylesheet = _nsh.getDefaultStylesheet(_stylesheetFactory);
@@ -249,22 +249,22 @@ public class StyleReference {
         StylesheetInfo[] refs = _nsh.getStylesheets(_doc);
         int inlineStyleCount = 0;
         if (refs != null) {
-            for (int i = 0; i < refs.length; i++) {
+            for (StylesheetInfo ref : refs) {
                 String uri;
-                
-                if (! refs[i].isInline()) {
-                    uri = _uac.resolveURI(refs[i].getUri());
-                    refs[i].setUri(uri);
+
+                if (!ref.isInline()) {
+                    uri = _uac.resolveURI(ref.getUri());
+                    ref.setUri(uri);
                 } else {
-                    refs[i].setUri(_uac.getBaseURL() + "#inline_style_" + (++inlineStyleCount));
+                    ref.setUri(_uac.getBaseURL() + "#inline_style_" + (++inlineStyleCount));
                     Stylesheet sheet = _stylesheetFactory.parse(
-                            new StringReader(refs[i].getContent()), refs[i]);
-                    refs[i].setStylesheet(sheet);
-                    refs[i].setUri(null);
+                            new StringReader(ref.getContent()), ref);
+                    ref.setStylesheet(sheet);
+                    ref.setUri(null);
                 }
             }
+            infos.addAll(Arrays.asList(refs));
         }
-        infos.addAll(Arrays.asList(refs));
 
         // TODO: here we should also get user stylesheet from userAgent
 
