@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.openhtmltopdf.css.constants.MarginBoxName;
-import javafx.beans.property.Property;
 
 public class PageRule implements RulesetContainer {
     private String _name;
