@@ -49,7 +49,7 @@ public class Ruleset {
      *
      * @return The propertyDeclarations value
      */
-    public List getPropertyDeclarations() {
+    public List<PropertyDeclaration>  getPropertyDeclarations() {
         return Collections.unmodifiableList(_props);
     }
 
@@ -65,7 +65,7 @@ public class Ruleset {
         _fsSelectors.add(selector);
     }
     
-    public List getFSSelectors() {
+    public List<Selector> getFSSelectors() {
         return _fsSelectors;
     }
     

@@ -33,16 +33,16 @@ import com.openhtmltopdf.css.sheet.StylesheetInfo;
 public class PageInfo {
     private final List _properties;
     private final CascadedStyle _pageStyle;
-    private final Map _marginBoxes;
+    private final Map<MarginBoxName, List<PropertyDeclaration>> _marginBoxes;
     
     private final List _xmpPropertyList;
     
-    public PageInfo(List properties, CascadedStyle pageStyle, Map marginBoxes) {
+    public PageInfo(List properties, CascadedStyle pageStyle, Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes) {
         _properties = properties;
         _pageStyle = pageStyle;
         _marginBoxes = marginBoxes;
         
-        _xmpPropertyList = (List)marginBoxes.remove(MarginBoxName.FS_PDF_XMP_METADATA);
+        _xmpPropertyList = marginBoxes.remove(MarginBoxName.FS_PDF_XMP_METADATA);
     }
 
     public Map getMarginBoxes() {
