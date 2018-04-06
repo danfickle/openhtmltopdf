@@ -1,5 +1,12 @@
 package com.openhtmltopdf.freemarker;
 
+import java.io.*;
+import java.net.URL;
+import java.util.Locale;
+
+import org.apache.pdfbox.io.MemoryUsageSetting;
+import org.apache.pdfbox.pdmodel.PDDocument;
+
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
@@ -9,14 +16,9 @@ import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.swing.NaiveUserAgent.DefaultUriResolver;
+
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.*;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.net.URL;
-import java.util.Locale;
 
 public class FreeMarkerGenerator {
 	private Configuration cfg;
@@ -59,15 +61,40 @@ public class FreeMarkerGenerator {
 		return stringWriter.toString();
 	}
 
-	public byte[] generatePDF(String html) throws IOException {
+	public void generateHTMLToFile(String templateName, Locale locale, FreemarkerRootObject object, File htmlFile)
+			throws IOException, TemplateException {
+		FileOutputStream output = new FileOutputStream(htmlFile);
+		Writer fw = new OutputStreamWriter(output, "UTF-8");
+		cfg.getTemplate(templateName, locale, "UTF-8").process(object, fw);
+		fw.close();
+		output.close();
+	}
+	public byte[] generatePDF(final String html) throws IOException {
+		return generatePDF(new ICallableWithPdfBuilder() {
+			@Override
+			public void apply(PdfRendererBuilder builder) {
+
+				builder.withHtmlContent(html, "/freemarker");
+			}
+		});
+	}
+	public byte[] generatePDF(final File htmlFile) throws IOException {
+		return generatePDF(new ICallableWithPdfBuilder() {
+			@Override
+			public void apply(PdfRendererBuilder builder) {
+				builder.withFile(htmlFile);
+			}
+		});
+	}
+	private byte[] generatePDF(ICallableWithPdfBuilder callWithBuilder) throws IOException {
 		PdfRendererBuilder builder = new PdfRendererBuilder();
 		builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
 		builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
 		builder.defaultTextDirection(PdfRendererBuilder.TextDirection.LTR);
-		builder.withHtmlContent(html, "/freemarker");
 		builder.useSVGDrawer(new BatikSVGDrawer());
 		builder.useMathMLDrawer(new MathMLDrawer());
 		builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+		builder.usePDDocument(new PDDocument(MemoryUsageSetting.setupMixed(1000000)));
 		builder.useUriResolver(new DefaultUriResolver() {
 			@Override
 			public String resolveURI(String baseUri, String uri) {
@@ -87,6 +114,8 @@ public class FreeMarkerGenerator {
 		builder.useObjectDrawerFactory(objectDrawerFactory);
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		builder.toStream(outputStream);
+		callWithBuilder.apply(builder);
+
 		PdfBoxRenderer pdfBoxRenderer = builder.buildPdfRenderer();
 		try {
 			pdfBoxRenderer.layout();
@@ -96,5 +125,9 @@ public class FreeMarkerGenerator {
 		}
 		outputStream.close();
 		return outputStream.toByteArray();
+	}
+
+	interface ICallableWithPdfBuilder {
+		void apply(PdfRendererBuilder builder);
 	}
 }
