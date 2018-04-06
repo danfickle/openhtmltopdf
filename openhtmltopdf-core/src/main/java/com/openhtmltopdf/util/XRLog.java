@@ -55,7 +55,7 @@ public class XRLog {
     private static boolean initPending = true;
     private static XRLogger loggerImpl;
 
-    private static Boolean loggingEnabled;
+    private static volatile Boolean loggingEnabled;
 
     /**
      * Returns a list of all loggers that will be accessed by XRLog. Each entry is a String with a logger
@@ -64,9 +64,9 @@ public class XRLog {
      *
      * @return List of loggers, never null.
      */
-    public static List listRegisteredLoggers() {
+    public static List<String> listRegisteredLoggers() {
         // defensive copy
-        return new ArrayList(LOGGER_NAMES);
+        return new ArrayList<String>(LOGGER_NAMES);
     }
 
 
@@ -270,8 +270,8 @@ public class XRLog {
      * to configuration file property xr.util-logging.loggingEnabled, or to
      * value passed to setLoggingEnabled(bool).
      */
-    public static synchronized boolean isLoggingEnabled() {
-        return loggingEnabled;
+    public static boolean isLoggingEnabled() {
+        return loggingEnabled == true;
     }
 
     /**
@@ -281,7 +281,7 @@ public class XRLog {
      * if false, all logging calls fail silently. Corresponds
      * to configuration file property xr.util-logging.loggingEnabled
      */
-    public static synchronized void setLoggingEnabled(boolean loggingEnabled) {
+    public static void setLoggingEnabled(boolean loggingEnabled) {
         XRLog.loggingEnabled = loggingEnabled;
     }
 
