@@ -69,15 +69,16 @@ public class FreeMarkerGenerator {
 		fw.close();
 		output.close();
 	}
+
 	public byte[] generatePDF(final String html) throws IOException {
 		return generatePDF(new ICallableWithPdfBuilder() {
 			@Override
 			public void apply(PdfRendererBuilder builder) {
-
 				builder.withHtmlContent(html, "/freemarker");
 			}
 		});
 	}
+
 	public byte[] generatePDF(final File htmlFile) throws IOException {
 		return generatePDF(new ICallableWithPdfBuilder() {
 			@Override
@@ -86,6 +87,7 @@ public class FreeMarkerGenerator {
 			}
 		});
 	}
+
 	private byte[] generatePDF(ICallableWithPdfBuilder callWithBuilder) throws IOException {
 		PdfRendererBuilder builder = new PdfRendererBuilder();
 		builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
