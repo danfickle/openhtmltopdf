@@ -45,7 +45,7 @@ import com.openhtmltopdf.util.XRLog;
  */
 public class Matcher {
 
-    Mapper docMapper;
+    private Mapper docMapper;
     private com.openhtmltopdf.css.extend.AttributeResolver _attRes;
     private com.openhtmltopdf.css.extend.TreeResolver _treeRes;
     private com.openhtmltopdf.css.extend.StylesheetFactory _styleFactory;
@@ -53,10 +53,10 @@ public class Matcher {
     private java.util.Map<Object, Mapper> _map;
 
     //handle dynamic
-    private Set _hoverElements;
-    private Set _activeElements;
-    private Set _focusElements;
-    private Set _visitElements;
+    private Set<Object> _hoverElements;
+    private Set<Object> _activeElements;
+    private Set<Object> _focusElements;
+    private Set<Object> _visitElements;
     
     private List<PageRule> _pageRules;
     private List<FontFaceRule> _fontFaceRules;
@@ -212,10 +212,10 @@ public class Matcher {
 
     private void newMaps() {
         _map = new java.util.HashMap<Object, Mapper>();
-        _hoverElements = new java.util.HashSet();
-        _activeElements = new java.util.HashSet();
-        _focusElements = new java.util.HashSet();
-        _visitElements = new java.util.HashSet();
+        _hoverElements = new java.util.HashSet<Object>();
+        _activeElements = new java.util.HashSet<Object>();
+        _focusElements = new java.util.HashSet<Object>();
+        _visitElements = new java.util.HashSet<Object>();
     }
 
     private Mapper getMapper(Object e) {
@@ -310,13 +310,12 @@ public class Matcher {
      */
     class Mapper {
         java.util.List axes;
-        private HashMap pseudoSelectors;
-        private List mappedSelectors;
-        private HashMap children;
+        private HashMap<String,List<Selector>> pseudoSelectors;
+        private List<Selector> mappedSelectors;
+        private Map<String,Mapper> children;
 
-        Mapper(java.util.Collection selectors) {
-            axes = new java.util.ArrayList(selectors.size());
-            axes.addAll(selectors);
+        Mapper(java.util.Collection<Selector> selectors) {
+            axes = new java.util.ArrayList<Selector>(selectors);
         }
 
         private Mapper() {
@@ -331,12 +330,12 @@ public class Matcher {
          */
         Mapper mapChild(Object e) {
             //Mapper childMapper = new Mapper();
-            java.util.List childAxes = new ArrayList(axes.size() + 10);
-            java.util.HashMap pseudoSelectors = new java.util.HashMap();
-            java.util.List mappedSelectors = new java.util.LinkedList();
+            java.util.List<Selector> childAxes = new ArrayList<Selector>(axes.size() + 10);
+            java.util.HashMap<String,List<Selector>> pseudoSelectors = new java.util.HashMap<String,List<Selector>>();
+            java.util.List<Selector> mappedSelectors = new java.util.ArrayList<Selector>();
             StringBuilder key = new StringBuilder();
-            for (int i = 0, size = axes.size(); i < size; i++) {
-                Selector sel = (Selector) axes.get(i);
+            for (Object axe : axes) {
+                Selector sel = (Selector) axe;
                 if (sel.getAxis() == Selector.DESCENDANT_AXIS) {
                     //carry it forward to other descendants
                     childAxes.add(sel);
@@ -349,9 +348,9 @@ public class Matcher {
                 //Assumption: if it is a pseudo-element, it does not also have dynamic pseudo-class
                 String pseudoElement = sel.getPseudoElement();
                 if (pseudoElement != null) {
-                    java.util.List l = (java.util.List) pseudoSelectors.get(pseudoElement);
+                    List<Selector> l = pseudoSelectors.get(pseudoElement);
                     if (l == null) {
-                        l = new java.util.LinkedList();
+                        l = new ArrayList<Selector>();
                         pseudoSelectors.put(pseudoElement, l);
                     }
                     l.add(sel);
@@ -383,8 +382,8 @@ public class Matcher {
                     childAxes.add(chain);
                 }
             }
-            if (children == null) children = new HashMap();
-            Mapper childMapper = (Mapper) children.get(key.toString());
+            if (children == null) children = new HashMap<String,Mapper>();
+            Mapper childMapper = children.get(key.toString());
             if (childMapper == null) {
                 childMapper = new Mapper();
                 childMapper.axes = childAxes;
@@ -402,7 +401,7 @@ public class Matcher {
                 CascadedStyle cs = null;
                 com.openhtmltopdf.css.sheet.Ruleset elementStyling = getElementStyle(e);
                 com.openhtmltopdf.css.sheet.Ruleset nonCssStyling = getNonCssStyle(e);
-                List propList = new LinkedList();
+                List<PropertyDeclaration> propList = new ArrayList<PropertyDeclaration>();
                 //specificity 0,0,0,0
                 if (nonCssStyling != null) {
                     propList.addAll(nonCssStyling.getPropertyDeclarations());
@@ -432,15 +431,15 @@ public class Matcher {
          * We assume that restyle has already been done by a getCascadedStyle if necessary.
          */
         public CascadedStyle getPECascadedStyle(Object e, String pseudoElement) {
-            java.util.Iterator si = pseudoSelectors.entrySet().iterator();
+            java.util.Iterator<Map.Entry<String,List<Selector>>> si = pseudoSelectors.entrySet().iterator();
             if (!si.hasNext()) {
                 return null;
             }
             CascadedStyle cs = null;
-            java.util.List pe = (java.util.List) pseudoSelectors.get(pseudoElement);
+            java.util.List<Selector> pe = pseudoSelectors.get(pseudoElement);
             if (pe == null) return null;
 
-            java.util.List propList = new java.util.LinkedList();
+            java.util.List<PropertyDeclaration> propList = new java.util.ArrayList<PropertyDeclaration>();
             for (java.util.Iterator i = getSelectedRulesets(pe); i.hasNext();) {
                 com.openhtmltopdf.css.sheet.Ruleset rs = (com.openhtmltopdf.css.sheet.Ruleset) i.next();
                 propList.addAll(rs.getPropertyDeclarations());
