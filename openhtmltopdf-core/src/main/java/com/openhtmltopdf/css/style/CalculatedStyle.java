@@ -603,9 +603,7 @@ public class CalculatedStyle {
             return;
         }//nothing to derive
 
-        Iterator mProps = matched.getCascadedPropertyDeclarations();
-        while (mProps.hasNext()) {
-            PropertyDeclaration pd = (PropertyDeclaration) mProps.next();
+		for (PropertyDeclaration pd : matched.getCascadedPropertyDeclarations()) {
             FSDerivedValue val = deriveValue(pd.getCSSName(), pd.getValue());
             _derivedValuesById[pd.getCSSName().FS_ID] = val;
         }

@@ -163,12 +163,10 @@ public class StyleReference {
      * @param e The DOM Element for which to find properties
      * @return Map of CSS property names to CSSValue instance assigned to it.
      */
-    public java.util.Map getCascadedPropertiesMap(Element e) {
+	public java.util.Map<String, org.w3c.dom.css.CSSPrimitiveValue> getCascadedPropertiesMap(Element e) {
         CascadedStyle cs = _matcher.getCascadedStyle(e, false);//this is only for debug, I think
-        java.util.LinkedHashMap props = new java.util.LinkedHashMap();
-        for (java.util.Iterator i = cs.getCascadedPropertyDeclarations(); i.hasNext();) {
-            PropertyDeclaration pd = (PropertyDeclaration) i.next();
-
+		java.util.Map<String, org.w3c.dom.css.CSSPrimitiveValue> props = new java.util.LinkedHashMap<String, org.w3c.dom.css.CSSPrimitiveValue>();
+		for (PropertyDeclaration pd : cs.getCascadedPropertyDeclarations()) {
             String propName = pd.getPropertyName();
             CSSName cssName = CSSName.getByPropertyName(propName);
             props.put(propName, cs.propertyByName(cssName).getValue());

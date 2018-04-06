@@ -60,21 +60,26 @@ public class CascadedStyle {
     /**
      * Map of PropertyDeclarations, keyed by {@link CSSName}
      */
-    private Map cascadedProperties;
+	private Map<CSSName, PropertyDeclaration> cascadedProperties;
     
     private String fingerprint;
     
     /**
-     * Creates a <code>CascadedStyle</code>, setting the display property to
-     * to the value of the <code>display</code> parameter.  
+     * Constructs a new CascadedStyle, given an {@link java.util.Iterator} of
+     * {@link com.openhtmltopdf.css.sheet.PropertyDeclaration}s already sorted
+     * by specificity of the CSS selector they came from. The Iterator can have
+     * multiple PropertyDeclarations with the same name; the property cascade
+     * will be resolved during instantiation, resulting in a set of
+     * PropertyDeclarations. Once instantiated, properties may be retrieved
+     * using the normal API for the class.
+     *
+     * @param iter An Iterator containing PropertyDeclarations in order of
+     *             specificity.
      */
-    public static CascadedStyle createAnonymousStyle(IdentValue display) {
-        CSSPrimitiveValue val = new PropertyValue(display);
-        
-        List props = Collections.singletonList(
-                new PropertyDeclaration(CSSName.DISPLAY, val, true, StylesheetInfo.USER));
-        
-        return new CascadedStyle(props.iterator());
+    CascadedStyle(java.util.Iterator<PropertyDeclaration> iter) {
+        this();
+
+        addProperties(iter);
     }
     
     /**
@@ -118,51 +123,11 @@ public class CascadedStyle {
         return new PropertyDeclaration(cssName, val, true, StylesheetInfo.USER);
     }
 
-    /**
-     * Constructs a new CascadedStyle, given an {@link java.util.Iterator} of
-     * {@link com.openhtmltopdf.css.sheet.PropertyDeclaration}s already sorted
-     * by specificity of the CSS selector they came from. The Iterator can have
-     * multiple PropertyDeclarations with the same name; the property cascade
-     * will be resolved during instantiation, resulting in a set of
-     * PropertyDeclarations. Once instantiated, properties may be retrieved
-     * using the normal API for the class.
-     *
-     * @param iter An Iterator containing PropertyDeclarations in order of
-     *             specificity.
-     */
-    CascadedStyle(java.util.Iterator iter) {
-        this();
+    private CascadedStyle(CascadedStyle startingPoint, Iterator<PropertyDeclaration> props) {
+        cascadedProperties = new TreeMap<CSSName, PropertyDeclaration>(startingPoint.cascadedProperties);
 
-        addProperties(iter);
-    }
-
-    private void addProperties(java.util.Iterator iter) {
-        //do a bucket-sort on importance and origin
-        //properties should already be in order of specificity
-        java.util.List[] buckets = new java.util.List[PropertyDeclaration.IMPORTANCE_AND_ORIGIN_COUNT];
-        for (int i = 0; i < buckets.length; i++) {
-            buckets[i] = new java.util.LinkedList();
-        }
-
-        while (iter.hasNext()) {
-            PropertyDeclaration prop = (PropertyDeclaration) iter.next();
-            buckets[prop.getImportanceAndOrigin()].add(prop);
-        }
-
-        for (int i = 0; i < buckets.length; i++) {
-            for (java.util.Iterator it = buckets[i].iterator(); it.hasNext();) {
-                PropertyDeclaration prop = (PropertyDeclaration) it.next();
-                cascadedProperties.put(prop.getCSSName(), prop);
-            }
-        }
-    }
-    
-    private CascadedStyle(CascadedStyle startingPoint, Iterator props) {
-        cascadedProperties = new TreeMap(startingPoint.cascadedProperties);
-        
         addProperties(props);
     }
-
 
     /**
      * Default constructor with no initialization. Don't use this to instantiate
@@ -170,7 +135,46 @@ public class CascadedStyle {
      * properties.
      */
     private CascadedStyle() {
-        cascadedProperties = new TreeMap();
+        cascadedProperties = new TreeMap<CSSName, PropertyDeclaration>();
+    }
+    /**
+     * Creates a <code>CascadedStyle</code>, setting the display property to
+     * to the value of the <code>display</code> parameter.
+     */
+    public static CascadedStyle createAnonymousStyle(IdentValue display) {
+        CSSPrimitiveValue val = new PropertyValue(display);
+
+        List<PropertyDeclaration> props = Collections.singletonList(
+                new PropertyDeclaration(CSSName.DISPLAY, val, true, StylesheetInfo.USER));
+
+        return new CascadedStyle(props.iterator());
+    }
+
+    private void addProperties(java.util.Iterator<PropertyDeclaration> iter) {
+		/*
+		 * do a bucket-sort on importance and origin /properties should already be in
+		 * order of specificity
+		 */
+        //noinspection unchecked
+        java.util.List<PropertyDeclaration>[] buckets =  (java.util.List<PropertyDeclaration>[])new java.util.List[PropertyDeclaration.IMPORTANCE_AND_ORIGIN_COUNT];
+
+        while (iter.hasNext()) {
+            PropertyDeclaration prop = iter.next();
+            List<PropertyDeclaration> bucket = buckets[prop.getImportanceAndOrigin()];
+			if (bucket == null) {
+				bucket = new ArrayList<PropertyDeclaration>();
+				buckets[prop.getImportanceAndOrigin()]  = bucket;
+			}
+            bucket.add(prop);
+        }
+
+        for (List<PropertyDeclaration> bucket : buckets) {
+			if (bucket == null)
+				continue;
+            for (PropertyDeclaration prop : bucket) {
+                cascadedProperties.put(prop.getCSSName(), prop);
+            }
+        }
     }
 
     /**
@@ -186,10 +190,8 @@ public class CascadedStyle {
      * @return True if the property is defined in this set.
      */
     public boolean hasProperty(CSSName cssName) {
-        return cascadedProperties.get( cssName ) != null;
+		return cascadedProperties.get(cssName) != null;
     }
-
-
     /**
      * Returns a {@link com.openhtmltopdf.css.sheet.PropertyDeclaration} by CSS
      * property name, e.g. "font-family". Properties are already cascaded during
@@ -201,9 +203,7 @@ public class CascadedStyle {
      *         if not found.
      */
     public PropertyDeclaration propertyByName(CSSName cssName) {
-        PropertyDeclaration prop = (PropertyDeclaration)cascadedProperties.get(cssName);
-
-        return prop;
+        return cascadedProperties.get(cssName);
     }
 
     /**
@@ -227,13 +227,8 @@ public class CascadedStyle {
      *
      * @return Iterator over a set of properly cascaded PropertyDeclarations.
      */
-    public java.util.Iterator getCascadedPropertyDeclarations() {
-        List list = new ArrayList(cascadedProperties.size());
-        Iterator iter = cascadedProperties.values().iterator();
-        while ( iter.hasNext()) {
-            list.add(iter.next());
-        }
-        return list.iterator();
+    public java.util.Collection<PropertyDeclaration> getCascadedPropertyDeclarations() {
+        return cascadedProperties.values();
     }
 
     public int countAssigned() { return cascadedProperties.size(); }
@@ -241,8 +236,8 @@ public class CascadedStyle {
     public String getFingerprint() {
         if (this.fingerprint == null) {
             StringBuilder sb = new StringBuilder();
-            for (Object o : cascadedProperties.values()) {
-                sb.append(((PropertyDeclaration) o).getFingerprint());
+            for (PropertyDeclaration o : cascadedProperties.values()) {
+                sb.append(o.getFingerprint());
             }
             this.fingerprint = sb.toString();
         }

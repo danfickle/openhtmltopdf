@@ -57,7 +57,7 @@ public class Matcher {
     private Set _focusElements;
     private Set _visitElements;
     
-    private List _pageRules;
+    private List<PageRule> _pageRules;
     private List<FontFaceRule> _fontFaceRules;
     
     public Matcher(
@@ -67,7 +67,7 @@ public class Matcher {
         _attRes = ar;
         _styleFactory = factory;
         
-        _pageRules = new ArrayList();
+        _pageRules = new ArrayList<PageRule>();
         _fontFaceRules = new ArrayList<FontFaceRule>();
         docMapper = createDocumentMapper(stylesheets, medium);
     }
@@ -103,9 +103,7 @@ public class Matcher {
         List props = new ArrayList();
         Map marginBoxes = new HashMap();
 
-        for (Iterator i = _pageRules.iterator(); i.hasNext(); ) {
-            PageRule pageRule = (PageRule)i.next();
-            
+        for (PageRule pageRule : _pageRules) {
             if (pageRule.applies(pageName, pseudoPage)) {
                 props.addAll(pageRule.getRuleset().getPropertyDeclarations());
                 marginBoxes.putAll(pageRule.getMarginBoxes());
@@ -169,7 +167,7 @@ public class Matcher {
         for (Iterator i = stylesheets.iterator(); i.hasNext(); ) {
             Stylesheet stylesheet = (Stylesheet)i.next();
             for (Iterator j = stylesheet.getContents().iterator(); j.hasNext(); ) {
-                Object obj = (Object)j.next();
+                Object obj = j.next();
                 if (obj instanceof Ruleset) {
                     for (Iterator k = ((Ruleset)obj).getFSSelectors().iterator(); k.hasNext(); ) {
                         Selector selector = (Selector)k.next();
@@ -178,7 +176,7 @@ public class Matcher {
                     }
                 } else if (obj instanceof PageRule) {
                     ((PageRule)obj).setPos(++pCount);
-                    _pageRules.add(obj);
+                    _pageRules.add((PageRule) obj);
                 } else if (obj instanceof MediaRule) {
                     MediaRule mediaRule = (MediaRule)obj;
                     if (mediaRule.matches(medium)) {
