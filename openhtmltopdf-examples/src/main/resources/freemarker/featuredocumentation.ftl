@@ -188,13 +188,13 @@ Example:
 
 [@h2]Pixelated Images[/@h2]
 
-OpenHTMLToPdf supports the standart "image-rendering" CSS property:
+OpenHTMLToPdf supports the standard "image-rendering" CSS property:
 
 [@htmlCodeAndExec]
 This image is interpolated and blured:
 	<img src="../images/go-home.png"
 		 style="width:64px;height:64px;" />
-And this one is not interpolated and crips:
+And this one is not interpolated and crisp:
 	<img src="../images/go-home.png"
 		 style="width:64px;height:64px;image-rendering: pixelated" />
 [/@htmlCodeAndExec]
