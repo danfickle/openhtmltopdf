@@ -40,6 +40,7 @@ import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
+import org.apache.pdfbox.cos.COSInputStream;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -70,6 +71,7 @@ import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
@@ -932,10 +934,32 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         img.setXObject(xobject);
     }
 
-    public void drawImage(FSImage fsImage, int x, int y) {
+    public void drawImage(FSImage fsImage, int x, int y, boolean interpolate) {
         PdfBoxImage img = (PdfBoxImage) fsImage;
 
         PDImageXObject xobject = img.getXObject();
+		if (interpolate) {
+			xobject.setInterpolate(true);
+		} else {
+			/*
+			 * Specialcase for not interpolating an image, default is to always interpolate.
+			 * We must copy the image
+			 */
+			try {
+				InputStream inputStream = xobject.getStream().getCOSObject().createRawInputStream();
+				PDImageXObject cloneImage = new PDImageXObject(_writer, inputStream, COSName.FLATE_DECODE,
+						xobject.getWidth(), xobject.getHeight(), xobject.getBitsPerComponent(),
+						xobject.getColorSpace());
+				cloneImage.setInterpolate(false);
+				if (xobject.getSoftMask() != null)
+					cloneImage.getCOSObject().setItem(COSName.SMASK, xobject.getSoftMask());
+				inputStream.close();
+				xobject = cloneImage;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+        
 
         AffineTransform transformer = (AffineTransform) getTransform().clone();
         transformer.translate(x, y);

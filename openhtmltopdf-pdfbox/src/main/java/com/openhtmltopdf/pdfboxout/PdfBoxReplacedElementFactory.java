@@ -98,7 +98,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                             fsImage.scale(cssWidth, cssHeight);
                         }
                     }
-                    return new PdfBoxImageElement(e,fsImage,c.getSharedContext());
+                    return new PdfBoxImageElement(e,fsImage,c.getSharedContext(), box.getStyle().isImageRenderingInterpolate());
                 }
             }
         } else if (nodeName.equals("input")) {

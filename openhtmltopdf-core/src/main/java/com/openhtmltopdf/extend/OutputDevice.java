@@ -78,7 +78,7 @@ public interface OutputDevice {
     
     public void drawBorderLine(Shape bounds, int side, int width, boolean solid);
     
-    public void drawImage(FSImage image, int x, int y);
+    public void drawImage(FSImage image, int x, int y, boolean interpolate);
 
     public void draw(Shape s);
     public void fill(Shape s);

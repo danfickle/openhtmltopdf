@@ -242,6 +242,12 @@ public class IdentValue implements FSDerivedValue {
     public static final IdentValue SKEW_X = addValue("skewX");
     public static final IdentValue SKEW_Y = addValue("skewY");
 
+    /*
+     * image-rendering
+     */
+    public static final IdentValue PIXELATED = addValue("pixelated");
+    public static final IdentValue CRISP_EDGES = addValue("crisp-edges");
+
 
     /**
      * Description of the Field

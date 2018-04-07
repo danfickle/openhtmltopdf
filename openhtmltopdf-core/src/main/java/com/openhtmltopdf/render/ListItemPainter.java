@@ -68,7 +68,7 @@ public class ListItemPainter {
             c.getOutputDevice().drawImage(img, 
                     x,
                     (int)(getReferenceBaseline(c, box)
-                        - strutMetrics.getAscent() / 2 - img.getHeight() / 2));
+                        - strutMetrics.getAscent() / 2 - img.getHeight() / 2), box.getStyle().isImageRenderingInterpolate());
         }
     }
     

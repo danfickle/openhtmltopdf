@@ -274,7 +274,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             if (! hrepeat && ! vrepeat) {
                 Rectangle imageBounds = new Rectangle(xoff, yoff, (int)imageWidth, (int)imageHeight);
                 if (imageBounds.intersects(backgroundBounds)) {
-                    drawImage(backgroundImage, xoff, yoff);
+                    drawImage(backgroundImage, xoff, yoff, style.isImageRenderingInterpolate());
                 }
             } else if (hrepeat && vrepeat) {
                 paintTiles(
@@ -282,7 +282,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                         adjustTo(backgroundBounds.x, xoff, (int)imageWidth),
                         adjustTo(backgroundBounds.y, yoff, (int)imageHeight),
                         backgroundBounds.x + backgroundBounds.width,
-                        backgroundBounds.y + backgroundBounds.height);
+                        backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
             } else if (hrepeat) {
                 xoff = adjustTo(backgroundBounds.x, xoff, (int)imageWidth);
                 Rectangle imageBounds = new Rectangle(xoff, yoff, (int)imageWidth, (int)imageHeight);
@@ -291,7 +291,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                             backgroundImage,
                             xoff,
                             yoff,
-                            backgroundBounds.x + backgroundBounds.width);
+                            backgroundBounds.x + backgroundBounds.width, style.isImageRenderingInterpolate());
                 }
             } else if (vrepeat) {
                 yoff = adjustTo(backgroundBounds.y, yoff, (int)imageHeight);
@@ -301,7 +301,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                             backgroundImage,
                             xoff,
                             yoff,
-                            backgroundBounds.y + backgroundBounds.height);
+                            backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
                 }
             }
 
@@ -326,30 +326,30 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         return result;
     }
 
-    private void paintTiles(FSImage image, int left, int top, int right, int bottom) {
+    private void paintTiles(FSImage image, int left, int top, int right, int bottom, boolean interpolate) {
         int width = image.getWidth();
         int height = image.getHeight();
 
         for (int x = left; x < right; x+= width) {
             for (int y = top; y < bottom; y+= height) {
-                drawImage(image, x, y);
+                drawImage(image, x, y, interpolate);
             }
         }
     }
 
-    private void paintVerticalBand(FSImage image, int left, int top, int bottom) {
+    private void paintVerticalBand(FSImage image, int left, int top, int bottom, boolean interpolate) {
         int height = image.getHeight();
 
         for (int y = top; y < bottom; y+= height) {
-            drawImage(image, left, y);
+            drawImage(image, left, y, interpolate);
         }
     }
 
-    private void paintHorizontalBand(FSImage image, int left, int top, int right) {
+    private void paintHorizontalBand(FSImage image, int left, int top, int right, boolean interpolate) {
         int width = image.getWidth();
 
         for (int x = left; x < right; x+= width) {
-            drawImage(image, x, top);
+            drawImage(image, x, top, interpolate);
         }
     }
 
