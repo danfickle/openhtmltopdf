@@ -17,7 +17,7 @@ import com.openhtmltopdf.layout.LayoutContext;
 
 /**
  * This class aims to split text into paragraphs where they can be passed to the
- * BidiSplitter. Each text node in the document is attached to the closest element with <code>display: block</code>
+ * BidiSplitter. Each text node in the document is attached to the closest block-like element
  * which we assume paragraphs do not cross.
  */
 public class ParagraphSplitter {
@@ -31,54 +31,47 @@ public class ParagraphSplitter {
     }
 	
 	/**
-	 * A text run is just a text dom element and its associated position in the extracted 
-	 * paragraph text. 
-	 */
-	public static class TextRun {
-		private final Text domText;
-		private final int startIndexInParagraph;
-		@SuppressWarnings("unused")
-		private final int endIndexInParagraph;
-		
-		TextRun(Text domText, int startIndexInParagraph, int endIndexInParagraph) {
-			this.domText = domText;
-			this.startIndexInParagraph = startIndexInParagraph;
-			this.endIndexInParagraph = endIndexInParagraph;
-		}
-	}
-	
-	/**
 	 * A paragraph object collects the text of one paragraph.
 	 * That is the text in a block element wiht possible holes from BIDI isolation tags.
 	 * This text is then used to run the Unicode BIDI algorithm splitting text
 	 * up into runs of LTR and RTL text.
 	 */
 	public static class Paragraph {
-        private final StringBuilder builder = new StringBuilder();
-        private final Map<Text, TextRun> textRuns = new HashMap<Text, TextRun>();
-        private final TreeMap<Integer, BidiTextRun> splitPoints = new TreeMap<Integer, BidiTextRun>();
-        private final IdentValue cssDirection; // One of LTR, RTL or AUTO.
+
+		private final StringBuilder builder;
+        private final TreeMap<Integer, BidiTextRun> splitPoints;
+        
+        // A map from Text nodes to their first index in the paragraph.
+        protected final Map<Text, Integer> textRuns = new HashMap<Text, Integer>();
+
+        // One of LTR, RTL or AUTO.
+        protected final IdentValue cssDirection;
+        
         private byte actualDirection = BidiSplitter.LTR;
         
         private Paragraph(IdentValue direction) {
+        	this(direction, true);
+        }
+        
+        private Paragraph(IdentValue direction, boolean isLiveImplementation) {
+        	this.builder = isLiveImplementation ? new StringBuilder() : null;
+        	this.splitPoints = isLiveImplementation ? new TreeMap<Integer, BidiTextRun>() : null;
         	this.cssDirection = direction;
         }
         
         /**
          * Here we add a textnode and its postion to a list. We also build the paragraph string.
          */
-        private void add(String text, Text textNode) {
+        protected void add(String text, Text textNode) {
             int startIndex = builder.length();
             builder.append(text);
-            int endIndex = builder.length();
-           
-            textRuns.put(textNode, new TextRun(textNode, startIndex, endIndex));
+            textRuns.put(textNode, startIndex);
         }
         
         /**
          * Here we call out to the actual BIDI algorithm.
          */
-        private void runBidiSplitter(BidiSplitter splitter, LayoutContext c) {
+        protected void runBidiSplitter(BidiSplitter splitter, LayoutContext c) {
         	byte defaultDirection = BidiSplitter.LTR;
         	String para = builder.toString();
         	
@@ -97,7 +90,7 @@ public class ParagraphSplitter {
          * @return the first char index into this paragraph from a Text node.
          */
         public int getFirstCharIndexInParagraph(Text text) {
-        	return textRuns.get(text).startIndexInParagraph;
+        	return textRuns.get(text);
         }
         
         /**
@@ -145,6 +138,44 @@ public class ParagraphSplitter {
         }
 	}
 	
+	/**
+	 * A fake paragraqph only supports manual BIDI classification.
+	 */
+	public static class FakeParagraph extends Paragraph {
+        private int characterCount = 0;
+        private BidiTextRun fakeRun;
+        
+        private FakeParagraph(IdentValue direction) {
+        	super(direction, false);
+        }
+        
+        @Override
+        protected void add(String text, Text textNode) {
+            textRuns.put(textNode, characterCount);
+            characterCount += text.length();
+        }
+        
+        @Override
+        public byte getActualDirection() {
+        	return cssDirection == IdentValue.RTL ? BidiSplitter.RTL : BidiSplitter.LTR; 
+        }
+        
+        @Override
+        public BidiTextRun nextSplit(int startIndexInParagraph) {
+        	return null;
+        }
+        
+        @Override
+        public BidiTextRun prevSplit(int startIndexInParagraph) {
+        	return fakeRun;
+        }
+        
+        @Override
+        protected void runBidiSplitter(BidiSplitter splitter, LayoutContext c) {
+        	this.fakeRun = new BidiTextRun(0, characterCount, this.getActualDirection());
+        }
+	}
+	
 	private final List<Paragraph> allParagraphs = new ArrayList<Paragraph>();
     private final Map<Text, Paragraph> paragraphs = new HashMap<Text, Paragraph>();
     private final Map<Element, Paragraph> blocks = new HashMap<Element, Paragraph>();
@@ -167,7 +198,7 @@ public class ParagraphSplitter {
     public void splitRoot(LayoutContext c, Document doc) {
     	CalculatedStyle style = c.getSharedContext().getStyle(doc.getDocumentElement());
     	IdentValue direction = style.getDirection();
-        Paragraph parent = new Paragraph(direction);
+        Paragraph parent = c.getBidiReorderer().isLiveImplementation() ? new Paragraph(direction) : new FakeParagraph(direction);
         splitParagraphs(c, doc, parent);
 	}
 
@@ -175,9 +206,16 @@ public class ParagraphSplitter {
      * Run bidi splitting on the document's paragraphs.
      */
     public void runBidiOnParagraphs(LayoutContext c) {
-    	for (Paragraph p : allParagraphs)
-    	{
-    		p.runBidiSplitter(c.getBidiSplitterFactory().createBidiSplitter(), c);
+    	if (c.getBidiReorderer().isLiveImplementation()) {
+    	    for (Paragraph p : allParagraphs)
+    	    {
+    		    p.runBidiSplitter(c.getBidiSplitterFactory().createBidiSplitter(), c);
+    	    }
+    	} else {
+    		for (Paragraph p : allParagraphs)
+    	    {
+    		    p.runBidiSplitter(null, c);
+    	    }
     	}
     }
     
@@ -186,6 +224,7 @@ public class ParagraphSplitter {
      */
     private void splitParagraphs(LayoutContext c, Node parent, Paragraph nearestBlock) {
         Node node = parent.getFirstChild();
+        boolean isLiveImplementaton = c.getBidiReorderer().isLiveImplementation();
         
         if (node == null) {
             return;
@@ -206,9 +245,9 @@ public class ParagraphSplitter {
             		continue;
             	}
             	
-                if (style.isSpecifiedAsBlock() || element.hasAttribute("dir") || element.getNodeName().equals("bdi")) {
+                if (style.isParagraphContainerForBidi() || element.hasAttribute("dir") || element.getNodeName().equals("bdi")) {
                 	// If a element has a dir attribute or is a bdi tag it sits in its own direction isolate.
-                	Paragraph para = new Paragraph(style.getDirection());
+                	Paragraph para = isLiveImplementaton ? new Paragraph(style.getDirection()) : new FakeParagraph(style.getDirection());
                 	allParagraphs.add(para);
               		blocks.put(element, para);
                 	splitParagraphs(c, element, para);

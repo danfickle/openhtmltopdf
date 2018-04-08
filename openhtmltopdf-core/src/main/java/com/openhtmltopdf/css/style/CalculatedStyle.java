@@ -1318,6 +1318,15 @@ public class CalculatedStyle {
 		return getIdent(CSSName.DIRECTION);
 	}
 	
+	public boolean isParagraphContainerForBidi() {
+		IdentValue display = getIdent(CSSName.DISPLAY);
+		
+		return (display != IdentValue.INLINE &&
+				display != IdentValue.INLINE_BLOCK &&
+				display != IdentValue.INLINE_TABLE) ||
+				isNonFlowContent();
+	}
+	
 	/**
 	 * Aims to get the correct resolved max-width for a box in dots unit.
 	 * Returns -1 if there is no max-width defined.
