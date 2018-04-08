@@ -103,9 +103,7 @@ public class ContentFunctionFactory {
                     
                     if (parameters.size() == 2) {
                         param = (PropertyValue)parameters.get(1);
-                        if (param.getPrimitiveType() != CSSPrimitiveValue.CSS_IDENT) {
-                            return false;
-                        }
+                        return param.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT;
                     }
                     
                     return true;
@@ -175,18 +173,14 @@ public class ContentFunctionFactory {
                     FSFunction f = ((PropertyValue)parameters.get(0)).getFunction();
                     if (f == null ||
                             f.getParameters().size() != 1 ||
-                            ((PropertyValue)f.getParameters().get(0)).getPrimitiveType() != CSSPrimitiveValue.CSS_IDENT ||
-                            ! ((PropertyValue)f.getParameters().get(0)).getStringValue().equals("href")) {
+                            f.getParameters().get(0).getPrimitiveType() != CSSPrimitiveValue.CSS_IDENT ||
+                            ! f.getParameters().get(0).getStringValue().equals("href")) {
                         return false;
                     }
 
                     PropertyValue param = (PropertyValue)parameters.get(1);
-                    if (param.getPrimitiveType() != CSSPrimitiveValue.CSS_IDENT ||
-                            ! param.getStringValue().equals("page")) {
-                        return false;
-                    }
-                    
-                    return true;
+                    return param.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT &&
+                            param.getStringValue().equals("page");
                 }
             }
             
@@ -226,7 +220,7 @@ public class ContentFunctionFactory {
             }
 
             // Get leader value and value width
-            PropertyValue param = (PropertyValue)function.getParameters().get(0);
+            PropertyValue param = function.getParameters().get(0);
             String value = param.getStringValue();
             if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
                 if (value.equals("dotted")) {
@@ -241,7 +235,7 @@ public class ContentFunctionFactory {
             // Compute value width using 100x string to get more precise width.
             // Otherwise there might be a small gap at the right side. This is
             // necessary because a TextRenderer usually use double/float for width.
-            StringBuffer tmp = new StringBuffer(100 * value.length());
+            StringBuilder tmp = new StringBuilder(100 * value.length());
             for (int i = 0; i < 100; i++) {
                 tmp.append(value);
             }
@@ -255,7 +249,7 @@ public class ContentFunctionFactory {
             int count = (int) ((leaderWidth - (2 * spaceWidth)) / valueWidth);
 
             // build leader string
-            StringBuffer buf = new StringBuffer(count * value.length() + 2);
+            StringBuilder buf = new StringBuilder(count * value.length() + 2);
             buf.append(' ');
             for (int i = 0; i < count; i++) {
                 buf.append(value);
@@ -284,15 +278,11 @@ public class ContentFunctionFactory {
                 List parameters = function.getParameters();
                 if (parameters.size() == 1) {
                     PropertyValue param = (PropertyValue)parameters.get(0);
-                    if (param.getPrimitiveType() != CSSPrimitiveValue.CSS_STRING &&
-                            (param.getPrimitiveType() != CSSPrimitiveValue.CSS_IDENT ||
-                                (!param.getStringValue().equals("dotted") &&
-                                        !param.getStringValue().equals("solid") &&
-                                        !param.getStringValue().equals("space")))) {
-                        return false;
-                    }
-                    
-                    return true;
+                    return param.getPrimitiveType() == CSSPrimitiveValue.CSS_STRING ||
+                            (param.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT &&
+                                    (param.getStringValue().equals("dotted") ||
+                                            param.getStringValue().equals("solid") ||
+                                            param.getStringValue().equals("space")));
                 }
             }
             

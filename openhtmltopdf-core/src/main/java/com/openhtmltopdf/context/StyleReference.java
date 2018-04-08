@@ -163,12 +163,10 @@ public class StyleReference {
      * @param e The DOM Element for which to find properties
      * @return Map of CSS property names to CSSValue instance assigned to it.
      */
-    public java.util.Map getCascadedPropertiesMap(Element e) {
+	public java.util.Map<String, org.w3c.dom.css.CSSPrimitiveValue> getCascadedPropertiesMap(Element e) {
         CascadedStyle cs = _matcher.getCascadedStyle(e, false);//this is only for debug, I think
-        java.util.LinkedHashMap props = new java.util.LinkedHashMap();
-        for (java.util.Iterator i = cs.getCascadedPropertyDeclarations(); i.hasNext();) {
-            PropertyDeclaration pd = (PropertyDeclaration) i.next();
-
+		java.util.Map<String, org.w3c.dom.css.CSSPrimitiveValue> props = new java.util.LinkedHashMap<String, org.w3c.dom.css.CSSPrimitiveValue>();
+		for (PropertyDeclaration pd : cs.getCascadedPropertyDeclarations()) {
             String propName = pd.getPropertyName();
             CSSName cssName = CSSName.getByPropertyName(propName);
             props.put(propName, cs.propertyByName(cssName).getValue());
@@ -239,8 +237,8 @@ public class StyleReference {
      *
      * @return The stylesheets value
      */
-    private List getStylesheets() {
-        List infos = new LinkedList();
+    private List<StylesheetInfo> getStylesheets() {
+        List<StylesheetInfo> infos = new ArrayList<StylesheetInfo>();
         long st = System.currentTimeMillis();
 
         StylesheetInfo defaultStylesheet = _nsh.getDefaultStylesheet(_stylesheetFactory);
@@ -251,22 +249,22 @@ public class StyleReference {
         StylesheetInfo[] refs = _nsh.getStylesheets(_doc);
         int inlineStyleCount = 0;
         if (refs != null) {
-            for (int i = 0; i < refs.length; i++) {
+            for (StylesheetInfo ref : refs) {
                 String uri;
-                
-                if (! refs[i].isInline()) {
-                    uri = _uac.resolveURI(refs[i].getUri());
-                    refs[i].setUri(uri);
+
+                if (!ref.isInline()) {
+                    uri = _uac.resolveURI(ref.getUri());
+                    ref.setUri(uri);
                 } else {
-                    refs[i].setUri(_uac.getBaseURL() + "#inline_style_" + (++inlineStyleCount));
+                    ref.setUri(_uac.getBaseURL() + "#inline_style_" + (++inlineStyleCount));
                     Stylesheet sheet = _stylesheetFactory.parse(
-                            new StringReader(refs[i].getContent()), refs[i]);
-                    refs[i].setStylesheet(sheet);
-                    refs[i].setUri(null);
+                            new StringReader(ref.getContent()), ref);
+                    ref.setStylesheet(sheet);
+                    ref.setUri(null);
                 }
             }
+            infos.addAll(Arrays.asList(refs));
         }
-        infos.addAll(Arrays.asList(refs));
 
         // TODO: here we should also get user stylesheet from userAgent
 

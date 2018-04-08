@@ -523,7 +523,7 @@ public class TableRowBox extends BlockBox {
             
             for (Iterator i = getChildIterator(); i.hasNext(); ) {
                 TableCellBox cell = (TableCellBox)i.next();
-                StringBuffer buffer =  new StringBuffer();
+                StringBuilder buffer =  new StringBuilder();
                 cell.collectText(c, buffer);
                 writer.write(buffer.toString().trim());
                 int cSpan = cell.getStyle().getColSpan();

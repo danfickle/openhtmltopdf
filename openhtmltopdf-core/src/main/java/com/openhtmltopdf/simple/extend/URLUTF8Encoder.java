@@ -89,7 +89,7 @@ public class URLUTF8Encoder {
      * @return   The encoded string
      */
     public static String encode( String s ) {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         int len = s.length();
         for ( int i = 0; i < len; i++ ) {
             int ch = s.charAt( i );
@@ -105,7 +105,7 @@ public class URLUTF8Encoder {
      * @return       Returns
      */
     public static String encode( char[] chars ) {
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
         int len = chars.length;
         for ( int i = 0; i < len; i++ ) {
             int ch = chars[i];
@@ -120,7 +120,7 @@ public class URLUTF8Encoder {
      * @param sbuf  PARAM
      * @param ch    PARAM
      */
-    private static void append( StringBuffer sbuf, int ch ) {
+    private static void append( StringBuilder sbuf, int ch ) {
         if ( 'A' <= ch && ch <= 'Z' ) {// 'A'..'Z'
             sbuf.append( (char)ch );
         } else if ( 'a' <= ch && ch <= 'z' ) {// 'a'..'z'

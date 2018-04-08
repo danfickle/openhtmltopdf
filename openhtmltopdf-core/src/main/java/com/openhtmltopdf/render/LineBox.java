@@ -87,7 +87,7 @@ public class LineBox extends Box implements InlinePaintable {
             throw new IllegalArgumentException();
         }
 
-        StringBuffer result = new StringBuffer(indent);
+        StringBuilder result = new StringBuilder(indent);
         result.append(this);
         result.append('\n');
         
@@ -143,7 +143,7 @@ public class LineBox extends Box implements InlinePaintable {
     private void lookForDynamicFunctions(RenderingContext c) {
         if (getChildCount() > 0) {
             for (int i = 0; i < getChildCount(); i++) {
-                Box b = (Box)getChild(i);
+                Box b = getChild(i);
                 if (b instanceof InlineLayoutBox) {
                     ((InlineLayoutBox)b).lookForDynamicFunctions(c);
                 }
@@ -159,7 +159,7 @@ public class LineBox extends Box implements InlinePaintable {
     public void prunePendingInlineBoxes() {
         if (getChildCount() > 0) {
             for (int i = getChildCount() - 1; i >= 0; i--) {
-                Box b = (Box)getChild(i);
+                Box b = getChild(i);
                 if (! (b instanceof InlineLayoutBox)) {
                     break;
                 }
@@ -339,7 +339,7 @@ public class LineBox extends Box implements InlinePaintable {
     
     private boolean intersectsInlineBlocks(CssContext cssCtx, Shape clip) {
         for (int i = 0; i < getChildCount(); i++) {
-            Box child = (Box)getChild(i);
+            Box child = getChild(i);
             if (child instanceof InlineLayoutBox) {
                 boolean possibleResult = ((InlineLayoutBox)child).intersectsInlineBlocks(
                         cssCtx, clip);
@@ -529,7 +529,7 @@ public class LineBox extends Box implements InlinePaintable {
         }
         
         for (int i = 0; i < getChildCount(); i++) {
-            Box b = (Box)getChild(i);
+            Box b = getChild(i);
             if (! (b instanceof BlockBox)) {
                 return false;
             }
@@ -589,7 +589,7 @@ public class LineBox extends Box implements InlinePaintable {
         super.selectAll();
     }
     
-    public void collectText(RenderingContext c, StringBuffer buffer) throws IOException {
+    public void collectText(RenderingContext c, StringBuilder buffer) {
         for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
             Box b = (Box)i.next();
             b.collectText(c, buffer);
@@ -612,7 +612,7 @@ public class LineBox extends Box implements InlinePaintable {
         }
         
         if (isContainsContent()) {
-            StringBuffer result = new StringBuffer();
+            StringBuilder result = new StringBuilder();
             collectText(c, result);
             writer.write(result.toString().trim());
             writer.write(LINE_SEPARATOR);

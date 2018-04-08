@@ -33,14 +33,14 @@ import com.openhtmltopdf.css.newmatch.Selector;
  */
 public class Ruleset {
     private int _origin;
-    private java.util.List _props;
+    private java.util.List<PropertyDeclaration> _props;
 
-    private List _fsSelectors = new ArrayList();
+    private List<Selector> _fsSelectors;
 
     public Ruleset(int orig) {
         _origin = orig;
-        _props = new LinkedList();
-        _fsSelectors = new LinkedList();
+        _props = new ArrayList<PropertyDeclaration>();
+        _fsSelectors = new ArrayList<Selector>();
     }
 
     /**
@@ -49,7 +49,7 @@ public class Ruleset {
      *
      * @return The propertyDeclarations value
      */
-    public List getPropertyDeclarations() {
+    public List<PropertyDeclaration>  getPropertyDeclarations() {
         return Collections.unmodifiableList(_props);
     }
 
@@ -57,7 +57,7 @@ public class Ruleset {
         _props.add(decl);
     }
     
-    public void addAllProperties(List props) {
+    public void addAllProperties(List<PropertyDeclaration> props) {
         _props.addAll(props);
     }
     
@@ -65,7 +65,7 @@ public class Ruleset {
         _fsSelectors.add(selector);
     }
     
-    public List getFSSelectors() {
+    public List<Selector> getFSSelectors() {
         return _fsSelectors;
     }
     

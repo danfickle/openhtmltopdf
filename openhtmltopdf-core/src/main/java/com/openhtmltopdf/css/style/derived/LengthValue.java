@@ -197,7 +197,7 @@ public class LengthValue extends DerivedValue {
         }
 
         double d = Math.round((double) absVal);
-        absVal = new Float(d).floatValue();
+        absVal = (float)d;
         return absVal;
     }
     

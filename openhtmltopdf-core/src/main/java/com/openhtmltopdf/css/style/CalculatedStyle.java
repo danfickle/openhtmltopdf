@@ -61,7 +61,7 @@ import com.openhtmltopdf.util.XRRuntimeException;
  * when this style is created. A property retrieved by name should always have
  * only one value in this class (e.g. one-one map). Any methods to retrieve
  * property values from an instance of this class require a valid {@link
- * org.xhtmlrenderer.layout.Context} be given to it, for some cases of property
+ * com.openhtmltopdf.layout.Context} be given to it, for some cases of property
  * resolution. Generally, a programmer will not use this class directly, but
  * will retrieve properties using a {@link com.openhtmltopdf.context.StyleReference}
  * implementation.
@@ -94,7 +94,7 @@ public class CalculatedStyle {
     /**
      * Cache child styles of this style that have the same cascaded properties
      */
-    private final java.util.HashMap _childCache = new java.util.HashMap();
+    private final java.util.Map<String, CalculatedStyle> _childCache = new java.util.HashMap<String, CalculatedStyle>();
     /*private java.util.HashMap _childCache = new java.util.LinkedHashMap(5, 0.75f, true) {
         private static final int MAX_ENTRIES = 10;
 
@@ -179,7 +179,7 @@ public class CalculatedStyle {
      */
     public synchronized CalculatedStyle deriveStyle(CascadedStyle matched) {
         String fingerprint = matched.getFingerprint();
-        CalculatedStyle cs = (CalculatedStyle) _childCache.get(fingerprint);
+        CalculatedStyle cs = _childCache.get(fingerprint);
 
         if (cs == null) {
             cs = new CalculatedStyle(this, matched);
@@ -603,9 +603,7 @@ public class CalculatedStyle {
             return;
         }//nothing to derive
 
-        Iterator mProps = matched.getCascadedPropertyDeclarations();
-        while (mProps.hasNext()) {
-            PropertyDeclaration pd = (PropertyDeclaration) mProps.next();
+		for (PropertyDeclaration pd : matched.getCascadedPropertyDeclarations()) {
             FSDerivedValue val = deriveValue(pd.getCSSName(), pd.getValue());
             _derivedValuesById[pd.getCSSName().FS_ID] = val;
         }
@@ -616,7 +614,7 @@ public class CalculatedStyle {
     }
 
     private String genStyleKey() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder  sb = new StringBuilder();
         for (int i = 0; i < _derivedValuesById.length; i++) {
             CSSName name = CSSName.getByID(i);
             FSDerivedValue val = _derivedValuesById[i];
@@ -976,12 +974,9 @@ public class CalculatedStyle {
             }
 
             IdentValue overflow = getIdent(CSSName.OVERFLOW);
-            if ((overflow == IdentValue.SCROLL || overflow == IdentValue.AUTO) &&
-                    isOverflowApplies()) {
-                return true;
-            }
+            return (overflow == IdentValue.SCROLL || overflow == IdentValue.AUTO) &&
+                    isOverflowApplies();
 
-            return false;
         }
     }
 
@@ -994,7 +989,7 @@ public class CalculatedStyle {
         FunctionValue value = (FunctionValue)valueByName(CSSName.POSITION);
         FSFunction function = value.getFunction();
 
-        PropertyValue param = (PropertyValue)function.getParameters().get(0);
+        PropertyValue param = function.getParameters().get(0);
 
         return param.getStringValue();
     }

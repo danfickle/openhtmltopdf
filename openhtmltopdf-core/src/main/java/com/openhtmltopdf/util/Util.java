@@ -451,7 +451,7 @@ public class Util {
      * @return Returns
      */
     public static String replace(String source, String target, String replacement) {
-        StringBuffer output = new StringBuffer();
+        StringBuilder output = new StringBuilder();
         int n = 0;
         while (true) {
             //print("n = " + n);
@@ -460,7 +460,7 @@ public class Util {
                 output.append(source.substring(n));
                 break;
             }
-            output.append(source.substring(n, off));
+            output.append(source, n, off);
             output.append(replacement);
             n = off + target.length();
         }
