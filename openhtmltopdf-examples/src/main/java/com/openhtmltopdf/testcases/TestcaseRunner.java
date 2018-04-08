@@ -217,8 +217,6 @@ public class TestcaseRunner {
 		ImageIO.write(image, "PNG", output);
 		output.close();
 
-		builder = builder.clone();
-
 		/*
 		 * Render Multipage Image Files
 		 */
