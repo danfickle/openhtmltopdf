@@ -13,6 +13,10 @@ import java.util.List;
  * @internal
  */
 public class Java2DRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState {
+	/* Internal! */
+	Java2DRendererBuilderState() {
+	}
+
 	public Graphics2D _layoutGraphics;
 	public FSPageProcessor _pageProcessor;
 	public final List<Java2DRendererBuilder.AddedFont> _fonts = new ArrayList<Java2DRendererBuilder.AddedFont>();
