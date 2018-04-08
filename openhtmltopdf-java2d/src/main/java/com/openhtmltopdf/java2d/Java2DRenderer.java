@@ -5,6 +5,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.List;
 
+import com.openhtmltopdf.java2d.api.Java2DRendererBuilderState;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -62,56 +63,38 @@ public class Java2DRenderer implements Closeable {
 
     /**
 	 * Subject to change. Not public API. Used exclusively by the Java2DRendererBuilder class. 
-	 * @param _svgImpl
-	 * @param preferredTransformerFactoryImplementationClass
-	 * @param _domMutators
 	 */
-	public Java2DRenderer(
-			BaseDocument doc,
-			UnicodeImplementation unicode,
-			HttpStreamFactory httpStreamFactory,
-			FSUriResolver resolver,
-			FSCache cache,
-			SVGDrawer _svgImpl, SVGDrawer _mathMLImpl,
-			PageDimensions pageSize,
-			String replacementText,
-			boolean testMode,
-			FSPageProcessor pageProcessor,
-			Graphics2D layoutGraphics,
-			int initialPageNumber, short pagingMode,
-			FSObjectDrawerFactory objectDrawerFactory,
-			String preferredTransformerFactoryImplementationClass,
-			String preferredDocumentBuilderFactoryImplementationClass,
-			List<FSDOMMutator> _domMutators) {
+	public Java2DRenderer(BaseDocument doc, UnicodeImplementation unicode, PageDimensions pageSize,
+			Java2DRendererBuilderState state) {
 
-	    _pagingMode = pagingMode;
-		_pageProcessor = pageProcessor;
-		_initialPageNo = initialPageNumber;		
-		this._svgImpl = _svgImpl;
-        this._mathMLImpl = _mathMLImpl;
-        this._domMutators = _domMutators;
-        _objectDrawerFactory = objectDrawerFactory;
-		_outputDevice = new Java2DOutputDevice(layoutGraphics);
+	    _pagingMode = state._pagingMode;
+		_pageProcessor = state._pageProcessor;
+		_initialPageNo = state._initialPageNumber;		
+		this._svgImpl = state._svgImpl;
+        this._mathMLImpl = state._mathmlImpl;
+        this._domMutators = state._domMutators;
+        _objectDrawerFactory = state._objectDrawerFactory;
+		_outputDevice = new Java2DOutputDevice(state._layoutGraphics);
 		
 		NaiveUserAgent uac = new NaiveUserAgent();
 		
-		if (httpStreamFactory != null) {
-			uac.setHttpStreamFactory(httpStreamFactory);
+		if (state._httpStreamFactory != null) {
+			uac.setHttpStreamFactory(state._httpStreamFactory);
 		}
 		
-		if (resolver != null) {
-			uac.setUriResolver(resolver);
+		if (state._resolver != null) {
+			uac.setUriResolver(state._resolver);
 		}
 		
-		if (cache != null) {
-			uac.setExternalCache(cache);
+		if (state._cache != null) {
+			uac.setExternalCache(state._cache);
 		}
 		
         _sharedContext = new SharedContext();
         _sharedContext.registerWithThread();
         
-        _sharedContext._preferredTransformerFactoryImplementationClass = preferredTransformerFactoryImplementationClass;
-        _sharedContext._preferredDocumentBuilderFactoryImplementationClass = preferredDocumentBuilderFactoryImplementationClass;
+        _sharedContext._preferredTransformerFactoryImplementationClass = state._preferredTransformerFactoryImplementationClass;
+        _sharedContext._preferredDocumentBuilderFactoryImplementationClass = state._preferredDocumentBuilderFactoryImplementationClass;
         
         _sharedContext.setUserAgentCallback(uac);
         _sharedContext.setCss(new StyleReference(uac));
@@ -132,8 +115,8 @@ public class Java2DRenderer implements Closeable {
         _sharedContext.setInteractive(false);
         _sharedContext.setDefaultPageSize(pageSize.w, pageSize.h, pageSize.isSizeInches);
 
-        if (replacementText != null) {
-            _sharedContext.setReplacementText(replacementText);
+        if (state._replacementText != null) {
+            _sharedContext.setReplacementText(state._replacementText);
         }
         
         if (unicode.splitterFactory != null) {
