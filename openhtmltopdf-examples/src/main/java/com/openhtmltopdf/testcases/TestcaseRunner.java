@@ -39,6 +39,7 @@ import com.openhtmltopdf.util.XRLogger;
 
 public class TestcaseRunner {
 
+
 	/**
 	 * Runs our set of manual test cases. You can specify an output directory with
 	 * -DOUT_DIRECTORY=./output for example. Otherwise, the current working
@@ -215,6 +216,8 @@ public class TestcaseRunner {
 		FileOutputStream output = new FileOutputStream(filename);
 		ImageIO.write(image, "PNG", output);
 		output.close();
+
+		builder = builder.clone();
 
 		/*
 		 * Render Multipage Image Files
