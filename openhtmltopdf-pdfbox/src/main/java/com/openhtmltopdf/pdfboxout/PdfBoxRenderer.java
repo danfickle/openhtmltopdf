@@ -127,7 +127,7 @@ public class PdfBoxRenderer implements Closeable {
         _outputDevice = new PdfBoxOutputDevice(DEFAULT_DOTS_PER_POINT, testMode);
         _outputDevice.setWriter(_pdfDoc);
         
-        PdfBoxUserAgent userAgent = new PdfBoxUserAgent(_outputDevice);
+        PdfBoxUserAgent userAgent = PdfBoxUserAgentFactory.getPdfBoxUserAgent(_outputDevice);
 
         if (httpStreamFactory != null) {
             userAgent.setHttpStreamFactory(httpStreamFactory);
