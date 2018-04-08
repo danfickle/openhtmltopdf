@@ -233,7 +233,7 @@
 [#macro h4][@hn 4][#nested][/@hn][/#macro]
 
 
-[#list 1..100 as page]
+[#list 1..10 as page]
 	[@h1]H1 on Page ${page}[/@h1]
 Some nice text, just to fill ${page?c} with something...
     <table class="HDR">
@@ -424,7 +424,7 @@ Some nice text, just to fill ${page?c} with something...
 		</thead>
 
 		<tbody>
-			[#list 1..1000 as subRow]
+			[#list 1..10 as subRow]
 			<tr>
 
 				<td class="codigo">
