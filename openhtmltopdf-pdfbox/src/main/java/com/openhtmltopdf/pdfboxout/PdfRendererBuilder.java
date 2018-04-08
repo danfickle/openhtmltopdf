@@ -42,6 +42,15 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	}
 
 	/**
+	 * Returns an instance of PdfBoxUserAgentFactory in case you<br/>
+	 * need to use custom implementation of {@link PdfBoxUserAgent} class
+	 * @return PdfBoxUserAgentFactory instance
+	 */
+	public PdfBoxUserAgentFactory getPdfBoxUserAgentFactory() {
+		return PdfBoxUserAgentFactory.instance();
+	}
+
+	/**
 	 * Build a PdfBoxRenderer for further customization. Remember to call
 	 * {@link PdfBoxRenderer#cleanup()} after use.
 	 *
