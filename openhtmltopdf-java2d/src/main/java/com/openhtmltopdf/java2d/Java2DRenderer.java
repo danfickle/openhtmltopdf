@@ -17,7 +17,6 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.java2d.api.FSPage;
 import com.openhtmltopdf.java2d.api.FSPageProcessor;
-import com.openhtmltopdf.java2d.api.IJava2DRenderer;
 import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
@@ -37,7 +36,7 @@ import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
-public class Java2DRenderer implements IJava2DRenderer, Closeable {
+public class Java2DRenderer implements Closeable {
     private final List<FSDOMMutator> _domMutators;
     private final SVGDrawer _mathMLImpl;
 	private BlockBox _root;
