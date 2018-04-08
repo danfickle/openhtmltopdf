@@ -24,7 +24,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @internal
 	 */
 	public abstract static class BaseRendererBuilderState {
-		public List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
+		public final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
 		public HttpStreamFactory _httpStreamFactory;
 		public FSCache _cache;
 		public FSUriResolver _resolver;

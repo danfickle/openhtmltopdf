@@ -15,5 +15,5 @@ import java.util.List;
 public class Java2DRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState {
 	public Graphics2D _layoutGraphics;
 	public FSPageProcessor _pageProcessor;
-	public List<Java2DRendererBuilder.AddedFont> _fonts = new ArrayList<Java2DRendererBuilder.AddedFont>();
+	public final List<Java2DRendererBuilder.AddedFont> _fonts = new ArrayList<Java2DRendererBuilder.AddedFont>();
 }

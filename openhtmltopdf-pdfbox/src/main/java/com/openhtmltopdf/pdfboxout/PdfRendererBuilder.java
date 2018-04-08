@@ -12,8 +12,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, PdfRendererBuilderState> {
@@ -55,10 +53,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 
 		BaseDocument doc = new BaseDocument(state._baseUri, state._html, state._document, state._file, state._uri);
 
-		PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, state._httpStreamFactory, state._os, state._resolver, state._cache, state._svgImpl,
-				pageSize, state._pdfVersion, state._replacementText, state._testMode, state._objectDrawerFactory,
-				state._preferredTransformerFactoryImplementationClass,  state._preferredDocumentBuilderFactoryImplementationClass,
-				state._producer, state._mathmlImpl, state._domMutators, state.pddocument);
+		PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, pageSize, state);
 
 		/*
 		 * Register all Fonts
@@ -221,11 +216,3 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	}
 }
 
-class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState {
-
-	public List<PdfRendererBuilder.AddedFont> _fonts = new ArrayList<PdfRendererBuilder.AddedFont>();
-	public OutputStream _os;
-	public float _pdfVersion = 1.7f;
-	public String _producer;
-	public PDDocument pddocument;
-}
