@@ -176,8 +176,16 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     }
     
     @Override
-    public void drawImage(FSImage image, int x, int y) {
+    public void drawImage(FSImage image, int x, int y, boolean interpolate) {
+		Object oldInterpolation = _graphics.getRenderingHint(RenderingHints.KEY_INTERPOLATION);
+		if (interpolate)
+			_graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		else
+			_graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+					RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+			
         _graphics.drawImage(((AWTFSImage)image).getImage(), x, y, null);
+		_graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, oldInterpolation);
     }
     
     @Override

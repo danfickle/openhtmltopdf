@@ -34,12 +34,14 @@ import java.util.Map;
 
 public class PdfBoxImageElement implements PdfBoxReplacedElement, IPdfBoxElementWithShapedLinks {
     private final FSImage _image;
+    private final boolean interpolate;
 
     private Point _location = new Point(0, 0);
     private final Map<Shape, String> imageMap;
 
-    public PdfBoxImageElement(Element e, FSImage image, SharedContext c) {
+    public PdfBoxImageElement(Element e, FSImage image, SharedContext c, boolean interpolate) {
         _image = image;
+        this.interpolate = interpolate;
         imageMap = ImageMapParser.findAndParseMap(e, c);
     }
 
@@ -82,7 +84,7 @@ public class PdfBoxImageElement implements PdfBoxReplacedElement, IPdfBoxElement
                 box.getAbsY(), c);
         ReplacedElement element = box.getReplacedElement();
         outputDevice.drawImage(((PdfBoxImageElement) element).getImage(),
-                contentBounds.x, contentBounds.y);
+                contentBounds.x, contentBounds.y, interpolate);
     }
 
     public int getBaseline() {

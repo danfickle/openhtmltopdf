@@ -1471,6 +1471,19 @@ public final class CSSName implements Comparable {
             );
 
     /**
+     * Unique CSSName instance for CSS3 property.
+     */
+    public final static CSSName IMAGE_RENDERING =
+            addProperty(
+                    "image-rendering",
+                    PRIMITIVE,
+                    "auto",
+                    INHERITS,
+                    new PrimitivePropertyBuilders.ImageRenderingBuilder()
+            );
+
+
+    /**
      * Unique CSSName instance for CSS2 property.
      */
     public final static CSSName BACKGROUND_SHORTHAND =
@@ -1720,7 +1733,6 @@ public final class CSSName implements Comparable {
                     CSSName.BORDER_RIGHT_COLOR,
                     CSSName.BORDER_BOTTOM_COLOR,
                     CSSName.BORDER_LEFT_COLOR);
-
     /**
      * Constructor for the CSSName object
      *

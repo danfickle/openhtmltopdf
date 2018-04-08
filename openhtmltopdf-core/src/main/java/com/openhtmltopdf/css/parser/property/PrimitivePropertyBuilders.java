@@ -1826,4 +1826,16 @@ public class PrimitivePropertyBuilders {
             );
         }
     }
+
+    public static class ImageRenderingBuilder extends SingleIdent {
+        // left | right | center | justify | inherit
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] {
+                        IdentValue.AUTO, IdentValue.PIXELATED,
+                        IdentValue.CRISP_EDGES });
+
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
 }

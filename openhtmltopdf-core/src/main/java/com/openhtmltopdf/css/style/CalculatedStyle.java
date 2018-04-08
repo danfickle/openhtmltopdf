@@ -1135,6 +1135,13 @@ public class CalculatedStyle {
         return isIdent(CSSName.MAX_HEIGHT, IdentValue.NONE);
     }
 
+    public boolean isImageRenderingPixelated() {
+        return isIdent(CSSName.IMAGE_RENDERING, IdentValue.PIXELATED) || isIdent(CSSName.IMAGE_RENDERING, IdentValue.CRISP_EDGES);
+    }
+    public boolean isImageRenderingInterpolate(){
+        return !isImageRenderingPixelated();
+    }
+
     public int getMinWidth(CssContext c, int cbWidth) {
         return (int) getFloatPropertyProportionalTo(CSSName.MIN_WIDTH, cbWidth, c);
     }

@@ -186,6 +186,19 @@ Example:
 </div>
 [/@htmlCode]
 
+[@h2]Pixelated Images[/@h2]
+
+OpenHTMLToPdf supports the standard "image-rendering" CSS property:
+
+[@htmlCodeAndExec]
+This image is interpolated and blured:
+	<img src="../images/go-home.png"
+		 style="width:64px;height:64px;" />
+And this one is not interpolated and crisp:
+	<img src="../images/go-home.png"
+		 style="width:64px;height:64px;image-rendering: pixelated" />
+[/@htmlCodeAndExec]
+
 [@h2]MathML &amp; LaTeX[/@h2]
 To display math you can use MathML and latex. To do so you need the dependencies:
 
