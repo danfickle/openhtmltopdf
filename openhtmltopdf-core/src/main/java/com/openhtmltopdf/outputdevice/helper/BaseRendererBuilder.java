@@ -18,7 +18,12 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	public static final float PAGE_SIZE_LETTER_WIDTH = 8.5f;
 	public static final float PAGE_SIZE_LETTER_HEIGHT = 11.0f;
 	public static final PageSizeUnits PAGE_SIZE_LETTER_UNITS = PageSizeUnits.INCHES;
-	protected final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
+	/**
+	 * Has this Builder been used to build a Renderer and should not be changed anymore?
+	 */
+	boolean sealed = false;
+	
+	protected List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
 	protected HttpStreamFactory _httpStreamFactory;
 	protected FSCache _cache;
 	protected FSUriResolver _resolver;
@@ -58,6 +63,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public TFinalClass addDOMMutator(FSDOMMutator domMutator) {
+		assertNotSealed();
 		_domMutators.add(domMutator);
 		return (TFinalClass) this;
 	}
@@ -76,6 +82,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useTransformerFactoryImplementationClass(String transformerFactoryClass) {
+		assertNotSealed();
 		this._preferredTransformerFactoryImplementationClass = transformerFactoryClass;
 		return (TFinalClass) this;
 	}
@@ -92,10 +99,11 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @param documentBuilderFactoryClass
 	 * @return this for method chaining
 	 */
-		public final TFinalClass useDocumentBuilderFactoryImplementationClass(String documentBuilderFactoryClass) {
-				this._preferredDocumentBuilderFactoryImplementationClass = documentBuilderFactoryClass;
-				return (TFinalClass) this;
-		}
+	public final TFinalClass useDocumentBuilderFactoryImplementationClass(String documentBuilderFactoryClass) {
+		assertNotSealed();
+		this._preferredDocumentBuilderFactoryImplementationClass = documentBuilderFactoryClass;
+		return (TFinalClass) this;
+	}
 
 	/**
 	 * The default text direction of the document. LTR by default.
@@ -104,6 +112,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass defaultTextDirection(TextDirection textDirection) {
+		assertNotSealed();
 		this._textDirection = textDirection == TextDirection.RTL;
 		return (TFinalClass) this;
 	}
@@ -116,6 +125,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass testMode(boolean mode) {
+		assertNotSealed();
 		this._testMode = mode;
 		return (TFinalClass) this;
 	}
@@ -125,9 +135,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * external HTTP/HTTPS implementation. Uses URL::openStream by default.
 	 *
 	 * @param factory
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useHttpStreamImplementation(HttpStreamFactory factory) {
+		assertNotSealed();
 		this._httpStreamFactory = factory;
 		return (TFinalClass) this;
 	}
@@ -136,9 +147,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides a uri resolver to resolve relative uris or private uri schemes.
 	 *
 	 * @param resolver
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUriResolver(FSUriResolver resolver) {
+		assertNotSealed();
 		this._resolver = resolver;
 		return (TFinalClass) this;
 	}
@@ -148,9 +160,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * as fonts or logo images.
 	 *
 	 * @param cache
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useCache(FSCache cache) {
+		assertNotSealed();
 		this._cache = cache;
 		return (TFinalClass) this;
 	}
@@ -160,9 +173,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * default.
 	 *
 	 * @param splitter
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeBidiSplitter(BidiSplitterFactory splitter) {
+		assertNotSealed();
 		this._splitter = splitter;
 		return (TFinalClass) this;
 	}
@@ -171,9 +185,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides a reorderer to properly reverse RTL text. No-op by default.
 	 *
 	 * @param reorderer
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeBidiReorderer(BidiReorderer reorderer) {
+		assertNotSealed();
 		this._reorderer = reorderer;
 		return (TFinalClass) this;
 	}
@@ -183,9 +198,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 *
 	 * @param html
 	 * @param baseUri
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass withHtmlContent(String html, String baseUri) {
+		assertNotSealed();
 		this._html = html;
 		this._baseUri = baseUri;
 		return (TFinalClass) this;
@@ -196,9 +212,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 *
 	 * @param doc
 	 * @param baseUri
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass withW3cDocument(org.w3c.dom.Document doc, String baseUri) {
+		assertNotSealed();
 		this._document = doc;
 		this._baseUri = baseUri;
 		return (TFinalClass) this;
@@ -209,9 +226,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * document.
 	 *
 	 * @param uri
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass withUri(String uri) {
+		assertNotSealed();
 		this._uri = uri;
 		return (TFinalClass) this;
 	}
@@ -224,6 +242,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass withFile(File file) {
+		assertNotSealed();
 		this._file = file;
 		return (TFinalClass) this;
 	}
@@ -235,6 +254,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useSVGDrawer(SVGDrawer svgImpl) {
+		assertNotSealed();
 		this._svgImpl = svgImpl;
 		return (TFinalClass) this;
 	}
@@ -246,6 +266,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useMathMLDrawer(SVGDrawer mathMlImpl) {
+		assertNotSealed();
 		this._mathmlImpl = mathMlImpl;
 		return (TFinalClass) this;
 	}
@@ -260,6 +281,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useReplacementText(String replacement) {
+		assertNotSealed();
 		this._replacementText = replacement;
 		return (TFinalClass) this;
 	}
@@ -278,6 +300,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeLineBreaker(FSTextBreaker breaker) {
+		assertNotSealed();
 		this._lineBreaker = breaker;
 		return (TFinalClass)this;
 	}
@@ -291,6 +314,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeCharacterBreaker(FSTextBreaker breaker) {
+		assertNotSealed();
 		this._charBreaker = breaker;
 		return (TFinalClass)this;
 	}
@@ -303,6 +327,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeToUpperTransformer(FSTextTransformer tr) {
+		assertNotSealed();
 		this._unicodeToUpperTransformer = tr;
 		return (TFinalClass)this;
 	}
@@ -315,6 +340,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeToLowerTransformer(FSTextTransformer tr) {
+		assertNotSealed();
 		this._unicodeToLowerTransformer = tr;
 		return (TFinalClass)this;
 	}
@@ -327,6 +353,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeToTitleTransformer(FSTextTransformer tr) {
+		assertNotSealed();
 		this._unicodeToTitleTransformer = tr;
 		return (TFinalClass)this;
 	}
@@ -343,6 +370,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useDefaultPageSize(float pageWidth, float pageHeight, PageSizeUnits units) {
+		assertNotSealed();
 		this._pageWidth = pageWidth;
 		this._pageHeight = pageHeight;
 		this._isPageSizeInches = (units == PageSizeUnits.INCHES);
@@ -357,17 +385,51 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useObjectDrawerFactory(FSObjectDrawerFactory objectDrawerFactory) {
+		assertNotSealed();
 		this._objectDrawerFactory = objectDrawerFactory;
 		return (TFinalClass)this;
 	}
 
 	public enum TextDirection {
-		RTL, LTR;
+		RTL, LTR
 	}
+
 	public enum PageSizeUnits {
 		MM, INCHES
 	}
 	public enum FontStyle {
 		NORMAL, ITALIC, OBLIQUE
+	}
+	
+	/**
+	 * Call this when you using this builder to construct a renderer. After that the
+	 * builder should not be modified any more.
+	 */
+	protected final void seal() {
+		this.sealed = true;
+	}
+
+	/**
+	 * Check that this instance is not sealed
+	 */
+	protected final void assertNotSealed() {
+		if (sealed)
+			throw new IllegalStateException("You can not modify the builder after using it to build a renderer. Use clone() if you need a copy.");
+	}
+
+	/**
+	 * Clone this builder. The cloned builder is unsealed and can be modified.
+	 * @return a unsealed clone of this builder
+	 */
+	protected TFinalClass clone(){
+		try {
+			TFinalClass clone = (TFinalClass) super.clone();
+			clone._domMutators = new ArrayList(_domMutators);
+			clone.sealed = false;
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			/* Should not be possible to happen */
+			throw new RuntimeException(e);
+		}
 	}
 }

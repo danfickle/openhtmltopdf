@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> {
-	private final List<AddedFont> _fonts = new ArrayList<AddedFont>();
+	private List<AddedFont> _fonts = new ArrayList<AddedFont>();
 	private OutputStream _os;
 	private float _pdfVersion = 1.7f;
 	private String _producer;
@@ -48,6 +48,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return
 	 */
 	public PdfBoxRenderer buildPdfRenderer() {
+		seal();
 		UnicodeImplementation unicode = new UnicodeImplementation(_reorderer, _splitter, _lineBreaker,
 				_unicodeToLowerTransformer, _unicodeToUpperTransformer, _unicodeToTitleTransformer, _textDirection,
 				_charBreaker);
@@ -98,6 +99,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return
 	 */
 	public PdfRendererBuilder toStream(OutputStream out) {
+		assertNotSealed();
 		this._os = out;
 		return this;
 	}
@@ -110,6 +112,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return
 	 */
 	public PdfRendererBuilder usePdfVersion(float version) {
+		assertNotSealed();
 		this._pdfVersion = version;
 		return this;
 	}
@@ -123,6 +126,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return this for method chaining
 	 */
 	public PdfRendererBuilder usePDDocument(PDDocument doc) {
+		assertNotSealed();
 	    this.pddocument = doc;
 	    return this;
 	}
@@ -148,6 +152,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 */
 	public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
 			FontStyle fontStyle, boolean subset) {
+		assertNotSealed();
 		this._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle));
 		return this;
 	}
@@ -172,6 +177,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 */
 	public PdfRendererBuilder useFont(File fontFile, String fontFamily, Integer fontWeight, FontStyle fontStyle,
 			boolean subset) {
+		assertNotSealed();
 		this._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle));
 		return this;
 	}
@@ -197,6 +203,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return this for method chaining
 	 */
 	public PdfRendererBuilder withProducer(String producer) {
+		assertNotSealed();
 		this._producer = producer;
 		return this;
 	}
@@ -219,6 +226,14 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 			this.subset = subset;
 			this.style = style;
 		}
+	}
+
+	@Override
+	public PdfRendererBuilder clone() {
+		PdfRendererBuilder clone = super.clone();
+		clone._fonts = new ArrayList<AddedFont>(_fonts);
+		clone.pddocument = null; /* We must reset this */
+		return clone;
 	}
 
 }

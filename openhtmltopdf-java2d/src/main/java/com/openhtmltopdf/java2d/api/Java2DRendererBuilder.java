@@ -21,7 +21,7 @@ import com.openhtmltopdf.swing.EmptyReplacedElement;
  * Build a Java2D renderer for a given HTML. The renderer allows to get a
  * BufferedImage of the HTML and to render it in components (using Graphics2D).
  */
-public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBuilder> {
+public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBuilder> implements Cloneable{
 	protected Graphics2D _layoutGraphics;
 	protected FSPageProcessor _pageProcessor;
 	private List<AddedFont> _fonts = new ArrayList<AddedFont>();
@@ -35,6 +35,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @return
 	 */
 	public Java2DRendererBuilder useLayoutGraphics(Graphics2D g2d) {
+		assertNotSealed();
 		this._layoutGraphics = g2d;
 		return this;
 	}
@@ -55,6 +56,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 */
 	public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
 			FontStyle fontStyle) {
+		assertNotSealed();
 		this._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, fontStyle));
 		return this;
 	}
@@ -67,6 +69,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @return
 	 */
 	public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily) {
+		assertNotSealed();
 		return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL);
 	}
 
@@ -77,6 +80,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @return
 	 */
 	public Java2DRendererBuilder useInitialPageNumber(int pageNumberInitial) {
+		assertNotSealed();
 		this._initialPageNumber = pageNumberInitial;
 		return this;
 	}
@@ -86,6 +90,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * pagebreak will be done. The page is only as height as needed.
 	 */
 	public Java2DRendererBuilder toSinglePage(FSPageProcessor pageProcessor) {
+		assertNotSealed();
 		this._pagingMode = Layer.PAGED_MODE_SCREEN;
 		this._pageProcessor = pageProcessor;
 		return this;
@@ -100,6 +105,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @return
 	 */
 	public Java2DRendererBuilder toPageProcessor(FSPageProcessor pageProcessor) {
+		assertNotSealed();
 		this._pagingMode = Layer.PAGED_MODE_PRINT;
 		this._pageProcessor = pageProcessor;
 		return this;
@@ -140,6 +146,8 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	}
 
 	public Java2DRenderer buildJava2DRenderer() {
+		seal();
+
 		UnicodeImplementation unicode = new UnicodeImplementation(_reorderer, _splitter, _lineBreaker,
 				_unicodeToLowerTransformer, _unicodeToUpperTransformer, _unicodeToTitleTransformer, _textDirection,
 				_charBreaker);
@@ -176,6 +184,10 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 		}
 	}
 
+	/**
+	 * This class is internal to this library, please do not use or override it!
+	 * @internal
+	 */
 	public static abstract class Graphics2DPaintingReplacedElement extends EmptyReplacedElement {
 		protected Graphics2DPaintingReplacedElement(int width, int height) {
 			super(width, height);
@@ -185,5 +197,12 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 				double height);
 
 		public static double DOTS_PER_INCH = 72.0;
+	}
+
+	@Override
+	public Java2DRendererBuilder clone() {
+		Java2DRendererBuilder clone = super.clone();
+		clone._fonts = new ArrayList<AddedFont>(_fonts);
+		return clone;
 	}
 }
