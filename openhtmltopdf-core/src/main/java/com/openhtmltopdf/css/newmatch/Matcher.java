@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,8 +56,8 @@ public class Matcher {
     private Set<Object> _focusElements;
     private Set<Object> _visitElements;
     
-    private List<PageRule> _pageRules;
-    private List<FontFaceRule> _fontFaceRules;
+    private final List<PageRule> _pageRules = new ArrayList<PageRule>();
+    private final List<FontFaceRule> _fontFaceRules = new ArrayList<FontFaceRule>();
     
     public Matcher(
             TreeResolver tr, AttributeResolver ar, StylesheetFactory factory, List<Stylesheet> stylesheets, String medium) {
@@ -67,9 +65,7 @@ public class Matcher {
         _treeRes = tr;
         _attRes = ar;
         _styleFactory = factory;
-        
-        _pageRules = new ArrayList<PageRule>();
-        _fontFaceRules = new ArrayList<FontFaceRule>();
+
         docMapper = createDocumentMapper(stylesheets, medium);
     }
     
@@ -78,7 +74,6 @@ public class Matcher {
     }
 
     public CascadedStyle getCascadedStyle(Object e, boolean restyle) {
-        //synchronized (e) {
             Mapper em;
             if (!restyle) {
                 em = getMapper(e);
@@ -86,7 +81,6 @@ public class Matcher {
                 em = matchElement(e);
             }
             return em.getCascadedStyle(e);
-        //}
     }
 
     /**
@@ -142,7 +136,6 @@ public class Matcher {
     }
 
     protected Mapper matchElement(Object e) {
-        //synchronized (e) {
             Object parent = _treeRes.getParentElement(e);
             Mapper child;
             if (parent != null) {
@@ -152,7 +145,6 @@ public class Matcher {
                 child = docMapper.mapChild(e);
             }
             return child;
-        //}
     }
 
     Mapper createDocumentMapper(List<Stylesheet> stylesheets, String medium) {
@@ -227,53 +219,6 @@ public class Matcher {
         return m;
     }
 
-    private static java.util.Iterator getMatchedRulesets(final List mappedSelectors) {
-        return
-                new java.util.Iterator() {
-                    java.util.Iterator selectors = mappedSelectors.iterator();
-
-                    public boolean hasNext() {
-                        return selectors.hasNext();
-                    }
-
-                    public Object next() {
-                        if (hasNext()) {
-                            return ((Selector) selectors.next()).getRuleset();
-                        } else {
-                            throw new java.util.NoSuchElementException();
-                        }
-                    }
-
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
-    }
-
-    private static java.util.Iterator getSelectedRulesets(java.util.List selectorList) {
-        final java.util.List sl = selectorList;
-        return
-                new java.util.Iterator() {
-                    java.util.Iterator selectors = sl.iterator();
-
-                    public boolean hasNext() {
-                        return selectors.hasNext();
-                    }
-
-                    public Object next() {
-                        if (hasNext()) {
-                            return ((Selector) selectors.next()).getRuleset();
-                        } else {
-                            throw new java.util.NoSuchElementException();
-                        }
-                    }
-
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
-    }
-
     private com.openhtmltopdf.css.sheet.Ruleset getElementStyle(Object e) {
         //synchronized (e) {
             if (_attRes == null || _styleFactory == null) {
@@ -309,7 +254,7 @@ public class Matcher {
      * @author Torbjoern Gannholm
      */
     class Mapper {
-        java.util.List axes;
+        java.util.List<Selector> axes;
         private HashMap<String,List<Selector>> pseudoSelectors;
         private List<Selector> mappedSelectors;
         private Map<String,Mapper> children;
@@ -334,8 +279,7 @@ public class Matcher {
             java.util.HashMap<String,List<Selector>> pseudoSelectors = new java.util.HashMap<String,List<Selector>>();
             java.util.List<Selector> mappedSelectors = new java.util.ArrayList<Selector>();
             StringBuilder key = new StringBuilder();
-            for (Object axe : axes) {
-                Selector sel = (Selector) axe;
+            for (Selector sel : axes) {
                 if (sel.getAxis() == Selector.DESCENDANT_AXIS) {
                     //carry it forward to other descendants
                     childAxes.add(sel);
@@ -397,7 +341,7 @@ public class Matcher {
 
         CascadedStyle getCascadedStyle(Object e) {
             CascadedStyle result;
-            //synchronized (e) {
+
                 CascadedStyle cs = null;
                 com.openhtmltopdf.css.sheet.Ruleset elementStyling = getElementStyle(e);
                 com.openhtmltopdf.css.sheet.Ruleset nonCssStyling = getNonCssStyle(e);
@@ -407,9 +351,8 @@ public class Matcher {
                     propList.addAll(nonCssStyling.getPropertyDeclarations());
                 }
                 //these should have been returned in order of specificity
-                for (Iterator i = getMatchedRulesets(mappedSelectors); i.hasNext();) {
-                    com.openhtmltopdf.css.sheet.Ruleset rs = (com.openhtmltopdf.css.sheet.Ruleset) i.next();
-                    propList.addAll(rs.getPropertyDeclarations());
+                for (Selector sel : mappedSelectors) {
+                    propList.addAll(sel.getRuleset().getPropertyDeclarations());
                 }
                 //specificity 1,0,0,0
                 if (elementStyling != null) {
@@ -422,7 +365,7 @@ public class Matcher {
                 }
 
                 result = cs;
-            //}
+
             return result;
         }
 
@@ -440,9 +383,8 @@ public class Matcher {
             if (pe == null) return null;
 
             java.util.List<PropertyDeclaration> propList = new java.util.ArrayList<PropertyDeclaration>();
-            for (java.util.Iterator i = getSelectedRulesets(pe); i.hasNext();) {
-                com.openhtmltopdf.css.sheet.Ruleset rs = (com.openhtmltopdf.css.sheet.Ruleset) i.next();
-                propList.addAll(rs.getPropertyDeclarations());
+            for (Selector sel : pe) {
+                propList.addAll(sel.getRuleset().getPropertyDeclarations());
             }
             if (propList.size() == 0)
                 cs = CascadedStyle.emptyCascadedStyle;//already internalized

@@ -51,7 +51,7 @@ public class Selector {
 
     private int _pos;//to distinguish between selectors of same specificity
 
-    private java.util.List conditions;
+    private java.util.List<Condition> conditions;
 
     public final static int DESCENDANT_AXIS = 0;
     public final static int CHILD_AXIS = 1;
@@ -89,8 +89,7 @@ public class Selector {
         if (_name == null || treeRes.matchesElement(e, _namespaceURI, _name)) {
             if (conditions != null) {
                 // all conditions need to be true
-                for (java.util.Iterator i = conditions.iterator(); i.hasNext();) {
-                    Condition c = (Condition) i.next();
+                for (Condition c : conditions) {
                     if (!c.matches(e, attRes, treeRes)) {
                         return false;
                     }
@@ -421,7 +420,7 @@ public class Selector {
      */
     private void addCondition(Condition c) {
         if (conditions == null) {
-            conditions = new java.util.ArrayList();
+            conditions = new java.util.ArrayList<Condition>();
         }
         if (_pe != null) {
             conditions.add(Condition.createUnsupportedCondition());

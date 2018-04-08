@@ -94,7 +94,7 @@ public class CascadedStyle {
         return new CascadedStyle(Arrays.asList(decls).iterator());
     }
     
-    public static CascadedStyle createLayoutStyle(List decls) {
+    public static CascadedStyle createLayoutStyle(List<PropertyDeclaration> decls) {
         return new CascadedStyle(decls.iterator());
     }    
     

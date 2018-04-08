@@ -22,8 +22,6 @@ package com.openhtmltopdf.context;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -56,21 +54,9 @@ public class StyleReference {
      * resolution.
      */
     private SharedContext _context;
-
-    /**
-     * Description of the Field
-     */
     private NamespaceHandler _nsh;
-
-    /**
-     * Description of the Field
-     */
     private Document _doc;
-
-    /**
-     * Description of the Field
-     */
-    private StylesheetFactoryImpl _stylesheetFactory;
+    private final StylesheetFactoryImpl _stylesheetFactory;
 
     /**
      * Instance of our element-styles matching class. Will be null if new rules
@@ -78,14 +64,8 @@ public class StyleReference {
      */
     private com.openhtmltopdf.css.newmatch.Matcher _matcher;
 
-    /** */
     private UserAgentCallback _uac;
     
-    /**
-     * Default constructor for initializing members.
-     *
-     * @param userAgent PARAM
-     */
     public StyleReference(UserAgentCallback userAgent) {
         _uac = userAgent;
         _stylesheetFactory = new StylesheetFactoryImpl(userAgent);
@@ -105,8 +85,10 @@ public class StyleReference {
         _doc = doc;
         AttributeResolver attRes = new StandardAttributeResolver(_nsh, _uac, ui);
 
-        List infos = getStylesheets();
+        List<StylesheetInfo> infos = getStylesheets();
+        
         XRLog.match("media = " + _context.getMedia());
+        
         _matcher = new com.openhtmltopdf.css.newmatch.Matcher(
                 new DOMTreeResolver(), 
                 attRes, 
@@ -115,10 +97,10 @@ public class StyleReference {
                 _context.getMedia());
     }
     
-    private List readAndParseAll(List infos, String medium) {
-        List result = new ArrayList(infos.size() + 15);
-        for (Iterator i = infos.iterator(); i.hasNext(); ) {
-            StylesheetInfo info = (StylesheetInfo)i.next();
+    private List<Stylesheet> readAndParseAll(List<StylesheetInfo> infos, String medium) {
+        List<Stylesheet> result = new ArrayList<Stylesheet>(infos.size() + 15);
+        
+        for (StylesheetInfo info : infos) {
             if (info.appliesToMedia(medium)) {
                 Stylesheet sheet = info.getStylesheet();
                 
@@ -126,7 +108,7 @@ public class StyleReference {
                     sheet = _stylesheetFactory.getStylesheet(info);
                 }
                 
-                if (sheet!=null) {
+                if (sheet != null) {
                     if (sheet.getImportRules().size() > 0) {
                         result.addAll(readAndParseAll(sheet.getImportRules(), medium));
                     }
@@ -140,13 +122,7 @@ public class StyleReference {
         
         return result;
     }
-    
-    /**
-     * Description of the Method
-     *
-     * @param e PARAM
-     * @return Returns
-     */
+
     public boolean isHoverStyled(Element e) {
         return _matcher.isHoverStyled(e);
     }
@@ -155,22 +131,25 @@ public class StyleReference {
      * Returns a Map keyed by CSS property names (e.g. 'border-width'), and the
      * assigned value as a SAC CSSValue instance. The properties should have
      * been matched to the element when the Context was established for this
-     * StyleReference on the Document to which the Element belongs. See {@link
-     * com.openhtmltopdf.swing.BasicPanel#setDocument(Document, java.net.URL)}
-     * for an example of how to establish a StyleReference and associate to a
-     * Document.
+     * StyleReference on the Document to which the Element belongs.
+     * 
+     * Only used by broken DOM inspector.
      *
      * @param e The DOM Element for which to find properties
      * @return Map of CSS property names to CSSValue instance assigned to it.
      */
+    @Deprecated
 	public java.util.Map<String, org.w3c.dom.css.CSSPrimitiveValue> getCascadedPropertiesMap(Element e) {
-        CascadedStyle cs = _matcher.getCascadedStyle(e, false);//this is only for debug, I think
+        CascadedStyle cs = _matcher.getCascadedStyle(e, false);
+        
 		java.util.Map<String, org.w3c.dom.css.CSSPrimitiveValue> props = new java.util.LinkedHashMap<String, org.w3c.dom.css.CSSPrimitiveValue>();
+		
 		for (PropertyDeclaration pd : cs.getCascadedPropertyDeclarations()) {
             String propName = pd.getPropertyName();
             CSSName cssName = CSSName.getByPropertyName(propName);
             props.put(propName, cs.propertyByName(cssName).getValue());
         }
+		
         return props;
     }
 
@@ -210,7 +189,9 @@ public class StyleReference {
 
     /**
      * Flushes any stylesheet associated with this stylereference (based on the user agent callback) that are in cache.
+     * Deprecated for now, until we fix caching, use a new <code>StylesheetFactory</code> each run.
      */
+    @Deprecated
     public void flushStyleSheets() {
         String uri = _uac.getBaseURL();
         StylesheetInfo info = new StylesheetInfo();
@@ -225,6 +206,7 @@ public class StyleReference {
         }
     }
     
+    @Deprecated
     public void flushAllStyleSheets() {
         _stylesheetFactory.flushCachedStylesheets();
     }
@@ -232,7 +214,7 @@ public class StyleReference {
     /**
      * Gets StylesheetInfos for all stylesheets and inline styles associated
      * with the current document. Default (user agent) stylesheet and the inline
-     * style for the current media are loaded and cached in the
+     * style for the current media are loaded in the
      * StyleSheetFactory by URI.
      *
      * @return The stylesheets value
@@ -274,6 +256,7 @@ public class StyleReference {
         return infos;
     }
     
+    @Deprecated
     public void removeStyle(Element e) {
         if (_matcher != null) {
             _matcher.removeStyle(e);

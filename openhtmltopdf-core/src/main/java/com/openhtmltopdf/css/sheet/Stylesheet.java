@@ -35,24 +35,27 @@ import java.util.List;
  * @author Patrick Wright
  */
 public class Stylesheet implements RulesetContainer {
-    /**
-     * The info for this stylesheet
-     */
-    private String _uri;
-    /**
-     * Description of the Field
-     */
-    private int _origin;
 
-    private List<FontFaceRule> _fontFaceRules = new ArrayList<FontFaceRule>();
-    private List<StylesheetInfo> _importRules = new ArrayList<StylesheetInfo>();
-    private List _contents = new ArrayList();
+	private final String _uri;
+    
+    /**
+     * user-agent, user or author from <code>StylesheetInfo</code>
+     */
+    private final int _origin;
+
+    private final List<FontFaceRule> _fontFaceRules = new ArrayList<FontFaceRule>();
+    private final List<StylesheetInfo> _importRules = new ArrayList<StylesheetInfo>();
+    
+    /**
+     *  May contain page rules, media rules or rulesets.
+     */
+    private final List<Object> _contents = new ArrayList<Object>();
 
     /**
      * Creates a new instance of Stylesheet
      *
      * @param uri
-     * @param origin
+     * @param origin user-agent, user or author from <code>StylesheetInfo</code>
      */
     public Stylesheet(String uri, int origin) {
         _uri = uri;
@@ -62,7 +65,7 @@ public class Stylesheet implements RulesetContainer {
     /**
      * Gets the origin attribute of the Stylesheet object
      *
-     * @return The origin value
+     * @return The origin value: user-agent, user or author from <code>StylesheetInfo</code>
      */
     public int getOrigin() {
         return _origin;
@@ -89,7 +92,10 @@ public class Stylesheet implements RulesetContainer {
         _contents.add(rule);
     }
     
-    public List getContents() {
+    /**
+     * @return a list containing page rules, media rules and rulesets in encounter order.
+     */
+    public List<Object> getContents() {
         return _contents;
     }
     
@@ -97,7 +103,7 @@ public class Stylesheet implements RulesetContainer {
         _importRules.add(info);
     }
     
-    public List getImportRules() {
+    public List<StylesheetInfo> getImportRules() {
         return _importRules;
     }
     
@@ -108,8 +114,7 @@ public class Stylesheet implements RulesetContainer {
     public List<FontFaceRule> getFontFaceRules() {
         return _fontFaceRules;
     }
-
-}// end class
+}
 
 /*
  * $Id$
