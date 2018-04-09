@@ -12,16 +12,13 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
-public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> {
-	private final List<AddedFont> _fonts = new ArrayList<AddedFont>();
-	private OutputStream _os;
-	private float _pdfVersion = 1.7f;
-	private String _producer;
-	private PDDocument pddocument;
+public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, PdfRendererBuilderState> {
+
+	public PdfRendererBuilder() {
+		super(new PdfRendererBuilderState());
+	}
 
 	/**
 	 * Run the XHTML/XML to PDF conversion and output to an output stream set by
@@ -48,24 +45,21 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return
 	 */
 	public PdfBoxRenderer buildPdfRenderer() {
-		UnicodeImplementation unicode = new UnicodeImplementation(_reorderer, _splitter, _lineBreaker,
-				_unicodeToLowerTransformer, _unicodeToUpperTransformer, _unicodeToTitleTransformer, _textDirection,
-				_charBreaker);
+		UnicodeImplementation unicode = new UnicodeImplementation(state._reorderer, state._splitter, state._lineBreaker,
+				state._unicodeToLowerTransformer, state._unicodeToUpperTransformer, state._unicodeToTitleTransformer, state._textDirection,
+				state._charBreaker);
 
-		PageDimensions pageSize = new PageDimensions(_pageWidth, _pageHeight, _isPageSizeInches);
+		PageDimensions pageSize = new PageDimensions(state._pageWidth, state._pageHeight, state._isPageSizeInches);
 
-		BaseDocument doc = new BaseDocument(_baseUri, _html, _document, _file, _uri);
+		BaseDocument doc = new BaseDocument(state._baseUri, state._html, state._document, state._file, state._uri);
 
-		PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, _httpStreamFactory, _os, _resolver, _cache, _svgImpl,
-				pageSize, _pdfVersion, _replacementText, _testMode, _objectDrawerFactory,
-				_preferredTransformerFactoryImplementationClass,  _preferredDocumentBuilderFactoryImplementationClass,
-				_producer, _mathmlImpl, _domMutators, pddocument);
+		PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, pageSize, state);
 
 		/*
 		 * Register all Fonts
 		 */
 		PdfBoxFontResolver resolver = renderer.getFontResolver();
-		for (AddedFont font : _fonts) {
+		for (AddedFont font : state._fonts) {
 			IdentValue fontStyle = null;
 
 			if (font.style == FontStyle.NORMAL) {
@@ -98,7 +92,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return
 	 */
 	public PdfRendererBuilder toStream(OutputStream out) {
-		this._os = out;
+		state._os = out;
 		return this;
 	}
 
@@ -110,7 +104,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return
 	 */
 	public PdfRendererBuilder usePdfVersion(float version) {
-		this._pdfVersion = version;
+		state._pdfVersion = version;
 		return this;
 	}
 	
@@ -123,7 +117,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return this for method chaining
 	 */
 	public PdfRendererBuilder usePDDocument(PDDocument doc) {
-	    this.pddocument = doc;
+	    state.pddocument = doc;
 	    return this;
 	}
 
@@ -148,7 +142,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 */
 	public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
 			FontStyle fontStyle, boolean subset) {
-		this._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle));
+		state._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle));
 		return this;
 	}
 
@@ -172,7 +166,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 */
 	public PdfRendererBuilder useFont(File fontFile, String fontFamily, Integer fontWeight, FontStyle fontStyle,
 			boolean subset) {
-		this._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle));
+		state._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle));
 		return this;
 	}
 
@@ -197,12 +191,12 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 	 * @return this for method chaining
 	 */
 	public PdfRendererBuilder withProducer(String producer) {
-		this._producer = producer;
+		state._producer = producer;
 		return this;
 	}
 
 
-	private static class AddedFont {
+	static class AddedFont {
 		private final FSSupplier<InputStream> supplier;
 		private final File fontFile;
 		private final Integer weight;
@@ -220,5 +214,5 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder> 
 			this.style = style;
 		}
 	}
-
 }
+

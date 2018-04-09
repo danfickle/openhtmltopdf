@@ -14,39 +14,52 @@ import java.util.List;
  * Baseclass for all RendererBuilders (PDF and Java2D), has all common settings
  */
 @SuppressWarnings("unchecked")
-public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilder> {
+public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilder, TBaseRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState> {
 	public static final float PAGE_SIZE_LETTER_WIDTH = 8.5f;
 	public static final float PAGE_SIZE_LETTER_HEIGHT = 11.0f;
 	public static final PageSizeUnits PAGE_SIZE_LETTER_UNITS = PageSizeUnits.INCHES;
-	protected final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
-	protected HttpStreamFactory _httpStreamFactory;
-	protected FSCache _cache;
-	protected FSUriResolver _resolver;
-	protected String _html;
-	protected String _baseUri;
-	protected Document _document;
-	protected SVGDrawer _svgImpl;
-	protected SVGDrawer _mathmlImpl;
-	protected String _replacementText;
-	protected FSTextBreaker _lineBreaker;
-	protected FSTextBreaker _charBreaker;
-	protected FSTextTransformer _unicodeToUpperTransformer;
-	protected FSTextTransformer _unicodeToLowerTransformer;
-	protected FSTextTransformer _unicodeToTitleTransformer;
-	protected BidiSplitterFactory _splitter;
-	protected BidiReorderer _reorderer;
-	protected boolean _textDirection = false;
-	protected Float _pageWidth;
-	protected Float _pageHeight;
-	protected boolean _isPageSizeInches;
-	protected String _uri;
-	protected File _file;
-	protected boolean _testMode = false;
-	protected int _initialPageNumber;
-	protected short _pagingMode = Layer.PAGED_MODE_PRINT;
-	protected FSObjectDrawerFactory _objectDrawerFactory;
-	protected String _preferredTransformerFactoryImplementationClass = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
-	protected String _preferredDocumentBuilderFactoryImplementationClass = "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl";
+
+	/**
+	 * This class is an internal implementation detail
+	 * @internal
+	 */
+	public abstract static class BaseRendererBuilderState {
+		public final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
+		public HttpStreamFactory _httpStreamFactory;
+		public FSCache _cache;
+		public FSUriResolver _resolver;
+		public String _html;
+		public String _baseUri;
+		public Document _document;
+		public SVGDrawer _svgImpl;
+		public SVGDrawer _mathmlImpl;
+		public String _replacementText;
+		public FSTextBreaker _lineBreaker;
+		public FSTextBreaker _charBreaker;
+		public FSTextTransformer _unicodeToUpperTransformer;
+		public FSTextTransformer _unicodeToLowerTransformer;
+		public FSTextTransformer _unicodeToTitleTransformer;
+		public BidiSplitterFactory _splitter;
+		public BidiReorderer _reorderer;
+		public boolean _textDirection = false;
+		public Float _pageWidth;
+		public Float _pageHeight;
+		public boolean _isPageSizeInches;
+		public String _uri;
+		public File _file;
+		public boolean _testMode = false;
+		public int _initialPageNumber;
+		public short _pagingMode = Layer.PAGED_MODE_PRINT;
+		public FSObjectDrawerFactory _objectDrawerFactory;
+		public String _preferredTransformerFactoryImplementationClass = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
+		public String _preferredDocumentBuilderFactoryImplementationClass = "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl";
+	}
+
+	protected final TBaseRendererBuilderState state;
+
+	protected BaseRendererBuilder(TBaseRendererBuilderState state) {
+		this.state = state;
+	}
 
 	/**
 	 * Add a DOM mutator to this builder. DOM mutators allow to modify the DOM
@@ -58,7 +71,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public TFinalClass addDOMMutator(FSDOMMutator domMutator) {
-		_domMutators.add(domMutator);
+		state._domMutators.add(domMutator);
 		return (TFinalClass) this;
 	}
 
@@ -76,7 +89,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useTransformerFactoryImplementationClass(String transformerFactoryClass) {
-		this._preferredTransformerFactoryImplementationClass = transformerFactoryClass;
+		state._preferredTransformerFactoryImplementationClass = transformerFactoryClass;
 		return (TFinalClass) this;
 	}
 
@@ -85,17 +98,17 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * setups. Set a preferred implementation class for use as
 	 * javax.xml.parsers.DocumentBuilderFactory. Use null to let a default
 	 * implementation class be used. The default is
-	 * "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl".
-	 * If the default does not work you can use null to let the container use whatever
+	 * "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl". If the
+	 * default does not work you can use null to let the container use whatever
 	 * DocumentBuilderFactory it has available.
 	 *
 	 * @param documentBuilderFactoryClass
 	 * @return this for method chaining
 	 */
-		public final TFinalClass useDocumentBuilderFactoryImplementationClass(String documentBuilderFactoryClass) {
-				this._preferredDocumentBuilderFactoryImplementationClass = documentBuilderFactoryClass;
-				return (TFinalClass) this;
-		}
+	public final TFinalClass useDocumentBuilderFactoryImplementationClass(String documentBuilderFactoryClass) {
+		state._preferredDocumentBuilderFactoryImplementationClass = documentBuilderFactoryClass;
+		return (TFinalClass) this;
+	}
 
 	/**
 	 * The default text direction of the document. LTR by default.
@@ -104,7 +117,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass defaultTextDirection(TextDirection textDirection) {
-		this._textDirection = textDirection == TextDirection.RTL;
+		state._textDirection = textDirection == TextDirection.RTL;
 		return (TFinalClass) this;
 	}
 
@@ -116,7 +129,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass testMode(boolean mode) {
-		this._testMode = mode;
+		state._testMode = mode;
 		return (TFinalClass) this;
 	}
 
@@ -125,10 +138,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * external HTTP/HTTPS implementation. Uses URL::openStream by default.
 	 *
 	 * @param factory
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useHttpStreamImplementation(HttpStreamFactory factory) {
-		this._httpStreamFactory = factory;
+		state._httpStreamFactory = factory;
 		return (TFinalClass) this;
 	}
 
@@ -136,10 +149,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides a uri resolver to resolve relative uris or private uri schemes.
 	 *
 	 * @param resolver
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUriResolver(FSUriResolver resolver) {
-		this._resolver = resolver;
+		state._resolver = resolver;
 		return (TFinalClass) this;
 	}
 
@@ -148,10 +161,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * as fonts or logo images.
 	 *
 	 * @param cache
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useCache(FSCache cache) {
-		this._cache = cache;
+		state._cache = cache;
 		return (TFinalClass) this;
 	}
 
@@ -160,10 +173,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * default.
 	 *
 	 * @param splitter
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeBidiSplitter(BidiSplitterFactory splitter) {
-		this._splitter = splitter;
+		state._splitter = splitter;
 		return (TFinalClass) this;
 	}
 
@@ -171,10 +184,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides a reorderer to properly reverse RTL text. No-op by default.
 	 *
 	 * @param reorderer
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeBidiReorderer(BidiReorderer reorderer) {
-		this._reorderer = reorderer;
+		state._reorderer = reorderer;
 		return (TFinalClass) this;
 	}
 
@@ -183,11 +196,11 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 *
 	 * @param html
 	 * @param baseUri
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass withHtmlContent(String html, String baseUri) {
-		this._html = html;
-		this._baseUri = baseUri;
+		state._html = html;
+		state._baseUri = baseUri;
 		return (TFinalClass) this;
 	}
 
@@ -196,11 +209,11 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 *
 	 * @param doc
 	 * @param baseUri
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass withW3cDocument(org.w3c.dom.Document doc, String baseUri) {
-		this._document = doc;
-		this._baseUri = baseUri;
+		state._document = doc;
+		state._baseUri = baseUri;
 		return (TFinalClass) this;
 	}
 
@@ -209,10 +222,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * document.
 	 *
 	 * @param uri
-	 * @return
+	 * @return this for method chaining
 	 */
 	public final TFinalClass withUri(String uri) {
-		this._uri = uri;
+		state._uri = uri;
 		return (TFinalClass) this;
 	}
 
@@ -224,29 +237,31 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass withFile(File file) {
-		this._file = file;
+		state._file = file;
 		return (TFinalClass) this;
 	}
 
 	/**
 	 * Uses the specified SVG drawer implementation.
 	 *
-	 * @param svgImpl the SVG implementation
+	 * @param svgImpl
+	 *            the SVG implementation
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useSVGDrawer(SVGDrawer svgImpl) {
-		this._svgImpl = svgImpl;
+		state._svgImpl = svgImpl;
 		return (TFinalClass) this;
 	}
 
 	/**
 	 * Use the specified MathML implementation.
 	 *
-	 * @param mathMlImpl the MathML implementation
+	 * @param mathMlImpl
+	 *            the MathML implementation
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useMathMLDrawer(SVGDrawer mathMlImpl) {
-		this._mathmlImpl = mathMlImpl;
+		state._mathmlImpl = mathMlImpl;
 		return (TFinalClass) this;
 	}
 
@@ -256,11 +271,12 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * characters for best results. Also, make sure it can be rendered by at least
 	 * one of your specified fonts! The default is the # character.
 	 *
-	 * @param replacement the default replacement text
+	 * @param replacement
+	 *            the default replacement text
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useReplacementText(String replacement) {
-		this._replacementText = replacement;
+		state._replacementText = replacement;
 		return (TFinalClass) this;
 	}
 
@@ -278,8 +294,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeLineBreaker(FSTextBreaker breaker) {
-		this._lineBreaker = breaker;
-		return (TFinalClass)this;
+		state._lineBreaker = breaker;
+		return (TFinalClass) this;
 	}
 
 	/**
@@ -291,8 +307,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeCharacterBreaker(FSTextBreaker breaker) {
-		this._charBreaker = breaker;
-		return (TFinalClass)this;
+		state._charBreaker = breaker;
+		return (TFinalClass) this;
 	}
 
 	/**
@@ -303,8 +319,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeToUpperTransformer(FSTextTransformer tr) {
-		this._unicodeToUpperTransformer = tr;
-		return (TFinalClass)this;
+		state._unicodeToUpperTransformer = tr;
+		return (TFinalClass) this;
 	}
 
 	/**
@@ -315,8 +331,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeToLowerTransformer(FSTextTransformer tr) {
-		this._unicodeToLowerTransformer = tr;
-		return (TFinalClass)this;
+		state._unicodeToLowerTransformer = tr;
+		return (TFinalClass) this;
 	}
 
 	/**
@@ -327,8 +343,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useUnicodeToTitleTransformer(FSTextTransformer tr) {
-		this._unicodeToTitleTransformer = tr;
-		return (TFinalClass)this;
+		state._unicodeToTitleTransformer = tr;
+		return (TFinalClass) this;
 	}
 
 	/**
@@ -343,10 +359,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return
 	 */
 	public final TFinalClass useDefaultPageSize(float pageWidth, float pageHeight, PageSizeUnits units) {
-		this._pageWidth = pageWidth;
-		this._pageHeight = pageHeight;
-		this._isPageSizeInches = (units == PageSizeUnits.INCHES);
-		return (TFinalClass)this;
+		state._pageWidth = pageWidth;
+		state._pageHeight = pageHeight;
+		state._isPageSizeInches = (units == PageSizeUnits.INCHES);
+		return (TFinalClass) this;
 	}
 
 	/**
@@ -357,16 +373,18 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useObjectDrawerFactory(FSObjectDrawerFactory objectDrawerFactory) {
-		this._objectDrawerFactory = objectDrawerFactory;
-		return (TFinalClass)this;
+		state._objectDrawerFactory = objectDrawerFactory;
+		return (TFinalClass) this;
 	}
 
 	public enum TextDirection {
-		RTL, LTR;
+		RTL, LTR
 	}
+
 	public enum PageSizeUnits {
 		MM, INCHES
 	}
+
 	public enum FontStyle {
 		NORMAL, ITALIC, OBLIQUE
 	}

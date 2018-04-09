@@ -185,7 +185,8 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 					RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 			
         _graphics.drawImage(((AWTFSImage)image).getImage(), x, y, null);
-		_graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, oldInterpolation);
+		if (oldInterpolation != null)
+			_graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, oldInterpolation);
     }
     
     @Override

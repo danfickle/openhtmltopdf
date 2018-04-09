@@ -108,44 +108,39 @@ public class PdfBoxRenderer implements Closeable {
      * This method is constantly changing as options are added to the builder.
      */
     PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode,
-                   HttpStreamFactory httpStreamFactory,
-                   OutputStream os, FSUriResolver resolver, FSCache cache, SVGDrawer svgImpl,
-                   PageDimensions pageSize, float pdfVersion, String replacementText, boolean testMode,
-                   FSObjectDrawerFactory objectDrawerFactory, String preferredTransformerFactoryImplementationClass,
-                   String preferredDocumentBuilderFactoryImplementationClass,
-                   String producer, SVGDrawer mathmlImpl, List<FSDOMMutator> domMutators, PDDocument pdocument) {
-        
-        _pdfDoc = pdocument != null ? pdocument : new PDDocument();
-        _pdfDoc.setVersion(pdfVersion);
+            PageDimensions pageSize, PdfRendererBuilderState state) {
 
-        _producer = producer;
+        _pdfDoc = state.pddocument != null ? state.pddocument : new PDDocument();
+        _pdfDoc.setVersion(state._pdfVersion);
 
-        _svgImpl = svgImpl;
-        _mathmlImpl = mathmlImpl;
+        _producer = state._producer;
+
+        _svgImpl = state._svgImpl;
+        _mathmlImpl = state._mathmlImpl;
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
-        _testMode = testMode;
-        _outputDevice = new PdfBoxOutputDevice(DEFAULT_DOTS_PER_POINT, testMode);
+        _testMode = state._testMode;
+        _outputDevice = new PdfBoxOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
         
         PdfBoxUserAgent userAgent = new PdfBoxUserAgent(_outputDevice);
 
-        if (httpStreamFactory != null) {
-            userAgent.setHttpStreamFactory(httpStreamFactory);
+        if (state._httpStreamFactory != null) {
+            userAgent.setHttpStreamFactory(state._httpStreamFactory);
         }
         
-        if (resolver != null) {
-            userAgent.setUriResolver(resolver);
+        if (state._resolver != null) {
+            userAgent.setUriResolver(state._resolver);
         }
         
-        if (cache != null) {
-            userAgent.setExternalCache(cache);
+        if (state._cache != null) {
+            userAgent.setExternalCache(state._cache);
         }
         
         _sharedContext = new SharedContext();
         _sharedContext.registerWithThread();
         
-        _sharedContext._preferredTransformerFactoryImplementationClass = preferredTransformerFactoryImplementationClass;
-        _sharedContext._preferredDocumentBuilderFactoryImplementationClass = preferredDocumentBuilderFactoryImplementationClass;
+        _sharedContext._preferredTransformerFactoryImplementationClass = state._preferredTransformerFactoryImplementationClass;
+        _sharedContext._preferredDocumentBuilderFactoryImplementationClass = state._preferredDocumentBuilderFactoryImplementationClass;
         
         _sharedContext.setUserAgentCallback(userAgent);
         _sharedContext.setCss(new StyleReference(userAgent));
@@ -155,7 +150,7 @@ public class PdfBoxRenderer implements Closeable {
         PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc);
         _sharedContext.setFontResolver(fontResolver);
 
-        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, svgImpl, objectDrawerFactory, mathmlImpl);
+        PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, state._svgImpl, state._objectDrawerFactory, state._mathmlImpl);
         _sharedContext.setReplacedElementFactory(replacedElementFactory);
 
         _sharedContext.setTextRenderer(new PdfBoxTextRenderer());
@@ -166,8 +161,8 @@ public class PdfBoxRenderer implements Closeable {
         
         this.getSharedContext().setDefaultPageSize(pageSize.w, pageSize.h, pageSize.isSizeInches);
         
-        if (replacementText != null) {
-            this.getSharedContext().setReplacementText(replacementText);
+        if (state._replacementText != null) {
+            this.getSharedContext().setReplacementText(state._replacementText);
         }
         
         if (unicode.splitterFactory != null) {
@@ -201,7 +196,7 @@ public class PdfBoxRenderer implements Closeable {
         
         this._defaultTextDirection = unicode.textDirection ? BidiSplitter.RTL : BidiSplitter.LTR;
 
-        this._domMutators = domMutators;
+        this._domMutators = state._domMutators;
 
         if (doc.html != null) {
             this.setDocumentFromStringP(doc.html, doc.baseUri);
@@ -221,7 +216,7 @@ public class PdfBoxRenderer implements Closeable {
             }
         }
         
-        this._os = os;
+        this._os = state._os;
     }
 
     public Document getDocument() {
