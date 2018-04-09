@@ -78,9 +78,7 @@ public class Java2DRenderer implements Closeable {
 		
 		NaiveUserAgent uac = new NaiveUserAgent();
 		
-		if (state._httpStreamFactory != null) {
-			uac.setHttpStreamFactory(state._httpStreamFactory);
-		}
+		uac.setProtocolsStreamFactory(state._streamFactoryMap);
 		
 		if (state._resolver != null) {
 			uac.setUriResolver(state._resolver);

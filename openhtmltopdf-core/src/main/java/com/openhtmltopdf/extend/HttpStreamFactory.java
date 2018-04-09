@@ -1,7 +1,8 @@
 package com.openhtmltopdf.extend;
 
 /**
- * Represents a very simple http or https client.
+ * Represents a very simple stream/reader client for any protocol.
+ * @see {@link HttpStream}
  */
 public interface HttpStreamFactory 
 {

@@ -31,7 +31,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
@@ -60,9 +62,6 @@ import com.openhtmltopdf.util.XRLog;
  * source of document events (like the panel hierarchy), it will respond to the
  * {@link com.openhtmltopdf.event.DocumentListener#documentStarted()} call and attempt to shrink its cache.
  *
- * <p>This class is meant as a starting point--it will work out of the box, but you should really implement your
- * own, tuned to your application's needs.
- *
  * @author Torbjoern Gannholm
  */
 public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
@@ -75,10 +74,10 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     protected final LinkedHashMap<String, ImageResource> _imageCache = new LinkedHashMap<String, ImageResource>();
     protected final FSUriResolver DEFAULT_URI_RESOLVER = new DefaultUriResolver(); 
 
-    protected HttpStreamFactory _streamFactory = new DefaultHttpStreamFactory();
     protected FSCache _externalCache = new NullFSCache(false);
     protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
     protected String _baseUri;
+	protected Map<String, HttpStreamFactory> _protocolsStreamFactory = new HashMap<String, HttpStreamFactory>(2);
     
     public static class DefaultHttpStream implements HttpStream {
     	private InputStream strm;
@@ -147,10 +146,13 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
     
     public NaiveUserAgent() {
+    	HttpStreamFactory factory = new DefaultHttpStreamFactory();
+    	this._protocolsStreamFactory.put("http", factory);
+    	this._protocolsStreamFactory.put("https", factory);
     }
-
-    public void setHttpStreamFactory(HttpStreamFactory factory) {
-    	this._streamFactory = factory;
+    
+    public void setProtocolsStreamFactory(Map<String, HttpStreamFactory> protocolsStreamFactory) {
+    	this._protocolsStreamFactory = protocolsStreamFactory;
     }
     
     public void setExternalCache(FSCache cache) {
@@ -171,6 +173,14 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     public void clearImageCache() {
         _imageCache.clear();
     }
+    
+    protected HttpStreamFactory getProtocolFactory(String protocol) {
+    	return _protocolsStreamFactory.get(protocol);
+    }
+    
+    protected boolean hasProtocolFactory(String protocol) {
+    	return _protocolsStreamFactory.containsKey(protocol);
+    }
 
     /**
      * Gets a InputStream for the resource identified by a resolved URI.
@@ -179,11 +189,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         java.io.InputStream is = null;
         
         try {
-			URL urlObj = new URL(uri);
+			URI urlObj = new URI(uri);
+			String protocol = urlObj.getScheme();
 
-			if (urlObj.getProtocol().equalsIgnoreCase("http") ||
-				urlObj.getProtocol().equalsIgnoreCase("https")) {
-				return _streamFactory.getUrl(uri).getStream();
+			if (hasProtocolFactory(protocol)) {
+				return getProtocolFactory(protocol).getUrl(uri).getStream();
 			}
 			else {
 		        try {
@@ -196,9 +206,9 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		            XRLog.exception("IO problem for " + uri, e);
 		        }
 			}
-        } catch (MalformedURLException e2) {
-        	XRLog.exception("bad URL given: " + uri, e2);
-        }
+        } catch (URISyntaxException e1) {
+        	XRLog.exception("bad URL given: " + uri, e1);
+		}
 
         return is;
     }
@@ -210,11 +220,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	InputStream is = null;
     	
         try {
-			URL urlObj = new URL(uri);
+			URI urlObj = new URI(uri);
+			String protocol = urlObj.getScheme();
 
-			if (urlObj.getProtocol().equalsIgnoreCase("http") ||
-				urlObj.getProtocol().equalsIgnoreCase("https")) {
-				return _streamFactory.getUrl(uri).getReader();
+			if (hasProtocolFactory(protocol)) {
+				return getProtocolFactory(protocol).getUrl(uri).getReader();
 			}
 			else {
 		        try {
@@ -227,9 +237,9 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		            XRLog.exception("IO problem for " + uri, e);
 		        }
 			}
-        } catch (MalformedURLException e2) {
-        	XRLog.exception("bad URL given: " + uri, e2);
-        }
+        } catch (URISyntaxException e1) {
+        	XRLog.exception("bad URL given: " + uri, e1);
+		}
     	
     	try {
 			return is == null ? null : new InputStreamReader(is, "UTF-8");

@@ -4,16 +4,21 @@ import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.Layer;
+import com.openhtmltopdf.swing.NaiveUserAgent;
+
 import org.w3c.dom.Document;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Baseclass for all RendererBuilders (PDF and Java2D), has all common settings
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilder, TBaseRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState> {
 	public static final float PAGE_SIZE_LETTER_WIDTH = 8.5f;
 	public static final float PAGE_SIZE_LETTER_HEIGHT = 11.0f;
@@ -25,7 +30,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 */
 	public abstract static class BaseRendererBuilderState {
 		public final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
-		public HttpStreamFactory _httpStreamFactory;
+		public Map<String, HttpStreamFactory> _streamFactoryMap = new HashMap<String, HttpStreamFactory>();
 		public FSCache _cache;
 		public FSUriResolver _resolver;
 		public String _html;
@@ -59,6 +64,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 
 	protected BaseRendererBuilder(TBaseRendererBuilderState state) {
 		this.state = state;
+		this.useProtocolsStreamImplementation(new NaiveUserAgent.DefaultHttpStreamFactory(), "http", "https");
 	}
 
 	/**
@@ -136,12 +142,58 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	/**
 	 * Provides an HttpStreamFactory implementation if the user desires to use an
 	 * external HTTP/HTTPS implementation. Uses URL::openStream by default.
+	 * 
+	 * @see {@link {@link #useProtocolsStreamImplementation(HttpStreamFactory, String[])}
 	 *
 	 * @param factory
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useHttpStreamImplementation(HttpStreamFactory factory) {
-		state._httpStreamFactory = factory;
+		this.useProtocolsStreamImplementation(factory, "http", "https");
+		return (TFinalClass) this;
+	}
+	
+	/**
+	 * Provides an {@link com.openhtmltopdf.extend.HttpStreamFactory}
+	 * implementation if the user desires to use an external
+	 * stream provider for a particular set of protocols.
+	 * Protocols should always be in lower case.
+	 * 
+	 * NOTE: HttpStreamFactory, despite its historical name, can be used for any protocol
+	 * including private made-up protocols.
+	 * 
+	 * @see {@link #useHttpStreamImplementation(HttpStreamFactory)}
+	 * @see {@link #useProtocolsStreamImplementation(HttpStreamFactory, String[])}
+	 * @param factory
+	 * @param protocols
+	 * @return this for method chaining
+	 */
+	public final TFinalClass useProtocolsStreamImplementation(HttpStreamFactory factory, Set<String> protocols) {
+		for (String protocol : protocols) {
+			state._streamFactoryMap.put(protocol, factory);
+		}
+		return (TFinalClass) this;
+	}
+
+	/**
+	 * Provides an {@link com.openhtmltopdf.extend.HttpStreamFactory}
+	 * implementation if the user desires to use an external
+	 * stream provider for a particular list of protocols.
+	 * Protocols should always be in lower case.
+	 * 
+	 * NOTE: HttpStreamFactory, despite its historical name, can be used for any protocol
+	 * including private made-up protocols.
+	 * 
+	 * @see {@link #useHttpStreamImplementation(HttpStreamFactory)}
+	 * @see {@link #useProtocolsStreamImplementation(HttpStreamFactory, Set)}
+	 * @param factory
+	 * @param protocols
+	 * @return this for method chaining
+	 */
+	public final TFinalClass useProtocolsStreamImplementation(HttpStreamFactory factory, String... protocols) {
+		for (String protocol : protocols) {
+			state._streamFactoryMap.put(protocol, factory);
+		}
 		return (TFinalClass) this;
 	}
 
