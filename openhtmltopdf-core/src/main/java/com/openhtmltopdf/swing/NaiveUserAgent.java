@@ -41,8 +41,8 @@ import javax.imageio.ImageIO;
 import com.openhtmltopdf.event.DocumentListener;
 import com.openhtmltopdf.extend.FSCache;
 import com.openhtmltopdf.extend.FSUriResolver;
-import com.openhtmltopdf.extend.HttpStreamFactory;
-import com.openhtmltopdf.extend.HttpStream;
+import com.openhtmltopdf.extend.FSStreamFactory;
+import com.openhtmltopdf.extend.FSStream;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.resource.CSSResource;
 import com.openhtmltopdf.resource.ImageResource;
@@ -77,9 +77,9 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     protected FSCache _externalCache = new NullFSCache(false);
     protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
     protected String _baseUri;
-	protected Map<String, HttpStreamFactory> _protocolsStreamFactory = new HashMap<String, HttpStreamFactory>(2);
+	protected Map<String, FSStreamFactory> _protocolsStreamFactory = new HashMap<String, FSStreamFactory>(2);
     
-    public static class DefaultHttpStream implements HttpStream {
+    public static class DefaultHttpStream implements FSStream {
     	private InputStream strm;
     	
     	public DefaultHttpStream(InputStream strm) {
@@ -102,10 +102,10 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		}
     }
     
-    public static class DefaultHttpStreamFactory implements HttpStreamFactory {
+    public static class DefaultHttpStreamFactory implements FSStreamFactory {
 
 		@Override
-		public HttpStream getUrl(String uri) {
+		public FSStream getUrl(String uri) {
 			InputStream is = null;
 			
 	        try {
@@ -146,12 +146,12 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
     
     public NaiveUserAgent() {
-    	HttpStreamFactory factory = new DefaultHttpStreamFactory();
+    	FSStreamFactory factory = new DefaultHttpStreamFactory();
     	this._protocolsStreamFactory.put("http", factory);
     	this._protocolsStreamFactory.put("https", factory);
     }
     
-    public void setProtocolsStreamFactory(Map<String, HttpStreamFactory> protocolsStreamFactory) {
+    public void setProtocolsStreamFactory(Map<String, FSStreamFactory> protocolsStreamFactory) {
     	this._protocolsStreamFactory = protocolsStreamFactory;
     }
     
@@ -174,7 +174,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         _imageCache.clear();
     }
     
-    protected HttpStreamFactory getProtocolFactory(String protocol) {
+    protected FSStreamFactory getProtocolFactory(String protocol) {
     	return _protocolsStreamFactory.get(protocol);
     }
     
