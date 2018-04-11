@@ -212,32 +212,11 @@ as simple as adding the following code:
 Then use ````builder.useHttpStreamImplementation(new OkHttpStreamFactory())````.
 The library should close the reader or stream when it is finished with it.
 
-CACHE BETWEEN RUNS
+CACHE BETWEEN RUNS (BROKEN)
 =======
-IMPORTANT: This cache system should now be considered deprecated as it is not thread safe. It will be replaced with a simple byte array cache system in the future.
+IMPORTANT (1): This cache system should now be considered deprecated as it is not thread safe. It will be replaced with a simple byte array cache system in the future.
 
-By default, Open HTML to PDF should not cache anything between runs. However, it allows the user to plugin an external cache. It should
-be noted that the URI received by the cache is already resolved (see below). Here is a simple external cache:
-````java
-	public static class SimpleCache implements FSCache {
-		private final Map<FSCacheKey, Object> cache = new HashMap<>();
-		
-		@Override
-		public Object get(FSCacheKey cacheKey) {
-			Object obj = cache.get(cacheKey);
-			System.out.println("Requesting: " + cacheKey.getUri() + " of type: " + cacheKey.getClazz().getName() + ", got it: " + (obj != null));
-			return obj;
-		}
-
-		@Override
-		public void put(FSCacheKey cacheKey, Object obj)  {
-			System.out.println("Putting: " + cacheKey.getUri() + " of type: " + cacheKey.getClazz().getName());
-			cache.put(cacheKey, obj);
-		}
-	}
-````
-Of course, you may want to customize your cache by inspecting the URI or class name contained by cache key. Once you have a cache, you can set it
-on the builder with ````builder.useCache(cache)````.
+IMPORTANT (2): The cache system is totally broken, please see [discussion in 204](https://github.com/danfickle/openhtmltopdf/issues/204) for replacement options.
 
 URI RESOLVER
 =======
