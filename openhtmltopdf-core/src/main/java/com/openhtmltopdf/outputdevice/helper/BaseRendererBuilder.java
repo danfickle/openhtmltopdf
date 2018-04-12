@@ -32,6 +32,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 		public final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
 		public Map<String, FSStreamFactory> _streamFactoryMap = new HashMap<String, FSStreamFactory>();
 		public FSCache _cache;
+		public FSMultiThreadCache<String> _textCache;
+		public FSMultiThreadCache<byte[]> _byteCache;
 		public FSUriResolver _resolver;
 		public String _html;
 		public String _baseUri;
@@ -208,6 +210,37 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 		return (TFinalClass) this;
 	}
 
+	/**
+	 * Provides a cache implementation that may be used accross threads.
+	 * Typically used with <code>useMultiThreadByteCache</code>
+	 * The String cache is used in preference of the byte cache for
+	 * resources that are needed as text, althrough the byte cache will
+	 * also be checked before loading the resource. In this case the byte array
+	 * will be interpreted as UTF-8.
+	 * 
+	 * @see {@link #useMultiThreadByteCache(FSMultiThreadCache)}
+	 * @see {@link com.openhtmltopdf.extend.FSMultiThreadCache}
+	 */
+    public final TFinalClass useMultiThreadStringCache(
+            FSMultiThreadCache<String> textCache) {
+    	state._textCache = textCache;
+    	return (TFinalClass) this;
+    }
+
+	/**
+	 * Provides a cache implementation that may be used accross threads.
+	 * Typically used with <code>useMultiThreadStringCache</code>
+	 * 
+	 * @see {@link #useMultiThreadStringCache(FSMultiThreadCache)}
+	 * @see {@link com.openhtmltopdf.extend.FSMultiThreadCache}
+	 */
+    public final TFinalClass useMultiThreadByteCache(
+            FSMultiThreadCache<byte[]> byteCache) {
+    	state._byteCache = byteCache;
+    	return (TFinalClass) this;
+    }
+
+    
 	/**
 	 * Provides an external cache which can choose to cache items between runs, such
 	 * as fonts or logo images.

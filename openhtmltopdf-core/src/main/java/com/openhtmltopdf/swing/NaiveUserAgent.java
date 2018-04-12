@@ -20,12 +20,14 @@
 package com.openhtmltopdf.swing;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -40,6 +42,7 @@ import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.event.DocumentListener;
 import com.openhtmltopdf.extend.FSCache;
+import com.openhtmltopdf.extend.FSMultiThreadCache;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.FSStreamFactory;
 import com.openhtmltopdf.extend.FSStream;
@@ -78,6 +81,20 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
     protected String _baseUri;
 	protected Map<String, FSStreamFactory> _protocolsStreamFactory = new HashMap<String, FSStreamFactory>(2);
+	protected FSMultiThreadCache<String> _textCache = new NullCache<String>();
+	protected FSMultiThreadCache<byte[]> _byteCache = new NullCache<byte[]>();
+	
+	protected static class NullCache<T> implements FSMultiThreadCache<T> {
+		@Override
+		public T get(String uri) {
+			return null;
+		}
+
+		@Override
+		public void put(String uri, T value) {
+			// Empty
+		}
+	}
     
     public static class DefaultHttpStream implements FSStream {
     	private InputStream strm;
@@ -250,13 +267,61 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	return null;
     }
     
+    protected String getCacheText(String uri) {
+    	String text = _textCache.get(uri);
+    	
+    	if (text != null) {
+    		return text;
+    	}
+    	
+    	byte[] bytes = _byteCache.get(uri);
+    	
+    	if (bytes != null) {
+    		try {
+				return new String(bytes, "UTF-8");
+			} catch (UnsupportedEncodingException e) { }
+    	}
+
+    	return null;
+    }
+    
+    protected String readAll(Reader reader) throws IOException {
+    	char[] arr = new char[8 * 1024];
+    	StringBuilder buffer = new StringBuilder();
+    	int numCharsRead;
+    	while ((numCharsRead = reader.read(arr, 0, arr.length)) != -1) {
+    		buffer.append(arr, 0, numCharsRead);
+    	}
+    	return buffer.toString();
+    }
+    
+    protected Reader getCacheReader(String uri) {
+    	String text = getCacheText(uri);
+    	
+    	if (text != null) {
+    		return new StringReader(text);
+    	}
+    	
+    	return null;
+    }
+    
+    protected InputStream getCacheStream(String uri) {
+    	byte[] bytes = _byteCache.get(uri);
+    	
+    	if (bytes != null) {
+    		return new ByteArrayInputStream(bytes);
+    	}
+    	
+    	return null;
+    }
+    
     /**
      * Retrieves the CSS located at the given URI.  It's assumed the URI does point to a CSS file--the URI will
-     * be accessed (using the set HttpStreamFactory or URL::openStream), opened, read and then passed into the CSS parser.
+     * be resolved, accessed (using the set FSStreamFactory or URL::openStream), opened, read and then passed into the CSS parser.
      * The result is packed up into an CSSResource for later consumption.
      *
      * @param uri Location of the CSS source.
-     * @return A CSSResource containing the parsed CSS.
+     * @return A CSSResource containing the CSS reader or null if not available.
      */
     @Override
     public CSSResource getCSSResource(String uri) {
@@ -267,16 +332,38 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     		return null;
     	}
     	
-    	FSCacheKey cacheKey = new FSCacheKey(resolved, CSSResource.class);
-    	CSSResource res = (CSSResource) _externalCache.get(cacheKey);
+    	Reader reader = getCacheReader(resolved);
     	
-    	if (res != null) {
-    		return res;
+    	if (reader != null) {
+    		return new CSSResource(reader);
     	}
     	
-        CSSResource res2 = new CSSResource(openReader(resolved));
-        _externalCache.put(cacheKey, res2);
-        return res2;
+		if (!(_textCache instanceof NullCache)) {
+			Reader res = null;
+			
+			try {
+				res = openReader(resolved);
+
+				if (res != null) {
+					String css = readAll(res);
+					_textCache.put(resolved, css);
+					return new CSSResource(new StringReader(css));
+				}
+			} catch (IOException e) {
+				XRLog.cssParse(Level.WARNING, "Couldn't load stylesheet at URI " + uri + ": " + e.getMessage(), e);
+			} finally {
+				if (res != null) {
+					try {
+						res.close();
+					} catch (IOException e) {
+					}
+				}
+			}
+		} else {
+			return new CSSResource(openReader(resolved));
+		}
+
+    	return null;
     }
 
     /**
@@ -531,6 +618,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	public String resolveUri(String baseUri, String uri) {
 		return _resolver.resolveURI(baseUri, uri);
 	}
+	
+    public void setExternalTextCache(FSMultiThreadCache<String> textCache) {
+        this._textCache = textCache;
+        
+    }
+
+    public void setExternalByteCache(FSMultiThreadCache<byte[]> byteCache) {
+    	this._byteCache = byteCache;
+    }
 }
 
 /*
