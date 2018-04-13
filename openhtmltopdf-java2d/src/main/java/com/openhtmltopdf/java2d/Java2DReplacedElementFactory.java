@@ -2,10 +2,6 @@ package com.openhtmltopdf.java2d;
 
 import org.w3c.dom.Element;
 
-import com.openhtmltopdf.css.constants.CSSName;
-import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.css.style.CssContext;
-import com.openhtmltopdf.css.style.Length;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
@@ -33,6 +29,7 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 		}
 
 		String nodeName = e.getNodeName();
+		
 		if (nodeName.equals("math") && _mathMLImpl != null) {
 			return new Java2DSVGReplacedElement(e, _mathMLImpl, cssWidth, cssHeight, box, context);
 		} else if (nodeName.equals("svg") && _svgImpl != null) {
@@ -49,4 +46,25 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 		 */
 		return super.createReplacedElement(context, box, uac, cssWidth, cssHeight);
 	}
+
+    @Override
+    public boolean isReplacedElement(BlockBox box) {
+        Element e = box.getElement();
+        if (e == null) {
+            return false;
+        }
+
+        String nodeName = e.getNodeName();
+        if (nodeName.equals("img")) {
+            return true;
+        } else if (nodeName.equals("math") && _mathMLImpl != null) {
+            return true;
+        } else if (nodeName.equals("svg") && _svgImpl != null) {
+            return true;
+        } else if (nodeName.equals("object") && _objectDrawerFactory != null) {
+            return _objectDrawerFactory.isReplacedObject(e);
+        }
+        
+        return false;
+    }
 }

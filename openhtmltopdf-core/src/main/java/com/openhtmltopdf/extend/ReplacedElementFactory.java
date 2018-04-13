@@ -38,17 +38,7 @@ public interface ReplacedElementFactory {
     public ReplacedElement createReplacedElement(
             LayoutContext c, BlockBox box,
             UserAgentCallback uac, int cssWidth, int cssHeight);
-    
-    /**
-     * Instructs the <code>ReplacedElementFactory</code> to discard any cached
-     * data (typically because a new page is about to be loaded).
-     */
-    public void reset();
-    
-    /**
-     * Removes any reference to <code>Element</code> <code>e</code>.
-     * @param e
-     */
-    public void remove(Element e);
 
+    public boolean isReplacedElement(BlockBox box);
+    
 }

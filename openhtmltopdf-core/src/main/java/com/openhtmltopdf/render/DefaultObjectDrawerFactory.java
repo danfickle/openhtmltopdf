@@ -30,4 +30,9 @@ public class DefaultObjectDrawerFactory implements FSObjectDrawerFactory {
 	public void registerDrawer(String contentType, FSObjectDrawer drawer) {
 		drawerMap.put(contentType,drawer);
 	}
+	
+	@Override
+	public boolean isReplacedObject(Element e) {
+		return drawerMap.containsKey(e.getAttribute("type"));
+	}
 }

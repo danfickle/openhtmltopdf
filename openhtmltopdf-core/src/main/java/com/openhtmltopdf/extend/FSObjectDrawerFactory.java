@@ -11,4 +11,10 @@ public interface FSObjectDrawerFactory {
 	 * Determine an object drawer for the given object tag element.
 	 */
 	FSObjectDrawer createDrawer(Element e);
+	
+	/**
+	 * @param e eleemnt with tag name of <code>object</code>.
+	 * @return true if this object drawer can handle this element.
+	 */
+	public boolean isReplacedObject(Element e);
 }

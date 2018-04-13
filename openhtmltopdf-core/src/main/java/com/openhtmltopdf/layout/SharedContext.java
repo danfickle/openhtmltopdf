@@ -513,12 +513,6 @@ public class SharedContext {
         return result;
     }
 
-    public void reset() {
-       styleMap = null;
-       idMap = null;
-       replacedElementFactory.reset();
-    }
-
     public ReplacedElementFactory getReplacedElementFactory() {
         return replacedElementFactory;
     }
@@ -527,35 +521,7 @@ public class SharedContext {
         if (ref == null) {
             throw new NullPointerException("replacedElementFactory may not be null");
         }
-
-        if (this.replacedElementFactory != null) {
-            this.replacedElementFactory.reset();
-        }
         this.replacedElementFactory = ref;
-    }
-
-    public void removeElementReferences(Element e) {
-        String id = namespaceHandler.getID(e);
-        if (id != null && id.length() > 0) {
-            removeBoxId(id);
-        }
-
-        if (styleMap != null) {
-            styleMap.remove(e);
-        }
-
-        getCss().removeStyle(e);
-        getReplacedElementFactory().remove(e);
-
-        if (e.hasChildNodes()) {
-            NodeList children = e.getChildNodes();
-            for (int i = 0; i < children.getLength(); i++) {
-                Node child = children.item(i);
-                if (child.getNodeType() == Node.ELEMENT_NODE) {
-                    removeElementReferences((Element)child);
-                }
-            }
-        }
     }
 
     /**

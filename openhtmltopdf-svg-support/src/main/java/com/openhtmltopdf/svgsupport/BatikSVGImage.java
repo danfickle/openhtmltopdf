@@ -55,10 +55,18 @@ public class BatikSVGImage implements SVGImage {
         }
 
         Point dimensions = parseDimensions(svgElement);
-        svgElement.setAttribute("width", Integer.toString(dimensions.x));
-        svgElement.setAttribute("height", Integer.toString(dimensions.y));
-        this.pdfTranscoder.setImageSize((float) dimensions.x,
-                (float) dimensions.y);
+        
+        if (dimensions == DEFAULT_DIMENSIONS && 
+        	cssWidth >= 0 && cssHeight >= 0) {
+        	svgElement.setAttribute("width", Integer.toString((int) (cssWidth / dotsPerPixel)));
+        	svgElement.setAttribute("height", Integer.toString((int) (cssHeight / dotsPerPixel)));
+        	this.pdfTranscoder.setImageSize((float) (cssWidth / dotsPerPixel), (float) (cssHeight / dotsPerPixel));
+        } else {
+        	svgElement.setAttribute("width", Integer.toString(dimensions.x));
+        	svgElement.setAttribute("height", Integer.toString(dimensions.y));
+        	this.pdfTranscoder.setImageSize((float) dimensions.x,
+        			(float) dimensions.y);
+        }
     }
 
     @Override
@@ -91,10 +99,10 @@ public class BatikSVGImage implements SVGImage {
 
     public Point parseDimensions(Element e) {
         String widthAttr = e.getAttribute("width");
-        Integer width = parseLength(widthAttr);
+        Integer width = widthAttr.isEmpty() ? null : parseLength(widthAttr);
 
         String heightAttr = e.getAttribute("height");
-        Integer height = parseLength(heightAttr);
+        Integer height = heightAttr.isEmpty() ? null : parseLength(heightAttr);
 
         if (width != null && height != null) {
             return new Point(width, height);

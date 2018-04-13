@@ -39,6 +39,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
         _mathmlImpl = mathmlImpl;
     }
 
+    @Override
     public ReplacedElement createReplacedElement(LayoutContext c, BlockBox box,
                                                  UserAgentCallback uac, int cssWidth, int cssHeight) {
         Element e = box.getElement();
@@ -48,7 +49,6 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
 
         String nodeName = e.getNodeName();
 
-        
         if (nodeName.equals("math") && _mathmlImpl != null) {
             return new PdfBoxSVGReplacedElement(e, _mathmlImpl, cssWidth, cssHeight, box, c, c.getSharedContext());
         } else if (nodeName.equals("svg") && _svgImpl != null) {
@@ -123,10 +123,25 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
     }
 
     @Override
-    public void reset() {
-    }
+    public boolean isReplacedElement(BlockBox box) {
+        Element e = box.getElement();
+        if (e == null) {
+            return false;
+        }
 
-    @Override
-    public void remove(Element e) {
+        String nodeName = e.getNodeName();
+        if (nodeName.equals("img")) {
+            return true;
+        } else if (nodeName.equals("math") && _mathmlImpl != null) {
+            return true;
+        } else if (nodeName.equals("svg") && _svgImpl != null) {
+            return true;
+        } else if (nodeName.equals("bookmark")) {
+            return true;
+        } else if (nodeName.equals("object") && _objectDrawerFactory != null) {
+            return _objectDrawerFactory.isReplacedObject(e);
+        }
+        
+        return false;
     }
 }

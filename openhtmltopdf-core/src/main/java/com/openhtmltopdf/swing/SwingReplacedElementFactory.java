@@ -47,7 +47,8 @@ import java.util.logging.Level;
 /**
  * A ReplacedElementFactory where Elements are replaced by Swing components.
  */
-public class SwingReplacedElementFactory implements ReplacedElementFactory {
+@Deprecated
+public abstract class SwingReplacedElementFactory implements ReplacedElementFactory {
     /**
      * Cache of image components (ReplacedElements) for quick lookup, keyed by Element.
      */

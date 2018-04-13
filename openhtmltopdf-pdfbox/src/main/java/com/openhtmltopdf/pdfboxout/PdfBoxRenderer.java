@@ -278,7 +278,6 @@ public class PdfBoxRenderer implements Closeable {
 
         getFontResolver().flushFontFaceFonts();
 
-        _sharedContext.reset();
         if (Configuration.isTrue("xr.cache.stylesheets", true)) {
             _sharedContext.getCss().flushStyleSheets();
         } else {
