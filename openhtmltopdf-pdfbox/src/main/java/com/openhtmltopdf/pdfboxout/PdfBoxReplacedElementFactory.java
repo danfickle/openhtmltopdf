@@ -123,8 +123,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
     }
 
     @Override
-    public boolean isReplacedElement(BlockBox box) {
-        Element e = box.getElement();
+    public boolean isReplacedElement(Element e) {
         if (e == null) {
             return false;
         }

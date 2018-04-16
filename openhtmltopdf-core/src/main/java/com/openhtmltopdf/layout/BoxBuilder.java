@@ -1273,7 +1273,10 @@ public class BoxBuilder {
     private static InlineBox doBidi(LayoutContext c, Text textNode, Element parent, CalculatedStyle parentStyle, InlineBox previousIB, List children) {
     	
         Paragraph para = c.getParagraphSplitter().lookupParagraph(textNode);
-        assert(para != null);
+        if (para == null) {
+        	// Must be no implementation of BIDI for this Text node.
+        	return doFakeBidi(c, textNode, parent, parentStyle, previousIB, children);
+        }
         
         int startIndex = para.getFirstCharIndexInParagraph(textNode); // Index into the paragraph.
         

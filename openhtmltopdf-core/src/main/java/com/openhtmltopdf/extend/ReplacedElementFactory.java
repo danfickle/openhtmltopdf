@@ -39,6 +39,6 @@ public interface ReplacedElementFactory {
             LayoutContext c, BlockBox box,
             UserAgentCallback uac, int cssWidth, int cssHeight);
 
-    public boolean isReplacedElement(BlockBox box);
+    public boolean isReplacedElement(Element e);
     
 }

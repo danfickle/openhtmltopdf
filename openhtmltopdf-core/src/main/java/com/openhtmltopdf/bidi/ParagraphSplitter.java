@@ -234,7 +234,7 @@ public class ParagraphSplitter {
         
         if (node == null) {
             return;
-        } 
+        }
         
     	do {
             if (node.getNodeType() == Node.TEXT_NODE
@@ -245,13 +245,15 @@ public class ParagraphSplitter {
             }
             else if (node.getNodeType() == Node.ELEMENT_NODE) {
             	Element element = (Element) node;
-            	CalculatedStyle style = c.getSharedContext().getStyle(element);
             	
-            	if (element.getNodeName().equals("head")) {
+            	if (element.getNodeName().equals("head") ||
+            		reFactory.isReplacedElement(element)) {
             		continue;
             	}
-            	
-                if (style.isParagraphContainerForBidi() || element.hasAttribute("dir") || element.getNodeName().equals("bdi")) {
+
+            	CalculatedStyle style = c.getSharedContext().getStyle(element);
+                
+            	if (style.isParagraphContainerForBidi() || element.hasAttribute("dir") || element.getNodeName().equals("bdi")) {
                 	// If a element has a dir attribute or is a bdi tag it sits in its own direction isolate.
                 	Paragraph para = new Paragraph(style.getDirection());
                 	allParagraphs.add(para);

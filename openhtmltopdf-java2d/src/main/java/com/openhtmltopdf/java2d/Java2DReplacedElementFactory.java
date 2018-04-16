@@ -48,8 +48,7 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 	}
 
     @Override
-    public boolean isReplacedElement(BlockBox box) {
-        Element e = box.getElement();
+    public boolean isReplacedElement(Element e) {
         if (e == null) {
             return false;
         }

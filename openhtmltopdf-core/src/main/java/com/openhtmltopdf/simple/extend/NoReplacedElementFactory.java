@@ -1,5 +1,7 @@
 package com.openhtmltopdf.simple.extend;
 
+import org.w3c.dom.Element;
+
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.extend.ReplacedElementFactory;
 import com.openhtmltopdf.extend.UserAgentCallback;
@@ -14,7 +16,7 @@ public class NoReplacedElementFactory implements ReplacedElementFactory {
     }
 	
 	@Override
-	public boolean isReplacedElement(BlockBox box) {
+	public boolean isReplacedElement(Element e) {
 		return false;
 	}
 }
