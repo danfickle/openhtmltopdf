@@ -564,7 +564,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 				if (possiblyRelative.isAbsolute()) {
 					return possiblyRelative.toString();
 				} else {
-				    if(baseUri.startsWith("jar")) {
+					if (baseUri == null) {
+						// If user hasn't provided base URI, just reject resolving relative URIs.
+						XRLog.load(Level.WARNING, "Couldn't resolve relative URI(" + uri + ") because no base URI was provided.");
+					    return null;	
+					} else if (baseUri.startsWith("jar")) {
 				    	// Fix for OpenHTMLtoPDF issue-#125, URI class doesn't resolve jar: scheme urls and so returns only
 				    	// the relative part on calling base.resolve(relative) so we use the URL class instead which does
 				    	// understand jar: scheme urls.
