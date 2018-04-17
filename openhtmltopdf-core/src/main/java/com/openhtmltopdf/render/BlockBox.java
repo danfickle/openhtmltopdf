@@ -26,6 +26,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
@@ -51,6 +53,7 @@ import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.PersistentBFC;
 import com.openhtmltopdf.layout.Styleable;
 import com.openhtmltopdf.newtable.TableRowBox;
+import com.openhtmltopdf.util.ThreadCtx;
 
 /**
  * A block box as defined in the CSS spec.  It also provides a base class for
@@ -104,9 +107,17 @@ public class BlockBox extends Box implements InlinePaintable {
     private int _childrenHeight;
 
     private boolean _fromCaptionedTable;
+    
+    private boolean _isReplaced;
 
     public BlockBox() {
         super();
+    }
+    
+    @Override
+    public void setElement(Element element) {
+    	super.setElement(element);
+    	_isReplaced = ThreadCtx.get().sharedContext().getReplacedElementFactory().isReplacedElement(element);
     }
 
     public BlockBox copyOf() {
@@ -403,7 +414,7 @@ public class BlockBox extends Box implements InlinePaintable {
     }
 
     public boolean isReplaced() {
-        return _replacedElement != null;
+        return _replacedElement != null || _isReplaced;
     }
 
     public void calcCanvasLocation() {
@@ -434,7 +445,7 @@ public class BlockBox extends Box implements InlinePaintable {
             setAbsY(lineBox.getAbsY() + getY());
         }
 
-        if (isReplaced()) {
+        if (isReplaced() && getReplacedElement() != null) {
             Point location = getReplacedElement().getLocation();
             if (location.x != getAbsX() || location.y != getAbsY()) {
                 getReplacedElement().setLocation(getAbsX(), getAbsY());

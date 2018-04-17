@@ -125,6 +125,10 @@ public class BoxBuilder {
     }
 
     public static void createChildren(LayoutContext c, BlockBox parent) {
+    	
+    	if (parent.isReplaced()) {
+    		return;
+    	}
 
 		List children = new ArrayList();
 
@@ -134,6 +138,7 @@ public class BoxBuilder {
 
         boolean parentIsNestingTableContent = isNestingTableContent(parent.getStyle().getIdent(
                 CSSName.DISPLAY));
+        
         if (!parentIsNestingTableContent && !info.isContainsTableContent()) {
             resolveChildren(c, parent, children, info);
         } else {
