@@ -1,0 +1,46 @@
+<html>
+<head>
+<style>
+div {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+}
+body {
+  position: relative;
+}
+
+#one {
+  top: 0;
+  background-color: red;
+  z-index: 3;
+}
+
+#two {
+  left: 30px;
+  top: 30px;
+  background-color: blue;
+  z-index: 2;
+}
+
+#three {
+  left: 60px;
+  top: 60px;
+  background-color: green;
+  z-index: 1;
+}
+
+#explain {
+  top: 180px;
+  width: 100%;
+  height: auto;
+}
+</style>
+</head>
+<body>
+ <div id="one"/>
+ <div id="two"/>
+ <div id="three"/>
+ <div id="explain">You should see a red square on top of a blue square on top of a green square.</div>
+</body>
+</html>
