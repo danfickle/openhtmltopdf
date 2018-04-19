@@ -266,7 +266,7 @@ public class Layer {
     }
 
     private void paintBackgroundsAndBorders(
-            RenderingContext c, List blocks,
+            RenderingContext c, List<Box> blocks,
             Map collapsedTableBorders, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
 
@@ -346,8 +346,8 @@ public class Layer {
         } else {
             BoxRangeLists rangeLists = new BoxRangeLists();
 
-            List blocks = new ArrayList();
-            List lines = new ArrayList();
+            List<Box> blocks = new ArrayList<Box>();
+            List<Box> lines = new ArrayList<Box>();
 
             BoxCollector collector = new BoxCollector();
             collector.collect(c, c.getOutputDevice().getClip(), this, blocks, lines, rangeLists);

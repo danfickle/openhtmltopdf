@@ -35,11 +35,18 @@ import com.openhtmltopdf.render.RenderingContext;
  * A class to collect boxes which intersect a given clip region.  If available,
  * aggregate bounds information will be used.  Block and inline content are
  * added to separate lists as they are painted in separate render phases.
+ * 
+ * This class flattens the nested structure of boxes in a depth first fashion.
+ * Range lists are created for <code>overflow:hidden</code> boxes to specify the first block
+ * where a clip comes into affect and the end block where the clip is undone.
+ * 
+ * For example, if a hidden box is first in a layer and contains 10 child boxes
+ * the range list will contain an entry for 0, 11, specifying the start and end of the clip. 
  */
 public class BoxCollector {
     public void collect(
             CssContext c, Shape clip, Layer layer, 
-            List blockContent, List inlineContent, BoxRangeLists rangeLists) {
+            List<Box> blockContent, List<Box> inlineContent, BoxRangeLists rangeLists) {
         if (layer.isInline()) {
             collectInlineLayer(c, clip, layer, blockContent, inlineContent, rangeLists);
         } else {
@@ -54,13 +61,11 @@ public class BoxCollector {
     
     private void collectInlineLayer(
             CssContext c, Shape clip, Layer layer, 
-            List blockContent, List inlineContent, BoxRangeLists rangeLists) {
+            List<Box> blockContent, List<Box> inlineContent, BoxRangeLists rangeLists) {
         InlineLayoutBox iB = (InlineLayoutBox)layer.getMaster();
-        List content = iB.getElementWithContent();
+        List<Box> content = iB.getElementWithContent();
         
-        for (int i = 0; i < content.size(); i++) {
-            Box b = (Box)content.get(i);
-            
+        for (Box b : content) {
             if (b.intersects(c, clip)) {
                 if (b instanceof InlineLayoutBox) {
                     inlineContent.add(b);
@@ -92,7 +97,7 @@ public class BoxCollector {
     
     public void collect(
             CssContext c, Shape clip, Layer layer, Box container, 
-            List blockContent, List inlineContent, BoxRangeLists rangeLists) {
+            List<Box> blockContent, List<Box> inlineContent, BoxRangeLists rangeLists) {
         if (layer != container.getContainingLayer()) {
             return;
         }
@@ -119,6 +124,7 @@ public class BoxCollector {
             }
         } else {
             boolean intersectsAggregateBounds = intersectsAggregateBounds(clip, container);
+            
             if (container.getLayer() == null || !(container instanceof BlockBox)) {
                 if (intersectsAggregateBounds || 
                         (container.getPaintingInfo() == null && container.intersects(c, clip))) {
@@ -149,7 +155,7 @@ public class BoxCollector {
     }
 
     private void saveRangeData(
-            CssContext c, Box container, List blockContent, List inlineContent,
+            CssContext c, Box container, List<Box> blockContent, List<Box> inlineContent,
             BoxRangeLists rangeLists, boolean isBlock, int blockStart, int inlineStart,
             int blockRangeStart, int inlineRangeStart) {
         if (isBlock && c instanceof RenderingContext) {
