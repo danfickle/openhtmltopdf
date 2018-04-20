@@ -29,7 +29,7 @@ import com.openhtmltopdf.render.BorderPainter;
  * always paint over narrower borders regardless of the relative tree order of
  * the cells in question). 
  */
-public class CollapsedBorderSide implements Comparable {
+public class CollapsedBorderSide implements Comparable<CollapsedBorderSide> {
     private TableCellBox _cell;
     private int _side;
     
@@ -54,9 +54,10 @@ public class CollapsedBorderSide implements Comparable {
         _side = side;
     }
     
-    public int compareTo(Object obj) {
+    @Override
+    public int compareTo(CollapsedBorderSide obj) {
         CollapsedBorderSide c1 = this;
-        CollapsedBorderSide c2 = (CollapsedBorderSide)obj;
+        CollapsedBorderSide c2 = obj;
         
         CollapsedBorderValue v1 = null;
         CollapsedBorderValue v2 = null;

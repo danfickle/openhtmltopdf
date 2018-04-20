@@ -45,7 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 
-public abstract class Box implements Styleable {
+public abstract class Box implements Styleable, DisplayListItem {
     protected static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     private Element _element;
@@ -452,6 +452,20 @@ public abstract class Box implements Styleable {
         Rectangle canvasBounds = new Rectangle(0, 0, marginCorner.width, marginCorner.height);
         canvasBounds.add(c.getViewportRectangle());
         c.getOutputDevice().paintBackground(c, getStyle(), canvasBounds, canvasBounds, BorderPropertySet.EMPTY_BORDER);
+    }
+    
+    /**
+     * If the html or body box have a background return true.
+     */
+    public boolean hasRootElementBackground(RenderingContext c) {
+    	if (getStyle().isHasBackground()) {
+    		return true;
+    	} else if (getChildCount() > 0 &&
+    			   getChild(0).getStyle().isHasBackground()) {
+    		return true;
+    	}
+    	
+    	return false;
     }
 
     public Layer getContainingLayer() {

@@ -31,8 +31,19 @@ import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
+import com.openhtmltopdf.layout.PagedBoxCollector.PageResult;
+import com.openhtmltopdf.newtable.CollapsedBorderValue;
+import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.render.displaylist.DisplayListOperation;
+import com.openhtmltopdf.render.displaylist.PaintBackgroundAndBorders;
+import com.openhtmltopdf.render.displaylist.PaintInlineContent;
+import com.openhtmltopdf.render.displaylist.PaintLayerBackgroundAndBorder;
+import com.openhtmltopdf.render.displaylist.PaintListMarkers;
+import com.openhtmltopdf.render.displaylist.PaintReplacedElement;
+import com.openhtmltopdf.render.displaylist.PaintReplacedElements;
+import com.openhtmltopdf.render.displaylist.PaintRootElementBackground;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.css.CSSPrimitiveValue;
 
@@ -249,16 +260,14 @@ public class Layer {
         return result;
     }
 
-    private static class ZIndexComparator implements Comparator {
-        public int compare(Object o1, Object o2) {
-            Layer l1 = (Layer)o1;
-            Layer l2 = (Layer)o2;
+    private static class ZIndexComparator implements Comparator<Layer> {
+        public int compare(Layer l1, Layer l2) {
             return l1.getZIndex() - l2.getZIndex();
         }
     }
 
-    private List getSortedLayers(int which) {
-        List result = collectLayers(which);
+    private List<Layer> getSortedLayers(int which) {
+        List<Layer> result = collectLayers(which);
 
         Collections.sort(result, new ZIndexComparator());
 
@@ -325,6 +334,253 @@ public class Layer {
         }
 
         helper.popClipRegions(c, lines.size());
+    }
+    
+    private void dlCollectLayers(RenderingContext c, List<Layer> layers, List<List<DisplayListOperation>> dlPages, List<PageBox> pages) {
+        for (Layer layer : layers) {
+            layer.dlCollect(c, dlPages, pages);
+        }
+    }
+    
+    private void dlAddItem(DisplayListOperation item, int pgStart, int pgEnd, List<List<DisplayListOperation>> dlPages) {
+    	for (int i = pgStart; i <= pgEnd; i++) {
+    		dlPages.get(i).add(item);
+    	}
+    }
+    
+    public List<List<DisplayListOperation>> dlCollectRoot(RenderingContext c) {
+    	if (!isRootLayer()) {
+    		return null;
+    	}
+    	
+    	List<PageBox> pages = getPages();
+    	List<List<DisplayListOperation>> displayListPages = new ArrayList<List<DisplayListOperation>>(pages.size());
+    	
+    	for (int i = 0; i < pages.size(); i++) {
+    		displayListPages.add(new ArrayList<DisplayListOperation>());
+    	}
+    	
+    	dlCollect(c, displayListPages, pages);
+
+    	return displayListPages;
+    }
+    
+    private void dlCollect(RenderingContext c, List<List<DisplayListOperation>> dlPages, List<PageBox> pages) {
+    	if (getMaster().getStyle().isFixed()) {
+            positionFixedLayer(c); // TODO
+        }
+    	
+        if (isRootLayer() &&
+        	getMaster().hasRootElementBackground(c)) {
+        	
+        	// IMPROVEMENT: If the background image doesn't cover every page,
+        	// we could perhaps optimize this.
+        	DisplayListOperation dlo = new PaintRootElementBackground(c, getMaster());
+        	dlAddItem(dlo, 0, dlPages.size() - 1, dlPages);
+        }
+    	
+        if (!isInline() && ((BlockBox) getMaster()).isReplaced()) {
+        	dlCollectReplacedElementLayer(c, dlPages, pages);
+        } else {
+        	
+        	PagedBoxCollector collector = new PagedBoxCollector(pages);
+        	collector.collect(c, this);
+        	
+            if (!isInline() && getMaster() instanceof BlockBox) {
+            	dlCollectLayerBackgroundAndBorder(c, dlPages, pages);
+            }
+        	
+        	if (isRootLayer() || isStackingContext()) {
+        		dlCollectLayers(c, getSortedLayers(NEGATIVE), dlPages, pages);
+        	}
+        	
+        	List<PageResult> pgResults = collector.getCollectedPageResults();
+        	
+        	for (int i = 0; i < pgResults.size(); i++) {
+        		PageResult pg = pgResults.get(i);
+        		List<DisplayListOperation> dlPageList = dlPages.get(i);
+        		
+        		// TODO Map collapsedTableBorders = collectCollapsedTableBorders(c, blocks);	
+       	
+        		if (!pg.blocks.isEmpty()) {
+        			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells.isEmpty() ? null : dlCollectCollapsedTableBorders(c, pg.tcells);
+        			DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks, c, collapsedTableBorders);
+        			dlPageList.add(dlo);
+        		}
+        		
+        		if (_floats != null && !_floats.isEmpty()) {
+            		// TODO: paintFloats(c);
+        		}
+
+        		if (!pg.blocks.isEmpty()) {
+        			DisplayListOperation dlo = new PaintListMarkers(pg.blocks, c);
+        			dlPageList.add(dlo);
+        		}
+        		
+        		if (!pg.inlines.isEmpty()) {
+        			DisplayListOperation dlo = new PaintInlineContent(pg.inlines, c);
+        			dlPageList.add(dlo);
+        		}
+        		
+        		if (!pg.blocks.isEmpty()) {
+        			DisplayListOperation dlo = new PaintReplacedElements(pg.blocks, c);
+        			dlPageList.add(dlo);
+        		}
+        	}
+        	
+        	if (isRootLayer() || isStackingContext()) {
+        		dlCollectLayers(c, collectLayers(AUTO), dlPages, pages);
+        		// TODO z-index: 0 layers should be painted atomically
+        		dlCollectLayers(c, getSortedLayers(ZERO), dlPages, pages);
+        		dlCollectLayers(c, getSortedLayers(POSITIVE), dlPages, pages);
+        	}
+        }
+    }
+
+	private void dlCollectLayerBackgroundAndBorder(RenderingContext c, List<List<DisplayListOperation>> dlPages,
+			List<PageBox> pages) {
+		
+		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(c, getMaster());
+		int pgStart = PagedBoxCollector.findStartPage(c, getMaster(), pages);
+		int pgEnd = PagedBoxCollector.findEndPage(c, getMaster(), pages);
+		dlAddItem(dlo, pgStart, pgEnd, dlPages);
+	}
+
+	private void dlCollectReplacedElementLayer(RenderingContext c, List<List<DisplayListOperation>> dlPages,
+			List<PageBox> pages) {
+		
+		if (getMaster() instanceof BlockBox) {
+			DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(c, getMaster());
+			int pgStart = PagedBoxCollector.findStartPage(c, getMaster(), pages);
+			int pgEnd = PagedBoxCollector.findEndPage(c, getMaster(), pages);
+			dlAddItem(dlo, pgStart, pgEnd, dlPages);
+		}
+
+		DisplayListOperation dlo = new PaintReplacedElement(c, (BlockBox) getMaster());
+		int pgStart = PagedBoxCollector.findStartPage(c, getMaster(), pages);
+		int pgEnd = PagedBoxCollector.findEndPage(c, getMaster(), pages);
+		dlAddItem(dlo, pgStart, pgEnd, dlPages);
+	}
+	
+	private void dlPaintBackgroundAndBorders(RenderingContext c, List<DisplayListItem> blocks, Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders) {
+        for (DisplayListItem dli : blocks) {
+            if (dli instanceof OperatorClip) {
+            	OperatorClip clip = (OperatorClip) dli;
+            	c.getOutputDevice().clip(clip.getClip());
+            } else if (dli instanceof OperatorSetClip) {
+            	OperatorSetClip setClip = (OperatorSetClip) dli;
+            	c.getOutputDevice().setClip(setClip.getSetClipShape());
+            } else {
+            	BlockBox box = (BlockBox) dli;
+            	
+            	box.paintBackground(c);
+            	box.paintBorder(c);
+            	
+                if (collapsedTableBorders != null && box instanceof TableCellBox) {
+                    TableCellBox cell = (TableCellBox) box;
+                    
+                    if (cell.hasCollapsedPaintingBorder()) {
+                        List<CollapsedBorderSide> borders = collapsedTableBorders.get(cell);
+                        
+                        if (borders != null) {
+                            paintCollapsedTableBorders(c, borders);
+                        }
+                    }
+                }
+            }
+        }
+	}
+	
+	private void dlPaintListMarkers(RenderingContext c, List<DisplayListItem> blocks) {
+		for (DisplayListItem dli : blocks) {
+            if (dli instanceof OperatorClip) {
+            	OperatorClip clip = (OperatorClip) dli;
+            	c.getOutputDevice().clip(clip.getClip());
+            } else if (dli instanceof OperatorSetClip) {
+            	OperatorSetClip setClip = (OperatorSetClip) dli;
+            	c.getOutputDevice().setClip(setClip.getSetClipShape());
+            } else {
+            	((BlockBox) dli).paintListMarker(c);
+            }
+		}
+	}
+	
+	private void dlPaintInlineContent(RenderingContext c, List<DisplayListItem> inlines) {
+		for (DisplayListItem dli : inlines) {
+            if (dli instanceof OperatorClip) {
+            	OperatorClip clip = (OperatorClip) dli;
+            	c.getOutputDevice().clip(clip.getClip());
+            } else if (dli instanceof OperatorSetClip) {
+            	OperatorSetClip setClip = (OperatorSetClip) dli;
+            	c.getOutputDevice().setClip(setClip.getSetClipShape());
+            } else {
+            	InlinePaintable paintable = (InlinePaintable) dli;
+                paintable.paintInline(c);
+            }
+		}
+	}
+	
+	private void dlPaintReplacedElements(RenderingContext c, List<DisplayListItem> blocks) {
+		for (DisplayListItem dli : blocks) {
+            if (dli instanceof OperatorClip) {
+            	OperatorClip clip = (OperatorClip) dli;
+            	c.getOutputDevice().clip(clip.getClip());
+            } else if (dli instanceof OperatorSetClip) {
+            	OperatorSetClip setClip = (OperatorSetClip) dli;
+            	c.getOutputDevice().setClip(setClip.getSetClipShape());
+            } else {
+                BlockBox box = (BlockBox) dli;
+                
+                if (box.isReplaced()) {
+                    c.getOutputDevice().paintReplacedElement(c, box);
+                }
+            }
+		}
+	}
+    
+    public void dlPaint(RenderingContext c, List<DisplayListOperation> pageOperations) {
+    	for (DisplayListOperation op : pageOperations) {
+
+    		if (op instanceof PaintRootElementBackground) {
+    			
+    			PaintRootElementBackground dlo = (PaintRootElementBackground) op;
+    			dlo.getRoot().paintRootElementBackground(dlo.getContext());
+    		
+    		} else if (op instanceof PaintLayerBackgroundAndBorder) {
+    			
+    			PaintLayerBackgroundAndBorder dlo = (PaintLayerBackgroundAndBorder) op;
+    			dlo.getMaster().paintBackground(dlo.getContext());
+    			dlo.getMaster().paintBorder(dlo.getContext());
+    			
+    		} else if (op instanceof PaintReplacedElement) {
+    			
+    			PaintReplacedElement dlo = (PaintReplacedElement) op;
+    			dlo.getContext().getOutputDevice().paintReplacedElement(dlo.getContext(), dlo.getMaster());
+    			
+    		} else if (op instanceof PaintBackgroundAndBorders) {
+    			
+    			PaintBackgroundAndBorders dlo = (PaintBackgroundAndBorders) op;
+    			dlPaintBackgroundAndBorders(dlo.getContext(), dlo.getBlocks(), dlo.getCollapedTableBorders());
+    			
+    		} else if (op instanceof PaintListMarkers) {
+    			
+    			PaintListMarkers dlo = (PaintListMarkers) op;
+    			dlPaintListMarkers(dlo.getContext(), dlo.getBlocks());
+    			
+    		} else if (op instanceof PaintInlineContent) {
+    			
+    			PaintInlineContent dlo = (PaintInlineContent) op;
+    			dlPaintInlineContent(dlo.getContext(), dlo.getInlines());
+    			
+    		} else if (op instanceof PaintReplacedElements) {
+    			
+    			PaintReplacedElements dlo = (PaintReplacedElements) op;
+    			dlPaintReplacedElements(dlo.getContext(), dlo.getBlocks());
+    			
+    		} else {
+    			
+    		}
+    	}
     }
 
     public void paint(RenderingContext c) {
@@ -618,6 +874,46 @@ public class Layer {
             border.getCell().paintCollapsedBorder(c, border.getSide());
         }
     }
+    
+    // Bit of a kludge here.  We need to paint collapsed table borders according
+    // to priority so (for example) wider borders float to the top and aren't
+    // overpainted by thinner borders.  This method takes the table cell boxes
+    // (only those with collapsed border painting)
+    // we're about to draw and returns a map with the last cell in a given table
+    // we'll paint as a key and a sorted list of borders as values. These are
+    // then painted after we've drawn the background for this cell.
+    private Map<TableCellBox, List<CollapsedBorderSide>> dlCollectCollapsedTableBorders(RenderingContext c, List<TableCellBox> tcells) {
+        Map<TableBox, List<CollapsedBorderSide>> cellBordersByTable = new HashMap<TableBox, List<CollapsedBorderSide>>();
+        Map<TableBox, TableCellBox> triggerCellsByTable = new HashMap<TableBox, TableCellBox>();
+
+        Set<CollapsedBorderValue> all = new HashSet<CollapsedBorderValue>(0);
+        
+        for (TableCellBox cell : tcells) {
+        	List<CollapsedBorderSide> borders = cellBordersByTable.get(cell.getTable());
+                
+        	if (borders == null) {
+        		borders = new ArrayList<CollapsedBorderSide>();
+                cellBordersByTable.put(cell.getTable(), borders);
+            }
+            
+        	triggerCellsByTable.put(cell.getTable(), cell);
+            cell.addCollapsedBorders(all, borders);
+        }
+
+        if (triggerCellsByTable.isEmpty()) {
+            return null;
+        } else {
+            Map<TableCellBox, List<CollapsedBorderSide>> result = new HashMap<TableCellBox, List<CollapsedBorderSide>>(triggerCellsByTable.size());
+
+            for (TableCellBox cell : triggerCellsByTable.values()) {
+                List<CollapsedBorderSide> borders = cellBordersByTable.get(cell.getTable());
+                Collections.sort(borders);
+                result.put(cell, borders);
+            }
+
+            return result;
+        }
+    }
 
     // Bit of a kludge here.  We need to paint collapsed table borders according
     // to priority so (for example) wider borders float to the top and aren't
@@ -749,7 +1045,7 @@ public class Layer {
             result.height = test.height;
         }
     }
-
+    
     private void paintReplacedElement(RenderingContext c, BlockBox replaced) {
         Rectangle contentBounds = replaced.getContentAreaEdge(
                 replaced.getAbsX(), replaced.getAbsY(), c);

@@ -810,7 +810,7 @@ public class TableCellBox extends BlockBox {
         return _collapsedBorderTop;
     }
     
-    public void addCollapsedBorders(Set all, List borders) {
+    public void addCollapsedBorders(Set<CollapsedBorderValue> all, List<CollapsedBorderSide> borders) {
         if (_collapsedBorderTop.exists() && !all.contains(_collapsedBorderTop)) {
             all.add(_collapsedBorderTop);
             borders.add(new CollapsedBorderSide(this, BorderPainter.TOP));

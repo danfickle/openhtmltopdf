@@ -39,6 +39,7 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
+import com.openhtmltopdf.render.displaylist.DisplayListOperation;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
@@ -479,6 +480,59 @@ public class PdfBoxRenderer implements Closeable {
             }
         }
     }
+    
+    /**
+     * Completely experimental for now. Buggy as heck!
+     * TODO:
+     *   - hidden overflow
+     *   - floats
+     *   - transforms
+     *   - fine positioning of replaced elements.
+     *   - debugging everything
+     */
+    public void createPdfFast(boolean finish) throws IOException {
+        boolean success = false;
+        
+        try {
+            // renders the layout if it wasn't created
+            if (_root == null) {
+                this.layout();
+            }
+            
+            List<PageBox> pages = _root.getLayer().getPages();
+
+            RenderingContext c = newRenderingContext();
+            c.setInitialPageNo(0);
+        
+            PageBox firstPage = pages.get(0);
+            Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
+                    firstPage.getWidth(c) / _dotsPerPoint,
+                    firstPage.getHeight(c) / _dotsPerPoint);
+
+            if (_pdfVersion != 0f) {
+                _pdfDoc.setVersion(_pdfVersion);
+            }
+        
+            if (_pdfEncryption != null) {
+                _pdfDoc.setEncryptionDictionary(_pdfEncryption);
+            }
+
+            firePreOpen();
+
+            writePDFFast(pages, c, firstPageSize, _pdfDoc);
+            
+            success = true;
+        } finally {
+            if (finish) {
+                fireOnClose();
+                if (success) {
+                    _pdfDoc.save(_os);
+                }
+                _pdfDoc.close();
+                _pdfDoc = null;
+            }
+        }
+    }
 
     private void firePreOpen() {
         if (_listener != null) {
@@ -496,6 +550,44 @@ public class PdfBoxRenderer implements Closeable {
         if (_listener != null) {
             _listener.onClose(this);
         }
+    }
+    
+    private void writePDFFast(List<PageBox> pages, RenderingContext c, Rectangle2D firstPageSize, PDDocument doc) throws IOException {
+        _outputDevice.setRoot(_root);
+        _outputDevice.start(_doc);
+        
+        PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
+        PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, !_testMode);
+        doc.addPage(page);
+        
+        _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
+        _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
+        
+        int pageCount = _root.getLayer().getPages().size();
+        c.setPageCount(pageCount);
+        firePreWrite(pageCount); // opportunity to adjust meta data
+        setDidValues(doc); // set PDF header fields from meta data
+        
+        List<List<DisplayListOperation>> dlPages = _root.getLayer().dlCollectRoot(c);
+        
+        for (int i = 0; i < pageCount; i++) {
+            PageBox currentPage = pages.get(i);
+            List<DisplayListOperation> pageOperations = dlPages.get(i);
+            paintPageFast(c, currentPage, pageOperations);
+            _outputDevice.finishPage();
+            
+            if (i != pageCount - 1) {
+                PageBox nextPage = pages.get(i + 1);
+                Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
+                        nextPage.getHeight(c) / _dotsPerPoint);
+                PDPage pageNext = new PDPage(new PDRectangle((float) nextPageSize.getWidth(), (float) nextPageSize.getHeight()));
+                PDPageContentStream csNext = new PDPageContentStream(doc, pageNext, AppendMode.APPEND, !_testMode);
+                doc.addPage(pageNext);
+                _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
+            }
+        }
+        
+        _outputDevice.finish(c, _root);
     }
 
     private void writePDF(List<PageBox> pages, RenderingContext c, Rectangle2D firstPageSize, PDDocument doc) throws IOException {
@@ -567,6 +659,27 @@ public class PdfBoxRenderer implements Closeable {
         }
 
         doc.setDocumentInformation(info);
+    }
+    
+    private void paintPageFast(RenderingContext c, PageBox page, List<DisplayListOperation> pageOperations) {
+        page.paintBackground(c, 0, Layer.PAGED_MODE_PRINT);
+        page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
+        page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
+
+        Shape working = _outputDevice.getClip();
+
+        Rectangle content = page.getPrintClippingBounds(c);
+        _outputDevice.clip(content);
+
+        int top = -page.getPaintingTop() + page.getMarginBorderPadding(c, CalculatedStyle.TOP);
+
+        int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
+
+        _outputDevice.translate(left, top);
+        _root.getLayer().dlPaint(c, pageOperations);
+        _outputDevice.translate(-left, -top);
+
+        _outputDevice.setClip(working);
     }
 
     private void paintPage(RenderingContext c, PageBox page) {
