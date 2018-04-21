@@ -3,6 +3,7 @@ package com.openhtmltopdf.layout;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.openhtmltopdf.css.style.CssContext;
@@ -21,9 +22,54 @@ import com.openhtmltopdf.render.OperatorSetClip;
 public class PagedBoxCollector {
 
 	public static class PageResult {
-		public final List<DisplayListItem> blocks = new ArrayList<DisplayListItem>();
-		public final List<DisplayListItem> inlines = new ArrayList<DisplayListItem>();
-		public final List<TableCellBox> tcells = new ArrayList<TableCellBox>();
+		private List<DisplayListItem> _blocks = null;
+		private List<DisplayListItem> _inlines = null;
+		private List<TableCellBox> _tcells = null;
+		private List<DisplayListItem> _replaceds = null;
+		
+		private void addBlock(DisplayListItem block) {
+			if (_blocks == null) {
+				_blocks = new ArrayList<DisplayListItem>();
+			}
+			_blocks.add(block);
+		}
+		
+		private void addInline(DisplayListItem inline) {
+			if (_inlines == null) {
+				_inlines = new ArrayList<DisplayListItem>();
+			}
+			_inlines.add(inline);
+		}
+		
+		private void addTableCell(TableCellBox tcell) {
+			if (_tcells == null) {
+				_tcells = new ArrayList<TableCellBox>();
+			}
+			_tcells.add(tcell);
+		}
+		
+		private void addReplaced(DisplayListItem replaced) {
+			if (_replaceds == null) {
+				_replaceds = new ArrayList<DisplayListItem>();
+			}
+			_replaceds.add(replaced);
+		}
+		
+		public List<DisplayListItem> blocks() {
+			return this._blocks == null ? Collections.<DisplayListItem>emptyList() : this._blocks;
+		}
+		
+		public List<DisplayListItem> inlines() {
+			return this._inlines == null ? Collections.<DisplayListItem>emptyList() : this._inlines;
+		}
+		
+		public List<TableCellBox> tcells() {
+			return this._tcells == null ? Collections.<TableCellBox>emptyList() : this._tcells;
+		}
+		
+		public List<DisplayListItem> replaceds() {
+			return this._replaceds == null ? Collections.<DisplayListItem>emptyList() : this._replaceds;
+		}
 	}
 	
 	public static class PageFinder {
@@ -127,13 +173,13 @@ public class PagedBoxCollector {
         	
         		if (b.intersects(c, pageClip)) {
         			if (b instanceof InlineLayoutBox) {
-        				result.get(i).inlines.add(b);
+        				result.get(i).addInline(b);
         			} else { 
         				BlockBox bb = (BlockBox) b;
 
         				if (bb.isInline()) {
         					if (intersectsAny(c, pageClip, b, b)) {
-        						result.get(i).inlines.add(b);
+        						result.get(i).addInline(b);
         					}
         				} else {
         					collect(c, layer, bb, pageClip);
@@ -170,10 +216,10 @@ public class PagedBoxCollector {
         	
         	for (int i = pgStart; i <= pgEnd; i++) {
         		PageResult res = result.get(i);
-        		res.inlines.add(container);
+        		res.addInline(container);
         		
         		// Recursively add all children of the line box to the inlines list.
-        		((LineBox) container).addAllChildren(res.inlines, layer);
+        		((LineBox) container).addAllChildren(res._inlines, layer);
         	}
 
         } else {
@@ -206,15 +252,21 @@ public class PagedBoxCollector {
             			if (ourClip != null) {
             				// Add a clip operation before the block and its descendents (inline or block).
             				DisplayListItem dlClip = new OperatorClip(ourClip);
-            				pageResult.blocks.add(dlClip);
-            				pageResult.inlines.add(dlClip);
+            				pageResult.addBlock(dlClip);
+            				pageResult.addInline(dlClip);
+            				pageResult.addReplaced(dlClip);
             			}
             			
-            			pageResult.blocks.add(container);
+            			pageResult.addBlock(container);
+            			
+            			if (container instanceof BlockBox &&
+            				((BlockBox) container).isReplaced()) {
+            				pageResult.addReplaced(container);
+            			}
                         
             			if (container instanceof TableCellBox &&
             				((TableCellBox) container).hasCollapsedPaintingBorder()) {
-            				pageResult.tcells.add((TableCellBox) container);
+            				pageResult.addTableCell((TableCellBox) container);
                         }
             		}
             	}
@@ -249,8 +301,9 @@ public class PagedBoxCollector {
             		// Test to see if it fits within the page margins.
             		if (intersectsAggregateBounds(pageClip, container)) {
           				DisplayListItem dlSetClip = new OperatorSetClip(parentClip);
-           				pageResult.blocks.add(dlSetClip);
-           				pageResult.inlines.add(dlSetClip);
+           				pageResult.addBlock(dlSetClip);
+           				pageResult.addInline(dlSetClip);
+           				pageResult.addReplaced(dlSetClip);
             		}
             	}
             }

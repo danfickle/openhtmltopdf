@@ -14,7 +14,7 @@ public final class PaintReplacedElements implements DisplayListOperation {
 		this.context = c;
 	}
 
-	public List<DisplayListItem> getBlocks() {
+	public List<DisplayListItem> getReplaceds() {
 		return blocks;
 	}
 

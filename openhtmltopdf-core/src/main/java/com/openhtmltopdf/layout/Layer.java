@@ -400,9 +400,9 @@ public class Layer {
         		PageResult pg = pgResults.get(i);
         		List<DisplayListOperation> dlPageList = dlPages.get(i);
         		
-        		if (!pg.blocks.isEmpty()) {
-        			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells.isEmpty() ? null : dlCollectCollapsedTableBorders(c, pg.tcells);
-        			DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks, c, collapsedTableBorders);
+        		if (!pg.blocks().isEmpty()) {
+        			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null : dlCollectCollapsedTableBorders(c, pg.tcells());
+        			DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), c, collapsedTableBorders);
         			dlPageList.add(dlo);
         		}
         		
@@ -413,18 +413,18 @@ public class Layer {
                     }
         		}
 
-        		if (!pg.blocks.isEmpty()) {
-        			DisplayListOperation dlo = new PaintListMarkers(pg.blocks, c);
+        		if (!pg.blocks().isEmpty()) {
+        			DisplayListOperation dlo = new PaintListMarkers(pg.blocks(), c);
         			dlPageList.add(dlo);
         		}
         		
-        		if (!pg.inlines.isEmpty()) {
-        			DisplayListOperation dlo = new PaintInlineContent(pg.inlines, c);
+        		if (!pg.inlines().isEmpty()) {
+        			DisplayListOperation dlo = new PaintInlineContent(pg.inlines(), c);
         			dlPageList.add(dlo);
         		}
         		
-        		if (!pg.blocks.isEmpty()) {
-        			DisplayListOperation dlo = new PaintReplacedElements(pg.blocks, c);
+        		if (!pg.replaceds().isEmpty()) {
+        			DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds(), c);
         			dlPageList.add(dlo);
         		}
         	}
@@ -449,24 +449,24 @@ public class Layer {
     		PageResult pg = pgResults.get(i);
     		List<DisplayListOperation> dlPageList = dlPages.get(i);
     		
-    		if (!pg.blocks.isEmpty()) {
-    			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells.isEmpty() ? null : dlCollectCollapsedTableBorders(c, pg.tcells);
-    			DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks, c, collapsedTableBorders);
+    		if (!pg.blocks().isEmpty()) {
+    			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null : dlCollectCollapsedTableBorders(c, pg.tcells());
+    			DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), c, collapsedTableBorders);
     			dlPageList.add(dlo);
     		}
     		
-    		if (!pg.blocks.isEmpty()) {
-    			DisplayListOperation dlo = new PaintListMarkers(pg.blocks, c);
+    		if (!pg.blocks().isEmpty()) {
+    			DisplayListOperation dlo = new PaintListMarkers(pg.blocks(), c);
     			dlPageList.add(dlo);
     		}
     		
-    		if (!pg.inlines.isEmpty()) {
-    			DisplayListOperation dlo = new PaintInlineContent(pg.inlines, c);
+    		if (!pg.inlines().isEmpty()) {
+    			DisplayListOperation dlo = new PaintInlineContent(pg.inlines(), c);
     			dlPageList.add(dlo);
     		}
     		
-    		if (!pg.blocks.isEmpty()) {
-    			DisplayListOperation dlo = new PaintReplacedElements(pg.blocks, c);
+    		if (!pg.replaceds().isEmpty()) {
+    			DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds(), c);
     			dlPageList.add(dlo);
     		}
     	}
@@ -555,20 +555,31 @@ public class Layer {
 		}
 	}
 	
-	private void dlPaintReplacedElements(RenderingContext c, List<DisplayListItem> blocks) {
-		for (DisplayListItem dli : blocks) {
+	private void dlPaintReplacedElements(RenderingContext c, List<DisplayListItem> replaceds) {
+		for (int i = 0; i < replaceds.size(); i++) {
+			DisplayListItem dli = replaceds.get(i);
+			DisplayListItem prev = (i - 1) >= 0 ? replaceds.get(i - 1) : null;
+			DisplayListItem next = (i + 1) < replaceds.size() ? replaceds.get(i + 1) : null;
+			
             if (dli instanceof OperatorClip) {
+            	if (next instanceof OperatorSetClip) {
+            		// Its an empty clip/setClip pair with no replaceds between them.
+            		continue;
+            	}
+            	
             	OperatorClip clip = (OperatorClip) dli;
             	c.getOutputDevice().clip(clip.getClip());
             } else if (dli instanceof OperatorSetClip) {
+            	if (prev instanceof OperatorClip) {
+            		// Its an empty clip/setClip pair with no replaceds between them.
+            		continue;
+            	}
+            	
             	OperatorSetClip setClip = (OperatorSetClip) dli;
             	c.getOutputDevice().setClip(setClip.getSetClipShape());
             } else {
                 BlockBox box = (BlockBox) dli;
-                
-                if (box.isReplaced()) {
-                    c.getOutputDevice().paintReplacedElement(c, box);
-                }
+                c.getOutputDevice().paintReplacedElement(c, box);
             }
 		}
 	}
@@ -610,7 +621,7 @@ public class Layer {
     		} else if (op instanceof PaintReplacedElements) {
     			
     			PaintReplacedElements dlo = (PaintReplacedElements) op;
-    			dlPaintReplacedElements(dlo.getContext(), dlo.getBlocks());
+    			dlPaintReplacedElements(dlo.getContext(), dlo.getReplaceds());
     			
     		} else {
     			
