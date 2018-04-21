@@ -154,7 +154,7 @@ public class PagedBoxCollector {
 	 * @param container
 	 * @param parentClip
 	 */
-	private void collect(CssContext c, Layer layer, Box container, Shape parentClip) {
+	public void collect(CssContext c, Layer layer, Box container, Shape parentClip) {
 		if (layer != container.getContainingLayer()) {
 			// Different layers are responsible for their own box collection.
 			return;

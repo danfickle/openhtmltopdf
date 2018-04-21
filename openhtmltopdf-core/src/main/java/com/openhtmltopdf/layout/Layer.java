@@ -400,8 +400,6 @@ public class Layer {
         		PageResult pg = pgResults.get(i);
         		List<DisplayListOperation> dlPageList = dlPages.get(i);
         		
-        		// TODO Map collapsedTableBorders = collectCollapsedTableBorders(c, blocks);	
-       	
         		if (!pg.blocks.isEmpty()) {
         			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells.isEmpty() ? null : dlCollectCollapsedTableBorders(c, pg.tcells);
         			DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks, c, collapsedTableBorders);
@@ -409,7 +407,10 @@ public class Layer {
         		}
         		
         		if (_floats != null && !_floats.isEmpty()) {
-            		// TODO: paintFloats(c);
+                    for (int iflt = _floats.size() - 1; iflt >= 0; iflt--) {
+                        BlockBox floater = (BlockBox) _floats.get(iflt);
+                        dlCollectFloatAsLayer(c, pages, floater, dlPages);
+                    }
         		}
 
         		if (!pg.blocks.isEmpty()) {
@@ -435,6 +436,40 @@ public class Layer {
         		dlCollectLayers(c, getSortedLayers(POSITIVE), dlPages, pages);
         	}
         }
+    }
+    
+    private void dlCollectFloatAsLayer(RenderingContext c, List<PageBox> pages, BlockBox startingPoint, List<List<DisplayListOperation>> dlPages) {
+    	PagedBoxCollector collector = new PagedBoxCollector(pages);
+
+    	collector.collect(c, this, startingPoint, null);
+
+    	List<PageResult> pgResults = collector.getCollectedPageResults();
+    	
+    	for (int i = 0; i < pgResults.size(); i++) {
+    		PageResult pg = pgResults.get(i);
+    		List<DisplayListOperation> dlPageList = dlPages.get(i);
+    		
+    		if (!pg.blocks.isEmpty()) {
+    			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells.isEmpty() ? null : dlCollectCollapsedTableBorders(c, pg.tcells);
+    			DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks, c, collapsedTableBorders);
+    			dlPageList.add(dlo);
+    		}
+    		
+    		if (!pg.blocks.isEmpty()) {
+    			DisplayListOperation dlo = new PaintListMarkers(pg.blocks, c);
+    			dlPageList.add(dlo);
+    		}
+    		
+    		if (!pg.inlines.isEmpty()) {
+    			DisplayListOperation dlo = new PaintInlineContent(pg.inlines, c);
+    			dlPageList.add(dlo);
+    		}
+    		
+    		if (!pg.blocks.isEmpty()) {
+    			DisplayListOperation dlo = new PaintReplacedElements(pg.blocks, c);
+    			dlPageList.add(dlo);
+    		}
+    	}
     }
 
 	private void dlCollectLayerBackgroundAndBorder(RenderingContext c, List<List<DisplayListOperation>> dlPages,
