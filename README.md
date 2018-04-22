@@ -63,7 +63,7 @@ CHANGELOG
 
 head - 0.0.1-RC14-SNAPSHOT
 ========
-
++ [Fix link annotation placement in margin or generated boxes](https://github.com/danfickle/openhtmltopdf/issues/213) Thanks @jesselong, @Kuhlware, @markhowardnz 
 
 
 0.0.1-RC13
