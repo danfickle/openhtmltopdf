@@ -767,10 +767,17 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     /**
-     * Converts a top down unit to a bottom up PDF unit.
+     * Converts a top down unit to a bottom up PDF unit for the current page.
      */
     private float normalizeY(float y) {
         return _pageHeight - y;
+    }
+    
+    /**
+     * Converts a top down unit to a bottom up PDF unit for the specified page height.
+     */
+    public float normalizeY(float y, float pageHeight) {
+        return pageHeight - y;
     }
 
     private void normalizeY(float[] coords) {

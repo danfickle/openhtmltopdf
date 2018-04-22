@@ -78,12 +78,7 @@ public class PdfBoxLinkManager {
 	}
 
 	private Rectangle2D add(Rectangle2D r1, Rectangle2D r2) {
-		float llx = (float) Math.min(r1.getMinX(), r2.getMinX());
-		float urx = (float) Math.max(r1.getMaxX(), r2.getMaxX());
-		float lly = (float) Math.min(r1.getMaxY(), r2.getMaxY());
-		float ury = (float) Math.max(r1.getMinY(), r2.getMinY());
-
-		return new Rectangle2D.Float(llx, lly, urx, ury);
+		return r1.createUnion(r2);
 	}
 
 	private String createRectKey(Rectangle2D rect, Shape linkShape, AffineTransform transform) {
@@ -366,14 +361,14 @@ public class PdfBoxLinkManager {
 	public static Rectangle2D createTargetArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform,
 			Box _root, PdfBoxOutputDevice _od) {
 		Rectangle bounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), c);
-		PageBox page = _root.getLayer().getPage(c, bounds.y);
-
-		float bottom = _od.getDeviceLength(
-				page.getBottom() - (bounds.y + bounds.height) + page.getMarginBorderPadding(c, CalculatedStyle.BOTTOM));
-		float left = _od.getDeviceLength(page.getMarginBorderPadding(c, CalculatedStyle.LEFT) + bounds.x);
-
-		return new Rectangle2D.Float(left, bottom, _od.getDeviceLength(bounds.width),
-				_od.getDeviceLength(bounds.height));
+		
+		Point2D pt = new Point2D.Float(bounds.x, (float) bounds.getMaxY());
+		Point2D ptTransformed = transform.transform(pt, null);
+		
+		return new Rectangle2D.Float((float) ptTransformed.getX(),
+                    _od.normalizeY((float) ptTransformed.getY(), pageHeight),
+                    _od.getDeviceLength(bounds.width),
+                    _od.getDeviceLength(bounds.height));
 	}
 
 	public static class LinkDetails {
@@ -387,14 +382,20 @@ public class PdfBoxLinkManager {
 
 	public void processLinkLater(RenderingContext c, Box box, PDPage page, float pageHeight,
 			AffineTransform transform) {
+	    
+	    if ((box instanceof BlockBox &&
+	        ((BlockBox) box).getReplacedElement() != null) ||
+	        (box.getElement() != null && box.getElement().getNodeName().equals("a"))) {
+	    
 		LinkDetails link = new LinkDetails();
 		link.c = c;
 		link.box = box;
 		link.page = page;
 		link.pageHeight = pageHeight;
-		link.transform = transform;
+		link.transform = (AffineTransform) transform.clone();
 
 		_links.add(link);
+	    }
 	}
 
 	public void processLinks() {

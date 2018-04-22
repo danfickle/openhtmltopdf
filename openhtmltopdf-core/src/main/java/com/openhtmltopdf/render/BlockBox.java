@@ -1518,7 +1518,7 @@ public class BlockBox extends Box implements InlinePaintable {
             int width = getCSSWidth(c, true);
 
             if (width == -1) {
-                if (isReplaced()) {
+                if (isReplaced() && getReplacedElement() != null) {
                     width = getReplacedElement().getIntrinsicWidth();
                 } else {
                     int height = getCSSHeight(c);
