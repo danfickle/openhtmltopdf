@@ -13,7 +13,7 @@ import com.openhtmltopdf.render.OperatorSetClip;
 import com.openhtmltopdf.render.RenderingContext;
 
 public class DisplayListPainter {
-	private void dlPaintBackgroundAndBorders(RenderingContext c, List<DisplayListItem> blocks,
+	private void paintBackgroundAndBorders(RenderingContext c, List<DisplayListItem> blocks,
 			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders) {
 		for (DisplayListItem dli : blocks) {
 			if (dli instanceof OperatorClip) {
@@ -45,7 +45,7 @@ public class DisplayListPainter {
 		}
 	}
 
-	private void dlPaintListMarkers(RenderingContext c, List<DisplayListItem> blocks) {
+	private void paintListMarkers(RenderingContext c, List<DisplayListItem> blocks) {
 		for (DisplayListItem dli : blocks) {
 			if (dli instanceof OperatorClip) {
 				OperatorClip clip = (OperatorClip) dli;
@@ -59,7 +59,7 @@ public class DisplayListPainter {
 		}
 	}
 
-	private void dlPaintInlineContent(RenderingContext c, List<DisplayListItem> inlines) {
+	private void paintInlineContent(RenderingContext c, List<DisplayListItem> inlines) {
 		for (DisplayListItem dli : inlines) {
 			if (dli instanceof OperatorClip) {
 				OperatorClip clip = (OperatorClip) dli;
@@ -74,7 +74,7 @@ public class DisplayListPainter {
 		}
 	}
 
-	private void dlPaintReplacedElements(RenderingContext c, List<DisplayListItem> replaceds) {
+	private void paintReplacedElements(RenderingContext c, List<DisplayListItem> replaceds) {
 		for (int i = 0; i < replaceds.size(); i++) {
 			DisplayListItem dli = replaceds.get(i);
 			DisplayListItem prev = (i - 1) >= 0 ? replaceds.get(i - 1) : null;
@@ -103,7 +103,7 @@ public class DisplayListPainter {
 		}
 	}
 
-	public void dlPaint(RenderingContext c, List<DisplayListOperation> pageOperations) {
+	public void paint(RenderingContext c, List<DisplayListOperation> pageOperations) {
 		for (DisplayListOperation op : pageOperations) {
 
 			if (op instanceof PaintRootElementBackground) {
@@ -125,22 +125,22 @@ public class DisplayListPainter {
 			} else if (op instanceof PaintBackgroundAndBorders) {
 
 				PaintBackgroundAndBorders dlo = (PaintBackgroundAndBorders) op;
-				dlPaintBackgroundAndBorders(dlo.getContext(), dlo.getBlocks(), dlo.getCollapedTableBorders());
+				paintBackgroundAndBorders(dlo.getContext(), dlo.getBlocks(), dlo.getCollapedTableBorders());
 
 			} else if (op instanceof PaintListMarkers) {
 
 				PaintListMarkers dlo = (PaintListMarkers) op;
-				dlPaintListMarkers(dlo.getContext(), dlo.getBlocks());
+				paintListMarkers(dlo.getContext(), dlo.getBlocks());
 
 			} else if (op instanceof PaintInlineContent) {
 
 				PaintInlineContent dlo = (PaintInlineContent) op;
-				dlPaintInlineContent(dlo.getContext(), dlo.getInlines());
+				paintInlineContent(dlo.getContext(), dlo.getInlines());
 
 			} else if (op instanceof PaintReplacedElements) {
 
 				PaintReplacedElements dlo = (PaintReplacedElements) op;
-				dlPaintReplacedElements(dlo.getContext(), dlo.getReplaceds());
+				paintReplacedElements(dlo.getContext(), dlo.getReplaceds());
 
 			} else {
 

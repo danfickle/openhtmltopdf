@@ -571,7 +571,7 @@ public class PdfBoxRenderer implements Closeable {
         setDidValues(doc); // set PDF header fields from meta data
         
         DisplayListCollector dlCollector = new DisplayListCollector(_root.getLayer().getPages());
-        List<List<DisplayListOperation>> dlPages = dlCollector.dlCollectRoot(c, _root.getLayer()); 
+        List<List<DisplayListOperation>> dlPages = dlCollector.collectRoot(c, _root.getLayer()); 
         
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
@@ -680,7 +680,7 @@ public class PdfBoxRenderer implements Closeable {
 
         _outputDevice.translate(left, top);
         DisplayListPainter painter = new DisplayListPainter();
-        painter.dlPaint(c, pageOperations);
+        painter.paint(c, pageOperations);
         _outputDevice.translate(-left, -top);
 
         _outputDevice.setClip(working);
