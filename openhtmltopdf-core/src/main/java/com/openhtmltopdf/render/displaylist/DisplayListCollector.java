@@ -63,7 +63,7 @@ public class DisplayListCollector {
 
 			// IMPROVEMENT: If the background image doesn't cover every page,
 			// we could perhaps optimize this.
-			DisplayListOperation dlo = new PaintRootElementBackground(c, layer.getMaster());
+			DisplayListOperation dlo = new PaintRootElementBackground(layer.getMaster());
 			addItem(dlo, 0, dlPages.getNumPages() - 1, dlPages);
 		}
 
@@ -91,7 +91,7 @@ public class DisplayListCollector {
 				if (!pg.blocks().isEmpty()) {
 					Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
 							: collectCollapsedTableBorders(c, pg.tcells());
-					DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), c, collapsedTableBorders);
+					DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), collapsedTableBorders);
 					dlPageList.addOp(dlo);
 				}
 
@@ -103,17 +103,17 @@ public class DisplayListCollector {
 				}
 
 				if (!pg.blocks().isEmpty()) {
-					DisplayListOperation dlo = new PaintListMarkers(pg.blocks(), c);
+					DisplayListOperation dlo = new PaintListMarkers(pg.blocks());
 					dlPageList.addOp(dlo);
 				}
 
 				if (!pg.inlines().isEmpty()) {
-					DisplayListOperation dlo = new PaintInlineContent(pg.inlines(), c);
+					DisplayListOperation dlo = new PaintInlineContent(pg.inlines());
 					dlPageList.addOp(dlo);
 				}
 
 				if (!pg.replaceds().isEmpty()) {
-					DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds(), c);
+					DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds());
 					dlPageList.addOp(dlo);
 				}
 			}
@@ -142,22 +142,22 @@ public class DisplayListCollector {
 			if (!pg.blocks().isEmpty()) {
 				Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
 						: collectCollapsedTableBorders(c, pg.tcells());
-				DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), c, collapsedTableBorders);
+				DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), collapsedTableBorders);
 				dlPageList.addOp(dlo);
 			}
 
 			if (!pg.blocks().isEmpty()) {
-				DisplayListOperation dlo = new PaintListMarkers(pg.blocks(), c);
+				DisplayListOperation dlo = new PaintListMarkers(pg.blocks());
 				dlPageList.addOp(dlo);
 			}
 
 			if (!pg.inlines().isEmpty()) {
-				DisplayListOperation dlo = new PaintInlineContent(pg.inlines(), c);
+				DisplayListOperation dlo = new PaintInlineContent(pg.inlines());
 				dlPageList.addOp(dlo);
 			}
 
 			if (!pg.replaceds().isEmpty()) {
-				DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds(), c);
+				DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds());
 				dlPageList.addOp(dlo);
 			}
 		}
@@ -166,7 +166,7 @@ public class DisplayListCollector {
 	private void collectLayerBackgroundAndBorder(RenderingContext c, Layer layer,
 			DisplayListContainer dlPages, List<PageBox> pages) {
 
-		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(c, layer.getMaster());
+		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
 		int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
 		int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
 		addItem(dlo, pgStart, pgEnd, dlPages);
@@ -176,13 +176,13 @@ public class DisplayListCollector {
 			DisplayListContainer dlPages, List<PageBox> pages) {
 
 		if (layer.getMaster() instanceof BlockBox) {
-			DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(c, layer.getMaster());
+			DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
 			int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
 			int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
 			addItem(dlo, pgStart, pgEnd, dlPages);
 		}
 
-		DisplayListOperation dlo = new PaintReplacedElement(c, (BlockBox) layer.getMaster());
+		DisplayListOperation dlo = new PaintReplacedElement((BlockBox) layer.getMaster());
 		int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
 		int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
 		addItem(dlo, pgStart, pgEnd, dlPages);

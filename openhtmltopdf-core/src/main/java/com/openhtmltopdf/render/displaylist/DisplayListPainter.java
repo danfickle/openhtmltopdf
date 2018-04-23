@@ -110,38 +110,38 @@ public class DisplayListPainter {
 			if (op instanceof PaintRootElementBackground) {
 
 				PaintRootElementBackground dlo = (PaintRootElementBackground) op;
-				dlo.getRoot().paintRootElementBackground(dlo.getContext());
+				dlo.getRoot().paintRootElementBackground(c);
 
 			} else if (op instanceof PaintLayerBackgroundAndBorder) {
 
 				PaintLayerBackgroundAndBorder dlo = (PaintLayerBackgroundAndBorder) op;
-				dlo.getMaster().paintBackground(dlo.getContext());
-				dlo.getMaster().paintBorder(dlo.getContext());
+				dlo.getMaster().paintBackground(c);
+				dlo.getMaster().paintBorder(c);
 
 			} else if (op instanceof PaintReplacedElement) {
 
 				PaintReplacedElement dlo = (PaintReplacedElement) op;
-				dlo.getContext().getOutputDevice().paintReplacedElement(dlo.getContext(), dlo.getMaster());
+				c.getOutputDevice().paintReplacedElement(c, dlo.getMaster());
 
 			} else if (op instanceof PaintBackgroundAndBorders) {
 
 				PaintBackgroundAndBorders dlo = (PaintBackgroundAndBorders) op;
-				paintBackgroundAndBorders(dlo.getContext(), dlo.getBlocks(), dlo.getCollapedTableBorders());
+				paintBackgroundAndBorders(c, dlo.getBlocks(), dlo.getCollapedTableBorders());
 
 			} else if (op instanceof PaintListMarkers) {
 
 				PaintListMarkers dlo = (PaintListMarkers) op;
-				paintListMarkers(dlo.getContext(), dlo.getBlocks());
+				paintListMarkers(c, dlo.getBlocks());
 
 			} else if (op instanceof PaintInlineContent) {
 
 				PaintInlineContent dlo = (PaintInlineContent) op;
-				paintInlineContent(dlo.getContext(), dlo.getInlines());
+				paintInlineContent(c, dlo.getInlines());
 
 			} else if (op instanceof PaintReplacedElements) {
 
 				PaintReplacedElements dlo = (PaintReplacedElements) op;
-				paintReplacedElements(dlo.getContext(), dlo.getReplaceds());
+				paintReplacedElements(c, dlo.getReplaceds());
 
 			} else {
 

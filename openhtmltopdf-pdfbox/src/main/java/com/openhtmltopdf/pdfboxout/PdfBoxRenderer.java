@@ -488,8 +488,8 @@ public class PdfBoxRenderer implements Closeable {
     /**
      * Completely experimental for now. Buggy as heck!
      * TODO:
+     *   - inline-blocks
      *   - hidden overflow
-     *   - floats
      *   - transforms
      *   - fine positioning of replaced elements.
      *   - debugging everything
@@ -578,6 +578,7 @@ public class PdfBoxRenderer implements Closeable {
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
             DisplayListPageContainer pageOperations = dlPages.getPageInstructions(i);
+            c.setPage(i, currentPage);
             paintPageFast(c, currentPage, pageOperations);
             _outputDevice.finishPage();
             
