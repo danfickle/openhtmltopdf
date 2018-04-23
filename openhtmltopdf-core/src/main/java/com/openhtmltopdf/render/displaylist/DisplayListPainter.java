@@ -11,6 +11,7 @@ import com.openhtmltopdf.render.DisplayListItem;
 import com.openhtmltopdf.render.OperatorClip;
 import com.openhtmltopdf.render.OperatorSetClip;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 
 public class DisplayListPainter {
 	private void paintBackgroundAndBorders(RenderingContext c, List<DisplayListItem> blocks,
@@ -103,8 +104,8 @@ public class DisplayListPainter {
 		}
 	}
 
-	public void paint(RenderingContext c, List<DisplayListOperation> pageOperations) {
-		for (DisplayListOperation op : pageOperations) {
+	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {
+		for (DisplayListOperation op : pageOperations.getOperations()) {
 
 			if (op instanceof PaintRootElementBackground) {
 

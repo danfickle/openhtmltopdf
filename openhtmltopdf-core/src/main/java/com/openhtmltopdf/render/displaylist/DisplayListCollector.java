@@ -16,6 +16,7 @@ import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
 public class DisplayListCollector {
@@ -26,11 +27,7 @@ public class DisplayListCollector {
 		this._pages = pages;
 	}
 
-	private List<PageBox> getPages() {
-		return this._pages;
-	}
-
-	private void collectLayers(RenderingContext c, List<Layer> layers, List<List<DisplayListOperation>> dlPages,
+	private void collectLayers(RenderingContext c, List<Layer> layers, DisplayListContainer dlPages,
 			List<PageBox> pages) {
 		for (Layer layer : layers) {
 			collect(c, layer, dlPages, pages);
@@ -38,30 +35,25 @@ public class DisplayListCollector {
 	}
 
 	private void addItem(DisplayListOperation item, int pgStart, int pgEnd,
-			List<List<DisplayListOperation>> dlPages) {
+			DisplayListContainer dlPages) {
 		for (int i = pgStart; i <= pgEnd; i++) {
-			dlPages.get(i).add(item);
+			dlPages.getPageInstructions(i).addOp(item);
 		}
 	}
 
-	public List<List<DisplayListOperation>> collectRoot(RenderingContext c, Layer rootLayer) {
+	public DisplayListContainer collectRoot(RenderingContext c, Layer rootLayer) {
 		if (!rootLayer.isRootLayer()) {
 			return null;
 		}
 
-		List<PageBox> pages = getPages();
-		List<List<DisplayListOperation>> displayListPages = new ArrayList<List<DisplayListOperation>>(pages.size());
+		DisplayListContainer displayList = new DisplayListContainer(_pages.size());
 
-		for (int i = 0; i < pages.size(); i++) {
-			displayListPages.add(new ArrayList<DisplayListOperation>());
-		}
+		collect(c, rootLayer, displayList, _pages);
 
-		collect(c, rootLayer, displayListPages, pages);
-
-		return displayListPages;
+		return displayList;
 	}
 
-	private void collect(RenderingContext c, Layer layer, List<List<DisplayListOperation>> dlPages,
+	private void collect(RenderingContext c, Layer layer, DisplayListContainer dlPages,
 			List<PageBox> pages) {
 		if (layer.getMaster().getStyle().isFixed()) {
 			layer.positionFixedLayer(c); // TODO
@@ -72,7 +64,7 @@ public class DisplayListCollector {
 			// IMPROVEMENT: If the background image doesn't cover every page,
 			// we could perhaps optimize this.
 			DisplayListOperation dlo = new PaintRootElementBackground(c, layer.getMaster());
-			addItem(dlo, 0, dlPages.size() - 1, dlPages);
+			addItem(dlo, 0, dlPages.getNumPages() - 1, dlPages);
 		}
 
 		if (!layer.isInline() && ((BlockBox) layer.getMaster()).isReplaced()) {
@@ -94,13 +86,13 @@ public class DisplayListCollector {
 
 			for (int i = 0; i < pgResults.size(); i++) {
 				PageResult pg = pgResults.get(i);
-				List<DisplayListOperation> dlPageList = dlPages.get(i);
+				DisplayListPageContainer dlPageList = dlPages.getPageInstructions(i);
 
 				if (!pg.blocks().isEmpty()) {
 					Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
 							: collectCollapsedTableBorders(c, pg.tcells());
 					DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), c, collapsedTableBorders);
-					dlPageList.add(dlo);
+					dlPageList.addOp(dlo);
 				}
 
 				if (layer.getFloats() != null && !layer.getFloats().isEmpty()) {
@@ -112,17 +104,17 @@ public class DisplayListCollector {
 
 				if (!pg.blocks().isEmpty()) {
 					DisplayListOperation dlo = new PaintListMarkers(pg.blocks(), c);
-					dlPageList.add(dlo);
+					dlPageList.addOp(dlo);
 				}
 
 				if (!pg.inlines().isEmpty()) {
 					DisplayListOperation dlo = new PaintInlineContent(pg.inlines(), c);
-					dlPageList.add(dlo);
+					dlPageList.addOp(dlo);
 				}
 
 				if (!pg.replaceds().isEmpty()) {
 					DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds(), c);
-					dlPageList.add(dlo);
+					dlPageList.addOp(dlo);
 				}
 			}
 
@@ -136,7 +128,7 @@ public class DisplayListCollector {
 	}
 
 	private void collectFloatAsLayer(RenderingContext c, Layer layer, List<PageBox> pages, BlockBox startingPoint,
-			List<List<DisplayListOperation>> dlPages) {
+			DisplayListContainer dlPages) {
 		PagedBoxCollector collector = new PagedBoxCollector(pages);
 
 		collector.collect(c, layer, startingPoint, null);
@@ -145,34 +137,34 @@ public class DisplayListCollector {
 
 		for (int i = 0; i < pgResults.size(); i++) {
 			PageResult pg = pgResults.get(i);
-			List<DisplayListOperation> dlPageList = dlPages.get(i);
+			DisplayListPageContainer dlPageList = dlPages.getPageInstructions(i);
 
 			if (!pg.blocks().isEmpty()) {
 				Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
 						: collectCollapsedTableBorders(c, pg.tcells());
 				DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), c, collapsedTableBorders);
-				dlPageList.add(dlo);
+				dlPageList.addOp(dlo);
 			}
 
 			if (!pg.blocks().isEmpty()) {
 				DisplayListOperation dlo = new PaintListMarkers(pg.blocks(), c);
-				dlPageList.add(dlo);
+				dlPageList.addOp(dlo);
 			}
 
 			if (!pg.inlines().isEmpty()) {
 				DisplayListOperation dlo = new PaintInlineContent(pg.inlines(), c);
-				dlPageList.add(dlo);
+				dlPageList.addOp(dlo);
 			}
 
 			if (!pg.replaceds().isEmpty()) {
 				DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds(), c);
-				dlPageList.add(dlo);
+				dlPageList.addOp(dlo);
 			}
 		}
 	}
 
 	private void collectLayerBackgroundAndBorder(RenderingContext c, Layer layer,
-			List<List<DisplayListOperation>> dlPages, List<PageBox> pages) {
+			DisplayListContainer dlPages, List<PageBox> pages) {
 
 		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(c, layer.getMaster());
 		int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
@@ -181,7 +173,7 @@ public class DisplayListCollector {
 	}
 
 	private void collectReplacedElementLayer(RenderingContext c, Layer layer,
-			List<List<DisplayListOperation>> dlPages, List<PageBox> pages) {
+			DisplayListContainer dlPages, List<PageBox> pages) {
 
 		if (layer.getMaster() instanceof BlockBox) {
 			DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(c, layer.getMaster());

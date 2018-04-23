@@ -40,8 +40,10 @@ import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.render.displaylist.DisplayListCollector;
+import com.openhtmltopdf.render.displaylist.DisplayListContainer;
 import com.openhtmltopdf.render.displaylist.DisplayListOperation;
 import com.openhtmltopdf.render.displaylist.DisplayListPainter;
+import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
@@ -571,11 +573,11 @@ public class PdfBoxRenderer implements Closeable {
         setDidValues(doc); // set PDF header fields from meta data
         
         DisplayListCollector dlCollector = new DisplayListCollector(_root.getLayer().getPages());
-        List<List<DisplayListOperation>> dlPages = dlCollector.collectRoot(c, _root.getLayer()); 
+        DisplayListContainer dlPages = dlCollector.collectRoot(c, _root.getLayer()); 
         
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
-            List<DisplayListOperation> pageOperations = dlPages.get(i);
+            DisplayListPageContainer pageOperations = dlPages.getPageInstructions(i);
             paintPageFast(c, currentPage, pageOperations);
             _outputDevice.finishPage();
             
@@ -664,7 +666,7 @@ public class PdfBoxRenderer implements Closeable {
         doc.setDocumentInformation(info);
     }
     
-    private void paintPageFast(RenderingContext c, PageBox page, List<DisplayListOperation> pageOperations) {
+    private void paintPageFast(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations) {
         page.paintBackground(c, 0, Layer.PAGED_MODE_PRINT);
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
