@@ -39,7 +39,9 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
+import com.openhtmltopdf.render.displaylist.DisplayListCollector;
 import com.openhtmltopdf.render.displaylist.DisplayListOperation;
+import com.openhtmltopdf.render.displaylist.DisplayListPainter;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
@@ -568,7 +570,8 @@ public class PdfBoxRenderer implements Closeable {
         firePreWrite(pageCount); // opportunity to adjust meta data
         setDidValues(doc); // set PDF header fields from meta data
         
-        List<List<DisplayListOperation>> dlPages = _root.getLayer().dlCollectRoot(c);
+        DisplayListCollector dlCollector = new DisplayListCollector(_root.getLayer().getPages());
+        List<List<DisplayListOperation>> dlPages = dlCollector.dlCollectRoot(c, _root.getLayer()); 
         
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
@@ -676,7 +679,8 @@ public class PdfBoxRenderer implements Closeable {
         int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
 
         _outputDevice.translate(left, top);
-        _root.getLayer().dlPaint(c, pageOperations);
+        DisplayListPainter painter = new DisplayListPainter();
+        painter.dlPaint(c, pageOperations);
         _outputDevice.translate(-left, -top);
 
         _outputDevice.setClip(working);

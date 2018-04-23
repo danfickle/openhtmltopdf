@@ -1,4 +1,4 @@
-package com.openhtmltopdf.layout;
+package com.openhtmltopdf.render.displaylist;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 
 import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.layout.Layer;
+import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
