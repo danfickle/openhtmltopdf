@@ -70,15 +70,17 @@ public class PdfBoxFontResolver implements FontResolver {
      */
 	public void close() {
 		for (FontDescription fontDescription : _fontCache.values()) {
-			// If the font is not yet subset, we must subset it, otherwise we may leak a file handle
-            // because the PDType0Font may still have the font file open.
+			/*
+			 * If the font is not yet subset, we must subset it, otherwise we may leak a
+			 * file handle because the PDType0Font may still have the font file open.
+			 */
 			if (fontDescription._font != null && fontDescription._font.willBeSubset()) {
-                try {
-                    fontDescription._font.subset();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+				try {
+					fontDescription._font.subset();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		_fontCache.clear();
 
