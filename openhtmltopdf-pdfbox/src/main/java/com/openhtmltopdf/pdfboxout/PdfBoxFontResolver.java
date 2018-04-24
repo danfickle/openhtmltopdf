@@ -38,15 +38,9 @@ import org.apache.fontbox.ttf.TrueTypeCollection;
 import org.apache.fontbox.ttf.TrueTypeCollection.TrueTypeFontProcessor;
 import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.*;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -59,6 +53,7 @@ public class PdfBoxFontResolver implements FontResolver {
     private Map<String, FontDescription> _fontCache = new HashMap<String, FontDescription>();
     private final PDDocument _doc;
     private final SharedContext _sharedContext;
+	private List<TrueTypeCollection> _collectionsToClose = new ArrayList<TrueTypeCollection>();
 
     public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc) {
         _sharedContext = sharedContext;
@@ -70,10 +65,38 @@ public class PdfBoxFontResolver implements FontResolver {
         return resolveFont(renderingContext, spec.families, spec.size, spec.fontWeight, spec.fontStyle, spec.variant);
     }
 
+    /**
+     * Free all font resources (i.e. open files), the document should already be closed.
+     */
+	public void close() {
+		for (FontDescription fontDescription : _fontCache.values()) {
+			// If the font is not yet subset, we must subset it, otherwise we may leak a file handle
+            // because the PDType0Font may still have the font file open.
+			if (fontDescription._font != null && fontDescription._font.willBeSubset()) {
+                try {
+                    fontDescription._font.subset();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+		}
+		_fontCache.clear();
+
+		// Close all still open TrueTypeCollections
+		for (TrueTypeCollection collection : _collectionsToClose) {
+			try {
+				collection.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
     @Deprecated
     @Override
     public void flushCache() {
         _fontFamilies = createInitialFontMap();
+        close();
         _fontCache = new HashMap<String, FontDescription>();
     }
 
@@ -191,6 +214,7 @@ public class PdfBoxFontResolver implements FontResolver {
 				addFont(ttf, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
 			}
 		});
+        _collectionsToClose.add(collection);
 	}
 
 	/**
@@ -235,7 +259,24 @@ public class PdfBoxFontResolver implements FontResolver {
 		/*
 		 * We load the font using the file.
 		 */
-		addFont(PDType0Font.load(_doc, fontFile), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+		addFont(new FontFileSupplier(fontFile), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+	}
+
+	private static class FontFileSupplier implements FSSupplier<InputStream> {
+		private final File file;
+
+		FontFileSupplier(File file) {
+			this.file = file;
+		}
+
+		@Override
+		public InputStream supply() {
+			try {
+				return new FileInputStream(file);
+			} catch (FileNotFoundException e) {
+				return null;
+			}
+		}
 	}
 
 

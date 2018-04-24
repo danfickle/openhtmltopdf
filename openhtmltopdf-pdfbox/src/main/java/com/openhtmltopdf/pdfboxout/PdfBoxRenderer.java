@@ -834,7 +834,10 @@ public class PdfBoxRenderer implements Closeable {
         _outputDevice.close();
         _sharedContext.removeFromThread();
         ThreadCtx.cleanup();
-        
+
+        // Close all still open font files
+        ((PdfBoxFontResolver)getSharedContext().getFontResolver()).close();
+
         if (_svgImpl != null) {
             try {
                 _svgImpl.close();
