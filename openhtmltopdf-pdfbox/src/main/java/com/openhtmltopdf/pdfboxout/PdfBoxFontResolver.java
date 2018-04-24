@@ -65,9 +65,10 @@ public class PdfBoxFontResolver implements FontResolver {
         return resolveFont(renderingContext, spec.families, spec.size, spec.fontWeight, spec.fontStyle, spec.variant);
     }
 
-    /**
-     * Free all font resources (i.e. open files), the document should already be closed.
-     */
+	/**
+	 * Free all font resources (i.e. open files), the document should already be
+	 * closed.
+	 */
 	public void close() {
 		for (FontDescription fontDescription : _fontCache.values()) {
 			/*
@@ -92,6 +93,7 @@ public class PdfBoxFontResolver implements FontResolver {
 				e.printStackTrace();
 			}
 		}
+		_collectionsToClose.clear();
 	}
 
     @Deprecated
