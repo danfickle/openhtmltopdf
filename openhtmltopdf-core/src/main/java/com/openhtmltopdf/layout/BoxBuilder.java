@@ -125,12 +125,12 @@ public class BoxBuilder {
     }
 
     public static void createChildren(LayoutContext c, BlockBox parent) {
-    	
-    	if (parent.isReplaced()) {
+
+    	if (parent.shouldBeReplaced()) {
     		return;
     	}
 
-		List children = new ArrayList();
+        List children = new ArrayList();
 
         ChildBoxInfo info = new ChildBoxInfo();
 

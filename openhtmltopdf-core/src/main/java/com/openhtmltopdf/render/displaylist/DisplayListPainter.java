@@ -1,5 +1,7 @@
 package com.openhtmltopdf.render.displaylist;
 
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.List;
 import java.util.Map;
 
@@ -86,10 +88,25 @@ public class DisplayListPainter {
 				c.getOutputDevice().setClip(setClip.getSetClipShape());
 			} else {
 				BlockBox box = (BlockBox) dli;
-				c.getOutputDevice().paintReplacedElement(c, box);
+				paintReplacedElement(c, box);
 			}
 		}
 	}
+	
+    private void paintReplacedElement(RenderingContext c, BlockBox replaced) {
+        
+    	Rectangle contentBounds = replaced.getContentAreaEdge(
+                replaced.getAbsX(), replaced.getAbsY(), c);
+    	
+        // Minor hack:  It's inconvenient to adjust for margins, border, padding during
+        // layout so just do it here.
+        Point loc = replaced.getReplacedElement().getLocation();
+        if (contentBounds.x != loc.x || contentBounds.y != loc.y) {
+            replaced.getReplacedElement().setLocation(contentBounds.x, contentBounds.y);
+        }
+        
+        c.getOutputDevice().paintReplacedElement(c, replaced);
+    }
 
 	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {
 		for (DisplayListOperation op : pageOperations.getOperations()) {
@@ -108,7 +125,7 @@ public class DisplayListPainter {
 			} else if (op instanceof PaintReplacedElement) {
 
 				PaintReplacedElement dlo = (PaintReplacedElement) op;
-				c.getOutputDevice().paintReplacedElement(c, dlo.getMaster());
+				paintReplacedElement(c, dlo.getMaster());
 
 			} else if (op instanceof PaintBackgroundAndBorders) {
 

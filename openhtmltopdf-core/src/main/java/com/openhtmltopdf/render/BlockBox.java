@@ -417,8 +417,12 @@ public class BlockBox extends Box implements InlinePaintable {
         _staticEquivalent = staticEquivalent;
     }
 
+    public boolean shouldBeReplaced() {
+    	return _isReplaced;
+    }
+    
     public boolean isReplaced() {
-        return _replacedElement != null || _isReplaced;
+        return _replacedElement != null;
     }
 
     public void calcCanvasLocation() {
@@ -449,7 +453,7 @@ public class BlockBox extends Box implements InlinePaintable {
             setAbsY(lineBox.getAbsY() + getY());
         }
 
-        if (isReplaced() && getReplacedElement() != null) {
+        if (isReplaced()) {
             Point location = getReplacedElement().getLocation();
             if (location.x != getAbsX() || location.y != getAbsY()) {
                 getReplacedElement().setLocation(getAbsX(), getAbsY());
@@ -811,7 +815,6 @@ public class BlockBox extends Box implements InlinePaintable {
 
     public void layout(LayoutContext c, int contentStart) {
         CalculatedStyle style = getStyle();
-
         boolean pushedLayer = false;
         if (isRoot() || style.requiresLayer()) {
             pushedLayer = true;
@@ -1522,7 +1525,7 @@ public class BlockBox extends Box implements InlinePaintable {
             int width = getCSSWidth(c, true);
 
             if (width == -1) {
-                if (isReplaced() && getReplacedElement() != null) {
+                if (getReplacedElement() != null) {
                     width = getReplacedElement().getIntrinsicWidth();
                 } else {
                     int height = getCSSHeight(c);

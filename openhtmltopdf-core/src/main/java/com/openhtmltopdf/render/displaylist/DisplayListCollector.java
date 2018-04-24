@@ -68,6 +68,11 @@ public class DisplayListCollector {
 		}
 
 		if (!layer.isInline() && ((BlockBox) layer.getMaster()).isReplaced()) {
+			if (((BlockBox) layer.getMaster()).getReplacedElement() == null) {
+				System.out.println(layer.getMaster().getElement().getAttribute("style"));
+			} else
+			
+			
 			collectReplacedElementLayer(c, layer, dlPages, pages);
 		} else {
 
@@ -175,17 +180,13 @@ public class DisplayListCollector {
 	private void collectReplacedElementLayer(RenderingContext c, Layer layer,
 			DisplayListContainer dlPages, List<PageBox> pages) {
 
-		if (layer.getMaster() instanceof BlockBox) {
-			DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
-			int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
-			int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
-			addItem(dlo, pgStart, pgEnd, dlPages);
-		}
-
-		DisplayListOperation dlo = new PaintReplacedElement((BlockBox) layer.getMaster());
+		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
 		int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
 		int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
 		addItem(dlo, pgStart, pgEnd, dlPages);
+
+		DisplayListOperation dlo2 = new PaintReplacedElement((BlockBox) layer.getMaster());
+		addItem(dlo2, pgStart, pgEnd, dlPages);
 	}
 
 	// Bit of a kludge here. We need to paint collapsed table borders according

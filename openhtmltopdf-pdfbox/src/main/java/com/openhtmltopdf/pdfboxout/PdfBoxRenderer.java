@@ -41,7 +41,6 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.render.displaylist.DisplayListCollector;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer;
-import com.openhtmltopdf.render.displaylist.DisplayListOperation;
 import com.openhtmltopdf.render.displaylist.DisplayListPainter;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 import com.openhtmltopdf.resource.XMLResource;
@@ -491,7 +490,6 @@ public class PdfBoxRenderer implements Closeable {
      *   - inline-blocks
      *   - hidden overflow
      *   - transforms
-     *   - fine positioning of replaced elements.
      *   - debugging everything
      */
     public void createPdfFast(boolean finish) throws IOException {
