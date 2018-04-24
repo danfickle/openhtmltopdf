@@ -38,9 +38,15 @@ import org.apache.fontbox.ttf.TrueTypeCollection;
 import org.apache.fontbox.ttf.TrueTypeCollection.TrueTypeFontProcessor;
 import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.font.*;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
-import java.io.*;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -187,10 +193,26 @@ public class PdfBoxFontResolver implements FontResolver {
 
         PDFont font = PDType0Font.load(_doc, trueTypeFont, subset);
 
-        addFont(font, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+		addFontLazy(new PDFontSupplier(font), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
     }
+    
+	private static class PDFontSupplier implements FSSupplier<PDFont> {
+		private final PDFont _font;
 
-    private void addFont(PDFont font, String fontFamilyNameOverride, Integer fontWeightOverride, IdentValue fontStyleOverride, boolean subset) {
+		PDFontSupplier(PDFont font) {
+			_font = font;
+		}
+
+		@Override
+		public PDFont supply() {
+			return _font;
+		}
+	}
+
+	/**
+	 * Add a font with a lazy loaded PDFont
+	 */
+    private void addFontLazy(FSSupplier<PDFont> font, String fontFamilyNameOverride, Integer fontWeightOverride, IdentValue fontStyleOverride, boolean subset) {
         FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
         FontDescription descr = new FontDescription(
                 _doc,
@@ -263,21 +285,26 @@ public class PdfBoxFontResolver implements FontResolver {
 		/*
 		 * We load the font using the file.
 		 */
-		addFont(new FontFileSupplier(fontFile), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+		addFontLazy(new FilePDFontSupplier(fontFile, _doc), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
 	}
 
-	private static class FontFileSupplier implements FSSupplier<InputStream> {
-		private final File file;
+	/**
+	 * Loads a Type0 font on demand
+	 */
+	private static class FilePDFontSupplier implements FSSupplier<PDFont> {
+		private final File _fontFile;
+		private final PDDocument _doc;
 
-		FontFileSupplier(File file) {
-			this.file = file;
+		FilePDFontSupplier(File fontFile, PDDocument doc) {
+			this._fontFile = fontFile;
+			this._doc = doc;
 		}
 
 		@Override
-		public InputStream supply() {
+		public PDFont supply() {
 			try {
-				return new FileInputStream(file);
-			} catch (FileNotFoundException e) {
+				return PDType0Font.load(_doc, _fontFile);
+			} catch (IOException e) {
 				return null;
 			}
 		}
@@ -562,6 +589,7 @@ public class PdfBoxFontResolver implements FontResolver {
         private final PDDocument _doc;
 
         private FSSupplier<InputStream> _supplier;
+		private FSSupplier<PDFont> _fontSupplier;
         private PDFont _font;
 
         private float _underlinePosition;
@@ -574,10 +602,6 @@ public class PdfBoxFontResolver implements FontResolver {
 
         private FontDescription(PDFont font, IdentValue style, int weight) {
             this(null, font, style, weight);
-        }
-        
-        public FontDescription(PDDocument doc, PDFont font) {
-            this(doc, font, IdentValue.NORMAL, 400);
         }
         
         private FontDescription(PDDocument doc, FSSupplier<InputStream> supplier, int weight, IdentValue style) {
@@ -595,8 +619,21 @@ public class PdfBoxFontResolver implements FontResolver {
             _doc = doc;
             setMetricDefaults();
         }
-        
+
+		private FontDescription(PDDocument doc, FSSupplier<PDFont> fontSupplier, IdentValue style, int weight) {
+        	_fontSupplier = fontSupplier;
+			_style = style;
+			_weight = weight;
+			_supplier = null;
+			_doc = doc;
+		}
+
         private boolean realizeFont(boolean subset) {
+			if (_font == null && _fontSupplier != null) {
+				_font = _fontSupplier.supply();
+				setMetricDefaults();
+				_fontSupplier = null;
+			}
             if (_font == null && _supplier != null) {
                 InputStream is = _supplier.supply();
                 _supplier = null; // We only try once.
