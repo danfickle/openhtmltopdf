@@ -28,6 +28,10 @@ public class PagedBoxCollector {
 		private List<DisplayListItem> _inlines = null;
 		private List<TableCellBox> _tcells = null;
 		private List<DisplayListItem> _replaceds = null;
+		private List<DisplayListItem> _listItems = null;
+		private boolean _hasListItems = false;
+		private boolean _hasReplaceds = false;
+		private Rectangle contentWindowOnDocument = null;
 		
 		private void addBlock(DisplayListItem block) {
 			if (_blocks == null) {
@@ -55,6 +59,37 @@ public class PagedBoxCollector {
 				_replaceds = new ArrayList<DisplayListItem>();
 			}
 			_replaceds.add(replaced);
+			
+			if (!(replaced instanceof OperatorClip) &&
+				!(replaced instanceof OperatorSetClip)) {
+				_hasReplaceds = true;
+			}
+		}
+		
+		private void addListItem(DisplayListItem listItem) {
+			if (_listItems == null) {
+				_listItems = new ArrayList<DisplayListItem>();
+			}
+			_listItems.add(listItem);
+			
+			if (!(listItem instanceof OperatorClip) &&
+				!(listItem instanceof OperatorSetClip)) {
+				_hasListItems = true;
+			}
+		}
+		
+		private void clipAll(OperatorClip dli) {
+			addBlock(dli);
+			addInline(dli);
+			addReplaced(dli);
+			addListItem(dli);
+		}
+		
+		private void setClipAll(OperatorSetClip dli) {
+			addBlock(dli);
+			addInline(dli);
+			addReplaced(dli);
+			addListItem(dli);
 		}
 		
 		public List<DisplayListItem> blocks() {
@@ -70,7 +105,18 @@ public class PagedBoxCollector {
 		}
 		
 		public List<DisplayListItem> replaceds() {
-			return this._replaceds == null ? Collections.<DisplayListItem>emptyList() : this._replaceds;
+			return this._hasReplaceds ? this._replaceds : Collections.<DisplayListItem>emptyList();
+		}
+		
+		public List<DisplayListItem> listItems() {
+			return this._hasListItems ? this._listItems : Collections.<DisplayListItem>emptyList();
+		}
+		
+		private Rectangle getContentWindowOnDocument(PageBox page, CssContext c) {
+			if (contentWindowOnDocument == null) {
+				contentWindowOnDocument = page.getDocumentCoordinatesContentBounds(c);
+			}
+			return contentWindowOnDocument;
 		}
 	}
 	
@@ -171,7 +217,7 @@ public class PagedBoxCollector {
         	int pgEnd = findEndPage(c, b);
         	
         	for (int i = pgStart; i <= pgEnd; i++) {
-        		Shape pageClip = pages.get(i).getPrintClippingBounds(c);
+        		Shape pageClip = result.get(i).getContentWindowOnDocument(pages.get(i), c);
         	
         		if (b.intersects(c, pageClip)) {
         			if (b instanceof InlineLayoutBox) {
@@ -246,24 +292,28 @@ public class PagedBoxCollector {
             	}
             	
             	for (int i = pgStart; i <= pgEnd; i++) {
-            		Shape pageClip = pages.get(i).getPrintClippingBounds(c);
             		PageResult pageResult = result.get(i);
-            		
+            		Rectangle pageClip = pageResult.getContentWindowOnDocument(pages.get(i), c);
+
             		// Test to see if it fits within the page margins.
             		if (intersectsAggregateBounds(pageClip, container)) {
             			if (ourClip != null) {
             				// Add a clip operation before the block and its descendents (inline or block).
-            				DisplayListItem dlClip = new OperatorClip(ourClip);
-            				pageResult.addBlock(dlClip);
-            				pageResult.addInline(dlClip);
-            				pageResult.addReplaced(dlClip);
+            				pageResult.clipAll(new OperatorClip(ourClip));
             			}
             			
             			pageResult.addBlock(container);
             			
-            			if (container instanceof BlockBox &&
-            				((BlockBox) container).isReplaced()) {
-            				pageResult.addReplaced(container);
+            			if (container instanceof BlockBox) {
+            				BlockBox block = (BlockBox) container;
+            				
+            				if (block.getReplacedElement() != null) {
+            					pageResult.addReplaced(block);
+            				}
+            				
+            				if (block.isListItem()) {
+            					pageResult.addListItem(block);
+            				}
             			}
                         
             			if (container instanceof TableCellBox &&
@@ -292,8 +342,8 @@ public class PagedBoxCollector {
             if (ourClip != null) {
             	// Restore the clip on those pages it was changed.
             	for (int i = pgStart; i <= pgEnd; i++) {
-            		Shape pageClip = pages.get(i).getPrintClippingBounds(c);
             		PageResult pageResult = result.get(i);
+            		Rectangle pageClip = pageResult.getContentWindowOnDocument(pages.get(i), c);
             		
             		// Restore the page clip if we are at the top of the clips.
             		if (parentClip == null) {
@@ -302,10 +352,7 @@ public class PagedBoxCollector {
             		
             		// Test to see if it fits within the page margins.
             		if (intersectsAggregateBounds(pageClip, container)) {
-          				DisplayListItem dlSetClip = new OperatorSetClip(parentClip);
-           				pageResult.addBlock(dlSetClip);
-           				pageResult.addInline(dlSetClip);
-           				pageResult.addReplaced(dlSetClip);
+          				pageResult.setClipAll(new OperatorSetClip(parentClip));
             		}
             	}
             }

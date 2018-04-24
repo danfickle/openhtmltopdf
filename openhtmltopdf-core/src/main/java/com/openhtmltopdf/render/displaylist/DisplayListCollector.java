@@ -102,8 +102,8 @@ public class DisplayListCollector {
 					}
 				}
 
-				if (!pg.blocks().isEmpty()) {
-					DisplayListOperation dlo = new PaintListMarkers(pg.blocks());
+				if (!pg.listItems().isEmpty()) {
+					DisplayListOperation dlo = new PaintListMarkers(pg.listItems());
 					dlPageList.addOp(dlo);
 				}
 

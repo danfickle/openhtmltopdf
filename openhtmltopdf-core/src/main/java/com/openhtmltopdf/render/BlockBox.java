@@ -242,13 +242,17 @@ public class BlockBox extends Box implements InlinePaintable {
 
         return result.toString();
     }
+    
+    public boolean isListItem() {
+    	return getStyle().isListItem();
+    }
 
     public void paintListMarker(RenderingContext c) {
         if (! getStyle().isVisible(c, this)) {
             return;
         }
 
-        if (getStyle().isListItem()) {
+        if (isListItem()) {
             ListItemPainter.paint(c, this);
         }
     }

@@ -234,6 +234,12 @@ public class PageBox {
         _paintingBottom = paintingBottom;
     }
 
+    /**
+     * Example: If a page is 100 units high and has a 10 unit margin,
+     * this will return 0 for the first page and 80 for the second and so on.
+     * 
+     * @return the y index into the document coordinates.
+     */
     public int getPaintingTop() {
         return _paintingTop;
     }
@@ -252,6 +258,19 @@ public class PageBox {
         return new Rectangle(
                 0, 0,
                 getWidth(cssCtx), getHeight(cssCtx));
+    }
+    
+    /**
+     * Get the rectangle that this page's content area will cover of the layed out document.
+     * For example: If a page is 100 units high and 150 wide and has a margin of 10 then this method will
+     * return a rect(0, 0, 130, 80) for the first page and a rect(0, 80, 130, 80) for the second and so on.
+     */
+    public Rectangle getDocumentCoordinatesContentBounds(CssContext c) {
+    	return new Rectangle(
+    			0,
+    			getPaintingTop(),
+    			getContentWidth(c),
+    			getContentHeight(c));
     }
     
     public Rectangle getPagedViewClippingBounds(CssContext cssCtx, int additionalClearance) {

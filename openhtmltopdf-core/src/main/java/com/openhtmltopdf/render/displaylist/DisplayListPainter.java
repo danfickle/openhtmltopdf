@@ -16,6 +16,7 @@ import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPage
 public class DisplayListPainter {
 	private void paintBackgroundAndBorders(RenderingContext c, List<DisplayListItem> blocks,
 			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders) {
+
 		for (DisplayListItem dli : blocks) {
 			if (dli instanceof OperatorClip) {
 				OperatorClip clip = (OperatorClip) dli;
@@ -76,25 +77,11 @@ public class DisplayListPainter {
 	}
 
 	private void paintReplacedElements(RenderingContext c, List<DisplayListItem> replaceds) {
-		for (int i = 0; i < replaceds.size(); i++) {
-			DisplayListItem dli = replaceds.get(i);
-			DisplayListItem prev = (i - 1) >= 0 ? replaceds.get(i - 1) : null;
-			DisplayListItem next = (i + 1) < replaceds.size() ? replaceds.get(i + 1) : null;
-
+		for (DisplayListItem dli : replaceds) {
 			if (dli instanceof OperatorClip) {
-				if (next instanceof OperatorSetClip) {
-					// Its an empty clip/setClip pair with no replaceds between them.
-					continue;
-				}
-
 				OperatorClip clip = (OperatorClip) dli;
 				c.getOutputDevice().clip(clip.getClip());
 			} else if (dli instanceof OperatorSetClip) {
-				if (prev instanceof OperatorClip) {
-					// Its an empty clip/setClip pair with no replaceds between them.
-					continue;
-				}
-
 				OperatorSetClip setClip = (OperatorSetClip) dli;
 				c.getOutputDevice().setClip(setClip.getSetClipShape());
 			} else {
