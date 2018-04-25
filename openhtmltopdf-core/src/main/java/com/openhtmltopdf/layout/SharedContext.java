@@ -34,7 +34,6 @@ import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import java.awt.*;
 import java.text.BreakIterator;
@@ -165,10 +164,6 @@ public class SharedContext {
      */
     public FontResolver getFontResolver() {
         return fontResolver;
-    }
-
-    public void flushFonts() {
-        fontResolver.flushCache();
     }
 
     /**
