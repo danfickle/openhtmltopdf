@@ -110,10 +110,12 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
 		@Override
 		public Reader getReader() {
-			try {
-				return new InputStreamReader(this.strm, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				XRLog.exception("Exception when creating stream reader", e);
+			if (this.strm != null) {
+				try {
+					return new InputStreamReader(this.strm, "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					XRLog.exception("Exception when creating stream reader", e);
+				}
 			}
 			return null;
 		}
