@@ -816,13 +816,20 @@ public class BlockBox extends Box implements InlinePaintable {
     public void layout(LayoutContext c, int contentStart) {
         CalculatedStyle style = getStyle();
         boolean pushedLayer = false;
-        if (isRoot() || style.requiresLayer()) {
-            pushedLayer = true;
-            if (getLayer() == null) {
-                c.pushLayer(this);
-            } else {
-                c.pushLayer(getLayer());
+
+        if (isRoot()) {
+        	pushedLayer = true;
+            c.pushLayer(this);
+            
+            if (c.isPrint()) {
+            	if (!style.isIdent(CSSName.PAGE, IdentValue.AUTO)) {
+            		c.setPageName(style.getStringProperty(CSSName.PAGE));
+            	}
+            	c.getRootLayer().addPage(c);
             }
+        } else if (style.requiresLayer()) {
+            pushedLayer = true;
+            c.pushLayer(this);
         }
 
         if (style.isFixedBackground()) {

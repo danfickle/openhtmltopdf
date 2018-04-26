@@ -279,7 +279,7 @@ public class LayoutContext implements CssContext {
         pushLayer(layer);
     }
 
-    public void pushLayer(Layer layer) {
+    private void pushLayer(Layer layer) {
         _layers.add(layer);
     }
 
