@@ -99,13 +99,26 @@ public class Layer {
 
     private int _selectionEndX;
     private int _selectionEndY;
+    
 
-    public Layer(Box master) {
-        this(null, master);
+    /**
+     * @see {@link #getCurrentTransformMatrix()}
+     */
+    private final AffineTransform _ctm;
+    private final boolean _hasLocalTransform;
+
+    /**
+     * Creates the root layer.
+     */
+    public Layer(Box master, CssContext c) {
+        this(null, master, c);
         setStackingContext(true);
     }
 
-    public Layer(Layer parent, Box master) {
+    /**
+     * Creates a child layer.
+     */
+    public Layer(Layer parent, Box master, CssContext c) {
         _parent = parent;
         _master = master;
         setStackingContext(
@@ -113,6 +126,22 @@ public class Layer {
                 (!master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE)));
         master.setLayer(this);
         master.setContainingLayer(this);
+        
+        _hasLocalTransform = !master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE);
+        AffineTransform parentCtm = _parent == null ? null : _parent._ctm; 
+        _ctm = _hasLocalTransform ?
+        		TransformUtil.createDocumentCoordinatesTransform(master, c, parentCtm) : parentCtm;
+    }
+    
+    /**
+     * The document coordinates current transform, this is cumulative from layer to child layer.
+     * May be null, if identity transform is in effect.
+     * Used to check if a box belonging to this layer sits on a particular page after the
+     * transform is applied.
+     * @return null or affine transform.
+     */
+    public AffineTransform getCurrentTransformMatrix() {
+    	return _ctm;
     }
 
     public Layer getParent() {

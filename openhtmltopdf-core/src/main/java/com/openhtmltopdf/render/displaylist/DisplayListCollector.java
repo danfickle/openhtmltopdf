@@ -37,6 +37,10 @@ public class DisplayListCollector {
 	private void addItem(DisplayListOperation item, int pgStart, int pgEnd,
 			DisplayListContainer dlPages) {
 		for (int i = pgStart; i <= pgEnd; i++) {
+			if (i < 0 || i >= dlPages.getNumPages()) {
+				continue;
+			}
+			
 			dlPages.getPageInstructions(i).addOp(item);
 		}
 	}

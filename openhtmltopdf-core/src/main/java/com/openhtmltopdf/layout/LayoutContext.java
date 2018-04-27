@@ -266,12 +266,12 @@ public class LayoutContext implements CssContext {
         Layer layer = null;
 
         if (_rootLayer == null) {
-            layer = new Layer(master);
+            layer = new Layer(master, this);
             _rootLayer = layer;
         } else {
             Layer parent = getLayer();
 
-            layer = new Layer(parent, master);
+            layer = new Layer(parent, master, this);
 
             parent.addChild(layer);
         }

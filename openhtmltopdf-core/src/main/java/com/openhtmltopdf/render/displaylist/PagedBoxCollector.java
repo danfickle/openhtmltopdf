@@ -1,7 +1,10 @@
 package com.openhtmltopdf.render.displaylist;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -213,10 +216,14 @@ public class PagedBoxCollector {
         
         for (Box b : content) {
 
-        	int pgStart = findStartPage(c, b);
-        	int pgEnd = findEndPage(c, b);
+        	int pgStart = findStartPage(c, b, layer.getCurrentTransformMatrix());
+        	int pgEnd = findEndPage(c, b, layer.getCurrentTransformMatrix());
         	
         	for (int i = pgStart; i <= pgEnd; i++) {
+        		if (i < 0 || i >= result.size()) {
+        			continue;
+        		}
+        		
         		Shape pageClip = result.get(i).getContentWindowOnDocument(pages.get(i), c);
         	
         		if (b.intersects(c, pageClip)) {
@@ -259,10 +266,14 @@ public class PagedBoxCollector {
 
         if (container instanceof LineBox) {
         
-        	pgStart = findStartPage(c, container);
-        	pgEnd = findEndPage(c, container);
+        	pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
+        	pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
         	
         	for (int i = pgStart; i <= pgEnd; i++) {
+        		if (i < 0 || i >= result.size()) {
+        			continue;
+        		}
+        		
         		PageResult res = result.get(i);
         		res.addInline(container);
         		
@@ -276,8 +287,8 @@ public class PagedBoxCollector {
         	
         	if (container.getLayer() == null || !(container instanceof BlockBox)) {
         		
-        		pgStart = findStartPage(c, container);
-            	pgEnd = findEndPage(c, container);
+        		pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
+            	pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
         
             	// Check if we need to clip this box.
             	if (c instanceof RenderingContext &&
@@ -292,6 +303,10 @@ public class PagedBoxCollector {
             	}
             	
             	for (int i = pgStart; i <= pgEnd; i++) {
+            		if (i < 0 || i >= result.size()) {
+            			continue;
+            		}
+            		
             		PageResult pageResult = result.get(i);
             		Rectangle pageClip = pageResult.getContentWindowOnDocument(pages.get(i), c);
 
@@ -342,6 +357,10 @@ public class PagedBoxCollector {
             if (ourClip != null) {
             	// Restore the clip on those pages it was changed.
             	for (int i = pgStart; i <= pgEnd; i++) {
+            		if (i < 0 || i >= result.size()) {
+            			continue;
+            		}
+            		
             		PageResult pageResult = result.get(i);
             		Rectangle pageClip = pageResult.getContentWindowOnDocument(pages.get(i), c);
             		
@@ -403,26 +422,108 @@ public class PagedBoxCollector {
         return false;
     }
     
-    public int findStartPage(CssContext c, Box container) {
-    	double minY = container.getPaintingInfo().getAggregateBounds().getMinY();
-    	return this.finder.findPage(c, (int) minY);
+	/**
+	 * There is a matrix in effect, we have to apply it to the box bounds before checking what page(s) it
+	 * sits on. To do this we transform the four corners of the box.
+	 */
+    private static double getMinYFromTransformedBox(Rectangle bounds, AffineTransform transform) {
+		Point2D ul = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+		Point2D ur = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+		Point2D ll = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+		Point2D lr = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+		
+		Point2D ult = transform.transform(ul, null);
+		Point2D urt = transform.transform(ur, null);
+		Point2D llt = transform.transform(ll, null);
+		Point2D lrt = transform.transform(lr, null);
+
+		// Now get the least Y.
+		double minY = Math.min(ult.getY(), urt.getY());
+		minY = Math.min(llt.getY(), minY);
+		minY = Math.min(lrt.getY(), minY);
+		
+		return minY;
     }
     
-    public int findEndPage(CssContext c, Box container) {
-    	double maxY = container.getPaintingInfo().getAggregateBounds().getMaxY();
-    	return this.finder.findPage(c, (int) maxY);
+	/**
+	 * There is a matrix in effect, we have to apply it to the box bounds before checking what page(s) it
+	 * sits on. To do this we transform the four corners of the box.
+	 */
+    private static double getMaxYFromTransformedBox(Rectangle bounds, AffineTransform transform) {
+		Point2D ul = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+		Point2D ur = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+		Point2D ll = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+		Point2D lr = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+		
+		Point2D ult = transform.transform(ul, null);
+		Point2D urt = transform.transform(ur, null);
+		Point2D llt = transform.transform(ll, null);
+		Point2D lrt = transform.transform(lr, null);
+
+		// Now get the max Y.
+		double maxY = Math.max(ult.getY(), urt.getY());
+		maxY = Math.max(llt.getY(), maxY);
+		maxY = Math.max(lrt.getY(), maxY);
+		
+		return maxY;
+    }
+    
+    private int findStartPage(CssContext c, Box container, AffineTransform transform) {
+    	PaintingInfo info = container.getPaintingInfo();
+    	if (info == null) {
+    		return -1;
+    	}
+    	Rectangle bounds = info.getAggregateBounds();
+    	if (bounds == null) {
+    		return -1;
+    	}
+    	
+    	double minY = transform == null ? bounds.getMinY() : getMinYFromTransformedBox(bounds, transform);
+       	return this.finder.findPage(c, (int) minY);
+    }
+    
+    private int findEndPage(CssContext c, Box container, AffineTransform transform) {
+    	PaintingInfo info = container.getPaintingInfo();
+    	if (info == null) {
+    		return -1;
+    	}
+    	Rectangle bounds = info.getAggregateBounds();
+    	if (bounds == null) {
+    		return -1;
+    	}
+    	
+    	double maxY = transform == null ? bounds.getMaxY() : getMaxYFromTransformedBox(bounds, transform);
+       	return this.finder.findPage(c, (int) maxY);
     }
 	
 	public static int findStartPage(CssContext c, Box container, List<PageBox> pages) {
 		PageFinder finder = new PageFinder(pages);
-    	double minY = container.getPaintingInfo().getAggregateBounds().getMinY();
+    	PaintingInfo info = container.getPaintingInfo();
+    	if (info == null) {
+    		return -1;
+    	}
+    	Rectangle bounds = info.getAggregateBounds();
+    	if (bounds == null) {
+    		return -1;
+    	}
+    	AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
+    	double minY = transform == null ? bounds.getMinY() : getMinYFromTransformedBox(bounds, transform);
     	return finder.findPage(c, (int) minY);
 	}
 	
 	public static int findEndPage(CssContext c, Box container, List<PageBox> pages) {
 		PageFinder finder = new PageFinder(pages);
-		double maxY = container.getPaintingInfo().getAggregateBounds().getMaxY();
-    	return finder.findPage(c, (int) maxY);
+    	PaintingInfo info = container.getPaintingInfo();
+    	if (info == null) {
+    		return -1;
+    	}
+    	Rectangle bounds = info.getAggregateBounds();
+    	if (bounds == null) {
+    		return -1;
+    	}
+    	AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
+    	double maxY = transform == null ? bounds.getMaxY() : getMaxYFromTransformedBox(bounds, transform);
+		return finder.findPage(c, (int) maxY);
 	}
 
 	public List<PageResult> getCollectedPageResults() {
