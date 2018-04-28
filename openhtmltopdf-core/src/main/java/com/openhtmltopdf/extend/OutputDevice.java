@@ -23,6 +23,7 @@ import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.render.AbstractOutputDevice.ClipInfo;
 
 import java.awt.*;
 import java.awt.RenderingHints.Key;
@@ -107,5 +108,13 @@ public interface OutputDevice {
     public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer);
 
     public boolean isPDF();
+
+	public void pushTransformLayer(AffineTransform transform);
+	public void popTransformLayer(AffineTransform transform);
+
+	public ClipInfo getClipEx();
+	public void setClipEx(ClipInfo ci);
+	public void clipEx(Shape s);
+	public boolean isFastRenderer();
 
 }

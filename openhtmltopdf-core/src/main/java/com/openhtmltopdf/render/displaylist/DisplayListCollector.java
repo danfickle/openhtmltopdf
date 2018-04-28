@@ -63,6 +63,13 @@ public class DisplayListCollector {
 			layer.positionFixedLayer(c); // TODO
 		}
 
+		if (layer.hasLocalTransform()) {
+			DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
+			int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
+			int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
+			addItem(dlo, pgStart, pgEnd, dlPages);
+		}
+
 		if (layer.isRootLayer() && layer.getMaster().hasRootElementBackground(c)) {
 
 			// IMPROVEMENT: If the background image doesn't cover every page,
@@ -70,13 +77,8 @@ public class DisplayListCollector {
 			DisplayListOperation dlo = new PaintRootElementBackground(layer.getMaster());
 			addItem(dlo, 0, dlPages.getNumPages() - 1, dlPages);
 		}
-
+		
 		if (!layer.isInline() && ((BlockBox) layer.getMaster()).isReplaced()) {
-			if (((BlockBox) layer.getMaster()).getReplacedElement() == null) {
-				System.out.println(layer.getMaster().getElement().getAttribute("style"));
-			} else
-			
-			
 			collectReplacedElementLayer(c, layer, dlPages, pages);
 		} else {
 
@@ -133,6 +135,13 @@ public class DisplayListCollector {
 				collectLayers(c, layer.getSortedLayers(Layer.ZERO), dlPages, pages);
 				collectLayers(c, layer.getSortedLayers(Layer.POSITIVE), dlPages, pages);
 			}
+		}
+		
+		if (layer.hasLocalTransform()) {
+			DisplayListOperation dlo = new PaintPopTransformLayer(layer.getMaster());
+			int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
+			int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
+			addItem(dlo, pgStart, pgEnd, dlPages);
 		}
 	}
 

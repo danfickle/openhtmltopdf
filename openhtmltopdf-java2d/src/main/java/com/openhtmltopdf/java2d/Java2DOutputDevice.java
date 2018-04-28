@@ -276,4 +276,38 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 
 	public void finish(RenderingContext c, BlockBox _root) {
 	}
+
+	@Override
+	public void pushTransformLayer(AffineTransform transform) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void popTransformLayer(AffineTransform inverse) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public ClipInfo getClipEx() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setClipEx(ClipInfo ci) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void clipEx(Shape s) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isFastRenderer() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

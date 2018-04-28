@@ -214,7 +214,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     private PdfBoxLinkManager _linkManager;
     
     // Not used currently.
-    @SuppressWarnings("unused")
     private RenderingContext _renderingContext;
     
     // The bidi reorderer is responsible for shaping Arabic text, deshaping and 
@@ -223,6 +222,10 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     // Font Mapping for the Graphics2D output
     private PdfBoxGraphics2DFontTextDrawer _fontTextDrawer;
+    
+    private AffineTransform _pageCtm;
+        
+    private List<Object> _operationList = new ArrayList<Object>();
 
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
@@ -267,6 +270,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             PDPageFitHeightDestination dest = new PDPageFitHeightDestination();
             dest.setPage(page);
         }
+        
+        _pageCtm = new AffineTransform();
+        _operationList.clear();
     }
 
     public void finishPage() {
@@ -889,7 +895,41 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             return null;
         }
     }
+    
+    @Override
+    public ClipInfo getClipEx() {
+        List<Object> ops = new ArrayList<Object>();
+        ops.addAll(_operationList);
+        return new ClipInfo(ops);
+    }
+    
+    @Override
+    public void setClipEx(ClipInfo ci) {
+        _cp.restoreGraphics();
+        _cp.saveGraphics();
+        for (Object obj : ci._ops) {
+            if (obj instanceof Shape) {
+                followPath((Shape) obj, CLIP);
+            } else if (obj instanceof AffineTransform) {
+                _cp.applyPdfMatrix((AffineTransform) obj);
+            }
+        }
+        this._operationList = ci._ops;
+        _fillColor = null;
+        _strokeColor = null;
+        _oldStroke = null;
+    }
+    
+    @Override
+    public void clipEx(Shape s) {
+        if (s != null) {
+            s = _transform.createTransformedShape(s);
+            followPath(s, CLIP);
+            this._operationList.add(s);
+        }
+    }
 
+    @Override
     public void setClip(Shape s) {
         // Restore graphics to get back to a no-clip situation.
         _cp.restoreGraphics();
@@ -912,7 +952,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             _clip = new Area(s);
             followPath(s, CLIP);
         }
-
+        
         _fillColor = null;
         _strokeColor = null;
         _oldStroke = null;
@@ -1581,5 +1621,47 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         if (_fontTextDrawer != null) {
             _fontTextDrawer.close();
         }
+    }
+    
+    private AffineTransform normalizeTransform(AffineTransform transform) {
+        double[] mx = new double[6];
+        transform.getMatrix(mx);
+        mx[4] /= _dotsPerPoint;
+        mx[5] /= _dotsPerPoint;
+        return new AffineTransform(mx);
+    }
+
+    @Override
+    public void pushTransformLayer(AffineTransform transform) {
+        AffineTransform normalized = normalizeTransform(transform);
+        
+        try {
+            normalized.createInverse();
+        } catch (NoninvertibleTransformException e) {
+            XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
+            return;
+        }
+        
+        _cp.applyPdfMatrix(normalized);
+        _pageCtm.concatenate(normalized);
+        _operationList.add(normalized);
+    }
+
+    @Override
+    public void popTransformLayer(AffineTransform transform) {
+        AffineTransform normalized = normalizeTransform(transform);
+        try {
+            AffineTransform inverse = normalized.createInverse();
+            _cp.applyPdfMatrix(inverse);
+            _pageCtm.concatenate(inverse);
+            _operationList.remove(_operationList.size() - 1);
+        } catch (NoninvertibleTransformException e) {
+            // Shouldn't happen as checked in pushTransformLayer.
+        }
+    }
+    
+    @Override
+    public boolean isFastRenderer() {
+        return _renderingContext.isFastRenderer();
     }
 }

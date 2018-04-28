@@ -39,6 +39,7 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
+import com.openhtmltopdf.render.AbstractOutputDevice.ClipInfo;
 import com.openhtmltopdf.render.displaylist.DisplayListCollector;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer;
 import com.openhtmltopdf.render.displaylist.DisplayListPainter;
@@ -505,6 +506,7 @@ public class PdfBoxRenderer implements Closeable {
 
             RenderingContext c = newRenderingContext();
             c.setInitialPageNo(0);
+            c.setFastRenderer(true);
         
             PageBox firstPage = pages.get(0);
             Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
@@ -670,7 +672,7 @@ public class PdfBoxRenderer implements Closeable {
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
-        Shape working = _outputDevice.getClip();
+        ClipInfo working = _outputDevice.getClipEx();
 
         Rectangle content = page.getPrintClippingBounds(c);
         _outputDevice.clip(content);
@@ -684,7 +686,7 @@ public class PdfBoxRenderer implements Closeable {
         painter.paint(c, pageOperations);
         _outputDevice.translate(-left, -top);
 
-        _outputDevice.setClip(working);
+        _outputDevice.setClipEx(working);
     }
 
     private void paintPage(RenderingContext c, PageBox page) {

@@ -143,6 +143,10 @@ public class Layer {
     public AffineTransform getCurrentTransformMatrix() {
     	return _ctm;
     }
+    
+    public boolean hasLocalTransform() {
+    	return _hasLocalTransform;
+    }
 
     public Layer getParent() {
         return _parent;

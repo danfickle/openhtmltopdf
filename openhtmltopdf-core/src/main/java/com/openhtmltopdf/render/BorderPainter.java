@@ -393,12 +393,16 @@ public class BorderPainter {
         Path2D path = generateBorderShape(bounds, currentSide, border, false, .5f, 1);
         Area clip = new Area(generateBorderShape(bounds, currentSide, border, true, 0, 1));
         
-        Shape old_clip = outputDevice.getClip();
-        if(old_clip != null) {
-            // we need to respect the clip sent to us, get the intersection between the old and the new
-            clip.intersect(new Area(old_clip));
+        Shape old_clip = null;
+        if (!outputDevice.isFastRenderer()) {
+        	old_clip = outputDevice.getClip();
+            if(old_clip != null) {
+                // we need to respect the clip sent to us, get the intersection between the old and the new
+                clip.intersect(new Area(old_clip));
+             }
+             outputDevice.setClip(clip);
         }
-        outputDevice.setClip(clip);
+        
         if (currentSide == BorderPainter.TOP) {
             outputDevice.setColor(color.topColor());
             outputDevice.setStroke(new BasicStroke(2*(int) border.top(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, pattern, xOffset));
@@ -421,7 +425,10 @@ public class BorderPainter {
                     path, BorderPainter.BOTTOM, (int)border.bottom(), false);
         }
 
-        outputDevice.setClip(old_clip);
+        if (!outputDevice.isFastRenderer()) {
+            outputDevice.setClip(old_clip);
+        }
+        
         outputDevice.setStroke(old_stroke);
     }
 

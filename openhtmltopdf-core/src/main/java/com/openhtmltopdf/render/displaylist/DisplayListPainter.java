@@ -2,6 +2,7 @@ package com.openhtmltopdf.render.displaylist;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.DisplayListItem;
 import com.openhtmltopdf.render.OperatorClip;
 import com.openhtmltopdf.render.OperatorSetClip;
@@ -107,6 +109,16 @@ public class DisplayListPainter {
         
         c.getOutputDevice().paintReplacedElement(c, replaced);
     }
+    
+    private void pushTransform(RenderingContext c, Box master) {
+    	AffineTransform transform = TransformCreator.createPageTranform(c, master, c.getPage());
+    	c.getOutputDevice().pushTransformLayer(transform);
+    }
+    
+    private void popTransform(RenderingContext c, Box master) {
+    	AffineTransform transform = TransformCreator.createPageTranform(c, master, c.getPage());
+    	c.getOutputDevice().popTransformLayer(transform);
+    }
 
 	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {
 		for (DisplayListOperation op : pageOperations.getOperations()) {
@@ -147,8 +159,16 @@ public class DisplayListPainter {
 				PaintReplacedElements dlo = (PaintReplacedElements) op;
 				paintReplacedElements(c, dlo.getReplaceds());
 
-			} else {
-
+			} else if (op instanceof PaintPushTransformLayer) {
+				
+				PaintPushTransformLayer dlo = (PaintPushTransformLayer) op;
+				pushTransform(c, dlo.getMaster());
+				
+			} else if (op instanceof PaintPopTransformLayer) {
+				
+				PaintPopTransformLayer dlo = (PaintPopTransformLayer) op;
+				popTransform(c, dlo.getMaster());
+				
 			}
 		}
 	}
