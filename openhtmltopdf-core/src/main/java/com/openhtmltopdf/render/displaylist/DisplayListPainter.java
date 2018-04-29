@@ -18,16 +18,25 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 
 public class DisplayListPainter {
+	
+	private void clip(RenderingContext c, OperatorClip clip) {
+		c.getOutputDevice().pushClip(clip.getClip());
+	}
+	
+	private void setClip(RenderingContext c, OperatorSetClip setclip) {
+		c.getOutputDevice().popClip();
+	}
+	
 	private void paintBackgroundAndBorders(RenderingContext c, List<DisplayListItem> blocks,
 			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders) {
 
 		for (DisplayListItem dli : blocks) {
 			if (dli instanceof OperatorClip) {
 				OperatorClip clip = (OperatorClip) dli;
-				c.getOutputDevice().clip(clip.getClip());
+				clip(c, clip);
 			} else if (dli instanceof OperatorSetClip) {
 				OperatorSetClip setClip = (OperatorSetClip) dli;
-				c.getOutputDevice().setClip(setClip.getSetClipShape());
+				setClip(c, setClip);
 			} else {
 				BlockBox box = (BlockBox) dli;
 
@@ -55,10 +64,10 @@ public class DisplayListPainter {
 		for (DisplayListItem dli : blocks) {
 			if (dli instanceof OperatorClip) {
 				OperatorClip clip = (OperatorClip) dli;
-				c.getOutputDevice().clip(clip.getClip());
+				clip(c, clip);
 			} else if (dli instanceof OperatorSetClip) {
 				OperatorSetClip setClip = (OperatorSetClip) dli;
-				c.getOutputDevice().setClip(setClip.getSetClipShape());
+				setClip(c, setClip);
 			} else {
 				((BlockBox) dli).paintListMarker(c);
 			}
@@ -69,10 +78,10 @@ public class DisplayListPainter {
 		for (DisplayListItem dli : inlines) {
 			if (dli instanceof OperatorClip) {
 				OperatorClip clip = (OperatorClip) dli;
-				c.getOutputDevice().clip(clip.getClip());
+				clip(c, clip);
 			} else if (dli instanceof OperatorSetClip) {
 				OperatorSetClip setClip = (OperatorSetClip) dli;
-				c.getOutputDevice().setClip(setClip.getSetClipShape());
+				setClip(c, setClip);
 			} else {
 				InlinePaintable paintable = (InlinePaintable) dli;
 				paintable.paintInline(c);
@@ -84,10 +93,10 @@ public class DisplayListPainter {
 		for (DisplayListItem dli : replaceds) {
 			if (dli instanceof OperatorClip) {
 				OperatorClip clip = (OperatorClip) dli;
-				c.getOutputDevice().clip(clip.getClip());
+				clip(c, clip);
 			} else if (dli instanceof OperatorSetClip) {
 				OperatorSetClip setClip = (OperatorSetClip) dli;
-				c.getOutputDevice().setClip(setClip.getSetClipShape());
+				setClip(c, setClip);
 			} else {
 				BlockBox box = (BlockBox) dli;
 				paintReplacedElement(c, box);
@@ -116,8 +125,7 @@ public class DisplayListPainter {
     }
     
     private void popTransform(RenderingContext c, Box master) {
-    	AffineTransform transform = TransformCreator.createPageTranform(c, master, c.getPage());
-    	c.getOutputDevice().popTransformLayer(transform);
+    	c.getOutputDevice().popTransformLayer();
     }
 
 	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {

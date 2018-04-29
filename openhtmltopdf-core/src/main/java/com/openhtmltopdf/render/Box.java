@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -306,9 +307,17 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     /**
      * <B>NOTE</B>: This method does not consider any children of this box
+     * but does consider the transformation matrix of the containing layer.
      */
     public boolean intersects(CssContext cssCtx, Shape clip) {
-        return clip == null || clip.intersects(getPaintingClipEdge(cssCtx));
+    	AffineTransform ctm = this.getContainingLayer().getCurrentTransformMatrix();
+    	
+    	if (ctm == null || clip == null) {
+    		return clip == null || clip.intersects(getPaintingClipEdge(cssCtx));
+    	} else {
+    		Shape boxShape = ctm.createTransformedShape(getPaintingClipEdge(cssCtx));
+    		return clip.intersects(boxShape.getBounds2D());
+    	}
     }
 
     public Rectangle getBorderEdge(int left, int top, CssContext cssCtx) {

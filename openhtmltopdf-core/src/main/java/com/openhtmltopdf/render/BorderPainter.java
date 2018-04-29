@@ -401,6 +401,8 @@ public class BorderPainter {
                 clip.intersect(new Area(old_clip));
              }
              outputDevice.setClip(clip);
+        } else {
+        	outputDevice.pushClip(clip);
         }
         
         if (currentSide == BorderPainter.TOP) {
@@ -427,6 +429,8 @@ public class BorderPainter {
 
         if (!outputDevice.isFastRenderer()) {
             outputDevice.setClip(old_clip);
+        } else {
+        	outputDevice.popClip();
         }
         
         outputDevice.setStroke(old_stroke);

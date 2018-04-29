@@ -672,10 +672,8 @@ public class PdfBoxRenderer implements Closeable {
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
-        ClipInfo working = _outputDevice.getClipEx();
-
         Rectangle content = page.getPrintClippingBounds(c);
-        _outputDevice.clip(content);
+        _outputDevice.pushClip(content);
 
         int top = -page.getPaintingTop() + page.getMarginBorderPadding(c, CalculatedStyle.TOP);
 
@@ -686,7 +684,7 @@ public class PdfBoxRenderer implements Closeable {
         painter.paint(c, pageOperations);
         _outputDevice.translate(-left, -top);
 
-        _outputDevice.setClipEx(working);
+        _outputDevice.popClip();
     }
 
     private void paintPage(RenderingContext c, PageBox page) {

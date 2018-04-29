@@ -248,6 +248,8 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         	    borderBounds.intersect(new Area(oldclip));
             }
             setClip(borderBounds);
+        } else {
+        	pushClip(borderBounds);
         }
 
         if (backgroundColor != null && backgroundColor != FSRGBColor.TRANSPARENT) {
@@ -316,11 +318,12 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                             backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
                 }
             }
-
         }
         
         if (!c.isFastRenderer()) {
         	setClip(oldclip);
+        } else {
+        	popClip();
         }
     }
 

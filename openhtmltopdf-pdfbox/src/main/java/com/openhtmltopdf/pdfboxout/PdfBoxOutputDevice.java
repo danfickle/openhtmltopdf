@@ -40,7 +40,6 @@ import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
-import org.apache.pdfbox.cos.COSInputStream;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -223,10 +222,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     // Font Mapping for the Graphics2D output
     private PdfBoxGraphics2DFontTextDrawer _fontTextDrawer;
     
-    private AffineTransform _pageCtm;
-        
-    private List<Object> _operationList = new ArrayList<Object>();
-
     public PdfBoxOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
@@ -270,9 +265,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             PDPageFitHeightDestination dest = new PDPageFitHeightDestination();
             dest.setPage(page);
         }
-        
-        _pageCtm = new AffineTransform();
-        _operationList.clear();
     }
 
     public void finishPage() {
@@ -886,6 +878,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         } else {
             assert(s != null);
         }
+        //throw new RuntimeException(s.toString());
     }
 
     public Shape getClip() {
@@ -897,35 +890,17 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
     
     @Override
-    public ClipInfo getClipEx() {
-        List<Object> ops = new ArrayList<Object>();
-        ops.addAll(_operationList);
-        return new ClipInfo(ops);
-    }
-    
-    @Override
-    public void setClipEx(ClipInfo ci) {
+    public void popClip() {
         _cp.restoreGraphics();
-        _cp.saveGraphics();
-        for (Object obj : ci._ops) {
-            if (obj instanceof Shape) {
-                followPath((Shape) obj, CLIP);
-            } else if (obj instanceof AffineTransform) {
-                _cp.applyPdfMatrix((AffineTransform) obj);
-            }
-        }
-        this._operationList = ci._ops;
-        _fillColor = null;
-        _strokeColor = null;
-        _oldStroke = null;
+        clearPageState();
     }
     
     @Override
-    public void clipEx(Shape s) {
+    public void pushClip(Shape s) {
+        _cp.saveGraphics();
         if (s != null) {
-            s = _transform.createTransformedShape(s);
-            followPath(s, CLIP);
-            this._operationList.add(s);
+            Shape s1 = _transform.createTransformedShape(s);
+            followPath(s1, CLIP);
         }
     }
 
@@ -953,9 +928,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
             followPath(s, CLIP);
         }
         
-        _fillColor = null;
-        _strokeColor = null;
-        _oldStroke = null;
+        clearPageState();
+        //throw new RuntimeException(s.toString());
     }
 
     public Stroke getStroke() {
@@ -1237,7 +1211,7 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
      * @return an ArrayList with matching content values; otherwise an empty
      *         list.
      */
-    public List getMetadataListByName(String name) {
+    public List<String> getMetadataListByName(String name) {
         List<String> result = new ArrayList<String>();
         if (name != null) {
             for (Metadata m : _metadata) {
@@ -1482,15 +1456,14 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
     }
 
-    public List findPagePositionsByID(CssContext c, Pattern pattern) {
-        Map idMap = _sharedContext.getIdMap();
+    public List<PagePosition> findPagePositionsByID(CssContext c, Pattern pattern) {
+        Map<String, Box> idMap = _sharedContext.getIdMap();
         if (idMap == null) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         List<PagePosition> result = new ArrayList<PagePosition>();
-        for (Object o : idMap.entrySet()) {
-            Entry entry = (Entry) o;
+        for (Entry<String, Box> entry : idMap.entrySet()) {
             String id = (String) entry.getKey();
             if (pattern.matcher(id).find()) {
                 Box box = (Box) entry.getValue();
@@ -1633,35 +1606,25 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     @Override
     public void pushTransformLayer(AffineTransform transform) {
+        _cp.saveGraphics();
         AffineTransform normalized = normalizeTransform(transform);
-        
-        try {
-            normalized.createInverse();
-        } catch (NoninvertibleTransformException e) {
-            XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
-            return;
-        }
-        
         _cp.applyPdfMatrix(normalized);
-        _pageCtm.concatenate(normalized);
-        _operationList.add(normalized);
     }
 
     @Override
-    public void popTransformLayer(AffineTransform transform) {
-        AffineTransform normalized = normalizeTransform(transform);
-        try {
-            AffineTransform inverse = normalized.createInverse();
-            _cp.applyPdfMatrix(inverse);
-            _pageCtm.concatenate(inverse);
-            _operationList.remove(_operationList.size() - 1);
-        } catch (NoninvertibleTransformException e) {
-            // Shouldn't happen as checked in pushTransformLayer.
-        }
+    public void popTransformLayer() {
+        _cp.restoreGraphics();
+        clearPageState();
     }
     
     @Override
     public boolean isFastRenderer() {
         return _renderingContext.isFastRenderer();
+    }
+    
+    private void clearPageState() {
+        _fillColor = null;
+        _strokeColor = null;
+        _oldStroke = null;
     }
 }

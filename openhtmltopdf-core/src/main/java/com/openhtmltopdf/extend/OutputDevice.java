@@ -109,12 +109,52 @@ public interface OutputDevice {
 
     public boolean isPDF();
 
+    /**
+     * Applies a transform on the output device. This is a cumulativew operation.
+	 * <p></p>
+	 * <b>NOTE</b>: The current implementation shares a stack
+	 * between transforms and clips, so calls to {@link #pushTransformLayer(AffineTransform)},
+	 * {@link #popTransformLayer()}, {@link #pushClip(Shape)} and {@link #popClip()} <strong>MUST</strong>
+	 * be nested correctly.
+     */
 	public void pushTransformLayer(AffineTransform transform);
-	public void popTransformLayer(AffineTransform transform);
+	
+	/**
+	 * Reverts the transform on the stack.
+	 * <p></p>
+	 * <b>NOTE</b>: The current implementation shares a stack
+	 * between transforms and clips, so calls to {@link #pushTransformLayer(AffineTransform)},
+	 * {@link #popTransformLayer()}, {@link #pushClip(Shape)} and {@link #popClip()} <strong>MUST</strong>
+	 * be nested correctly.
+	 */
+	public void popTransformLayer();
 
-	public ClipInfo getClipEx();
-	public void setClipEx(ClipInfo ci);
-	public void clipEx(Shape s);
+	/**
+	 * Applies a clip on the output device. This is a cumulative operation.
+	 * The fast renderer MUST use <code>pushClip</code> and <code>popClip</code>
+	 * in preference to <code>clip</code> and <code>setClip</code>.
+	 * <p></p>
+	 * <b>NOTE</b>: The current implementation shares a stack
+	 * between transforms and clips, so calls to {@link #pushTransformLayer(AffineTransform)},
+	 * {@link #popTransformLayer()}, {@link #pushClip(Shape)} and {@link #popClip()} <strong>MUST</strong>
+	 * be nested correctly.
+	 */
+	public void pushClip(Shape s);
+
+	/**
+	 * Reverts the last clip on the stack. 
+	 * The fast renderer MUST use <code>pushClip</code> and <code>popClip</code>
+	 * in preference to <code>clip</code> and <code>setClip</code>.
+	 * <p></p>
+	 * <b>NOTE</b>: The current implementation shares a stack
+	 * between transforms and clips, so calls to {@link #pushTransformLayer(AffineTransform)},
+	 * {@link #popTransformLayer()}, {@link #pushClip(Shape)} and {@link #popClip()} <strong>MUST</strong>
+	 * be nested correctly.
+	 */
+	public void popClip();
+	
+	/**
+	 * The new (2018) fast renderer is in use.
+	 */
 	public boolean isFastRenderer();
-
 }

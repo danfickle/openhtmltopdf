@@ -3,6 +3,7 @@ package com.openhtmltopdf.render.displaylist;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -142,7 +143,8 @@ public class PagedBoxCollector {
 		    	PageBox last = pages.get(pages.size() - 1);
 		        
 		    	if (yOffset >= last.getTop() && yOffset < last.getBottom()) {
-	    			return pages.size() - 1;
+		    		lastRequested = pages.size() - 1;
+	    			return lastRequested;
 	            }
 		    	
 		    	if (yOffset < last.getBottom()) {
@@ -267,7 +269,7 @@ public class PagedBoxCollector {
         
         	pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
         	pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
-        	
+
         	for (int i = pgStart; i <= pgEnd; i++) {
         		if (i < 0 || i >= result.size()) {
         			continue;
@@ -284,7 +286,9 @@ public class PagedBoxCollector {
         	
         	Shape ourClip = null;
         	
-        	if (container.getLayer() == null || !(container instanceof BlockBox)) {
+        	if (container.getLayer() == null ||
+        		layer.getMaster() == container ||
+        	    !(container instanceof BlockBox)) {
         		
         		pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
             	pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
@@ -354,6 +358,7 @@ public class PagedBoxCollector {
             }
             
             if (ourClip != null) {
+            	int cnt = 0;
             	// Restore the clip on those pages it was changed.
             	for (int i = pgStart; i <= pgEnd; i++) {
             		if (i < 0 || i >= result.size()) {
@@ -390,7 +395,14 @@ public class PagedBoxCollector {
         
         Rectangle bounds = info.getAggregateBounds();
         
-        return clip.intersects(bounds);
+        AffineTransform ctm = box.getContainingLayer().getCurrentTransformMatrix();
+        
+        if (ctm == null) {
+        	return clip.intersects(bounds);
+        } else {
+        	Shape boxShape = ctm.createTransformedShape(bounds);
+        	return clip.intersects(boxShape.getBounds2D());
+        }
     }
     
     private boolean intersectsAny(
@@ -468,7 +480,7 @@ public class PagedBoxCollector {
     }
     
     private int findStartPage(CssContext c, Box container, AffineTransform transform) {
-    	PaintingInfo info = container.getPaintingInfo();
+    	PaintingInfo info = container.calcPaintingInfo(c, true);
     	if (info == null) {
     		return -1;
     	}
@@ -482,7 +494,7 @@ public class PagedBoxCollector {
     }
     
     private int findEndPage(CssContext c, Box container, AffineTransform transform) {
-    	PaintingInfo info = container.getPaintingInfo();
+    	PaintingInfo info = container.calcPaintingInfo(c, true);
     	if (info == null) {
     		return -1;
     	}

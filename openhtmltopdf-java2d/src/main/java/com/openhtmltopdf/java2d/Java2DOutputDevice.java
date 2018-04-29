@@ -283,24 +283,18 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	}
 
 	@Override
-	public void popTransformLayer(AffineTransform inverse) {
+	public void popTransformLayer() {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public ClipInfo getClipEx() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setClipEx(ClipInfo ci) {
+	public void popClip() {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void clipEx(Shape s) {
+	public void pushClip(Shape s) {
 		// TODO Auto-generated method stub
 		
 	}
