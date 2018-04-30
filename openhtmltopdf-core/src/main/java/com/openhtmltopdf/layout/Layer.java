@@ -104,7 +104,7 @@ public class Layer {
     /**
      * @see {@link #getCurrentTransformMatrix()}
      */
-    private final AffineTransform _ctm;
+    private AffineTransform _ctm;
     private final boolean _hasLocalTransform;
 
     /**
@@ -128,9 +128,21 @@ public class Layer {
         master.setContainingLayer(this);
         
         _hasLocalTransform = !master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE);
-        AffineTransform parentCtm = _parent == null ? null : _parent._ctm; 
-        _ctm = _hasLocalTransform ?
-        		TransformUtil.createDocumentCoordinatesTransform(master, c, parentCtm) : parentCtm;
+    }
+    
+    /** 
+     * Recursively propagates the transformation matrix. This must be done after layout of the master
+     * box and its children as this method relies on the box width and height for relative units in the 
+     * transforms and transform origins.
+     */
+    public void propagateCurrentTransformationMatrix(CssContext c) {
+    	AffineTransform parentCtm = _parent == null ? null : _parent._ctm;
+    	_ctm = _hasLocalTransform ?
+        		TransformUtil.createDocumentCoordinatesTransform(getMaster(), c, parentCtm) : parentCtm;
+        		
+        for (Layer child : getChildren()) {
+        	child.propagateCurrentTransformationMatrix(c);
+        }
     }
     
     /**
@@ -138,6 +150,8 @@ public class Layer {
      * May be null, if identity transform is in effect.
      * Used to check if a box belonging to this layer sits on a particular page after the
      * transform is applied.
+     * This method can only be used after {@link #propagateCurrentTransformationMatrix(CssContext)} has been
+     * called on the root layer.
      * @return null or affine transform.
      */
     public AffineTransform getCurrentTransformMatrix() {

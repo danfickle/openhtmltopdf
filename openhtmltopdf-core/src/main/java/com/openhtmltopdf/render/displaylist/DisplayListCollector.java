@@ -49,6 +49,8 @@ public class DisplayListCollector {
 		if (!rootLayer.isRootLayer()) {
 			return null;
 		}
+		
+		rootLayer.propagateCurrentTransformationMatrix(c);
 
 		DisplayListContainer displayList = new DisplayListContainer(_pages.size());
 
