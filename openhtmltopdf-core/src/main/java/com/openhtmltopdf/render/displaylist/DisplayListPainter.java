@@ -120,7 +120,7 @@ public class DisplayListPainter {
     }
     
     private void pushTransform(RenderingContext c, Box master) {
-    	AffineTransform transform = TransformCreator.createPageTranform(c, master, c.getPage());
+    	AffineTransform transform = TransformCreator.createPageCoordinatesTranform(c, master, c.getPage());
     	c.getOutputDevice().pushTransformLayer(transform);
     }
     

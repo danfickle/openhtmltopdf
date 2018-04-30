@@ -44,6 +44,7 @@ import com.openhtmltopdf.render.displaylist.PaintListMarkers;
 import com.openhtmltopdf.render.displaylist.PaintReplacedElement;
 import com.openhtmltopdf.render.displaylist.PaintReplacedElements;
 import com.openhtmltopdf.render.displaylist.PaintRootElementBackground;
+import com.openhtmltopdf.render.displaylist.TransformCreator;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.css.CSSPrimitiveValue;
@@ -138,7 +139,7 @@ public class Layer {
     public void propagateCurrentTransformationMatrix(CssContext c) {
     	AffineTransform parentCtm = _parent == null ? null : _parent._ctm;
     	_ctm = _hasLocalTransform ?
-        		TransformUtil.createDocumentCoordinatesTransform(getMaster(), c, parentCtm) : parentCtm;
+        		TransformCreator.createDocumentCoordinatesTransform(getMaster(), c, parentCtm) : parentCtm;
         		
         for (Layer child : getChildren()) {
         	child.propagateCurrentTransformationMatrix(c);
