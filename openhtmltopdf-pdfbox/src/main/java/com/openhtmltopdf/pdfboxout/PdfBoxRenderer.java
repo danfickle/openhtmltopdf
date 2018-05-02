@@ -489,8 +489,6 @@ public class PdfBoxRenderer implements Closeable {
      * Completely experimental for now. Buggy as heck!
      * TODO:
      *   - inline-blocks
-     *   - hidden overflow
-     *   - transforms
      *   - debugging everything
      */
     public void createPdfFast(boolean finish) throws IOException {

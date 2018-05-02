@@ -3,7 +3,6 @@ package com.openhtmltopdf.render.displaylist;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -207,7 +206,7 @@ public class PagedBoxCollector {
 		if (layer.isInline()) {
 			collectInline(c, layer);
 		} else {
-			collect(c, layer, layer.getMaster(), null);
+			collect(c, layer, layer.getMaster());
 		}
 	}
 	
@@ -238,7 +237,7 @@ public class PagedBoxCollector {
         						result.get(i).addInline(b);
         					}
         				} else {
-        					collect(c, layer, bb, pageClip);
+        					collect(c, layer, bb);
         				}
         			}
         		}
@@ -254,9 +253,8 @@ public class PagedBoxCollector {
 	 * @param c
 	 * @param layer
 	 * @param container
-	 * @param parentClip
 	 */
-	public void collect(CssContext c, Layer layer, Box container, Shape parentClip) {
+	public void collect(CssContext c, Layer layer, Box container) {
 		if (layer != container.getContainingLayer()) {
 			// Different layers are responsible for their own box collection.
 			return;
@@ -315,11 +313,6 @@ public class PagedBoxCollector {
 
             		// Test to see if it fits within the page margins.
             		if (intersectsAggregateBounds(pageClip, container)) {
-            			if (ourClip != null) {
-            				// Add a clip operation before the block and its descendents (inline or block).
-            				pageResult.clipAll(new OperatorClip(ourClip));
-            			}
-            			
             			pageResult.addBlock(container);
             			
             			if (container instanceof BlockBox) {
@@ -338,6 +331,11 @@ public class PagedBoxCollector {
             				((TableCellBox) container).hasCollapsedPaintingBorder()) {
             				pageResult.addTableCell((TableCellBox) container);
                         }
+
+            			if (ourClip != null) {
+            				// Add a clip operation before the block's descendents (inline or block).
+            				pageResult.clipAll(new OperatorClip(ourClip));
+            			}
             		}
             	}
         		
@@ -353,12 +351,11 @@ public class PagedBoxCollector {
             if (container.getLayer() == null || container == layer.getMaster()) {
                 for (int i = 0; i < container.getChildCount(); i++) {
                      Box child = container.getChild(i);
-                     collect(c, layer, child, ourClip);
+                     collect(c, layer, child);
                 }
             }
             
             if (ourClip != null) {
-            	int cnt = 0;
             	// Restore the clip on those pages it was changed.
             	for (int i = pgStart; i <= pgEnd; i++) {
             		if (i < 0 || i >= result.size()) {
@@ -368,14 +365,9 @@ public class PagedBoxCollector {
             		PageResult pageResult = result.get(i);
             		Rectangle pageClip = pageResult.getContentWindowOnDocument(pages.get(i), c);
             		
-            		// Restore the page clip if we are at the top of the clips.
-            		if (parentClip == null) {
-            			parentClip = pageClip;
-            		}
-            		
             		// Test to see if it fits within the page margins.
             		if (intersectsAggregateBounds(pageClip, container)) {
-          				pageResult.setClipAll(new OperatorSetClip(parentClip));
+          				pageResult.setClipAll(new OperatorSetClip(null));
             		}
             	}
             }

@@ -151,7 +151,7 @@ public class DisplayListCollector {
 			DisplayListContainer dlPages) {
 		PagedBoxCollector collector = new PagedBoxCollector(pages);
 
-		collector.collect(c, layer, startingPoint, null);
+		collector.collect(c, layer, startingPoint);
 
 		List<PageResult> pgResults = collector.getCollectedPageResults();
 
