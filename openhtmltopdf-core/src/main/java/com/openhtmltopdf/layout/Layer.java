@@ -31,21 +31,9 @@ import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
-import com.openhtmltopdf.newtable.CollapsedBorderValue;
-import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
-import com.openhtmltopdf.render.displaylist.DisplayListOperation;
-import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
-import com.openhtmltopdf.render.displaylist.PaintBackgroundAndBorders;
-import com.openhtmltopdf.render.displaylist.PaintInlineContent;
-import com.openhtmltopdf.render.displaylist.PaintLayerBackgroundAndBorder;
-import com.openhtmltopdf.render.displaylist.PaintListMarkers;
-import com.openhtmltopdf.render.displaylist.PaintReplacedElement;
-import com.openhtmltopdf.render.displaylist.PaintReplacedElements;
-import com.openhtmltopdf.render.displaylist.PaintRootElementBackground;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
-import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.css.CSSPrimitiveValue;
 
@@ -101,6 +89,11 @@ public class Layer {
     private int _selectionEndX;
     private int _selectionEndY;
     
+    /**
+     * @see {@link #getClipBoxes()}
+     */
+    private List<Box> _clippingBoxes;
+    
 
     /**
      * @see {@link #getCurrentTransformMatrix()}
@@ -112,14 +105,14 @@ public class Layer {
      * Creates the root layer.
      */
     public Layer(Box master, CssContext c) {
-        this(null, master, c);
+        this(null, master, c, null);
         setStackingContext(true);
     }
 
     /**
      * Creates a child layer.
      */
-    public Layer(Layer parent, Box master, CssContext c) {
+    public Layer(Layer parent, Box master, CssContext c, List<Box> clippingBoxes) {
         _parent = parent;
         _master = master;
         setStackingContext(
@@ -127,6 +120,7 @@ public class Layer {
                 (!master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE)));
         master.setLayer(this);
         master.setContainingLayer(this);
+        _clippingBoxes = clippingBoxes;
         
         _hasLocalTransform = !master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE);
     }
@@ -162,6 +156,16 @@ public class Layer {
     public boolean hasLocalTransform() {
     	return _hasLocalTransform;
     }
+    
+    /**
+     * The clipping boxes that were in effect when this layer was created. These should only be 
+     * used by layers triggered by something other than a positioned element (transform / opacity, etc).
+     * Positioned elements will have to use the clip box of the containing block and its containing block
+     * and so on. 
+     */
+    public List<Box> getClipBoxes() {
+    	return _clippingBoxes == null ? Collections.<Box>emptyList() : _clippingBoxes;
+    }
 
     public Layer getParent() {
         return _parent;
@@ -190,7 +194,7 @@ public class Layer {
         return _master;
     }
 
-    public synchronized void addChild(Layer layer) {
+    public void addChild(Layer layer) {
         if (_children == null) {
             _children = new ArrayList<Layer>();
         }

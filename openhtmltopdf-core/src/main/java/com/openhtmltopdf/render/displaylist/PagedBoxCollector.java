@@ -501,7 +501,7 @@ public class PagedBoxCollector {
 	
 	public static int findStartPage(CssContext c, Box container, List<PageBox> pages) {
 		PageFinder finder = new PageFinder(pages);
-    	PaintingInfo info = container.getPaintingInfo();
+    	PaintingInfo info = container.calcPaintingInfo(c, true);
     	if (info == null) {
     		return -1;
     	}
@@ -516,7 +516,7 @@ public class PagedBoxCollector {
 	
 	public static int findEndPage(CssContext c, Box container, List<PageBox> pages) {
 		PageFinder finder = new PageFinder(pages);
-    	PaintingInfo info = container.getPaintingInfo();
+    	PaintingInfo info = container.calcPaintingInfo(c, true);
     	if (info == null) {
     		return -1;
     	}

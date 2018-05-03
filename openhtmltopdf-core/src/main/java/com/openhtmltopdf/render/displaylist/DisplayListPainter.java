@@ -2,6 +2,7 @@ package com.openhtmltopdf.render.displaylist;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,19 @@ public class DisplayListPainter {
     private void popTransform(RenderingContext c, Box master) {
     	c.getOutputDevice().popTransformLayer();
     }
+    
+    private void pushClips(RenderingContext c, PaintPushClipLayer clips) {
+    	for (Box clipBox : clips.getClipBoxes()) {
+    		Shape clip = clipBox.getChildrenClipEdge(c);
+    		c.getOutputDevice().pushClip(clip);
+    	}
+    }
+    
+    private void popClips(RenderingContext c, PaintPopClipLayer clips) {
+    	for (int i = 0; i < clips.getClipBoxes().size(); i++) {
+    		c.getOutputDevice().popClip();
+    	}
+    }
 
 	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {
 		for (DisplayListOperation op : pageOperations.getOperations()) {
@@ -176,6 +190,16 @@ public class DisplayListPainter {
 				
 				PaintPopTransformLayer dlo = (PaintPopTransformLayer) op;
 				popTransform(c, dlo.getMaster());
+				
+			} else if (op instanceof PaintPushClipLayer) {
+				
+				PaintPushClipLayer dlo = (PaintPushClipLayer) op;
+				pushClips(c, dlo);
+				
+			} else if (op instanceof PaintPopClipLayer) {
+				
+				PaintPopClipLayer dlo = (PaintPopClipLayer) op;
+				popClips(c, dlo);
 				
 			}
 		}

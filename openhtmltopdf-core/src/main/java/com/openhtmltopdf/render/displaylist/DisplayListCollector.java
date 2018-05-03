@@ -62,14 +62,32 @@ public class DisplayListCollector {
 	private void collect(RenderingContext c, Layer layer, DisplayListContainer dlPages,
 			List<PageBox> pages) {
 		if (layer.getMaster().getStyle().isFixed()) {
-			layer.positionFixedLayer(c); // TODO
+			//layer.positionFixedLayer(c); // TODO
 		}
 
+		int layerPageStart = -1;
+		int layerPageEnd = -1;
+		
+		if ((!layer.getClipBoxes().isEmpty() && !layer.getMaster().getStyle().isPositioned()) || layer.hasLocalTransform()) {
+			layerPageStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
+			layerPageEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
+		}
+
+		if (!layer.getMaster().getStyle().isPositioned() &&
+			!layer.getClipBoxes().isEmpty()) {
+			// This layer was triggered by a transform. We have to honor the clip of parent elements.
+			DisplayListOperation  dlo = new PaintPushClipLayer(layer.getClipBoxes());
+			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+		} else {
+			// This layer was triggered by a positioned element. We should honor the clip of the
+			// containing block (closest ancestor with position other than static) and its containing block and
+			// so on.
+			// TODO
+		}
+		
 		if (layer.hasLocalTransform()) {
 			DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
-			int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
-			int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
-			addItem(dlo, pgStart, pgEnd, dlPages);
+			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 		}
 
 		if (layer.isRootLayer() && layer.getMaster().hasRootElementBackground(c)) {
@@ -141,9 +159,13 @@ public class DisplayListCollector {
 		
 		if (layer.hasLocalTransform()) {
 			DisplayListOperation dlo = new PaintPopTransformLayer(layer.getMaster());
-			int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
-			int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
-			addItem(dlo, pgStart, pgEnd, dlPages);
+			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+		}
+		
+		if (!layer.getMaster().getStyle().isPositioned() &&
+			!layer.getClipBoxes().isEmpty()) {
+			DisplayListOperation dlo = new PaintPopClipLayer(layer.getClipBoxes());
+			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 		}
 	}
 

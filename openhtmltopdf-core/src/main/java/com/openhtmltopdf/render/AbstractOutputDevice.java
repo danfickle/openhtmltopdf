@@ -248,7 +248,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         	    borderBounds.intersect(new Area(oldclip));
             }
             setClip(borderBounds);
-        } else {
+        } else if (backgroundImage != null) {
         	pushClip(borderBounds);
         }
 
@@ -322,7 +322,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         
         if (!c.isFastRenderer()) {
         	setClip(oldclip);
-        } else {
+        } else if (backgroundImage != null) {
         	popClip();
         }
     }
