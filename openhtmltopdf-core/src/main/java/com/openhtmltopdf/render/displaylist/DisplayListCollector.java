@@ -28,9 +28,9 @@ public class DisplayListCollector {
 	}
 
 	private void collectLayers(RenderingContext c, List<Layer> layers, DisplayListContainer dlPages,
-			List<PageBox> pages) {
+			List<PageBox> pages, boolean includeFixed) {
 		for (Layer layer : layers) {
-			collect(c, layer, dlPages, pages);
+			collect(c, layer, dlPages, pages, includeFixed);
 		}
 	}
 
@@ -54,17 +54,22 @@ public class DisplayListCollector {
 
 		DisplayListContainer displayList = new DisplayListContainer(_pages.size());
 
-		collect(c, rootLayer, displayList, _pages);
+		collect(c, rootLayer, displayList, _pages, false);
 
 		return displayList;
 	}
 
 	private void collect(RenderingContext c, Layer layer, DisplayListContainer dlPages,
-			List<PageBox> pages) {
-		if (layer.getMaster().getStyle().isFixed()) {
-			//layer.positionFixedLayer(c); // TODO
+			List<PageBox> pages, boolean includeFixed) {
+		if (layer.getMaster().getStyle().isFixed() && !includeFixed) {
+			// We don't collect fixed layers or their children here, because we don't want to have
+			// to clone the entire subtree of the fixed box and all descendents.
+			// So just paint it at the last minute.
+			DisplayListOperation dlo = new PaintFixedLayer(layer);
+			addItem(dlo, 0, pages.size() - 1, dlPages);
+			return;
 		}
-
+		
 		int layerPageStart = -1;
 		int layerPageEnd = -1;
 		
@@ -110,7 +115,7 @@ public class DisplayListCollector {
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
-				collectLayers(c, layer.getSortedLayers(Layer.NEGATIVE), dlPages, pages);
+				collectLayers(c, layer.getSortedLayers(Layer.NEGATIVE), dlPages, pages, includeFixed);
 			}
 
 			List<PageResult> pgResults = collector.getCollectedPageResults();
@@ -150,10 +155,10 @@ public class DisplayListCollector {
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
-				collectLayers(c, layer.collectLayers(Layer.AUTO), dlPages, pages);
+				collectLayers(c, layer.collectLayers(Layer.AUTO), dlPages, pages, includeFixed);
 				// TODO z-index: 0 layers should be painted atomically
-				collectLayers(c, layer.getSortedLayers(Layer.ZERO), dlPages, pages);
-				collectLayers(c, layer.getSortedLayers(Layer.POSITIVE), dlPages, pages);
+				collectLayers(c, layer.getSortedLayers(Layer.ZERO), dlPages, pages, includeFixed);
+				collectLayers(c, layer.getSortedLayers(Layer.POSITIVE), dlPages, pages, includeFixed);
 			}
 		}
 		
@@ -268,4 +273,8 @@ public class DisplayListCollector {
 		}
 	}
 
+	public void collectFixed(RenderingContext c, Layer layer, DisplayListContainer dlPages) {
+		// This is called from the painter to collect fixed boxes just before paint.
+		collect(c, layer, dlPages, _pages, true);
+	}
 }

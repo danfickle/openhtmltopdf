@@ -121,7 +121,6 @@ public class Layer {
         master.setLayer(this);
         master.setContainingLayer(this);
         _clippingBoxes = clippingBoxes;
-        
         _hasLocalTransform = !master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE);
     }
     
@@ -279,7 +278,7 @@ public class Layer {
             		result.add(child);
             	} else if (which == POSITIVE && child.getZIndex() > 0) {
             		result.add(child);
-            	} else if (which == ZERO && child.getZIndex() == 0) {
+            	} else if (which == ZERO && !child.isZIndexAuto() && child.getZIndex() == 0) {
             		result.add(child);
             	}
                 result.addAll(child.collectLayers(which));
@@ -875,7 +874,7 @@ public class Layer {
         _fixedBackground = b;
     }
 
-    public synchronized List<Layer> getChildren() {
+    public List<Layer> getChildren() {
         return _children == null ? Collections.<Layer>emptyList() : Collections.unmodifiableList(_children);
     }
 

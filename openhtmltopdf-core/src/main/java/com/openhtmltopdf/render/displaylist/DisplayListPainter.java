@@ -9,12 +9,14 @@ import java.util.Map;
 
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.InlinePaintable;
+import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.DisplayListItem;
 import com.openhtmltopdf.render.OperatorClip;
 import com.openhtmltopdf.render.OperatorSetClip;
+import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 
@@ -141,6 +143,17 @@ public class DisplayListPainter {
     		c.getOutputDevice().popClip();
     	}
     }
+    
+    private void paintFixed(RenderingContext c, Layer layer) {
+    	layer.positionFixedLayer(c);
+    	// FIXME: This is very inefficient. We fire up the all-pages collector
+    	// for just one page.
+    	List<PageBox> pages = layer.getPages();
+    	DisplayListCollector dlCollector = new DisplayListCollector(pages);
+        DisplayListContainer dlPages = new DisplayListContainer(pages.size());
+        dlCollector.collectFixed(c, layer, dlPages); 
+        paint(c, dlPages.getPageInstructions(c.getPageNo()));
+    }
 
 	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {
 		for (DisplayListOperation op : pageOperations.getOperations()) {
@@ -200,6 +213,11 @@ public class DisplayListPainter {
 				
 				PaintPopClipLayer dlo = (PaintPopClipLayer) op;
 				popClips(c, dlo);
+				
+			} else if (op instanceof PaintFixedLayer) {
+				
+				PaintFixedLayer dlo = (PaintFixedLayer) op;
+				paintFixed(c, dlo.getLayer());
 				
 			}
 		}
