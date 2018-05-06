@@ -192,6 +192,12 @@ public class PagedBoxCollector {
 	private final List<PageBox> pages;
 	private final PageFinder finder;
 	
+	protected PagedBoxCollector() {
+	    this.result = null;
+	    this.pages = null;
+	    this.finder = null;
+	}
+	
 	public PagedBoxCollector(List<PageBox> pages) {
 		this.pages = pages;
 		this.result = new ArrayList<PageResult>(pages.size());
@@ -220,21 +226,21 @@ public class PagedBoxCollector {
         	int pgEnd = findEndPage(c, b, layer.getCurrentTransformMatrix());
         	
         	for (int i = pgStart; i <= pgEnd; i++) {
-        		if (i < 0 || i >= result.size()) {
+        		if (i < 0 || i > getMaxPageNumber()) {
         			continue;
         		}
         		
-        		Shape pageClip = result.get(i).getContentWindowOnDocument(pages.get(i), c);
+        		Shape pageClip = getPageResult(i).getContentWindowOnDocument(getPageBox(i), c);
         	
         		if (b.intersects(c, pageClip)) {
         			if (b instanceof InlineLayoutBox) {
-        				result.get(i).addInline(b);
+        				getPageResult(i).addInline(b);
         			} else { 
         				BlockBox bb = (BlockBox) b;
 
         				if (bb.isInline()) {
         					if (intersectsAny(c, pageClip, b, b)) {
-        						result.get(i).addInline(b);
+        						getPageResult(i).addInline(b);
         					}
         				} else {
         					collect(c, layer, bb);
@@ -269,11 +275,11 @@ public class PagedBoxCollector {
         	pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
 
         	for (int i = pgStart; i <= pgEnd; i++) {
-        		if (i < 0 || i >= result.size()) {
+        		if (i < 0 || i > getMaxPageNumber()) {
         			continue;
         		}
         		
-        		PageResult res = result.get(i);
+        		PageResult res = getPageResult(i);
         		res.addInline(container);
         		
         		// Recursively add all children of the line box to the inlines list.
@@ -304,12 +310,12 @@ public class PagedBoxCollector {
             	}
             	
             	for (int i = pgStart; i <= pgEnd; i++) {
-            		if (i < 0 || i >= result.size()) {
+            		if (i < 0 || i > getMaxPageNumber()) {
             			continue;
             		}
             		
-            		PageResult pageResult = result.get(i);
-            		Rectangle pageClip = pageResult.getContentWindowOnDocument(pages.get(i), c);
+            		PageResult pageResult = getPageResult(i);
+            		Rectangle pageClip = pageResult.getContentWindowOnDocument(getPageBox(i), c);
 
             		// Test to see if it fits within the page margins.
             		if (intersectsAggregateBounds(pageClip, container)) {
@@ -358,12 +364,12 @@ public class PagedBoxCollector {
             if (ourClip != null) {
             	// Restore the clip on those pages it was changed.
             	for (int i = pgStart; i <= pgEnd; i++) {
-            		if (i < 0 || i >= result.size()) {
+            		if (i < 0 || i > getMaxPageNumber()) {
             			continue;
             		}
             		
-            		PageResult pageResult = result.get(i);
-            		Rectangle pageClip = pageResult.getContentWindowOnDocument(pages.get(i), c);
+            		PageResult pageResult = getPageResult(i);
+            		Rectangle pageClip = pageResult.getContentWindowOnDocument(getPageBox(i), c);
             		
             		// Test to see if it fits within the page margins.
             		if (intersectsAggregateBounds(pageClip, container)) {
@@ -471,7 +477,7 @@ public class PagedBoxCollector {
 		return maxY;
     }
     
-    private int findStartPage(CssContext c, Box container, AffineTransform transform) {
+    protected int findStartPage(CssContext c, Box container, AffineTransform transform) {
     	PaintingInfo info = container.calcPaintingInfo(c, true);
     	if (info == null) {
     		return -1;
@@ -485,7 +491,7 @@ public class PagedBoxCollector {
        	return this.finder.findPage(c, (int) minY);
     }
     
-    private int findEndPage(CssContext c, Box container, AffineTransform transform) {
+    protected int findEndPage(CssContext c, Box container, AffineTransform transform) {
     	PaintingInfo info = container.calcPaintingInfo(c, true);
     	if (info == null) {
     		return -1;
@@ -497,6 +503,18 @@ public class PagedBoxCollector {
     	
     	double maxY = transform == null ? bounds.getMaxY() : getMaxYFromTransformedBox(bounds, transform);
        	return this.finder.findPage(c, (int) maxY);
+    }
+    
+    protected PageResult getPageResult(int pageNo) {
+        return result.get(pageNo);
+    }
+    
+    protected int getMaxPageNumber() {
+        return result.size() - 1;
+    }
+    
+    protected PageBox getPageBox(int pageNo) {
+        return pages.get(pageNo);
     }
 	
 	public static int findStartPage(CssContext c, Box container, List<PageBox> pages) {

@@ -20,21 +20,20 @@ import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPage
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
 public class DisplayListCollector {
-
-	private final List<PageBox> _pages;
-
+ 	private final List<PageBox> _pages;
+	
 	public DisplayListCollector(List<PageBox> pages) {
 		this._pages = pages;
 	}
 
 	private void collectLayers(RenderingContext c, List<Layer> layers, DisplayListContainer dlPages,
-			List<PageBox> pages, boolean includeFixed) {
+			boolean includeFixed) {
 		for (Layer layer : layers) {
-			collect(c, layer, dlPages, pages, includeFixed);
+			collect(c, layer, dlPages, includeFixed);
 		}
 	}
 
-	private void addItem(DisplayListOperation item, int pgStart, int pgEnd,
+	protected void addItem(DisplayListOperation item, int pgStart, int pgEnd,
 			DisplayListContainer dlPages) {
 		for (int i = pgStart; i <= pgEnd; i++) {
 			if (i < 0 || i >= dlPages.getNumPages()) {
@@ -54,19 +53,19 @@ public class DisplayListCollector {
 
 		DisplayListContainer displayList = new DisplayListContainer(_pages.size());
 
-		collect(c, rootLayer, displayList, _pages, false);
+		collect(c, rootLayer, displayList, false);
 
 		return displayList;
 	}
 
-	private void collect(RenderingContext c, Layer layer, DisplayListContainer dlPages,
-			List<PageBox> pages, boolean includeFixed) {
+	protected void collect(RenderingContext c, Layer layer, DisplayListContainer dlPages,
+			boolean includeFixed) {
 		if (layer.getMaster().getStyle().isFixed() && !includeFixed) {
 			// We don't collect fixed layers or their children here, because we don't want to have
 			// to clone the entire subtree of the fixed box and all descendents.
 			// So just paint it at the last minute.
 			DisplayListOperation dlo = new PaintFixedLayer(layer);
-			addItem(dlo, 0, pages.size() - 1, dlPages);
+			addItem(dlo, 0, _pages.size() - 1, dlPages);
 			return;
 		}
 		
@@ -74,8 +73,8 @@ public class DisplayListCollector {
 		int layerPageEnd = -1;
 		
 		if ((!layer.getClipBoxes().isEmpty() && !layer.getMaster().getStyle().isPositioned()) || layer.hasLocalTransform()) {
-			layerPageStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
-			layerPageEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
+			layerPageStart = findStartPage(c, layer);
+			layerPageEnd = findEndPage(c, layer);
 		}
 
 		if (!layer.getMaster().getStyle().isPositioned() &&
@@ -104,18 +103,18 @@ public class DisplayListCollector {
 		}
 		
 		if (!layer.isInline() && ((BlockBox) layer.getMaster()).isReplaced()) {
-			collectReplacedElementLayer(c, layer, dlPages, pages);
+			collectReplacedElementLayer(c, layer, dlPages);
 		} else {
 
-			PagedBoxCollector collector = new PagedBoxCollector(pages);
+			PagedBoxCollector collector = createBoxCollector();
 			collector.collect(c, layer);
 
 			if (!layer.isInline() && layer.getMaster() instanceof BlockBox) {
-				collectLayerBackgroundAndBorder(c, layer, dlPages, pages);
+				collectLayerBackgroundAndBorder(c, layer, dlPages);
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
-				collectLayers(c, layer.getSortedLayers(Layer.NEGATIVE), dlPages, pages, includeFixed);
+				collectLayers(c, layer.getSortedLayers(Layer.NEGATIVE), dlPages, includeFixed);
 			}
 
 			List<PageResult> pgResults = collector.getCollectedPageResults();
@@ -124,41 +123,14 @@ public class DisplayListCollector {
 				PageResult pg = pgResults.get(i);
 				DisplayListPageContainer dlPageList = dlPages.getPageInstructions(i);
 
-				if (!pg.blocks().isEmpty()) {
-					Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
-							: collectCollapsedTableBorders(c, pg.tcells());
-					DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), collapsedTableBorders);
-					dlPageList.addOp(dlo);
-				}
-
-				if (layer.getFloats() != null && !layer.getFloats().isEmpty()) {
-					for (int iflt = layer.getFloats().size() - 1; iflt >= 0; iflt--) {
-						BlockBox floater = (BlockBox) layer.getFloats().get(iflt);
-						collectFloatAsLayer(c, layer, pages, floater, dlPages);
-					}
-				}
-
-				if (!pg.listItems().isEmpty()) {
-					DisplayListOperation dlo = new PaintListMarkers(pg.listItems());
-					dlPageList.addOp(dlo);
-				}
-
-				if (!pg.inlines().isEmpty()) {
-					DisplayListOperation dlo = new PaintInlineContent(pg.inlines());
-					dlPageList.addOp(dlo);
-				}
-
-				if (!pg.replaceds().isEmpty()) {
-					DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds());
-					dlPageList.addOp(dlo);
-				}
+				processPage(c, layer, dlPages, pg, dlPageList, true);
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
-				collectLayers(c, layer.collectLayers(Layer.AUTO), dlPages, pages, includeFixed);
+				collectLayers(c, layer.collectLayers(Layer.AUTO), dlPages, includeFixed);
 				// TODO z-index: 0 layers should be painted atomically
-				collectLayers(c, layer.getSortedLayers(Layer.ZERO), dlPages, pages, includeFixed);
-				collectLayers(c, layer.getSortedLayers(Layer.POSITIVE), dlPages, pages, includeFixed);
+				collectLayers(c, layer.getSortedLayers(Layer.ZERO), dlPages, includeFixed);
+				collectLayers(c, layer.getSortedLayers(Layer.POSITIVE), dlPages, includeFixed);
 			}
 		}
 		
@@ -174,9 +146,42 @@ public class DisplayListCollector {
 		}
 	}
 
-	private void collectFloatAsLayer(RenderingContext c, Layer layer, List<PageBox> pages, BlockBox startingPoint,
+    private void processPage(RenderingContext c, Layer layer, DisplayListContainer dlPages,
+            PageResult pg, DisplayListPageContainer dlPageList, boolean includeFloats) {
+
+        if (!pg.blocks().isEmpty()) {
+            Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
+                    : collectCollapsedTableBorders(c, pg.tcells());
+            DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), collapsedTableBorders);
+            dlPageList.addOp(dlo);
+        }
+
+        if (includeFloats && layer.getFloats() != null && !layer.getFloats().isEmpty()) {
+            for (int iflt = layer.getFloats().size() - 1; iflt >= 0; iflt--) {
+                BlockBox floater = (BlockBox) layer.getFloats().get(iflt);
+                collectFloatAsLayer(c, layer, floater, dlPages);
+            }
+        }
+
+        if (!pg.listItems().isEmpty()) {
+            DisplayListOperation dlo = new PaintListMarkers(pg.listItems());
+            dlPageList.addOp(dlo);
+        }
+
+        if (!pg.inlines().isEmpty()) {
+            DisplayListOperation dlo = new PaintInlineContent(pg.inlines());
+            dlPageList.addOp(dlo);
+        }
+
+        if (!pg.replaceds().isEmpty()) {
+            DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds());
+            dlPageList.addOp(dlo);
+        }
+    }
+	
+	private void collectFloatAsLayer(RenderingContext c, Layer layer, BlockBox startingPoint,
 			DisplayListContainer dlPages) {
-		PagedBoxCollector collector = new PagedBoxCollector(pages);
+		PagedBoxCollector collector = createBoxCollector();
 
 		collector.collect(c, layer, startingPoint);
 
@@ -185,46 +190,26 @@ public class DisplayListCollector {
 		for (int i = 0; i < pgResults.size(); i++) {
 			PageResult pg = pgResults.get(i);
 			DisplayListPageContainer dlPageList = dlPages.getPageInstructions(i);
-
-			if (!pg.blocks().isEmpty()) {
-				Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
-						: collectCollapsedTableBorders(c, pg.tcells());
-				DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), collapsedTableBorders);
-				dlPageList.addOp(dlo);
-			}
-
-			if (!pg.blocks().isEmpty()) {
-				DisplayListOperation dlo = new PaintListMarkers(pg.blocks());
-				dlPageList.addOp(dlo);
-			}
-
-			if (!pg.inlines().isEmpty()) {
-				DisplayListOperation dlo = new PaintInlineContent(pg.inlines());
-				dlPageList.addOp(dlo);
-			}
-
-			if (!pg.replaceds().isEmpty()) {
-				DisplayListOperation dlo = new PaintReplacedElements(pg.replaceds());
-				dlPageList.addOp(dlo);
-			}
+			
+			processPage(c, layer, dlPages, pg, dlPageList, false);
 		}
 	}
 
 	private void collectLayerBackgroundAndBorder(RenderingContext c, Layer layer,
-			DisplayListContainer dlPages, List<PageBox> pages) {
+			DisplayListContainer dlPages) {
 
 		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
-		int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
-		int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
+		int pgStart = findStartPage(c, layer);
+		int pgEnd = findEndPage(c, layer);
 		addItem(dlo, pgStart, pgEnd, dlPages);
 	}
 
 	private void collectReplacedElementLayer(RenderingContext c, Layer layer,
-			DisplayListContainer dlPages, List<PageBox> pages) {
+			DisplayListContainer dlPages) {
 
 		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
-		int pgStart = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
-		int pgEnd = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
+		int pgStart = findStartPage(c, layer);
+		int pgEnd = findEndPage(c, layer);
 		addItem(dlo, pgStart, pgEnd, dlPages);
 
 		DisplayListOperation dlo2 = new PaintReplacedElement((BlockBox) layer.getMaster());
@@ -272,9 +257,16 @@ public class DisplayListCollector {
 			return result;
 		}
 	}
-
-	public void collectFixed(RenderingContext c, Layer layer, DisplayListContainer dlPages) {
-		// This is called from the painter to collect fixed boxes just before paint.
-		collect(c, layer, dlPages, _pages, true);
+	
+	protected PagedBoxCollector createBoxCollector() {
+	    return new PagedBoxCollector(_pages);
+	}
+	
+	protected int findStartPage(RenderingContext c, Layer layer) {
+	    return PagedBoxCollector.findStartPage(c, layer.getMaster(), _pages);
+	}
+	
+	protected int findEndPage(RenderingContext c, Layer layer) {
+	    return PagedBoxCollector.findEndPage(c, layer.getMaster(), _pages);
 	}
 }

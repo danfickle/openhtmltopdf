@@ -146,13 +146,11 @@ public class DisplayListPainter {
     
     private void paintFixed(RenderingContext c, Layer layer) {
     	layer.positionFixedLayer(c);
-    	// FIXME: This is very inefficient. We fire up the all-pages collector
-    	// for just one page.
+
     	List<PageBox> pages = layer.getPages();
-    	DisplayListCollector dlCollector = new DisplayListCollector(pages);
-        DisplayListContainer dlPages = new DisplayListContainer(pages.size());
-        dlCollector.collectFixed(c, layer, dlPages); 
-        paint(c, dlPages.getPageInstructions(c.getPageNo()));
+        SinglePageDisplayListCollector dlCollector = new SinglePageDisplayListCollector(pages.get(c.getPageNo()), c.getPageNo());
+        DisplayListContainer dlPages = dlCollector.collectFixed(c, layer); 
+        paint(c, dlPages.getPageInstructions(0));
     }
 
 	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {
