@@ -13,6 +13,7 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
+import com.openhtmltopdf.newtable.TableSectionBox;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.OperatorClip;
@@ -344,20 +345,46 @@ public class PagedBoxCollector {
             			}
             		}
             	}
-        		
-                if (container.getStyle().isTable() && c instanceof RenderingContext) {  // HACK
-                    TableBox table = (TableBox) container;
-                    if (table.hasContentLimitContainer()) {
-                        table.updateHeaderFooterPosition((RenderingContext) c);
+        	}
+
+        	
+            if (container instanceof TableSectionBox &&
+                (((TableSectionBox) container).isHeader() || ((TableSectionBox) container).isFooter()) &&
+                ((TableSectionBox) container).getTable().hasContentLimitContainer() &&
+                (container.getLayer() == null || container == layer.getMaster()) &&
+                c instanceof RenderingContext) {
+                
+                // Yes, this is one giant hack. The problem is that there is only one tfoot and thead box per table
+                // but if -fs-table-paginate is set to paginate we need to collect the header and footer on every page
+                // that the table appears on. The solution we use here is to loop through the table's pages and update 
+                // the section's position before collecting its children.
+                
+                TableBox table = ((TableSectionBox) container).getTable();
+                RenderingContext rc = (RenderingContext) c;
+                
+                int tableStart = findStartPage(c, table, layer.getCurrentTransformMatrix());
+                int tableEnd = findEndPage(c, table, layer.getCurrentTransformMatrix());
+                
+                for (int pgTable = tableStart; pgTable <= tableEnd; pgTable++) {
+                    if (pgTable < 0 || pgTable > getMaxPageNumber()) {
+                        continue;
+                    }
+                    
+                    rc.setPage(pgTable, getPageBox(pgTable));
+                    table.updateHeaderFooterPosition(rc);
+
+                    for (int i = 0; i < container.getChildCount(); i++) {
+                        Box child = container.getChild(i);
+                        collect(c, layer, child);
                     }
                 }
-        	}
-        	
-        	// Recursively, process all children and their children.
-            if (container.getLayer() == null || container == layer.getMaster()) {
-                for (int i = 0; i < container.getChildCount(); i++) {
-                     Box child = container.getChild(i);
-                     collect(c, layer, child);
+            } else {
+                // Recursively, process all children and their children.
+                if (container.getLayer() == null || container == layer.getMaster()) {
+                    for (int i = 0; i < container.getChildCount(); i++) {
+                        Box child = container.getChild(i);
+                        collect(c, layer, child);
+                    }
                 }
             }
             

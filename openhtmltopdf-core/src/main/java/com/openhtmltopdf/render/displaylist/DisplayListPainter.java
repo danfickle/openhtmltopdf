@@ -10,6 +10,7 @@ import java.util.Map;
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
+import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
@@ -30,6 +31,19 @@ public class DisplayListPainter {
 		c.getOutputDevice().popClip();
 	}
 	
+	/**
+	 * If the container is a table and it is set to <code>paginate</code> then update its header
+	 * and footer position for this page.
+	 */
+	private void updateTableHeaderFooterPosition(RenderingContext c, BlockBox container) {
+        if (container.getStyle().isTable()) {
+            TableBox table = (TableBox) container;
+            if (table.hasContentLimitContainer()) {
+                table.updateHeaderFooterPosition(c);
+            }
+        }
+	}
+	
 	private void paintBackgroundAndBorders(RenderingContext c, List<DisplayListItem> blocks,
 			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders) {
 
@@ -42,6 +56,8 @@ public class DisplayListPainter {
 				setClip(c, setClip);
 			} else {
 				BlockBox box = (BlockBox) dli;
+				
+				updateTableHeaderFooterPosition(c, box);
 
 				box.paintBackground(c);
 				box.paintBorder(c);
