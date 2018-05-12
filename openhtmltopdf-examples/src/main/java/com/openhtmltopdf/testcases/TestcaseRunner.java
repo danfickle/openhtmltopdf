@@ -103,6 +103,8 @@ public class TestcaseRunner {
 		 */
 		runTestCase("transform");
 
+		runTestCase("simplerotate");
+
 		runTestCase("quoting");
 
 		runTestCase("math-ml");
