@@ -71,6 +71,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 public class PdfBoxRenderer implements Closeable {
@@ -108,6 +109,7 @@ public class PdfBoxRenderer implements Closeable {
     private BidiSplitterFactory _splitterFactory;
     private byte _defaultTextDirection = BidiSplitter.LTR;
     private BidiReorderer _reorderer;
+    private final boolean _useFastMode;
 
     /**
      * This method is constantly changing as options are added to the builder.
@@ -124,6 +126,7 @@ public class PdfBoxRenderer implements Closeable {
         _mathmlImpl = state._mathmlImpl;
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = state._testMode;
+        _useFastMode = state._useFastRenderer;
         _outputDevice = new PdfBoxOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
         
@@ -442,6 +445,11 @@ public class PdfBoxRenderer implements Closeable {
      */
     @Deprecated
     public void createPDF(OutputStream os, boolean finish, int initialPageNo) throws IOException {
+        if (_useFastMode) {
+            createPdfFast(finish);
+            return;
+        }
+        
         boolean success = false;
         
         try {
@@ -491,8 +499,10 @@ public class PdfBoxRenderer implements Closeable {
      *   - inline-blocks
      *   - debugging everything
      */
-    public void createPdfFast(boolean finish) throws IOException {
+    private void createPdfFast(boolean finish) throws IOException {
         boolean success = false;
+        
+        XRLog.general(Level.INFO, "Using fast-mode renderer. Prepare to fly.");
         
         try {
             // renders the layout if it wasn't created
