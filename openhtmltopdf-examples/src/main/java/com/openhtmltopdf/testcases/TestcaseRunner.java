@@ -192,7 +192,7 @@ public class TestcaseRunner {
 		}
 	}
 
-	private static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
+	static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
 		DefaultObjectDrawerFactory objectDrawerFactory = new StandardObjectDrawerFactory();
 		objectDrawerFactory.registerDrawer("custom/binary-tree", new SampleObjectDrawerBinaryTree());
 		return objectDrawerFactory;
