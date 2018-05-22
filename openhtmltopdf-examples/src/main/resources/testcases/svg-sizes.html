@@ -1,15 +1,28 @@
     <html>
+    <head>
+        <bookmarks>
+            <bookmark name="Text" href="#text"></bookmark>
+			<bookmark name="SVG" href="#svg">
+                <bookmark name="Width 25%" href="#w25"/>
+				<bookmark name="Width 10%" href="#w10"/>
+				<bookmark name="Width 8cm" href="#w8"/>
+				<bookmark name="Width 4cm" href="#w4"/>
+				<bookmark name="Height 50%" href="#h50"/>
+				<bookmark name="Height 4cm" href="#h4"/>
+            </bookmark>
+        </bookmarks>
+    </head>
     <body>
    
-    <h2>Text</h2>
+    <h2 id="text">Text</h2>
     <div style="width: 25%; border: 1px solid black;">
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             Donec venenatis velit enim, a placerat lectus viverra non.
             Proin varius porta ligula, in fringilla erat suscipit a.</p>
     </div>
-    <h2>SVG</h2>
+    <h2 id="SVG">SVG</h2>
     
-    <h3>width: percentage, max-width: none, calc-width: 25%</h3>
+    <h3 id="w25">width: percentage, max-width: none, calc-width: 25%</h3>
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"
         style="width: 25%; border: black 1px solid;">
@@ -17,7 +30,7 @@
             stroke="blue" fill="yellow" stroke-width="2" />
     </svg>
     
-    <h3>width: percentage, max-width: absolute, calc-width: 8cm</h3>
+    <h3 id="w8">width: percentage, max-width: absolute, calc-width: 8cm</h3>
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"
         style="width: 80%; max-width: 8cm; border: black 1px solid;">
@@ -25,7 +38,7 @@
             stroke="blue" fill="yellow" stroke-width="2" />
     </svg>
 
-    <h3>width: absolute, max-width: percentage, calc-width: 10%</h3>
+    <h3 id="#w10">width: absolute, max-width: percentage, calc-width: 10%</h3>
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"
         style="width: 500px; max-width: 10%; border: black 1px solid;">
@@ -34,7 +47,7 @@
     </svg>
 
 
-    <h3>height: absolute, max-height: none, calc-height: 4cm</h3>
+    <h3 id="w4">height: absolute, max-height: none, calc-height: 4cm</h3>
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" width="300" height="200"
         style="height: 4cm; border: black 1px solid;">
@@ -42,7 +55,7 @@
             stroke="blue" fill="yellow" stroke-width="2" />
     </svg>
 
-    <h3>height: absolute, max-height: percentage, calc-height: 2.5cm (50% of containing block)</h3>
+    <h3 id="h50">height: absolute, max-height: percentage, calc-height: 2.5cm (50% of containing block)</h3>
     
     <div style="height: 5cm; border: 1px solid red;">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" width="300" height="200"
@@ -52,7 +65,7 @@
     </svg>
     </div>
 
-    <h3>height: absolute, max-height: absolute, calc-height: 4cm</h3>
+    <h3 id="h4">height: absolute, max-height: absolute, calc-height: 4cm</h3>
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" width="300" height="200"
         style="height: 45cm; max-height: 4cm; border: black 1px solid;">
