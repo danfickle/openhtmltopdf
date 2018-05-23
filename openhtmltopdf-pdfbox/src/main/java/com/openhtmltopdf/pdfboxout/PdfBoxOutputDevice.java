@@ -1056,8 +1056,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         if (_bookmarks.size() > 0) {
             // TODO: .setViewerPreferences(PdfWriter.PageModeUseOutlines);
     
-            PDDocumentOutline outline = new PDDocumentOutline();
-            _writer.getDocumentCatalog().setDocumentOutline( outline );
+            PDDocumentOutline outline = _writer.getDocumentCatalog().getDocumentOutline();
+			if (outline == null) {
+                outline = new PDDocumentOutline();
+                _writer.getDocumentCatalog().setDocumentOutline(outline);
+            }
             
             writeBookmarks(c, root, outline, _bookmarks);
         }
