@@ -31,6 +31,11 @@ public class VisualRegressionTest {
     public void testZIndexWithAbsolutePosition() throws IOException {
         assertTrue(vt.runTest("z-index-absolute"));
     }
+    
+    @Test
+    public void testPositioningAbsolute() throws IOException {
+        assertTrue(vt.runTest("positioning-absolute"));
+    }
 
     
 

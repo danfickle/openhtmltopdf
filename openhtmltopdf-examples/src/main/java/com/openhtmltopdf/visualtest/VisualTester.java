@@ -141,8 +141,6 @@ public class VisualTester {
 			return false;
 		}
 
-		PDDocument docActual = PDDocument.load(actualPdfBytes);
-		
 		if (!testFile.exists()) {
 			System.err.println("When running test (" + resource + "), nothing to compare against as file (" + testFile.getCanonicalPath() + ") does not exist.");
 			System.err.println("Writing generated PDF to file instead in output directory.");
@@ -151,6 +149,7 @@ public class VisualTester {
 			return false;
 		}
 		
+		PDDocument docActual = PDDocument.load(actualPdfBytes);
 		PDDocument docExpected = PDDocument.load(testFile);
 		
 		PDFRenderer rendActual = new PDFRenderer(docActual);
@@ -183,6 +182,9 @@ public class VisualTester {
 				problems = true;
 			}
 		}
+		
+		docActual.close();
+		docExpected.close();
 
 		if (problems) {
 			File outPdf = new File(this.outputPath, resource + ".pdf");
