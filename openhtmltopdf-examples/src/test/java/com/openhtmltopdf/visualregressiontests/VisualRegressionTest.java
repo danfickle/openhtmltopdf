@@ -37,6 +37,10 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("positioning-absolute"));
     }
 
-    
+    @Test
+    public void testPositioningFixed() throws IOException {
+        assertTrue(vt.runTest("positioning-fixed"));
+    }    
 
+    
 }
