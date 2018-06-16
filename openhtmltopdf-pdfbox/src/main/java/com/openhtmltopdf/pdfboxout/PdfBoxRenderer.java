@@ -39,6 +39,7 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
+import com.openhtmltopdf.render.AbstractOutputDevice.ClipInfo;
 import com.openhtmltopdf.render.displaylist.DisplayListCollector;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer;
 import com.openhtmltopdf.render.displaylist.DisplayListPainter;
@@ -70,6 +71,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 public class PdfBoxRenderer implements Closeable {
@@ -107,6 +109,7 @@ public class PdfBoxRenderer implements Closeable {
     private BidiSplitterFactory _splitterFactory;
     private byte _defaultTextDirection = BidiSplitter.LTR;
     private BidiReorderer _reorderer;
+    private final boolean _useFastMode;
 
     /**
      * This method is constantly changing as options are added to the builder.
@@ -123,8 +126,10 @@ public class PdfBoxRenderer implements Closeable {
         _mathmlImpl = state._mathmlImpl;
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = state._testMode;
+        _useFastMode = state._useFastRenderer;
         _outputDevice = new PdfBoxOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
+        _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
         
         PdfBoxUserAgent userAgent = new PdfBoxUserAgent(_outputDevice);
 
@@ -441,6 +446,11 @@ public class PdfBoxRenderer implements Closeable {
      */
     @Deprecated
     public void createPDF(OutputStream os, boolean finish, int initialPageNo) throws IOException {
+        if (_useFastMode) {
+            createPdfFast(finish);
+            return;
+        }
+        
         boolean success = false;
         
         try {
@@ -488,12 +498,14 @@ public class PdfBoxRenderer implements Closeable {
      * Completely experimental for now. Buggy as heck!
      * TODO:
      *   - inline-blocks
-     *   - hidden overflow
-     *   - transforms
+     *   - bottom positioned absolutes
+     *   - auto margin centered absolutes
      *   - debugging everything
      */
-    public void createPdfFast(boolean finish) throws IOException {
+    private void createPdfFast(boolean finish) throws IOException {
         boolean success = false;
+        
+        XRLog.general(Level.INFO, "Using fast-mode renderer. Prepare to fly.");
         
         try {
             // renders the layout if it wasn't created
@@ -505,6 +517,7 @@ public class PdfBoxRenderer implements Closeable {
 
             RenderingContext c = newRenderingContext();
             c.setInitialPageNo(0);
+            c.setFastRenderer(true);
         
             PageBox firstPage = pages.get(0);
             Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
@@ -670,10 +683,8 @@ public class PdfBoxRenderer implements Closeable {
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
-        Shape working = _outputDevice.getClip();
-
         Rectangle content = page.getPrintClippingBounds(c);
-        _outputDevice.clip(content);
+        _outputDevice.pushClip(content);
 
         int top = -page.getPaintingTop() + page.getMarginBorderPadding(c, CalculatedStyle.TOP);
 
@@ -684,7 +695,7 @@ public class PdfBoxRenderer implements Closeable {
         painter.paint(c, pageOperations);
         _outputDevice.translate(-left, -top);
 
-        _outputDevice.setClip(working);
+        _outputDevice.popClip();
     }
 
     private void paintPage(RenderingContext c, PageBox page) {

@@ -816,13 +816,26 @@ public class BlockBox extends Box implements InlinePaintable {
     public void layout(LayoutContext c, int contentStart) {
         CalculatedStyle style = getStyle();
         boolean pushedLayer = false;
-        if (isRoot() || style.requiresLayer()) {
-            pushedLayer = true;
-            if (getLayer() == null) {
-                c.pushLayer(this);
-            } else {
-                c.pushLayer(getLayer());
+        boolean pushedClipBox = false;
+        
+        if (isNeedsClipOnPaint(c)) {
+        	pushedClipBox = true;
+        	c.pushClippingBox(this);
+        }
+
+        if (isRoot()) {
+        	pushedLayer = true;
+            c.pushLayer(this);
+            
+            if (c.isPrint()) {
+            	if (!style.isIdent(CSSName.PAGE, IdentValue.AUTO)) {
+            		c.setPageName(style.getStringProperty(CSSName.PAGE));
+            	}
+            	c.getRootLayer().addPage(c);
             }
+        } else if (style.requiresLayer()) {
+            pushedLayer = true;
+            c.pushLayer(this);
         }
 
         if (style.isFixedBackground()) {
@@ -923,6 +936,10 @@ public class BlockBox extends Box implements InlinePaintable {
 
         if (pushedLayer) {
             c.popLayer();
+        }
+        
+        if (pushedClipBox) {
+        	c.popClippingBox();
         }
     }
 
@@ -2149,7 +2166,7 @@ public class BlockBox extends Box implements InlinePaintable {
         return false;
     }
 
-    public boolean isNeedsClipOnPaint(RenderingContext c) {
+    public boolean isNeedsClipOnPaint(CssContext c) {
         return ! isReplaced() &&
             getStyle().isIdent(CSSName.OVERFLOW, IdentValue.HIDDEN) &&
             getStyle().isOverflowApplies();

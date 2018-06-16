@@ -9,8 +9,11 @@ import java.awt.image.DataBuffer;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
@@ -23,6 +26,9 @@ import org.apache.pdfbox.util.Charsets;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.testcases.TestcaseRunner;
+import com.openhtmltopdf.util.JDKXRLogger;
+import com.openhtmltopdf.util.XRLog;
+import com.openhtmltopdf.util.XRLogger;
 
 
 /**
@@ -66,6 +72,8 @@ public class VisualTester {
 		PdfRendererBuilder builder = new PdfRendererBuilder();
 		builder.withHtmlContent(html, VisualTester.class.getResource(this.resourcePath).toString());
 		builder.toStream(actual);
+		builder.useFastMode();
+		builder.testMode(true);
 		config.configure(builder);
 		try {
 			builder.run();
@@ -78,15 +86,40 @@ public class VisualTester {
 		return actual.toByteArray();
 	}
 	
-	public void runTest(String resource) throws IOException {
-		runTest(resource, new BuilderConfig() {
+	public boolean runTest(String resource) throws IOException {
+		return runTest(resource, new BuilderConfig() {
 			@Override
 			public void configure(PdfRendererBuilder builder) {
 			}
 		});
 	}
+	
+	private StringBuilder logToStringBuilder() {
+	    final XRLogger delegate = new JDKXRLogger();
+	    final StringBuilder sb = new StringBuilder();   
+	        XRLog.setLoggerImpl(new XRLogger() {
+	            @Override
+	            public void setLevel(String logger, Level level) {
+	            }
 
-	public void runTest(String resource, BuilderConfig additionalBuilderConfiguration) throws IOException {
+	            @Override
+	            public void log(String where, Level level, String msg, Throwable th) {
+	                StringWriter sw = new StringWriter();
+	                th.printStackTrace(new PrintWriter(sw, true));
+	                sb.append(where + ": " + level + ":\n" + msg + sw.toString() + "\n");
+	                delegate.log(where, level, msg, th);
+	            }
+
+	            @Override
+	            public void log(String where, Level level, String msg) {
+	                sb.append(where + ": " + level + ": " + msg + "\n");
+	                delegate.log(where, level, msg);
+	            }
+	        });
+	        return sb;
+	}
+
+	public boolean runTest(String resource, BuilderConfig additionalBuilderConfiguration) throws IOException {
 		String absResPath = this.resourcePath + resource + ".html";
 		
 		File override = new File(this.overridePath, resource + ".pdf");
@@ -98,24 +131,25 @@ public class VisualTester {
 				.toByteArray(TestcaseRunner.class.getResourceAsStream(absResPath));
 		String html = new String(htmlBytes, Charsets.UTF_8);
 
+		StringBuilder sb = logToStringBuilder();
 		byte[] actualPdfBytes = runRenderer(resourcePath, html, additionalBuilderConfiguration);
 		
 		if (actualPdfBytes == null) {
-			File output = new File(this.outputPath.getCanonicalPath() + resource + ".failure");
-			FileUtils.writeByteArrayToFile(output, "FAILED".getBytes(Charsets.UTF_8));
-			return;
+		    System.err.println("When running test (" + resource + "), rendering failed, writing log to failure file.");
+			File output = new File(this.outputPath, resource + ".failure.txt");
+			FileUtils.writeByteArrayToFile(output, sb.toString().getBytes(Charsets.UTF_8));
+			return false;
 		}
 
-		PDDocument docActual = PDDocument.load(actualPdfBytes);
-		
 		if (!testFile.exists()) {
 			System.err.println("When running test (" + resource + "), nothing to compare against as file (" + testFile.getCanonicalPath() + ") does not exist.");
-			System.out.println("Writing generated PDF to file instead in output directory.");
+			System.err.println("Writing generated PDF to file instead in output directory.");
 			File output = new File(this.outputPath, resource + ".pdf");
 			FileUtils.writeByteArrayToFile(output, actualPdfBytes);
-			return;
+			return false;
 		}
 		
+		PDDocument docActual = PDDocument.load(actualPdfBytes);
 		PDDocument docExpected = PDDocument.load(testFile);
 		
 		PDFRenderer rendActual = new PDFRenderer(docActual);
@@ -136,17 +170,29 @@ public class VisualTester {
 			BufferedImage diff = compareImages(imgActual, imgExpected);
 			
 			if (diff != null) {
-				System.err.println("When running test (" + resource + "), differences were found. Please check diff image in output directory.");
-				File output = new File(this.outputPath, resource + "---" + i + ".png");
+				System.err.println("When running test (" + resource + "), differences were found. Please check diff images in output directory.");
+				File output = new File(this.outputPath, resource + "---" + i + "---diff.png");
 				ImageIO.write(diff, "png", output);
+				
+				output = new File(this.outputPath, resource + "---" + i + "---actual.png");
+				ImageIO.write(imgActual, "png", output);
+				
+				output = new File(this.outputPath, resource + "---" + i + "---expected.png");
+				ImageIO.write(imgExpected, "png", output);
 				problems = true;
 			}
 		}
+		
+		docActual.close();
+		docExpected.close();
 
 		if (problems) {
 			File outPdf = new File(this.outputPath, resource + ".pdf");
 			FileUtils.writeByteArrayToFile(outPdf, actualPdfBytes);
+			return false;
 		}
+		
+		return true;
 	}
 	
 	public BufferedImage compareImages(BufferedImage img1, BufferedImage img2) {

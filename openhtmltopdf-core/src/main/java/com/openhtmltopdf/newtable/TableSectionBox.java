@@ -121,7 +121,7 @@ public class TableSectionBox extends BlockBox {
         }
     }
     
-    private TableBox getTable() {
+    public TableBox getTable() {
         return (TableBox)getParent();
     }
     

@@ -103,6 +103,8 @@ public class TestcaseRunner {
 		 */
 		runTestCase("transform");
 
+		runTestCase("simplerotate");
+
 		runTestCase("quoting");
 
 		runTestCase("math-ml");
@@ -191,7 +193,7 @@ public class TestcaseRunner {
 		}
 	}
 
-	private static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
+	static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
 		DefaultObjectDrawerFactory objectDrawerFactory = new StandardObjectDrawerFactory();
 		objectDrawerFactory.registerDrawer("custom/binary-tree", new SampleObjectDrawerBinaryTree());
 		return objectDrawerFactory;

@@ -60,6 +60,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 		public FSObjectDrawerFactory _objectDrawerFactory;
 		public String _preferredTransformerFactoryImplementationClass = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 		public String _preferredDocumentBuilderFactoryImplementationClass = "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl";
+		public boolean _useFastRenderer = false;
 	}
 
 	protected final TBaseRendererBuilderState state;
@@ -460,6 +461,18 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	public final TFinalClass useObjectDrawerFactory(FSObjectDrawerFactory objectDrawerFactory) {
 		state._objectDrawerFactory = objectDrawerFactory;
 		return (TFinalClass) this;
+	}
+	
+	/**
+	 * Use the new (May 2018) fast renderer if possible (only PDF at this point).
+	 * This renderer can be 100s of times faster for very large documents.
+	 * Please note that the fast renderer will be the only renderer at some future
+	 * release so please at least test your code using the fast mode.
+	 * @return this for method chaining
+	 */
+	public final TFinalClass useFastMode() {
+	    state._useFastRenderer = true;
+	    return (TFinalClass) this;
 	}
 
 	public enum TextDirection {

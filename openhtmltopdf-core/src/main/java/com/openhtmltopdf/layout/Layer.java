@@ -31,20 +31,9 @@ import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
-import com.openhtmltopdf.newtable.CollapsedBorderValue;
-import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
-import com.openhtmltopdf.render.displaylist.DisplayListOperation;
-import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
-import com.openhtmltopdf.render.displaylist.PaintBackgroundAndBorders;
-import com.openhtmltopdf.render.displaylist.PaintInlineContent;
-import com.openhtmltopdf.render.displaylist.PaintLayerBackgroundAndBorder;
-import com.openhtmltopdf.render.displaylist.PaintListMarkers;
-import com.openhtmltopdf.render.displaylist.PaintReplacedElement;
-import com.openhtmltopdf.render.displaylist.PaintReplacedElements;
-import com.openhtmltopdf.render.displaylist.PaintRootElementBackground;
-import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
+import com.openhtmltopdf.render.displaylist.TransformCreator;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.css.CSSPrimitiveValue;
 
@@ -99,13 +88,31 @@ public class Layer {
 
     private int _selectionEndX;
     private int _selectionEndY;
+    
+    /**
+     * @see {@link #getClipBoxes()}
+     */
+    private List<Box> _clippingBoxes;
+    
 
-    public Layer(Box master) {
-        this(null, master);
+    /**
+     * @see {@link #getCurrentTransformMatrix()}
+     */
+    private AffineTransform _ctm;
+    private final boolean _hasLocalTransform;
+
+    /**
+     * Creates the root layer.
+     */
+    public Layer(Box master, CssContext c) {
+        this(null, master, c, null);
         setStackingContext(true);
     }
 
-    public Layer(Layer parent, Box master) {
+    /**
+     * Creates a child layer.
+     */
+    public Layer(Layer parent, Box master, CssContext c, List<Box> clippingBoxes) {
         _parent = parent;
         _master = master;
         setStackingContext(
@@ -113,6 +120,50 @@ public class Layer {
                 (!master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE)));
         master.setLayer(this);
         master.setContainingLayer(this);
+        _clippingBoxes = clippingBoxes;
+        _hasLocalTransform = !master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE);
+    }
+    
+    /** 
+     * Recursively propagates the transformation matrix. This must be done after layout of the master
+     * box and its children as this method relies on the box width and height for relative units in the 
+     * transforms and transform origins.
+     */
+    public void propagateCurrentTransformationMatrix(CssContext c) {
+    	AffineTransform parentCtm = _parent == null ? null : _parent._ctm;
+    	_ctm = _hasLocalTransform ?
+        		TransformCreator.createDocumentCoordinatesTransform(getMaster(), c, parentCtm) : parentCtm;
+        		
+        for (Layer child : getChildren()) {
+        	child.propagateCurrentTransformationMatrix(c);
+        }
+    }
+    
+    /**
+     * The document coordinates current transform, this is cumulative from layer to child layer.
+     * May be null, if identity transform is in effect.
+     * Used to check if a box belonging to this layer sits on a particular page after the
+     * transform is applied.
+     * This method can only be used after {@link #propagateCurrentTransformationMatrix(CssContext)} has been
+     * called on the root layer.
+     * @return null or affine transform.
+     */
+    public AffineTransform getCurrentTransformMatrix() {
+    	return _ctm;
+    }
+    
+    public boolean hasLocalTransform() {
+    	return _hasLocalTransform;
+    }
+    
+    /**
+     * The clipping boxes that were in effect when this layer was created. These should only be 
+     * used by layers triggered by something other than a positioned element (transform / opacity, etc).
+     * Positioned elements will have to use the clip box of the containing block and its containing block
+     * and so on. 
+     */
+    public List<Box> getClipBoxes() {
+    	return _clippingBoxes == null ? Collections.<Box>emptyList() : _clippingBoxes;
     }
 
     public Layer getParent() {
@@ -142,7 +193,7 @@ public class Layer {
         return _master;
     }
 
-    public synchronized void addChild(Layer layer) {
+    public void addChild(Layer layer) {
         if (_children == null) {
             _children = new ArrayList<Layer>();
         }
@@ -227,7 +278,7 @@ public class Layer {
             		result.add(child);
             	} else if (which == POSITIVE && child.getZIndex() > 0) {
             		result.add(child);
-            	} else if (which == ZERO && child.getZIndex() == 0) {
+            	} else if (which == ZERO && !child.isZIndexAuto() && child.getZIndex() == 0) {
             		result.add(child);
             	}
                 result.addAll(child.collectLayers(which));
@@ -823,7 +874,7 @@ public class Layer {
         _fixedBackground = b;
     }
 
-    public synchronized List<Layer> getChildren() {
+    public List<Layer> getChildren() {
         return _children == null ? Collections.<Layer>emptyList() : Collections.unmodifiableList(_children);
     }
 

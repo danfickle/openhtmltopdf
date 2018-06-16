@@ -113,14 +113,6 @@ public class BoxBuilder {
 
         c.resolveCounters(style);
 
-        c.pushLayer(result);
-        if (c.isPrint()) {
-            if (! style.isIdent(CSSName.PAGE, IdentValue.AUTO)) {
-                c.setPageName(style.getStringProperty(CSSName.PAGE));
-            }
-            c.getRootLayer().addPage(c);
-        }
-
         return result;
     }
 

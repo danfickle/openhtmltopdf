@@ -1,0 +1,63 @@
+<html>
+<head>
+<style>
+@page {
+ size: 300px 400px;
+ margin: 10px;
+}
+body {
+  margin: 0;
+}
+div {
+ position: absolute;
+ width: 100px;
+ height: 100px;
+}
+#t-1 {
+ top: 0;
+ left: 0;
+ background-color: red;
+}
+#t-2 {
+ top: 100px;
+ left: 100px;
+ background-color: blue;
+}
+#t-3 {
+ right: 0;
+ top: 0;
+ background-color: green;
+}
+
+/* IGNORED: bottom position not working yet.
+#t-4 {
+  bottom: 10px;
+  left: 50px;
+  background-color: pink;
+}
+*/
+
+/* IGNORED: auto margin centering not working yet.
+#t-5 {
+  top: auto;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: orange;
+}
+*/
+
+</style>
+</head>
+<body>
+
+<!-- You should see red box (top-left), blue box (middle-center) and green box (top-right) -->
+
+<div id="t-1"></div>
+<div id="t-2"></div>
+<div id="t-3"></div>
+<div id="t-4"></div>
+<div id="t-5"></div>
+</body>
+</html>
