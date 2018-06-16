@@ -37,7 +37,7 @@ import com.openhtmltopdf.layout.SharedContext;
  *         November 16, 2004
  */
 public class RenderingContext implements CssContext {
-    protected SharedContext sharedContext;
+    protected final SharedContext sharedContext;
     private OutputDevice outputDevice;
     private FontContext fontContext;
     
@@ -50,6 +50,8 @@ public class RenderingContext implements CssContext {
     
     private int initialPageNo;
     
+    private boolean isFastRenderer = false;
+    
     /**
      * <p/>
      * needs a new instance every run
@@ -57,9 +59,13 @@ public class RenderingContext implements CssContext {
     public RenderingContext(SharedContext sharedContext) {
         this.sharedContext = sharedContext;
     }
-
-    public void setContext(SharedContext sharedContext) {
-        this.sharedContext = sharedContext;
+    
+    public boolean isFastRenderer() {
+    	return isFastRenderer;
+    }
+    
+    public void setFastRenderer(boolean isFast) {
+    	this.isFastRenderer = isFast;
     }
 
     public void setBaseURL(String url) {

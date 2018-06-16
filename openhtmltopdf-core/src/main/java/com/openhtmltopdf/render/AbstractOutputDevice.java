@@ -40,6 +40,7 @@ import com.openhtmltopdf.util.Uu;
 import org.w3c.dom.css.CSSPrimitiveValue;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.util.Iterator;
 import java.util.List;
@@ -49,6 +50,14 @@ import java.util.List;
  * implementations for many <code>OutputDevice</code> methods.
  */
 public abstract class AbstractOutputDevice implements OutputDevice {
+	
+	public static class ClipInfo {
+		public final List<Object> _ops;
+		
+		public ClipInfo(List<Object> ops) {
+			this._ops = ops;
+		}
+	}
 
     private FontSpecification _fontSpec;
 
@@ -230,14 +239,19 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         
         Area borderBounds = new Area(BorderPainter.generateBorderBounds(backgroundBounds, border, true));
 
-        Shape oldclip = getClip();
-        if(oldclip != null) {
-            // we need to respect the clip sent to us, get the intersection between the old and the new
-        	borderBounds.intersect(new Area(oldclip));
+        Shape oldclip = null;
+        
+        if (!c.isFastRenderer()) {
+            oldclip = getClip();
+            if(oldclip != null) {
+                // we need to respect the clip sent to us, get the intersection between the old and the new
+        	    borderBounds.intersect(new Area(oldclip));
+            }
+            setClip(borderBounds);
+        } else if (backgroundImage != null) {
+        	pushClip(borderBounds);
         }
-        
-        setClip(borderBounds);
-        
+
         if (backgroundColor != null && backgroundColor != FSRGBColor.TRANSPARENT) {
             setColor(backgroundColor);
             fill(borderBounds);
@@ -304,9 +318,13 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                             backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
                 }
             }
-
         }
-        setClip(oldclip);
+        
+        if (!c.isFastRenderer()) {
+        	setClip(oldclip);
+        } else if (backgroundImage != null) {
+        	popClip();
+        }
     }
 
     private int adjustTo(int target, int current, int imageDim) {

@@ -68,8 +68,9 @@ public class LayoutContext implements CssContext {
     private StyleTracker _firstLetters;
     private MarkerData _currentMarkerData;
 
-    private LinkedList _bfcs;
-    private LinkedList _layers;
+    private LinkedList<BlockFormattingContext> _bfcs;
+    private LinkedList<Layer> _layers;
+    private LinkedList<Box> _clippingBoxes;
 
     private FontContext _fontContext;
 
@@ -167,8 +168,10 @@ public class LayoutContext implements CssContext {
     //the stuff that needs to have a separate instance for each run.
     LayoutContext(SharedContext sharedContext) {
         _sharedContext = sharedContext;
-        _bfcs = new LinkedList();
-        _layers = new LinkedList();
+        
+        _bfcs = new LinkedList<BlockFormattingContext>();
+        _layers = new LinkedList<Layer>();
+        _clippingBoxes = new LinkedList<Box>();
 
         _firstLines = new StyleTracker();
         _firstLetters = new StyleTracker();
@@ -179,11 +182,12 @@ public class LayoutContext implements CssContext {
         _firstLetters = new StyleTracker();
         _currentMarkerData = null;
 
-        _bfcs = new LinkedList();
+        _bfcs = new LinkedList<BlockFormattingContext>();
 
         if (! keepLayers) {
             _rootLayer = null;
-            _layers = new LinkedList();
+            _layers = new LinkedList<Layer>();
+            _clippingBoxes = new LinkedList<Box>();
         }
 
         _extraSpaceTop = 0;
@@ -251,7 +255,7 @@ public class LayoutContext implements CssContext {
     }
 
     public BlockFormattingContext getBlockFormattingContext() {
-        return (BlockFormattingContext) _bfcs.getLast();
+        return _bfcs.getLast();
     }
 
     public void pushBFC(BlockFormattingContext bfc) {
@@ -262,16 +266,29 @@ public class LayoutContext implements CssContext {
         _bfcs.removeLast();
     }
 
+    /**
+     * We need to keep a list of clipping boxes so we can apply to layers triggered by a transform.
+     * MUST be matched with a call to {@link #popClippingBox()}
+     */
+    public void pushClippingBox(Box clipBox) {
+    	_clippingBoxes.add(clipBox);
+    }
+    
+    public void popClippingBox() {
+    	_clippingBoxes.removeLast();
+    }
+
     public void pushLayer(Box master) {
         Layer layer = null;
 
         if (_rootLayer == null) {
-            layer = new Layer(master);
+            layer = new Layer(master, this);
             _rootLayer = layer;
         } else {
             Layer parent = getLayer();
 
-            layer = new Layer(parent, master);
+            layer = new Layer(parent, master, this, 
+            		_clippingBoxes.isEmpty() ? null : new ArrayList<Box>(_clippingBoxes));
 
             parent.addChild(layer);
         }
@@ -279,7 +296,7 @@ public class LayoutContext implements CssContext {
         pushLayer(layer);
     }
 
-    public void pushLayer(Layer layer) {
+    private void pushLayer(Layer layer) {
         _layers.add(layer);
     }
 
@@ -292,7 +309,7 @@ public class LayoutContext implements CssContext {
     }
 
     public Layer getLayer() {
-        return (Layer) _layers.getLast();
+        return _layers.getLast();
     }
 
     public Layer getRootLayer() {

@@ -1,0 +1,57 @@
+<html>
+<head>
+<style>
+@page {
+ size: 300px 400px;
+ margin: 10px;
+}
+body {
+  margin: 0;
+}
+div {
+ position: fixed;
+ width: 100px;
+ height: 100px;
+}
+#t-1 {
+ top: 0;
+ left: 0;
+ background-color: red;
+}
+#t-2 {
+ top: 100px;
+ left: 100px;
+ background-color: blue;
+}
+#t-3 {
+ right: 0;
+ top: 0;
+ background-color: green;
+}
+#t-4 {
+  bottom: 10px;
+  left: 50px;
+  background-color: pink;
+}
+.pb {
+  display: block;
+  page-break-before: always;
+  border-bottom: 1px solid black;
+  margin-top: 5px;
+}
+</style>
+</head>
+<body>
+
+<!-- On each of two pages, you should see red box (top-left), blue box (middle-center), green box (top-right) and pink box (bottom-center-left).
+     There should also be a black line between the red box and the green box. -->
+
+<div id="t-1"></div>
+<div id="t-2"></div>
+<div id="t-3"></div>
+<div id="t-4"></div>
+<pb class="pb"></pb>
+<pb class="pb"></pb>
+
+</body>
+</html>
