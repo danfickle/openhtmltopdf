@@ -113,6 +113,7 @@ public class TestcaseRunner {
 		 * Broken rotate() on the second page
 		 */
 		runTestCase("RepeatedTableTransformSample");
+//		runTestCase("RepeatedTableTransformSample");
 
 		/* Add additional test cases here. */
 	}
