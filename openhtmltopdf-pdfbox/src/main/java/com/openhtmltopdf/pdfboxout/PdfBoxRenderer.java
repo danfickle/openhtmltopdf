@@ -498,7 +498,6 @@ public class PdfBoxRenderer implements Closeable {
      * Completely experimental for now. Buggy as heck!
      * TODO:
      *   - inline-blocks
-     *   - bottom positioned absolutes
      *   - auto margin centered absolutes
      *   - debugging everything
      */
