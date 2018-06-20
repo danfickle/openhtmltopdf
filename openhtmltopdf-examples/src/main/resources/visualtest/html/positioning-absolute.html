@@ -7,11 +7,14 @@
 }
 body {
   margin: 0;
+  border: 2px solid black;
+  min-height: 700px;
 }
 div {
  position: absolute;
  width: 100px;
  height: 100px;
+ margin: 2px;
 }
 #t-1 {
  top: 0;
@@ -28,14 +31,15 @@ div {
  top: 0;
  background-color: green;
 }
-
-/* IGNORED: bottom position not working yet.
 #t-4 {
   bottom: 10px;
   left: 50px;
   background-color: pink;
 }
-*/
+pb {
+  display: block;
+  page-break-before: always;
+}
 
 /* IGNORED: auto margin centering not working yet.
 #t-5 {
@@ -52,12 +56,14 @@ div {
 </head>
 <body>
 
-<!-- You should see red box (top-left), blue box (middle-center) and green box (top-right) -->
+<!-- You should see red box (top-left), blue box (middle-center), green box (top-right), pink box (bottom leftish) -->
+<!-- There should be two pages and the body should have a black border -->
 
 <div id="t-1"></div>
 <div id="t-2"></div>
 <div id="t-3"></div>
 <div id="t-4"></div>
 <div id="t-5"></div>
+<pb/>
 </body>
 </html>
