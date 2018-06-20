@@ -244,9 +244,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _page = page;
         _pageHeight = height;
 
-        // We call saveGraphics so we can get back to a raw (unclipped) state after we have clipped.
-        // restoreGraphics is only used by setClip and page finish.
-        _cp.saveGraphics();
+        if (!isFastRenderer()) {
+            // We call saveGraphics so we can get back to a raw (unclipped) state after we have clipped.
+            // restoreGraphics is only used by setClip and page finish (unless the fast renderer is in use).
+            _cp.saveGraphics();
+        }
         
         _transform = new AffineTransform();
         _transform.scale(1.0d / _dotsPerPoint, 1.0d / _dotsPerPoint);
@@ -268,7 +270,10 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void finishPage() {
-        _cp.restoreGraphics();
+        if (!isFastRenderer()) {
+            _cp.restoreGraphics();
+        }
+        
         _cp.closeContent();
     }
 
@@ -868,6 +873,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public void clip(Shape s) {
+        if (isFastRenderer()) {
+            XRLog.render(Level.SEVERE, "clip MUST not be used by the fast renderer. Please consider reporting this bug.");
+            return;
+        }
+        
         if (s != null) {
             s = _transform.createTransformedShape(s);
             if (_clip == null)
@@ -882,6 +892,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
 
     public Shape getClip() {
+        if (isFastRenderer()) {
+            XRLog.render(Level.SEVERE, "getClip MUST not be used by the fast renderer. Please consider reporting this bug.");
+            return null;
+        }
+        
         try {
             return _transform.createInverse().createTransformedShape(_clip);
         } catch (NoninvertibleTransformException e) {
@@ -906,6 +921,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     @Override
     public void setClip(Shape s) {
+        if (isFastRenderer()) {
+            XRLog.render(Level.SEVERE, "setClip MUST not be used by the fast renderer. Please consider reporting this bug.");
+            return;
+        }
+
         // Restore graphics to get back to a no-clip situation.
         _cp.restoreGraphics();
 
@@ -929,7 +949,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
         
         clearPageState();
-        //throw new RuntimeException(s.toString());
     }
 
     public Stroke getStroke() {
