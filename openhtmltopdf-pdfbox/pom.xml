@@ -82,7 +82,7 @@
   </build>
 
   <properties>
-    <pdfbox.version>2.0.9</pdfbox.version>
+    <pdfbox.version>2.0.11</pdfbox.version>
   </properties>
 
 </project>
