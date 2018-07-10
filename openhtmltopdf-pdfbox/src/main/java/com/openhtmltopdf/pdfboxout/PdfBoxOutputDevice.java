@@ -33,6 +33,7 @@ import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
 import com.openhtmltopdf.render.*;
@@ -51,6 +52,7 @@ import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitHeightDestination;
@@ -523,8 +525,6 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     }
     
     public void drawStringFast(String s, float x, float y, JustificationInfo info, FontDescription desc, float fontSize) {
-        // TODO: Emulate bold and italic.
-        
         if (s.length() == 0)
             return;
 
@@ -543,8 +543,28 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         
         fontSize = fontSize / _dotsPerPoint;
         
+        boolean resetMode = false;
+        FontSpecification fontSpec = getFontSpecification();
+        if (fontSpec != null) {
+            int need = FontResolverHelper.convertWeightToInt(fontSpec.fontWeight);
+            int have = desc.getWeight();
+            if (need > have) {
+                _cp.setRenderingMode(RenderingMode.FILL_STROKE);
+                float lineWidth = fontSize * 0.04f; // 4% of font size
+                _cp.setLineWidth(lineWidth);
+                resetMode = true;
+                ensureStrokeColor();
+            }
+            if ((fontSpec.fontStyle == IdentValue.ITALIC) && (desc.getStyle() != IdentValue.ITALIC)) {
+                b = 0f;
+                c = 0.21256f;
+            }
+        }
+
         _cp.beginText();
         _cp.setFont(desc.getFont(), fontSize);
+
+
         _cp.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
 
         if (info != null ) {
@@ -558,6 +578,11 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         
         _cp.drawString(s);
         _cp.endText();
+
+        if (resetMode) {
+            _cp.setRenderingMode(RenderingMode.FILL);
+            _cp.setLineWidth(1);
+        }
     }
     
     public static class FontRun {
