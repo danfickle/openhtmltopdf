@@ -61,8 +61,21 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC14-SNAPSHOT
+head - 0.0.1-RC15-SNAPSHOT
 ========
+
+0.0.1-RC14
+========
++ IMPORTANT: This release was brought forward so that we link against PDFBOX-2.0.11 as previous versions had a security vulnerability when parsing arbitary PDF files.
+  While I believe this should not impact this project directly, having an insecure library on your classpath may be dangerous if you use it for other tasks.
+  [#241](https://github.com/danfickle/openhtmltopdf/issues/241) [#239](https://github.com/danfickle/openhtmltopdf/pull/239) Thanks @rototor, @cseblog
++ NOTE: This release incorportate a new faster renderer (especially for large documents) that is in alpha state. Specifically, it can be used with everything except inline-blocks.
+  You can start testing it now with ````builder.useFastMode()```` [#180](https://github.com/danfickle/openhtmltopdf/issues/180) Thanks @rajaningle @javimartinez @dilworks @rototor
++ Image with CSS max-width and max-height incorrectly scaled [#242](https://github.com/danfickle/openhtmltopdf/issues/242) Thanks @koan00
++ Bold and italic emulation [#240](https://github.com/danfickle/openhtmltopdf/pull/240) Thanks @syjer @backslash47
++ Work on correctly outputting multiple HTML files to one PDF [#222](https://github.com/danfickle/openhtmltopdf/pull/222) Thanks @rototor
++ ONGOING: Attempt at fixing font file handle leak [#215](https://github.com/danfickle/openhtmltopdf/pull/215) Thanks @rototor
++ Don't throw NPE when no base URI is provided [#206](https://github.com/danfickle/openhtmltopdf/issues/206)
 + [Fix link annotation placement in margin or generated boxes](https://github.com/danfickle/openhtmltopdf/issues/213) Thanks @jesselong, @Kuhlware, @markhowardnz 
 
 
