@@ -194,6 +194,30 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 		state._producer = producer;
 		return this;
 	}
+	
+	/**
+	 * List of caches available.
+	 */
+	public static enum CacheStore {
+	    
+	    /**
+	     * Caches font metrics, based on a combined key of family name, weight and style.
+	     * Using this cache avoids loading fallback fonts if the metrics are already in the cache
+	     * and the previous fonts contain the needed characters.
+	     */
+	    PDF_FONT_METRICS;
+	}
+	
+	/**
+	 * Use a specific cache. Cache values should be thread safe, so provided your cache store itself
+	 * is thread safe can be used accross threads.
+	 * @return this for method chaining.
+	 * @see {@link CacheStore}
+	 */
+	public PdfRendererBuilder useCacheStore(CacheStore which, FSCacheEx<String, FSCacheValue> cache) {
+	    state._caches.put(which, cache);
+	    return this;
+	}
 
 
 	static class AddedFont {
