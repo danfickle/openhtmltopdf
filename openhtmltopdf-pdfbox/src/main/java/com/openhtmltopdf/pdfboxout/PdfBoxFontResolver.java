@@ -707,23 +707,17 @@ public class PdfBoxFontResolver implements FontResolver {
             _metricsCache = metricsCache;
             _metrics = getFontMetricsFromCache(family, weight, style);
         }
+
+        private String createFontMetricsCacheKey(String family, int weight, IdentValue style) {
+            return "font-metrics:" + family + ":" + weight + ":" + style.toString();
+        }
         
         private PdfBoxRawPDFontMetrics getFontMetricsFromCache(String family, int weight, IdentValue style) {
-            if (_metricsCache == null) {
-                return null;
-            }
-            
-            String cacheKey = "font-metrics:" + family + ":" + weight + ":" + style.toString();
-            return (PdfBoxRawPDFontMetrics) _metricsCache.get(cacheKey);
+            return (PdfBoxRawPDFontMetrics) _metricsCache.get(createFontMetricsCacheKey(family, weight, style));
         }
         
         private void putFontMetricsInCache(String family, int weight, IdentValue style, PdfBoxRawPDFontMetrics metrics) {
-            if (_metricsCache == null) {
-                return;
-            }
-            
-            String cacheKey = "font-metrics:" + family + ":" + weight + ":" + style.toString();
-            _metricsCache.put(cacheKey, metrics);
+            _metricsCache.put(createFontMetricsCacheKey(family, weight, style), metrics);
         }
 
         private boolean realizeFont() {

@@ -2,6 +2,7 @@ package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.extend.impl.FSNoOpCacheStore;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
@@ -18,6 +19,12 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 
 	public PdfRendererBuilder() {
 		super(new PdfRendererBuilderState());
+		
+		for (CacheStore cacheStore : CacheStore.values()) {
+		    // Use the flyweight pattern to initialize all caches with a no-op implementation to
+		    // avoid excessive null handling.
+		    state._caches.put(cacheStore, FSNoOpCacheStore.INSTANCE);
+		}
 	}
 
 	/**
