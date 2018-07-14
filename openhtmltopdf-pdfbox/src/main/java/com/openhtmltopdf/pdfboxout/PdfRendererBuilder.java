@@ -107,6 +107,30 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 		state._pdfVersion = version;
 		return this;
 	}
+
+	/**
+	 * Set the PDF/A conformance, typically we use PDF/A-1
+	 *
+	 * @param pdfAConformance
+	 * @return
+	 */
+	public PdfRendererBuilder usePdfAConformance(PdfAConformance pdfAConformance) {
+		this.state._pdfAConformance = pdfAConformance.value;
+		return this;
+	}
+
+	/**
+	 * Sets the color profile, needed for PDF/A conformance.
+	 *
+	 * You can use the sRGB.icc from https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/resources/org/apache/pdfbox/resources/pdfa/
+	 *
+	 * @param colorProfile
+	 * @return
+	 */
+	public PdfRendererBuilder useColorProfile(byte[] colorProfile) {
+		this.state._colorProfile = colorProfile;
+		return this;
+	}
 	
 	/**
 	 * By default, this project creates an entirely in-memory <code>PDDocument</code>.
@@ -213,6 +237,22 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 			this.subset = subset;
 			this.style = style;
 		}
+	}
+
+	/**
+	 * Various level of PDF/A conformance:
+	 *
+	 * PDF/A-1, PDF/A-2 and PDF/A-3
+	 */
+	public enum PdfAConformance {
+
+		PDF_A_1("A"), PDF_A_2("B"), PDF_A_3("U");
+
+		PdfAConformance(String value) {
+			this.value = value;
+		}
+
+		private final String value;
 	}
 }
 

@@ -22,4 +22,6 @@ public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBui
 	public float _pdfVersion = 1.7f;
 	public String _producer;
 	public PDDocument pddocument;
+	public String _pdfAConformance;
+	public byte[] _colorProfile;
 }
