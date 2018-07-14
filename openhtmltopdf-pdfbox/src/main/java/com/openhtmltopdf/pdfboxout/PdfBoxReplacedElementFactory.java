@@ -56,6 +56,12 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
         } else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");
             if (srcAttr != null && srcAttr.length() > 0) {
+
+                //handle the case of linked svg from img tag
+                if (srcAttr.endsWith(".svg") && _svgImpl != null) {
+                    return new PdfBoxSVGReplacedElement(uac.getXMLResource(srcAttr).getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, c, c.getSharedContext());
+                }
+
                 FSImage fsImage = uac.getImageResource(srcAttr).getImage();
                 if (fsImage != null) {
                     boolean hasMaxHeight = !box.getStyle().isMaxHeightNone();
