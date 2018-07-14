@@ -34,6 +34,7 @@ import com.openhtmltopdf.outputdevice.helper.FontFaceFontSupplier;
 import com.openhtmltopdf.outputdevice.helper.FontFamily;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.outputdevice.helper.MinimalFontDescription;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.util.XRLog;
 
@@ -58,17 +59,22 @@ import java.util.logging.Level;
  * of fonts work. So you should always set embedded/subset=true for now.
  */
 public class PdfBoxFontResolver implements FontResolver {
-    private Map<String, FontFamily<FontDescription>> _fontFamilies = createInitialFontMap();
+    private Map<String, FontFamily<FontDescription>> _fontFamilies;
     private Map<String, FontDescription> _fontCache = new HashMap<String, FontDescription>();
     private final PDDocument _doc;
     private final SharedContext _sharedContext;
     private final List<TrueTypeCollection> _collectionsToClose = new ArrayList<TrueTypeCollection>();
     private final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
+    private final PdfAConformance _pdfAConformance;
 
-    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache) {
+    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, PdfAConformance pdfAConformance) {
         _sharedContext = sharedContext;
         _doc = doc;
         _fontMetricsCache = pdfMetricsCache;
+        _pdfAConformance = pdfAConformance;
+ 
+        // All fonts are required to be embedded in PDF/A documents, so we don't add the built-in fonts, if conformance is required.
+        _fontFamilies = (_pdfAConformance == PdfAConformance.NONE) ? createInitialFontMap() : new HashMap<String, FontFamily<FontDescription>>();
     }
 
     @Override
@@ -409,10 +415,16 @@ public class PdfBoxFontResolver implements FontResolver {
             }
         }
 
-        // For now, we end up with "Serif" built-in font.
-        // Q: Should this change?
-        // Q: Should we have a final automatically added font?
-        fonts.add(resolveFont(ctx, "Serif", size, weight, style, variant));
+        if (_pdfAConformance == PdfAConformance.NONE) {
+            // We don't have a final fallback font for PDF/A documents as serif may not be available
+            // unless the user has explicitly embedded it.
+            
+            // For now, we end up with "Serif" built-in font.
+            // Q: Should this change?
+            // Q: Should we have a final automatically added font?
+            fonts.add(resolveFont(ctx, "Serif", size, weight, style, variant));
+        }
+        
         return new PdfBoxFSFont(fonts, size);
     }
 

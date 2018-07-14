@@ -117,6 +117,10 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 
 	/**
 	 * Set the PDF/A conformance, typically we use PDF/A-1
+	 * 
+	 * Note: PDF/A documents require fonts to be embedded. So if this is not set to NONE,
+	 * the built-in fonts will not be available and currently any text without a
+	 * specified and embedded font will cause the renderer to crash with an exception.
 	 *
 	 * @param pdfAConformance
 	 * @return

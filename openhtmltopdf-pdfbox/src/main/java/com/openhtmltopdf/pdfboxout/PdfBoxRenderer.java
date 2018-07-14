@@ -178,7 +178,7 @@ public class PdfBoxRenderer implements Closeable {
         userAgent.setSharedContext(_sharedContext);
         _outputDevice.setSharedContext(_sharedContext);
 
-        PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, state._caches.get(CacheStore.PDF_FONT_METRICS));
+        PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, state._caches.get(CacheStore.PDF_FONT_METRICS), state._pdfAConformance);
         _sharedContext.setFontResolver(fontResolver);
 
         PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, state._svgImpl, state._objectDrawerFactory, state._mathmlImpl);
