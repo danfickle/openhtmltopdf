@@ -36,6 +36,7 @@ import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.pdfboxout.PdfBoxOutputDevice.Metadata;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -104,7 +105,7 @@ public class PdfBoxRenderer implements Closeable {
     // Usually 1.7
     private float _pdfVersion;
 
-    private String _pdfAConformance;
+    private PdfAConformance _pdfAConformance;
 
     private byte[] _colorProfile;
 
@@ -637,8 +638,8 @@ public class PdfBoxRenderer implements Closeable {
         firePreWrite(pageCount); // opportunity to adjust meta data
         setDidValues(doc); // set PDF header fields from meta data
 
-        if (_pdfAConformance != null) {
-            addPdfASchema(doc, _pdfAConformance);
+        if (_pdfAConformance != PdfAConformance.NONE) {
+            addPdfASchema(doc, _pdfAConformance.getConformanceValue());
         }
 
         for (int i = 0; i < pageCount; i++) {

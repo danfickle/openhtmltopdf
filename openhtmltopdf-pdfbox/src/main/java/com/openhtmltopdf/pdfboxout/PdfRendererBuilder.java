@@ -122,7 +122,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * @return
 	 */
 	public PdfRendererBuilder usePdfAConformance(PdfAConformance pdfAConformance) {
-		this.state._pdfAConformance = pdfAConformance.value;
+		this.state._pdfAConformance = pdfAConformance;
 		return this;
 	}
 
@@ -276,7 +276,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * PDF/A-1, PDF/A-2 and PDF/A-3
 	 */
 	public enum PdfAConformance {
-
+                NONE(""),
 		PDF_A_1("A"), PDF_A_2("B"), PDF_A_3("U");
 
 		PdfAConformance(String value) {
@@ -284,6 +284,10 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 		}
 
 		private final String value;
+		
+		public String getConformanceValue() {
+		    return this.value;
+		}
 	}
 }
 

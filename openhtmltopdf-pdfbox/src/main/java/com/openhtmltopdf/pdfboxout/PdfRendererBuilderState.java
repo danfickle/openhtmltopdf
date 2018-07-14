@@ -4,6 +4,7 @@ import com.openhtmltopdf.extend.FSCacheEx;
 import com.openhtmltopdf.extend.FSCacheValue;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
@@ -28,7 +29,7 @@ public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBui
 	public float _pdfVersion = 1.7f;
 	public String _producer;
 	public PDDocument pddocument;
-        public Map<CacheStore, FSCacheEx<String, FSCacheValue>> _caches = new EnumMap<CacheStore, FSCacheEx<String, FSCacheValue>>(CacheStore.class);
-	public String _pdfAConformance;
+        public final Map<CacheStore, FSCacheEx<String, FSCacheValue>> _caches = new EnumMap<CacheStore, FSCacheEx<String, FSCacheValue>>(CacheStore.class);
+	public PdfAConformance _pdfAConformance = PdfAConformance.NONE;
 	public byte[] _colorProfile;
 }
