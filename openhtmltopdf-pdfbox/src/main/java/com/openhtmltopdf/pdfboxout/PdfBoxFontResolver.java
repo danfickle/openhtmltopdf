@@ -91,12 +91,15 @@ public class PdfBoxFontResolver implements FontResolver {
 			/*
 			 * If the font is not yet subset, we must subset it, otherwise we may leak a
 			 * file handle because the PDType0Font may still have the font file open.
+			 * 
+			 * FIXME: Remove this as soon as we begin using PDFBOX 2.0.12 as it correctly closes
+			 * all fonts opened with a PDDocument.
 			 */
 			if (fontDescription._font != null && fontDescription._font.willBeSubset()) {
 				try {
 					fontDescription._font.subset();
 				} catch (IOException e) {
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 			}
 		}
@@ -107,7 +110,7 @@ public class PdfBoxFontResolver implements FontResolver {
 			try {
 				collection.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 		_collectionsToClose.clear();
