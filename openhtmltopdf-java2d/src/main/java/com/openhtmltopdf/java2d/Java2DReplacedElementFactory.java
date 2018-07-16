@@ -36,10 +36,16 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 			return new Java2DSVGReplacedElement(e, _svgImpl, cssWidth, cssHeight, box, context);
 		} else if (nodeName.equals("object") && _objectDrawerFactory != null) {
 			FSObjectDrawer drawer = _objectDrawerFactory.createDrawer(e);
-			if (drawer != null)
+			if (drawer != null) {
 				return new Java2DObjectDrawerReplacedElement(e, drawer, cssWidth, cssHeight,
 						context.getSharedContext().getDotsPerPixel());
-        }
+			}
+		} else if (nodeName.equals("img") && _svgImpl != null) {
+			String srcAttr = e.getAttribute("src");
+			if (srcAttr != null && srcAttr.endsWith(".svg")) {
+				return new Java2DSVGReplacedElement(uac.getXMLResource(srcAttr).getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, context);
+			}
+		}
 
 		/*
 		 * Default: Just let the base class handle everything
