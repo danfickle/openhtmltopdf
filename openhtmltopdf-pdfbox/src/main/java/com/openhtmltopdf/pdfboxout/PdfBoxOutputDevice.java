@@ -21,7 +21,6 @@ package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
-import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
@@ -35,8 +34,9 @@ import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
-import com.openhtmltopdf.pdfboxout.PdfBoxForm.CheckboxStyle;
+import com.openhtmltopdf.pdfboxout.PdfBoxPerDocumentFormState;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
@@ -45,26 +45,20 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitHeightDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
-import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.RenderingHints.Key;
@@ -176,27 +170,9 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
 
     // Contains a list of metadata items for the document.
     private final List<Metadata> _metadata = new ArrayList<Metadata>();
-    
-    // We keep a map of forms for the document so we can add controls to the correct form as they are seen.
-    private final Map<Element, PdfBoxForm> forms = new HashMap<Element, PdfBoxForm>();
 
-    // The list of controls in the document. Control class contains all the info we need to output a control.
-    private final List<PdfBoxForm.Control> controls = new ArrayList<PdfBoxForm.Control>();
-
-    // A set of controls, so we don't double process a control.
-    private final Set<Element> seenControls = new HashSet<Element>();
-
-    // We keep a map of fonts to font resource name so we don't double add fonts needed for form controls.
-    private final Map<PDFont, String> controlFonts = new HashMap<PDFont, String>();
-    
-    // The checkbox style to appearance stream map. We only create appearance streams on demand and once for a specific
-    // style so we store appearance streams created here.
-    final Map<CheckboxStyle, PDAppearanceStream> checkboxAppearances = new EnumMap<CheckboxStyle, PDAppearanceStream>(CheckboxStyle.class);
-
-    // Again, we only create these appearance streams as needed.
-    PDAppearanceStream checkboxOffAppearance;
-    PDAppearanceStream radioBoxOffAppearance;
-    PDAppearanceStream radioBoxOnAppearance;
+    // Contains all the state needed to manage form controls
+    private final PdfBoxPerDocumentFormState _formState = new PdfBoxPerDocumentFormState();
     
     // The root box in the document. We keep this so we can search for specific boxes below it
     // such as links or form controls which we need to position.
@@ -287,130 +263,28 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
     /**
      * We use paintBackground to do extra stuff such as processing links, forms and form controls.
      */
+    @Override
     public void paintBackground(RenderingContext c, Box box) {
         super.paintBackground(c, box);
 
+        // processLinkLater will take care of making sure it is actually a link.
         _linkManager.processLinkLater(c, box, _page, _pageHeight, _transform);
        
         if (box.getElement() != null && box.getElement().getNodeName().equals("form")) {
-            if (!forms.containsKey(box.getElement())) {
-                PdfBoxForm frm = PdfBoxForm.createForm(box.getElement());
-                forms.put(box.getElement(), frm);
-            }
+            _formState.addFormIfRequired(box, this);
         } else if (box.getElement() != null &&
-                (box.getElement().getNodeName().equals("input") ||
-                 box.getElement().getNodeName().equals("textarea") ||
-                 box.getElement().getNodeName().equals("button") ||
-                 box.getElement().getNodeName().equals("select") ||
-                 box.getElement().getNodeName().equals("openhtmltopdf-combo"))) {
+                   ArrayUtil.isOneOf(box.getElement().getNodeName(), "input", "textarea", "button", "select", "openhtmltopdf-combo")) {
             // Add controls to list to process later. We do this in case we paint a control background
             // before its associated form.
-            if (!seenControls.contains(box.getElement())) {
-                controls.add(new PdfBoxForm.Control(box, _page, _transform, c, _pageHeight));
-                seenControls.add(box.getElement());
-            }
+            _formState.addControlIfRequired(box, _page, _transform, c, _pageHeight);
         }
     }
 
     private void processControls() {
-        
-        PDResources checkBoxFontResource = null;
-        
-        for (PdfBoxForm.Control ctrl : controls) {
-            PdfBoxForm frm = findEnclosingForm(ctrl.box.getElement());
-            String fontName = null;
-            
-            if (!(ctrl.box.getElement().getAttribute("type").equals("checkbox") ||
-                  ctrl.box.getElement().getAttribute("type").equals("radio") ||
-                  ctrl.box.getElement().getAttribute("type").equals("hidden"))) {
-                PDFont fnt = ((PdfBoxFSFont) _sharedContext.getFont(ctrl.box.getStyle().getFontSpecification())).getFontDescription().get(0).getFont();
-
-                if (!controlFonts.containsKey(fnt)) {
-                    fontName = "OpenHTMLFont" + controlFonts.size();
-                    controlFonts.put(fnt, fontName);
-                } else {
-                    fontName = controlFonts.get(fnt);
-                }
-            } else if (ctrl.box.getElement().getAttribute("type").equals("checkbox")) {
-                CheckboxStyle style = CheckboxStyle.fromIdent(ctrl.box.getStyle().getIdent(CSSName.FS_CHECKBOX_STYLE));
-
-                if (checkBoxFontResource == null) {
-                    checkBoxFontResource = new PDResources();
-                    checkBoxFontResource.put(COSName.getPDFName("OpenHTMLZap"), PDType1Font.ZAPF_DINGBATS);
-                }
-                
-                if (!checkboxAppearances.containsKey(style)) {
-                    PDAppearanceStream strm = PdfBoxForm.createCheckboxAppearance(style, getWriter(), checkBoxFontResource);
-                    checkboxAppearances.put(style, strm);
-                }
-                
-                if (checkboxOffAppearance == null) {
-                    checkboxOffAppearance = PdfBoxForm.createCheckboxAppearance("q\nQ\n", getWriter(), checkBoxFontResource);
-                }
-            } else if (ctrl.box.getElement().getAttribute("type").equals("radio")) {
-                if (checkBoxFontResource == null) {
-                    checkBoxFontResource = new PDResources();
-                    checkBoxFontResource.put(COSName.getPDFName("OpenHTMLZap"), PDType1Font.ZAPF_DINGBATS);
-                }
-
-                if (radioBoxOffAppearance == null) {
-                    radioBoxOffAppearance = PdfBoxForm.createCheckboxAppearance("q\nQ\n", getWriter(), checkBoxFontResource);
-                }
-
-                if (radioBoxOnAppearance == null) {
-                    radioBoxOnAppearance = PdfBoxForm.createCheckboxAppearance(CheckboxStyle.DIAMOND, getWriter(), checkBoxFontResource);
-                }
-            }
-                
-            if (frm != null) {
-                frm.addControl(ctrl, fontName);
-            }
-        }
-        
-        PDResources resources = new PDResources(); 
-        for (Map.Entry<PDFont, String> fnt : controlFonts.entrySet()) {
-            resources.put(COSName.getPDFName(fnt.getValue()), fnt.getKey());
-        }
-        
-        if (forms.size() != 0) {
-            int start = 0;
-            PDAcroForm acro = new PDAcroForm(_writer);
-
-            acro.setNeedAppearances(Boolean.TRUE);
-            acro.setDefaultResources(resources);
-        
-            _writer.getDocumentCatalog().setAcroForm(acro);
-        
-            for (PdfBoxForm frm : forms.values()) {
-                try {
-                    start = 1 + frm.process(acro, start, _root, this);
-                } catch (IOException e) {
-                    throw new PdfContentStreamAdapter.PdfException("processControls", e);
-                }
-            }
-        }
+        _formState.processControls(_sharedContext, _writer, _root);
     }
     
-    /**
-     * Helper function to find an enclosing PdfBoxForm given a input or textarea element.
-     */
-    private PdfBoxForm findEnclosingForm(Node e) {
-        Node parent;
-        while ((parent = e.getParentNode()) != null) {
-            if (parent.getNodeType() == Node.ELEMENT_NODE &&
-                parent.getNodeName().equals("form")) {
 
-                Element frmElement = (Element) parent;
-                if (forms.containsKey(frmElement)) {
-                    return forms.get(frmElement);
-                }
-            }
-            e = parent;
-        }
-        
-        XRLog.general(Level.WARNING, "Found form control (" + e.getNodeName() + ") with no enclosing form. Ignoring.");
-        return null;
-    }
 
     /**
      * Given a value in dots units, converts to PDF points.

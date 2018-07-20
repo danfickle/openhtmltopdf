@@ -30,4 +30,32 @@ public class ArrayUtil {
     public static int[] cloneOrEmpty(int[] source) {
         return source == null ? Constants.EMPTY_INT_ARR : (int[]) source.clone();
     }
+    
+    /**
+     * Tests if left is equal to one of the rights. Also returns true if both are null.
+     */
+    public static <T> boolean isOneOf(T left, T... rights) {
+        for (T candidate : rights) {
+            if (candidate == null && left == null) {
+                return true;
+            } else if (left != null && left.equals(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Joins a string array, with the given separator.
+     */
+    public static String join(String[] partials, String separator) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0;i < partials.length; i++) {
+            sb.append(partials[i]);
+            if (i < partials.length - 1) {
+                sb.append(separator);
+            }
+        }
+        return sb.toString();
+    }
 }

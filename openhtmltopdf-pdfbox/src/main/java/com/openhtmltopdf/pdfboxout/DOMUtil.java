@@ -21,10 +21,13 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.openhtmltopdf.util.XRLog;
 
 public class DOMUtil {
     public static Element getChild(Element parent, String name) {
@@ -54,6 +57,21 @@ public class DOMUtil {
             }
         }
         return result.size() == 0 ? null : result;
+    }
+    
+    /**
+     * Helper function to find an enclosing element with given node name. Returns null on failure.
+     */
+    public static Element findClosestEnclosingElementWithNodeName(Node e, String nodeName) {
+        Node parent;
+        while ((parent = e.getParentNode()) != null) {
+            if (parent.getNodeType() == Node.ELEMENT_NODE &&
+                parent.getNodeName().equals(nodeName)) {
+                return (Element) parent;
+            }
+            e = parent;
+        }
+        return null;
     }
     
     /**

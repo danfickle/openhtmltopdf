@@ -49,10 +49,18 @@ import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.util.ArrayUtil;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 
 
 public class PdfBoxForm {
+    // The global(per document) form state container
+    private final PdfBoxPerDocumentFormState docFormsStateContainer;
+    
+    // The output device
+    private final PdfBoxOutputDevice od;
+    
     // The form element itself.
     private final Element element;
     
@@ -110,12 +118,14 @@ public class PdfBoxForm {
         }
     }
     
-    private PdfBoxForm(Element element) {
+    private PdfBoxForm(Element element, PdfBoxPerDocumentFormState forms, PdfBoxOutputDevice od) {
         this.element = element;
+        this.od = od;
+        this.docFormsStateContainer = forms;
     }
     
-    public static PdfBoxForm createForm(Element e) {
-        return new PdfBoxForm(e);
+    public static PdfBoxForm createForm(Element e, PdfBoxPerDocumentFormState forms, PdfBoxOutputDevice od) {
+        return new PdfBoxForm(e, forms, od);
     }
 
     public void addControl(Control ctrl, String fontName) {
@@ -151,7 +161,7 @@ public class PdfBoxForm {
                     
                     String[] parent = new String[i];
                     System.arraycopy(partials, 0, parent, 0, i);
-                    String parentQualifiedName = join(parent, ".");
+                    String parentQualifiedName = ArrayUtil.join(parent, ".");
 
                     Field f = allFieldMap.get(parentQualifiedName);
                     if (f == null) {
@@ -211,28 +221,6 @@ public class PdfBoxForm {
               }
           }
       }
-    
-    /**
-     * Joins a string array, with the given separator.
-     */
-    private String join(String[] partials, String separator) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0;i < partials.length; i++) {
-            sb.append(partials[i]);
-            if (i < partials.length - 1) {
-                sb.append(separator);
-            }
-        }
-        return sb.toString();
-    }
-    
-    private static Integer getNumber(String s) {
-        try {
-            return Integer.parseInt(s);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
     
     /**
      * Get a PDF graphics operator for a specific color.
@@ -306,7 +294,7 @@ public class PdfBoxForm {
         return selected;
     }
     
-    private void processMultiSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+    private void processMultiSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDListBox field = new PDListBox(acro);
 
         Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
@@ -356,7 +344,7 @@ public class PdfBoxForm {
     /**
      * Processes select controls and the custom openhtmltopdf-combo control.
      */
-    private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+    private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDComboBox field = new PDComboBox(acro);
         
         Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
@@ -407,7 +395,7 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widget);
     }
     
-    private void processHiddenControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+    private void processHiddenControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDTextField field = new PDTextField(acro);
         
         Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
@@ -428,7 +416,7 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widgy);
     }
     
-    private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+    private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDTextField field = new PDTextField(acro);
         
         Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
@@ -449,8 +437,8 @@ public class PdfBoxForm {
         field.setDefaultValue(value); // The reset value.
         field.setValue(value);        // The original value.
     
-        if (getNumber(ctrl.box.getElement().getAttribute("max-length")) != null) {
-            field.setMaxLen(getNumber(ctrl.box.getElement().getAttribute("max-length")));
+        if (OpenUtil.parseIntegerOrNull(ctrl.box.getElement().getAttribute("max-length")) != null) {
+            field.setMaxLen(OpenUtil.parseIntegerOrNull(ctrl.box.getElement().getAttribute("max-length")));
         }
         
         if (ctrl.box.getElement().hasAttribute("required")) {
@@ -585,7 +573,7 @@ public class PdfBoxForm {
         return valueEncoded;
     }
     
-    private void processCheckboxControl(ControlFontPair pair, PDAcroForm acro, int i, Control ctrl, Box root, PdfBoxOutputDevice od) throws IOException {
+    private void processCheckboxControl(ControlFontPair pair, PDAcroForm acro, int i, Control ctrl, Box root) throws IOException {
         PDCheckBox field = new PDCheckBox(acro);
         
         Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
@@ -640,8 +628,8 @@ public class PdfBoxForm {
         widget.setAppearanceCharacteristics(appearanceCharacteristics);
 
         COSDictionary dict = new COSDictionary();
-        dict.setItem(zero, od.checkboxAppearances.get(style));
-        dict.setItem(COSName.Off, od.checkboxOffAppearance);
+        dict.setItem(zero, this.docFormsStateContainer.getCheckboxStyle(style));
+        dict.setItem(COSName.Off, this.docFormsStateContainer.getCheckboxOffStream());
         PDAppearanceDictionary appearanceDict = new PDAppearanceDictionary();
         appearanceDict.getCOSObject().setItem(COSName.N, dict);
         widget.setAppearance(appearanceDict);
@@ -649,7 +637,7 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widget);
     }
     
-    private void processRadioButtonGroup(List<Control> group, PDAcroForm acro, int i, Box root, PdfBoxOutputDevice od) throws IOException {
+    private void processRadioButtonGroup(List<Control> group, PDAcroForm acro, int i, Box root) throws IOException {
         String groupName = group.get(0).box.getElement().getAttribute("name");
         PDRadioButton field = new PDRadioButton(acro);
         
@@ -679,8 +667,8 @@ public class PdfBoxForm {
             widget.setPrinted(true);
             
             COSDictionary dict = new COSDictionary();
-            dict.setItem(COSName.getPDFName("" + radioCnt), od.radioBoxOnAppearance);
-            dict.setItem(COSName.Off, od.radioBoxOffAppearance);
+            dict.setItem(COSName.getPDFName("" + radioCnt), docFormsStateContainer.getRadioOnStream());
+            dict.setItem(COSName.Off, docFormsStateContainer.getRadioOffStream());
             PDAppearanceDictionary appearanceDict = new PDAppearanceDictionary();
             appearanceDict.getCOSObject().setItem(COSName.N, dict);
 
@@ -707,7 +695,7 @@ public class PdfBoxForm {
         }
     }
     
-    private void processSubmitControl(PDAcroForm acro, int i, Control ctrl, Box root, PdfBoxOutputDevice od) throws IOException {
+    private void processSubmitControl(PDAcroForm acro, int i, Control ctrl, Box root) throws IOException {
         final int FLAG_USE_GET = 1 << 3;
         final int FLAG_USE_HTML_SUBMIT = 1 << 2;
         
@@ -780,7 +768,7 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widget);
     }
     
-    public int process(PDAcroForm acro, int startId, Box root, PdfBoxOutputDevice od) throws IOException {
+    public int process(PDAcroForm acro, int startId, Box root) throws IOException {
         processControlNames();
         
         int  i = startId;
@@ -800,24 +788,24 @@ public class PdfBoxForm {
                  e.getAttribute("type").equals("file"))) {
 
                 // Start with the text controls (text, password, file and textarea).
-                processTextControl(pair, ctrl, acro, i, root, od);
+                processTextControl(pair, ctrl, acro, i, root);
             } else if ((e.getNodeName().equals("select") &&
                         !e.hasAttribute("multiple")) ||
                        (e.getNodeName().equals("openhtmltopdf-combo"))) {
                 
-                processSelectControl(pair, ctrl, acro, i, root, od);
+                processSelectControl(pair, ctrl, acro, i, root);
             } else if (e.getNodeName().equals("select") &&
                        e.hasAttribute("multiple")) {
                 
-                processMultiSelectControl(pair, ctrl, acro, i, root, od);
+                processMultiSelectControl(pair, ctrl, acro, i, root);
             } else if (e.getNodeName().equals("input") &&
                        e.getAttribute("type").equals("checkbox")) {
                 
-                processCheckboxControl(pair, acro, i, ctrl, root, od);
+                processCheckboxControl(pair, acro, i, ctrl, root);
             } else if (e.getNodeName().equals("input") &&
                        e.getAttribute("type").equals("hidden")) {
                 
-                processHiddenControl(pair, ctrl, acro, i, root, od);
+                processHiddenControl(pair, ctrl, acro, i, root);
             }else if (e.getNodeName().equals("input") &&
                        e.getAttribute("type").equals("radio")) {
                 // We have to do radio button groups in one hit so add them to a map of list keyed on name.
@@ -844,13 +832,13 @@ public class PdfBoxForm {
         // Now process each group of radio buttons.
         for (List<Control> group : radioGroups.values()) {
             i++;
-            processRadioButtonGroup(group, acro, i, root, od);
+            processRadioButtonGroup(group, acro, i, root);
         }
         
         // We do submit controls last as we need all the fields in this form.
         for (Control ctrl : submits) {
             i++;
-            processSubmitControl(acro, i, ctrl, root, od);
+            processSubmitControl(acro, i, ctrl, root);
         }
         
         createNonTerminalFields(acro);

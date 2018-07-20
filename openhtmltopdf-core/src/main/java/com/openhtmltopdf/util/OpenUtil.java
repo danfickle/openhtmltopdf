@@ -23,4 +23,12 @@ public class OpenUtil {
 				 category == Character.PRIVATE_USE ||
 				 category == Character.SURROGATE);
 	}
+	
+	public static Integer parseIntegerOrNull(String possibleInteger) {
+	        try {
+	            return Integer.parseInt(possibleInteger);
+	        } catch (NumberFormatException e) {
+	            return null;
+	        }
+	}
 }
