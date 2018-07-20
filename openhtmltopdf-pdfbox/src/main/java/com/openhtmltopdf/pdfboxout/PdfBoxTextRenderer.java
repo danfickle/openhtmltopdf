@@ -48,21 +48,23 @@ public class PdfBoxTextRenderer implements TextRenderer {
         this._reorderer = reorderer;
     }
 
+    @Override
     public void drawString(OutputDevice outputDevice, String string, float x, float y) {
         ((PdfBoxOutputDevice)outputDevice).drawString(string, x, y, null);
     }
     
+    @Override
     public void drawString(
             OutputDevice outputDevice, String string, float x, float y, JustificationInfo info) {
         ((PdfBoxOutputDevice)outputDevice).drawString(string, x, y, info);
     }
 
+    @Override
     public FSFontMetrics getFSFontMetrics(FontContext context, FSFont font, String string) {
         List<FontDescription> descrs = ((PdfBoxFSFont) font).getFontDescription();
         float size = font.getSize2D();
         PdfBoxFSFontMetrics result = new PdfBoxFSFontMetrics();
         
-        try {
             float largestAscent = -Float.MAX_VALUE;
             float largestDescent = -Float.MAX_VALUE;
             float largestStrikethroughOffset = -Float.MAX_VALUE;
@@ -71,12 +73,18 @@ public class PdfBoxTextRenderer implements TextRenderer {
             float largestUnderlineThickness = -Float.MAX_VALUE;
             
             for (FontDescription des : descrs) {
-                float loopAscent = des.getFont().getBoundingBox().getUpperRightY();
-                float loopDescent = -des.getFont().getBoundingBox().getLowerLeftY();
-                float loopStrikethroughOffset = -des.getYStrikeoutPosition();
-                float loopStrikethroughThickness = des.getYStrikeoutSize();
-                float loopUnderlinePosition = -des.getUnderlinePosition();
-                float loopUnderlineThickness = des.getUnderlineThickness();
+                PdfBoxRawPDFontMetrics metrics = des.getFontMetrics();
+
+                if (metrics == null) {
+                    continue;
+                }
+                
+                float loopAscent = metrics._ascent;
+                float loopDescent = metrics._descent;
+                float loopStrikethroughOffset = metrics._strikethroughOffset;
+                float loopStrikethroughThickness = metrics._strikethroughThickness;
+                float loopUnderlinePosition = metrics._underlinePosition;
+                float loopUnderlineThickness = metrics._underlineThickness;
                 
                 if (loopAscent > largestAscent) {
                     largestAscent = loopAscent;
@@ -115,9 +123,6 @@ public class PdfBoxTextRenderer implements TextRenderer {
             
             result.setUnderlineOffset(largestUnderlinePosition / 1000f * size);
             result.setUnderlineThickness(largestUnderlineThickness / 1000f * size);
-        } catch (IOException e) {
-            throw new PdfContentStreamAdapter.PdfException("getFSFontMetrics", e);
-        }
 
         return result;
     }
