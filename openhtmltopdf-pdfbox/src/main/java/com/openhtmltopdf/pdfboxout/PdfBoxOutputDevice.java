@@ -436,21 +436,19 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         }
 
         _cp.beginText();
+        
         _cp.setFont(desc.getFont(), fontSize);
-
-
         _cp.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
 
         if (info != null ) {
-            // The JustificationInfo numbers need to be normalized using the current document DPI
-            _cp.setTextSpacing(info.getNonSpaceAdjust() / _dotsPerPoint);
-            _cp.setSpaceSpacing(info.getSpaceAdjust() / _dotsPerPoint);
+            // Justification must be done through TJ rendering
+            // because Tw param does not work for UNICODE fonts
+            Object[] array = makeJustificationArray(s, info);
+            _cp.drawStringWithPositioning(array);
         } else {
-            _cp.setTextSpacing(0.0f);
-            _cp.setSpaceSpacing(0.0f);
+            _cp.drawString(s);
         }
         
-        _cp.drawString(s);
         _cp.endText();
 
         if (resetMode) {
@@ -464,72 +462,13 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         FontDescription des;
     }
     
+    private Object[] makeJustificationArray(String s, JustificationInfo info) {
+        List<Object> data = new ArrayList<Object>(s.length() * 2);
 
-    
-    /*
-    public void drawString(String s, float x, float y, JustificationInfo info) {
-        if (Configuration.isTrue("xr.renderer.replace-missing-characters", false)) {
-            s = replaceMissingCharacters(s);
-        }
-        if (s.length() == 0)
-            return;
-
-        ensureFillColor();
-        AffineTransform at = (AffineTransform) getTransform().clone();
-        at.translate(x, y);
-        AffineTransform inverse = normalizeMatrix(at);
-        AffineTransform flipper = AffineTransform.getScaleInstance(1, -1);
-        inverse.concatenate(flipper);
-        inverse.scale(_dotsPerPoint, _dotsPerPoint);
-        double[] mx = new double[6];
-        inverse.getMatrix(mx);
-
-        _cp.beginText();
-
-        // Check if bold or italic need to be emulated
-        boolean resetMode = false;
-        FontDescription desc = _font.getFontDescription();
-        float fontSize = _font.getSize2D() / _dotsPerPoint;
-        cb.setFontAndSize(desc.getFont(), fontSize);
-        float b = (float) mx[1];
-        float c = (float) mx[2];
-        FontSpecification fontSpec = getFontSpecification();
-        if (fontSpec != null) {
-            int need = ITextFontResolver.convertWeightToInt(fontSpec.fontWeight);
-            int have = desc.getWeight();
-            if (need > have) {
-                cb.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
-                float lineWidth = fontSize * 0.04f; // 4% of font size
-                cb.setLineWidth(lineWidth);
-                resetMode = true;
-                ensureStrokeColor();
-            }
-            if ((fontSpec.fontStyle == IdentValue.ITALIC) && (desc.getStyle() != IdentValue.ITALIC)) {
-                b = 0f;
-                c = 0.21256f;
-            }
-        }
-        cb.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
-        if (info == null) {
-            _cp.drawString(s);
-        } else {
-            PdfTextArray array = makeJustificationArray(s, info);
-            cb.showText(array);
-        }
-        if (resetMode) {
-            cb.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL);
-            cb.setLineWidth(1);
-        }
-        _cp.endText();
-    }
-    */
-/*
-    private PdfTextArray makeJustificationArray(String s, JustificationInfo info) {
-        PdfTextArray array = new PdfTextArray();
         int len = s.length();
         for (int i = 0; i < len; i++) {
             char c = s.charAt(i);
-            array.add(Character.toString(c));
+            data.add(Character.toString(c));
             if (i != len - 1) {
                 float offset;
                 if (c == ' ' || c == '\u00a0' || c == '\u3000') {
@@ -537,12 +476,12 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
                 } else {
                     offset = info.getNonSpaceAdjust();
                 }
-                array.add((-offset / _dotsPerPoint) * 1000 / (_font.getSize2D() / _dotsPerPoint));
+                data.add(Float.valueOf((-offset / _dotsPerPoint) * 1000 / (_font.getSize2D() / _dotsPerPoint)));
             }
         }
-        return array;
+        return data.toArray();
     }
-*/
+
     private AffineTransform getTransform() {
         return _transform;
     }

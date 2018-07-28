@@ -11,7 +11,6 @@ import org.apache.pdfbox.util.Matrix;
 
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.Locale;
 
 public class PdfContentStreamAdapter {
     private final PDPageContentStream cs;
@@ -308,20 +307,17 @@ public class PdfContentStreamAdapter {
             logAndThrow("setMiterLimit", e);
         }
     }
-
-    public void setTextSpacing(float nonSpaceAdjust) {
+    
+    /**
+     * 
+     * @param str MUST consist of a array of strings optionally interspersed with
+     * Float values specifying additional spacing.
+     */
+    public void drawStringWithPositioning(Object[] str) {
         try {
-            cs.appendRawCommands(String.format(Locale.US, "%.4f Tc\n", nonSpaceAdjust));
+            cs.showTextWithPositioning(str);
         } catch (IOException e) {
-            logAndThrow("setSpaceSpacing", e);
-        }
-    }
-
-    public void setSpaceSpacing(float spaceAdjust) {
-        try {
-            cs.appendRawCommands(String.format(Locale.US, "%.4f Tw\n", spaceAdjust));
-        } catch (IOException e) {
-            logAndThrow("setSpaceSpacing", e);
+            logAndThrow("drawStringWithPositioning", e);
         }
     }
 
