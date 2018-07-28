@@ -1039,15 +1039,15 @@ public class BlockBox extends Box implements InlinePaintable {
             satisfyWidowsAndOrphans(c, contentStart, tryAgain);
         }
 
-        if (tryAgain && getStyle().isTextJustify()) {
-            justifyText();
+        if (tryAgain && (getStyle().isTextJustify() || getStyle().hasLetterSpacing())) {
+            justifyText(c);
         }
     }
 
-    private void justifyText() {
+    private void justifyText(LayoutContext c) {
         for (Iterator i = getChildIterator(); i.hasNext(); ) {
             LineBox line = (LineBox)i.next();
-            line.justify();
+            line.justify(c);
         }
     }
 

@@ -77,7 +77,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             setColor(iB.getStyle().getColor());
             setFont(iB.getStyle().getFSFont(c));
             setFontSpecification(iB.getStyle().getFontSpecification());
-            if (inlineText.getParent().getStyle().isTextJustify()) {
+            if (inlineText.getParent().getStyle().isTextJustify() || inlineText.getParent().getStyle().hasLetterSpacing()) {
                 JustificationInfo info = inlineText.getParent().getLineBox().getJustificationInfo();
                 if (info != null) {
                     c.getTextRenderer().drawString(

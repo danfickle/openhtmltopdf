@@ -1318,6 +1318,10 @@ public class CalculatedStyle {
 		return getIdent(CSSName.DIRECTION);
 	}
 	
+	public boolean hasLetterSpacing() {
+	    return !isIdent(CSSName.LETTER_SPACING, IdentValue.NORMAL);
+	}
+	
 	public boolean isParagraphContainerForBidi() {
 		IdentValue display = getIdent(CSSName.DISPLAY);
 		

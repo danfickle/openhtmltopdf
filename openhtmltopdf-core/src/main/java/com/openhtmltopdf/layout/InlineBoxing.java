@@ -923,7 +923,7 @@ public class InlineBoxing {
                             c, current, maxAvailableWidth));
             current.setFloatDistances(distances);
         }
-        current.align(false);
+        current.align(false, c);
         if (! current.isContainsDynamicFunction() && ! current.getParent().getStyle().isTextJustify()) {
             current.setFloatDistances(null);
         }

@@ -20,6 +20,7 @@
  */
 package com.openhtmltopdf.layout;
 
+import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.FSTextBreaker;
@@ -120,6 +121,12 @@ public class Breaker {
             boolean tryToBreakAnywhere) {
     	
     	FSFont font = style.getFSFont(c);
+
+    	// FIXME: avail is not the right width here. Should be box's width.
+    	float letterSpacing = style.hasLetterSpacing() ?
+    	    style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, avail, c) :
+    	    0f;
+    	
         String currentString = context.getStartSubstring();
         FSTextBreaker iterator = tryToBreakAnywhere ? 
         		characterBreaker.getBreaker(currentString, c.getSharedContext()) :
@@ -135,7 +142,7 @@ public class Breaker {
         while (right > 0 && graphicsLength <= avail) {
             lastGraphicsLength = graphicsLength;
             graphicsLength += c.getTextRenderer().getWidth(
-                    c.getFontContext(), font, currentString.substring(left, right));
+                    c.getFontContext(), font, currentString.substring(left, right)) + ((right - left) * letterSpacing); 
             lastWrap = left;
             left = right;
             right = iterator.next();
