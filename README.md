@@ -63,6 +63,15 @@ CHANGELOG
 
 head - 0.0.1-RC15-SNAPSHOT
 ========
++ NOTE: Started moving [project documentation to wiki](https://github.com/danfickle/openhtmltopdf/wiki).
++ [#228](https://github.com/danfickle/openhtmltopdf/issues/228) Support for letter-spacing CSS property. By @danfickle
++ [#143](https://github.com/danfickle/openhtmltopdf/pull/143) Merging of remaining items thanks to @backslash47
+  + Text justification for embedded unicode fonts
+  + [#250](https://github.com/danfickle/openhtmltopdf/pull/250) Optional PDF/A conformance. Thanks @syjer
++ [#252](https://github.com/danfickle/openhtmltopdf/issues/252) Incorrect placement of form controls. Thanks @tiredelk
++ [#249](https://github.com/danfickle/openhtmltopdf/pull/249) Cache font metrics across runs to avoid having to load fallback fonts on each run. By @danfickle
++ [#254](https://github.com/danfickle/openhtmltopdf/pull/254) Allow use of SVG image in image tag. Thanks @syjer
+
 
 0.0.1-RC14
 ========
