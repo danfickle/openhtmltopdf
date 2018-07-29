@@ -208,6 +208,11 @@ public class InlineBoxing {
                         lbContext.saveEnd();
                         InlineText inlineText = layoutText(
                                 c, iB.getStyle(), remainingWidth - fit, lbContext, false, iB.getTextDirection());
+                        
+                        if (iB.getStyle().hasLetterSpacing()) {
+                            inlineText.setLetterSpacing(iB.getStyle().getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c));
+                        }
+                        
                         if (lbContext.isUnbreakable() && ! currentLine.isContainsContent()) {
                             int delta = c.getBlockFormattingContext().getNextLineBoxDelta(c, currentLine, maxAvailableWidth);
                             if (delta > 0) {
@@ -396,6 +401,11 @@ public class InlineBoxing {
         current.setContainsContent(true);
 
         InlineText text = layoutText(c, iB.getStyle(), remainingWidth, lbContext, true, textDirection);
+        
+        if (iB.getStyle().hasLetterSpacing()) {
+            text.setLetterSpacing(iB.getStyle().getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c));
+        }
+        
         iB.addInlineChild(c, text);
         iB.setInlineWidth(text.getWidth());
 
@@ -940,6 +950,7 @@ public class InlineBoxing {
                                          LineBreakContext lbContext, boolean needFirstLetter, byte textDirection) {
         InlineText result = new InlineText();
         String masterText = lbContext.getMaster();
+        
         if (needFirstLetter) {
             masterText = TextUtil.transformFirstLetterText(masterText, style);
             lbContext.setMaster(masterText);

@@ -441,6 +441,8 @@ public class PdfBoxOutputDevice extends AbstractOutputDevice implements OutputDe
         _cp.setTextMatrix((float) mx[0], b, c, (float) mx[3], (float) mx[4], (float) mx[5]);
 
         if (info != null ) {
+            // Note: Justification info is also used
+            // to implement letter-spacing CSS property.
             // Justification must be done through TJ rendering
             // because Tw param does not work for UNICODE fonts
             Object[] array = makeJustificationArray(s, info);

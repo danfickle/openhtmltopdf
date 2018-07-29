@@ -59,6 +59,7 @@ public class InlineText {
     private boolean _trimmedTrailingSpace;
     private Text _textNode;
     private byte _textDirection;
+    private float _letterSpacing;
     
     /**
      * @param direction either LTR or RTL from BidiSplitter interface.
@@ -72,6 +73,14 @@ public class InlineText {
      */
     public byte getTextDirection() {
     	return this._textDirection;
+    }
+    
+    public void setLetterSpacing(float letterSpacing) {
+        this._letterSpacing = letterSpacing;
+    }
+    
+    public float getLetterSpacing() {
+        return this._letterSpacing;
     }
     
     public void trimTrailingSpace(LayoutContext c) {
@@ -311,6 +320,12 @@ public class InlineText {
     }
     
     public void countJustifiableChars(CharCounts counts) {
+        if (getLetterSpacing() != 0f) {
+            // We can't mess with character spacing if
+            // letter spacing is already explicitly set.
+            return;
+        }
+        
         String s = getSubstring();
         int len = s.length();
         int spaces = 0;
@@ -330,6 +345,12 @@ public class InlineText {
     }
     
     public float calcTotalAdjustment(JustificationInfo info) {
+        if (getLetterSpacing() != 0f) {
+            // We can't mess with character spacing if
+            // letter spacing is already explicitly set.
+            return 0f;
+        }
+        
         String s = getSubstring();
         int len = s.length();
 

@@ -36,9 +36,13 @@ public class Breaker {
     public static void breakFirstLetter(LayoutContext c, LineBreakContext context,
             int avail, CalculatedStyle style) {
         FSFont font = style.getFSFont(c);
+        float letterSpacing = style.hasLetterSpacing() ?
+                style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c) :
+                0f;
+        
         context.setEnd(getFirstLetterEnd(context.getMaster(), context.getStart()));
         context.setWidth(c.getTextRenderer().getWidth(
-                c.getFontContext(), font, context.getCalculatedSubstring()));
+                c.getFontContext(), font, context.getCalculatedSubstring()) + (int) letterSpacing);
 
         if (context.getWidth() > avail) {
             context.setNeedsNewLine(true);
@@ -122,9 +126,8 @@ public class Breaker {
     	
     	FSFont font = style.getFSFont(c);
 
-    	// FIXME: avail is not the right width here. Should be box's width.
     	float letterSpacing = style.hasLetterSpacing() ?
-    	    style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, avail, c) :
+    	    style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c) :
     	    0f;
     	
         String currentString = context.getStartSubstring();

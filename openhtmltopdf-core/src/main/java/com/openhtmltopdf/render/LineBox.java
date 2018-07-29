@@ -217,15 +217,9 @@ public class LineBox extends Box implements InlinePaintable {
     }
     
     public void justify(CssContext c) {
-        // NOTE: Use of letter-spacing prelcludes justification
+        
         if (getParent().getStyle().hasLetterSpacing()) {
-            float letterSpacing = getParent().getStyle().getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, getParent().getContentWidth(), c);
-            JustificationInfo info = new JustificationInfo();
-            info.setNonSpaceAdjust(letterSpacing);
-            info.setSpaceAdjust(letterSpacing);
-
-            adjustChildren(info);
-            setJustificationInfo(info);
+            // Do nothing, letter-spacing turns off text justification.
         } else if (! isLastLineWithContent()) {
             int leftFloatDistance = getFloatDistances().getLeftFloatDistance();
             int rightFloatDistance = getFloatDistances().getRightFloatDistance();
