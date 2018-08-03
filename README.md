@@ -66,6 +66,7 @@ head - 0.0.1-RC15-SNAPSHOT
 + NOTE: Started moving [project documentation to wiki](https://github.com/danfickle/openhtmltopdf/wiki).
 + [#228](https://github.com/danfickle/openhtmltopdf/issues/228) Support for letter-spacing CSS property. By @danfickle
 + [#143](https://github.com/danfickle/openhtmltopdf/pull/143) Merging of remaining items thanks to @backslash47
+  + Support for ```box-sizing:border-box```. With additional work (for min/max width/height) by @danfickle
   + Text justification for embedded unicode fonts
   + [#250](https://github.com/danfickle/openhtmltopdf/pull/250) Optional PDF/A conformance. Thanks @syjer
 + [#252](https://github.com/danfickle/openhtmltopdf/issues/252) Incorrect placement of form controls. Thanks @tiredelk

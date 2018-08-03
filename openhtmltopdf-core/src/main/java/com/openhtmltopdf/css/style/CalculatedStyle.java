@@ -1332,6 +1332,13 @@ public class CalculatedStyle {
 	}
 	
 	/**
+	 * @return true for border-box, false for content-box.
+	 */
+    public boolean isBorderBox() {
+        return isIdent(CSSName.BOX_SIZING, IdentValue.BORDER_BOX);
+    }
+	
+	/**
 	 * Aims to get the correct resolved max-width for a box in dots unit.
 	 * Returns -1 if there is no max-width defined.
 	 * Assumptions: box has a containing block.

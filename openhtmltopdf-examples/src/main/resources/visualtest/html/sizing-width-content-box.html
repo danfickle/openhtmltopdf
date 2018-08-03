@@ -1,0 +1,79 @@
+<html>
+<head>
+<style>
+@page {
+  size: 800px 1000px;
+  margin: 0;
+}
+body {
+ margin: 10px;
+}
+div {
+ border: 1px solid red;
+ box-sizing: content-box;
+}
+.w {
+  margin: 0;
+  margin-top: 10px;
+  padding: 0;
+  height: 30px;
+  border-color: green;
+}
+</style>
+</head>
+<body>
+<div style="width: 601px;">
+  <!-- Width plus margin-right -->
+  <div class="w" style="width: 500px; margin-right: 100px;"></div>
+  
+  <!-- Width plus margin-left -->
+  <div class="w" style="width: 500px; margin-left: 100px;"></div>
+
+  <!-- Width plus padding-right -->
+  <div class="w" style="width: 500px; padding-right: 100px;"></div>
+
+  <!-- Width plus padding-left -->
+  <div class="w" style="width: 500px; padding-left: 100px;"></div>
+
+  <!-- Min-width overrides width -->
+  <div class="w" style="width: 50%; min-width: 400px; padding: 100px;"></div>
+
+  <!-- Max-width overrides width -->
+  <div class="w" style="width: 150%; max-width: 500px; padding-left: 100px;"></div>
+  
+  <!-- Max-width overrides default block width of auto -->
+  <div class="w" style="max-width: 500px; padding-left: 100px;"></div>
+  
+  <!-- Min-width wins over width and max-width -->
+  <div class="w" style="max-width: 300px; min-width: 600px; width: 300px;"></div>
+  
+  <!-- Width overlap on right -->
+  <div class="w" style="width: 700px;"></div>
+  
+  <!-- Min-width overlap on right -->
+  <div class="w" style="min-width: 700px;"></div>
+  
+  <!-- Padding-right overlap on right -->
+  <div class="w" style="width: 600px; padding-right: 100px;"></div>
+  
+  <!-- Border-right overlap -->
+  <div class="w" style="width: 600px; border-right-width: 100px;"></div>
+  
+  <!-- Border-right inside due to width being auto -->
+  <div class="w" style="border-right-width: 100px;"></div>
+  
+  <!-- Margin-right inside due to width being auto -->
+  <div class="w" style="margin-right: 100px;"></div>
+
+  <!-- Padding-right inside due to width being auto -->
+  <div class="w" style="padding-right: 100px;"><div style="height: 100%;"></div></div>
+  
+  <!-- Border/padding plus width  -->
+  <div class="w" style="width: 500px; padding-right: 50px; border-right-width: 50px;"><div style="height: 100%;"></div></div>
+
+  <!-- Margin/border/padding plus width  -->
+  <div class="w" style="width: 500px; margin-left: 30px; padding-right: 20px; border-right-width: 50px;"><div style="height: 100%;"></div></div>
+    
+</div>
+</body>
+</html>

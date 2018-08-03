@@ -1481,6 +1481,15 @@ public final class CSSName implements Comparable {
                     INHERITS,
                     new PrimitivePropertyBuilders.ImageRenderingBuilder()
             );
+    
+    public final static CSSName BOX_SIZING =
+            addProperty(
+                    "box-sizing",
+                    PRIMITIVE,
+                    "content-box",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.BoxSizing()
+            );
 
 
     /**

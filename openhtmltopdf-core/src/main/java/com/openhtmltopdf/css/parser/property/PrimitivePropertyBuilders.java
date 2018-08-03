@@ -1838,4 +1838,14 @@ public class PrimitivePropertyBuilders {
             return ALLOWED;
         }
     }
+    
+    public static class BoxSizing extends SingleIdent {
+        // border-box | content-box
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] {
+                        IdentValue.BORDER_BOX, IdentValue.CONTENT_BOX });
+         protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
 }

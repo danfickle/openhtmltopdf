@@ -42,5 +42,18 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("positioning-fixed"));
     }    
 
-    
+    @Test
+    public void testSizingWidthContentBox() throws IOException {
+        assertTrue(vt.runTest("sizing-width-content-box"));
+    }
+
+    @Test
+    public void testSizingWidthBorderBox() throws IOException {
+        assertTrue(vt.runTest("sizing-width-border-box"));
+    }
+
+    @Test
+    public void testSizingHeight() throws IOException {
+        assertTrue(vt.runTest("sizing-height"));
+    }
 }

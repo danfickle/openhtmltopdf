@@ -723,18 +723,24 @@ public class BlockBox extends Box implements InlinePaintable {
             // CLEAN: cast to int
             setLeftMBP((int) margin.left() + (int) border.left() + (int) padding.left());
             setRightMBP((int) padding.right() + (int) border.right() + (int) margin.right());
+            
             if (c.isPrint() && getStyle().isDynamicAutoWidth()) {
                 setContentWidth(calcEffPageRelativeWidth(c));
             } else {
                 setContentWidth((getContainingBlockWidth() - getLeftMBP() - getRightMBP()));
             }
+            
             setHeight(0);
 
             if (! isAnonymous() || (isFromCaptionedTable() && isFloated())) {
                 int pinnedContentWidth = -1;
 
                 if (cssWidth != -1) {
-                    setContentWidth(cssWidth);
+                    if (style.isBorderBox()) {
+                        setBorderBoxWidth(c, cssWidth);
+                    } else {
+                        setContentWidth(cssWidth);
+                    }
                 } else if (getStyle().isAbsolute() || getStyle().isFixed()) {
                     pinnedContentWidth = calcPinnedContentWidth(c);
                     if (pinnedContentWidth != -1) {
@@ -744,7 +750,11 @@ public class BlockBox extends Box implements InlinePaintable {
 
                 int cssHeight = getCSSHeight(c);
                 if (cssHeight != -1) {
-                    setHeight(cssHeight);
+                    if (style.isBorderBox()) {
+                        setBorderBoxHeight(c, cssHeight);
+                    } else {
+                        setHeight(cssHeight);
+                    }
                 }
 
                 //check if replaced
@@ -970,28 +980,50 @@ public class BlockBox extends Box implements InlinePaintable {
     }
 
     private void applyCSSMinMaxWidth(CssContext c) {
+        int w = getStyle().isBorderBox() ? getBorderBoxWidth(c) : getContentWidth();
+        
         if (! getStyle().isMaxWidthNone()) {
             int cssMaxWidth = getCSSMaxWidth(c);
-            if (getContentWidth() > cssMaxWidth) {
-                setContentWidth(cssMaxWidth);
+            if (w > cssMaxWidth) {
+                if (getStyle().isBorderBox()) {
+                    setBorderBoxWidth(c, cssMaxWidth);
+                } else {
+                    setContentWidth(cssMaxWidth);
+                }
             }
         }
+        
         int cssMinWidth = getCSSMinWidth(c);
-        if (cssMinWidth > 0 && getContentWidth() < cssMinWidth) {
-            setContentWidth(cssMinWidth);
+        if (cssMinWidth > 0 && w < cssMinWidth) {
+            if (getStyle().isBorderBox()) {
+                setBorderBoxWidth(c, cssMinWidth);
+            } else {
+                setContentWidth(cssMinWidth);
+            }
         }
     }
 
     private void applyCSSMinMaxHeight(CssContext c) {
+        int currentHeight = getStyle().isBorderBox() ? getBorderBoxHeight(c) : getHeight();
+        
         if (! getStyle().isMaxHeightNone()) {
             int cssMaxHeight = getCSSMaxHeight(c);
-            if (getHeight() > cssMaxHeight) {
-                setHeight(cssMaxHeight);
+            if (currentHeight > cssMaxHeight) {
+                if (getStyle().isBorderBox()) {
+                    setBorderBoxHeight(c, cssMaxHeight);
+                } else {
+                    setHeight(cssMaxHeight);
+                }
             }
         }
+        
         int cssMinHeight = getCSSMinHeight(c);
-        if (cssMinHeight > 0 && getHeight() < cssMinHeight) {
-            setHeight(cssMinHeight);
+        if (cssMinHeight > 0 && currentHeight < cssMinHeight) {
+            if (getStyle().isBorderBox()) {
+                setBorderBoxHeight(c, cssMinHeight);
+            } else {
+                setHeight(cssMinHeight);
+            }
         }
     }
 

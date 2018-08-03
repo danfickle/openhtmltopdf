@@ -985,6 +985,18 @@ public abstract class Box implements Styleable, DisplayListItem {
     public int getHeight() {
         return _height;
     }
+    
+    public void setBorderBoxHeight(CssContext c, int h) {
+        BorderPropertySet border = getBorder(c);
+        RectPropertySet padding = getPadding(c);
+        setHeight((int) Math.max(0f, h - border.height() - padding.height()));
+    }
+    
+    public int getBorderBoxHeight(CssContext c) {
+        BorderPropertySet border = getBorder(c);
+        RectPropertySet padding = getPadding(c);
+        return (int) (getHeight() + border.height() + padding.height());
+    }
 
     public void setContentWidth(int contentWidth) {
         _contentWidth = contentWidth < 0 ? 0 : contentWidth;
@@ -992,6 +1004,18 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     public int getContentWidth() {
         return _contentWidth;
+    }
+    
+    public int getBorderBoxWidth(CssContext c) {
+        BorderPropertySet border = getBorder(c);
+        RectPropertySet padding = getPadding(c);
+        return (int) (getContentWidth() + border.width() + padding.width());
+    }
+    
+    public void setBorderBoxWidth(CssContext c, int borderBoxWidth) {
+        BorderPropertySet border = getBorder(c);
+        RectPropertySet padding = getPadding(c);
+        setContentWidth((int) (borderBoxWidth - border.width() - padding.width()));
     }
 
     public PaintingInfo getPaintingInfo() {

@@ -1,0 +1,69 @@
+<html>
+<head>
+<style>
+@page {
+  size: 100px 1000px;
+  margin: 0;
+}
+body {
+ margin: 10px;
+}
+div.cont {
+  border: 1px solid red;
+  height: 31px;
+  margin-top: 10px;
+}
+.h1 {
+  border: 1px solid green;
+  box-sizing: content-box;
+}
+.h2 {
+  border: 1px solid blue;
+  box-sizing: border-box;
+}
+</style>
+</head>
+<body>
+<!-- height only -->
+<div class="cont"><div class="h1" style="height: 30px;"></div></div>
+
+<!-- height/padding/border -->
+<div class="cont"><div class="h1" style="height: 10px;padding-top: 10px; border-top-width: 10px;"></div></div>
+
+<!-- height/padding/margin -->
+<div class="cont"><div class="h1" style="height: 10px;padding-bottom: 10px; margin-top: 10px;"></div></div>
+
+<!-- min-height overrides height -->
+<div class="cont"><div class="h1" style="height: 10px;min-height: 30px;"></div></div>
+
+<!-- max-height overrides height -->
+<div class="cont"><div class="h1" style="height: 50px;max-height: 30px;"></div></div>
+
+<!-- min-height overrides height and max-height -->
+<div class="cont"><div class="h1" style="height: 10px;min-height: 30px;max-height: 10px;"></div></div>
+
+
+
+
+<!-- height only -->
+<div class="cont"><div class="h2" style="height: 32px;"></div></div>
+
+<!-- height/padding/border -->
+<div class="cont"><div class="h2" style="height: 32px;padding-top: 10px; border-top-width: 10px;"></div></div>
+
+<!-- height/padding/margin -->
+<div class="cont"><div class="h2" style="height: 22px;padding-bottom: 10px; margin-top: 10px;"></div></div>
+
+<!-- min-height overrides height -->
+<div class="cont"><div class="h2" style="height: 10px;min-height: 32px;"></div></div>
+
+<!-- max-height overrides height -->
+<div class="cont"><div class="h2" style="height: 50px;max-height: 32px;"></div></div>
+
+<!-- min-height overrides height and max-height -->
+<div class="cont"><div class="h2" style="height: 10px;min-height: 32px;max-height: 10px;"></div></div>
+
+
+
+</body>
+</html>

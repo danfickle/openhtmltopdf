@@ -247,6 +247,12 @@ public class IdentValue implements FSDerivedValue {
      */
     public static final IdentValue PIXELATED = addValue("pixelated");
     public static final IdentValue CRISP_EDGES = addValue("crisp-edges");
+    
+    /*
+     * Box-sizing
+     */
+    public static final IdentValue BORDER_BOX = addValue("border-box");
+    public static final IdentValue CONTENT_BOX = addValue("content-box");
 
 
     /**
