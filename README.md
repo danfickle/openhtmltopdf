@@ -22,7 +22,8 @@ GETTING STARTED
 ========
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
 + [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
-+ [Template Author Guide - PDF - WIP](https://openhtmltopdf.com/template-guide.pdf)
++ [Documentation wiki](https://github.com/danfickle/openhtmltopdf/wiki)
++ [Template Author Guide - PDF - WIP](https://openhtmltopdf.com/template-guide.pdf) - Moving info to wiki
 + [RC11 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
 + [Sample Project - Pretty Resume Generator](https://github.com/danfickle/pretty-resume)
 
@@ -61,7 +62,11 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 CHANGELOG
 ========
 
-head - 0.0.1-RC15-SNAPSHOT
+head - 0.0.1-RC16-SNAPSHOT
+========
+
+
+0.0.1-RC15
 ========
 + NOTE: Started moving [project documentation to wiki](https://github.com/danfickle/openhtmltopdf/wiki).
 + [#228](https://github.com/danfickle/openhtmltopdf/issues/228) Support for letter-spacing CSS property. By @danfickle

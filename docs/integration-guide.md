@@ -4,7 +4,7 @@ OPEN HTML TO PDF
 GETTING OPEN HTML TO PDF
 ========
 New releases of Open HTML to PDF will be distributed through Maven.  Search maven for [com.openhtmltopdf](http://mvnrepository.com/artifact/com.openhtmltopdf).
-Current maven release is ````0.0.1-RC14````. If you would like to be notified of new releases, please subscribe to the [Maven issue](https://github.com/danfickle/openhtmltopdf/issues/7).
+Current maven release is ````0.0.1-RC15````. If you would like to be notified of new releases, please subscribe to the [Maven issue](https://github.com/danfickle/openhtmltopdf/issues/7).
 [You can ask for a new release, if needed](https://github.com/danfickle/openhtmltopdf/issues/182).
 
 MAVEN ARTIFACTS
@@ -13,7 +13,7 @@ Add these to your maven dependencies section as needed:
 ````xml
   	<properties>
   		<!-- Define the version of OPEN HTML TO PDF in the properties section of your POM. -->  	       
-  		<openhtml.version>0.0.1-RC14</openhtml.version>
+  		<openhtml.version>0.0.1-RC15</openhtml.version>
   	</properties>
 
   	<dependency>
@@ -88,49 +88,19 @@ Most of the options avaiable for PDF output are settable on the [PdfRendererBuil
 
 ````java
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 
 public class SimpleUsage 
 {
-	public static void main(String[] args)
-	{
-		new SimpleUsage().exportToPdfBox("file:///Users/user/path-to/document.xhtml", "/Users/user/path-to/output.pdf");
-	}
-	
-	public void exportToPdfBox(String url, String out)
-	{
-            OutputStream os = null;
-       
-              try {
-               os = new FileOutputStream(out);
-       
-               try {
-                     // There are more options on the builder than shown below.
-                     PdfRendererBuilder builder = new PdfRendererBuilder();
-
-                     builder.withUri(url);
-                     builder.toStream(os);
-                     builder.run();
-                     
-               } catch (Exception e) {
-                     e.printStackTrace();
-                     // LOG exception
-               } finally {
-                     try {
-                            os.close();
-                     } catch (IOException e) {
-                            // swallow
-                     }
-               }
-              }
-              catch (IOException e1) {
-                     e.printStackTrace();
-                     // LOG exception.
-              }
-	}
+    public static void main(String[] args) throws Exception { 
+        try (OutputStream os = new FileOutputStream("/Users/me/Documents/pdf/out.pdf")) {
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.withUri("file:///Users/me/Documents/pdf/in.htm");
+            builder.toStream(os);
+            builder.run();
+        }
+    }
 }
 ````
 
