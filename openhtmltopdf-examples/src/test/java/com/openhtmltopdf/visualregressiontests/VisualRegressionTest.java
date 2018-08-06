@@ -56,4 +56,9 @@ public class VisualRegressionTest {
     public void testSizingHeight() throws IOException {
         assertTrue(vt.runTest("sizing-height"));
     }
+    
+    @Test
+    public void testOverflow() throws IOException {
+        assertTrue(vt.runTest("overflow"));
+    }
 }

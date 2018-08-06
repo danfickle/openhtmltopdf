@@ -290,6 +290,7 @@ public class PagedBoxCollector {
         } else {
         	
         	Shape ourClip = null;
+        	List<PageResult> clipPages = null;
         	
         	if (container.getLayer() == null ||
         		layer.getMaster() == container ||
@@ -307,6 +308,7 @@ public class PagedBoxCollector {
             		if (block.isNeedsClipOnPaint((RenderingContext) c)) {
             			// A box with overflow set to hidden.
             			ourClip = block.getChildrenClipEdge((RenderingContext) c);
+            			clipPages = new ArrayList<PagedBoxCollector.PageResult>(Math.max(0, (pgEnd - pgStart) + 1));
              		}
             	}
             	
@@ -342,6 +344,9 @@ public class PagedBoxCollector {
             			if (ourClip != null) {
             				// Add a clip operation before the block's descendents (inline or block).
             				pageResult.clipAll(new OperatorClip(ourClip));
+            				
+            				// Add the page result to a list, so we can pop clip later.
+            				clipPages.add(pageResult);
             			}
             		}
             	}
@@ -388,21 +393,11 @@ public class PagedBoxCollector {
                 }
             }
             
-            if (ourClip != null) {
-            	// Restore the clip on those pages it was changed.
-            	for (int i = pgStart; i <= pgEnd; i++) {
-            		if (i < 0 || i > getMaxPageNumber()) {
-            			continue;
-            		}
-            		
-            		PageResult pageResult = getPageResult(i);
-            		Rectangle pageClip = pageResult.getContentWindowOnDocument(getPageBox(i), c);
-            		
-            		// Test to see if it fits within the page margins.
-            		if (intersectsAggregateBounds(pageClip, container)) {
-          				pageResult.setClipAll(new OperatorSetClip(null));
-            		}
-            	}
+            if (clipPages != null) {
+                // Pop the clip on those pages it was set.
+                for (PageResult pgRes : clipPages) {
+                    pgRes.setClipAll(new OperatorSetClip(null));
+                }
             }
         }
 	}

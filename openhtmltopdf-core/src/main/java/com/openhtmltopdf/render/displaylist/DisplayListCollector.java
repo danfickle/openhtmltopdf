@@ -2,6 +2,7 @@ package com.openhtmltopdf.render.displaylist;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,19 +21,30 @@ import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPage
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
 public class DisplayListCollector {
+    protected static enum CollectFlags {
+        /**
+         * Fixed layers appear on each page. To avoid having to clone each box in a fixed layer onto 
+         * each page, we have this flag so we can exclude fixed boxes in the multi page run and just
+         * collect them at the last minute when painting a particular page. 
+         */
+        INCLUDE_FIXED_BOXES;
+    }
+    
  	private final List<PageBox> _pages;
 	
 	public DisplayListCollector(List<PageBox> pages) {
 		this._pages = pages;
 	}
 
-	private void collectLayers(RenderingContext c, List<Layer> layers, DisplayListContainer dlPages,
-			boolean includeFixed) {
+	private void collectLayers(RenderingContext c, List<Layer> layers, DisplayListContainer dlPages, Set<CollectFlags> flags) {
 		for (Layer layer : layers) {
-			collect(c, layer, dlPages, includeFixed);
+			collect(c, layer, dlPages, flags);
 		}
 	}
 
+	/**
+	 * Adds a paint operation to a selection of pages, from pgStart to pgEnd inclusive.
+	 */
 	protected void addItem(DisplayListOperation item, int pgStart, int pgEnd,
 			DisplayListContainer dlPages) {
 		for (int i = pgStart; i <= pgEnd; i++) {
@@ -44,23 +56,33 @@ public class DisplayListCollector {
 		}
 	}
 
+	/**
+	 * Use this method to collect all boxes recursively into a list of paint instructions
+	 * for each page.
+	 */
 	public DisplayListContainer collectRoot(RenderingContext c, Layer rootLayer) {
 		if (!rootLayer.isRootLayer()) {
 			return null;
 		}
 		
+		// We propagate any transformation matrixes recursively after layout has finished.
 		rootLayer.propagateCurrentTransformationMatrix(c);
 
 		DisplayListContainer displayList = new DisplayListContainer(_pages.size());
 
-		collect(c, rootLayer, displayList, false);
+		// Recursively collect boxes for root layer and any children layers. Don't include
+		// fixed boxes at this point. They are collected by the <code>SinglePageDisplayListCollector</code>
+		// at the point of painting each page.
+		collect(c, rootLayer, displayList, EnumSet.noneOf(CollectFlags.class));
 
 		return displayList;
 	}
 
-	protected void collect(RenderingContext c, Layer layer, DisplayListContainer dlPages,
-			boolean includeFixed) {
-		if (layer.getMaster().getStyle().isFixed() && !includeFixed) {
+	/** 
+	 * The main method to create a list of paint instruction for each page.
+	 */
+	protected void collect(RenderingContext c, Layer layer, DisplayListContainer dlPages, Set<CollectFlags> flags) {
+		if (layer.getMaster().getStyle().isFixed() && !flags.contains(CollectFlags.INCLUDE_FIXED_BOXES)) {
 			// We don't collect fixed layers or their children here, because we don't want to have
 			// to clone the entire subtree of the fixed box and all descendents.
 			// So just paint it at the last minute.
@@ -77,6 +99,11 @@ public class DisplayListCollector {
 			layerPageEnd = findEndPage(c, layer);
 		}
 
+	    if (layer.hasLocalTransform()) {
+	        DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
+	        addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+	    }
+		
 		if (!layer.getMaster().getStyle().isPositioned() &&
 			!layer.getClipBoxes().isEmpty()) {
 			// This layer was triggered by a transform. We have to honor the clip of parent elements.
@@ -89,10 +116,7 @@ public class DisplayListCollector {
 			// TODO
 		}
 		
-		if (layer.hasLocalTransform()) {
-			DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
-			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
-		}
+
 
 		if (layer.isRootLayer() && layer.getMaster().hasRootElementBackground(c)) {
 
@@ -114,7 +138,7 @@ public class DisplayListCollector {
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
-				collectLayers(c, layer.getSortedLayers(Layer.NEGATIVE), dlPages, includeFixed);
+				collectLayers(c, layer.getSortedLayers(Layer.NEGATIVE), dlPages, flags);
 			}
 
 			List<PageResult> pgResults = collector.getCollectedPageResults();
@@ -127,10 +151,10 @@ public class DisplayListCollector {
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
-				collectLayers(c, layer.collectLayers(Layer.AUTO), dlPages, includeFixed);
+				collectLayers(c, layer.collectLayers(Layer.AUTO), dlPages, flags);
 				// TODO z-index: 0 layers should be painted atomically
-				collectLayers(c, layer.getSortedLayers(Layer.ZERO), dlPages, includeFixed);
-				collectLayers(c, layer.getSortedLayers(Layer.POSITIVE), dlPages, includeFixed);
+				collectLayers(c, layer.getSortedLayers(Layer.ZERO), dlPages, flags);
+				collectLayers(c, layer.getSortedLayers(Layer.POSITIVE), dlPages, flags);
 			}
 		}
 		

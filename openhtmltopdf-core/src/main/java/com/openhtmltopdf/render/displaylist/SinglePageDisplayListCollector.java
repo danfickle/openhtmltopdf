@@ -1,6 +1,7 @@
 package com.openhtmltopdf.render.displaylist;
 
 import java.util.Collections;
+import java.util.EnumSet;
 
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.render.PageBox;
@@ -39,7 +40,7 @@ public class SinglePageDisplayListCollector extends DisplayListCollector {
     public DisplayListContainer collectFixed(RenderingContext c, Layer layer) {
         // This is called from the painter to collect fixed boxes just before paint.
         DisplayListContainer res = new DisplayListContainer(1);
-        collect(c, layer, res, true);
+        collect(c, layer, res, EnumSet.of(CollectFlags.INCLUDE_FIXED_BOXES));
         return res;
     }
 }
