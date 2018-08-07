@@ -21,20 +21,26 @@ public class DisplayListContainer {
 	}
 	
 	private final List<DisplayListPageContainer> pageInstructions;
+	private final int startPage;
 	
-	public DisplayListContainer(int pageCount) {
-		this.pageInstructions = new ArrayList<DisplayListPageContainer>(pageCount);
+	public DisplayListContainer(int startPage, int endPage) {
+		this.pageInstructions = new ArrayList<DisplayListPageContainer>(endPage - startPage + 1);
+		this.startPage = startPage;
 		
-		for (int i = 0; i < pageCount; i++) {
+		for (int i = 0; i < endPage - startPage + 1; i++) {
 			this.pageInstructions.add(new DisplayListPageContainer());
 		}
 	}
 	
 	public DisplayListPageContainer getPageInstructions(int pg) {
-		return this.pageInstructions.get(pg);
+		return this.pageInstructions.get(pg - this.startPage);
 	}
 	
-	public int getNumPages() {
-		return this.pageInstructions.size();
+	public int getMinPage() {
+	    return this.startPage;
+	}
+	
+	public int getMaxPage() {
+	    return this.startPage + this.pageInstructions.size() - 1;
 	}
 }

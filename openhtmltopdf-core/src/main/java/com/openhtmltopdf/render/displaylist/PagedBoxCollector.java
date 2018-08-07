@@ -32,9 +32,17 @@ public class PagedBoxCollector {
 		private List<TableCellBox> _tcells = null;
 		private List<DisplayListItem> _replaceds = null;
 		private List<DisplayListItem> _listItems = null;
+		private List<BlockBox> _floats = null;
 		private boolean _hasListItems = false;
 		private boolean _hasReplaceds = false;
 		private Rectangle contentWindowOnDocument = null;
+		
+		private void addFloat(BlockBox floater) {
+		    if (_floats == null) {
+		        _floats = new ArrayList<BlockBox>();
+		    }
+		    _floats.add(floater);
+		}
 		
 		private void addBlock(DisplayListItem block) {
 			if (_blocks == null) {
@@ -93,6 +101,10 @@ public class PagedBoxCollector {
 			addInline(dli);
 			addReplaced(dli);
 			addListItem(dli);
+		}
+		
+		public List<BlockBox> floats() {
+		    return this._floats == null ? Collections.<BlockBox>emptyList() : this._floats;
 		}
 		
 		public List<DisplayListItem> blocks() {
@@ -192,21 +204,28 @@ public class PagedBoxCollector {
 	private final List<PageResult> result;
 	private final List<PageBox> pages;
 	private final PageFinder finder;
+	private final int startPage;
 	
 	protected PagedBoxCollector() {
 	    this.result = null;
 	    this.pages = null;
 	    this.finder = null;
+	    this.startPage = 0;
 	}
 	
-	public PagedBoxCollector(List<PageBox> pages) {
-		this.pages = pages;
-		this.result = new ArrayList<PageResult>(pages.size());
-		this.finder = new PageFinder(pages);
-		
-		for (int i = 0; i < pages.size(); i++) {
-			result.add(new PageResult());
-		}
+	/**
+	 * A more efficient paged box collector that can only find boxes on pages minPage to
+	 * maxPage inclusive.
+	 */
+	public PagedBoxCollector(List<PageBox> pages, int minPage, int maxPage) {
+	    this.pages = pages;
+	    this.result = new ArrayList<PageResult>((maxPage - minPage) + 1);
+	    this.finder = new PageFinder(pages);
+	    this.startPage = minPage;
+	    
+	    for (int i = minPage; i <= maxPage; i++) {
+	        result.add(new PageResult());
+	    }
 	}
 	
 	public void collect(CssContext c, Layer layer) {
@@ -227,7 +246,7 @@ public class PagedBoxCollector {
         	int pgEnd = findEndPage(c, b, layer.getCurrentTransformMatrix());
         	
         	for (int i = pgStart; i <= pgEnd; i++) {
-        		if (i < 0 || i > getMaxPageNumber()) {
+        		if (i < getMinPageNumber() || i > getMaxPageNumber()) {
         			continue;
         		}
         		
@@ -252,6 +271,20 @@ public class PagedBoxCollector {
         }
 	}
 	
+	public void collectFloats(CssContext c, Layer layer) {
+	    for (int iflt = layer.getFloats().size() - 1; iflt >= 0; iflt--) {
+            BlockBox floater = (BlockBox) layer.getFloats().get(iflt);
+            
+            int pgStart = findStartPage(c, floater, layer.getCurrentTransformMatrix());
+            int pgEnd = findEndPage(c, floater, layer.getCurrentTransformMatrix());
+            
+            for (int i = pgStart; i <= pgEnd; i++) {
+                PageResult pgRes = getPageResult(i);
+                pgRes.addFloat(floater);
+            }
+        }
+	}
+	
 	/**
 	 * The main box collection method. This method works recursively
 	 * to add all the boxes (inlines and blocks separately) owned by this layer
@@ -262,21 +295,22 @@ public class PagedBoxCollector {
 	 * @param container
 	 */
 	public void collect(CssContext c, Layer layer, Box container) {
+	    int pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
+	    int pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
+	    
+	    collect(c, layer, container, pgStart, pgEnd);
+	}
+	
+	public void collect(CssContext c, Layer layer, Box container, int pgStart, int pgEnd) {
 		if (layer != container.getContainingLayer()) {
 			// Different layers are responsible for their own box collection.
 			return;
 	    }
-		
-		int pgStart = -1;
-		int pgEnd = -1;
 
         if (container instanceof LineBox) {
-        
-        	pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
-        	pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
 
         	for (int i = pgStart; i <= pgEnd; i++) {
-        		if (i < 0 || i > getMaxPageNumber()) {
+        		if (i < getMinPageNumber() || i > getMaxPageNumber()) {
         			continue;
         		}
         		
@@ -295,9 +329,6 @@ public class PagedBoxCollector {
         	if (container.getLayer() == null ||
         		layer.getMaster() == container ||
         	    !(container instanceof BlockBox)) {
-        		
-        		pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
-            	pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
         
             	// Check if we need to clip this box.
             	if (c instanceof RenderingContext &&
@@ -313,7 +344,7 @@ public class PagedBoxCollector {
             	}
             	
             	for (int i = pgStart; i <= pgEnd; i++) {
-            		if (i < 0 || i > getMaxPageNumber()) {
+            		if (i < getMinPageNumber() || i > getMaxPageNumber()) {
             			continue;
             		}
             		
@@ -371,7 +402,7 @@ public class PagedBoxCollector {
                 int tableEnd = findEndPage(c, table, layer.getCurrentTransformMatrix());
                 
                 for (int pgTable = tableStart; pgTable <= tableEnd; pgTable++) {
-                    if (pgTable < 0 || pgTable > getMaxPageNumber()) {
+                    if (pgTable < getMinPageNumber() || pgTable > getMaxPageNumber()) {
                         continue;
                     }
                     
@@ -528,11 +559,19 @@ public class PagedBoxCollector {
     }
     
     protected PageResult getPageResult(int pageNo) {
-        return result.get(pageNo);
+        if (pageNo - this.startPage < 0 || pageNo - this.startPage >= result.size()) {
+            return null;
+        }
+        
+        return result.get(pageNo - this.startPage);
     }
     
     protected int getMaxPageNumber() {
-        return result.size() - 1;
+        return this.startPage + result.size() - 1;
+    }
+    
+    protected int getMinPageNumber() {
+        return this.startPage;
     }
     
     protected PageBox getPageBox(int pageNo) {
@@ -567,9 +606,5 @@ public class PagedBoxCollector {
     	AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
     	double maxY = transform == null ? bounds.getMaxY() : getMaxYFromTransformedBox(bounds, transform);
 		return finder.findPage(c, (int) maxY);
-	}
-
-	public List<PageResult> getCollectedPageResults() {
-		return result;
 	}
 }

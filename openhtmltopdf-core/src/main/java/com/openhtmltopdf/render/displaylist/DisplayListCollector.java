@@ -48,7 +48,7 @@ public class DisplayListCollector {
 	protected void addItem(DisplayListOperation item, int pgStart, int pgEnd,
 			DisplayListContainer dlPages) {
 		for (int i = pgStart; i <= pgEnd; i++) {
-			if (i < 0 || i >= dlPages.getNumPages()) {
+			if (i < dlPages.getMinPage() || i >= dlPages.getMaxPage()) {
 				continue;
 			}
 			
@@ -68,7 +68,7 @@ public class DisplayListCollector {
 		// We propagate any transformation matrixes recursively after layout has finished.
 		rootLayer.propagateCurrentTransformationMatrix(c);
 
-		DisplayListContainer displayList = new DisplayListContainer(_pages.size());
+		DisplayListContainer displayList = new DisplayListContainer(0, _pages.size());
 
 		// Recursively collect boxes for root layer and any children layers. Don't include
 		// fixed boxes at this point. They are collected by the <code>SinglePageDisplayListCollector</code>
@@ -91,13 +91,8 @@ public class DisplayListCollector {
 			return;
 		}
 		
-		int layerPageStart = -1;
-		int layerPageEnd = -1;
-		
-		if ((!layer.getClipBoxes().isEmpty() && !layer.getMaster().getStyle().isPositioned()) || layer.hasLocalTransform()) {
-			layerPageStart = findStartPage(c, layer);
-			layerPageEnd = findEndPage(c, layer);
-		}
+		int layerPageStart = findStartPage(c, layer);
+		int layerPageEnd = findEndPage(c, layer);
 
 	    if (layer.hasLocalTransform()) {
 	        DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
@@ -115,22 +110,22 @@ public class DisplayListCollector {
 			// so on.
 			// TODO
 		}
-		
-
 
 		if (layer.isRootLayer() && layer.getMaster().hasRootElementBackground(c)) {
 
 			// IMPROVEMENT: If the background image doesn't cover every page,
 			// we could perhaps optimize this.
 			DisplayListOperation dlo = new PaintRootElementBackground(layer.getMaster());
-			addItem(dlo, 0, dlPages.getNumPages() - 1, dlPages);
+			addItem(dlo, dlPages.getMinPage(), dlPages.getMaxPage(), dlPages);
 		}
 		
 		if (!layer.isInline() && ((BlockBox) layer.getMaster()).isReplaced()) {
 			collectReplacedElementLayer(c, layer, dlPages);
 		} else {
 
-			PagedBoxCollector collector = createBoxCollector();
+			PagedBoxCollector collector = createBoundedBoxCollector(layerPageStart, layerPageEnd);
+			
+			collector.collectFloats(c, layer);
 			collector.collect(c, layer);
 
 			if (!layer.isInline() && layer.getMaster() instanceof BlockBox) {
@@ -141,13 +136,11 @@ public class DisplayListCollector {
 				collectLayers(c, layer.getSortedLayers(Layer.NEGATIVE), dlPages, flags);
 			}
 
-			List<PageResult> pgResults = collector.getCollectedPageResults();
+			for (int pageNumber = layerPageStart; pageNumber <= layerPageEnd; pageNumber++) {
+				PageResult pg = collector.getPageResult(pageNumber);
+				DisplayListPageContainer dlPageList = dlPages.getPageInstructions(pageNumber);
 
-			for (int i = 0; i < pgResults.size(); i++) {
-				PageResult pg = pgResults.get(i);
-				DisplayListPageContainer dlPageList = dlPages.getPageInstructions(i);
-
-				processPage(c, layer, dlPages, pg, dlPageList, true);
+				processPage(c, layer, pg, dlPageList, true, pageNumber);
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
@@ -170,8 +163,7 @@ public class DisplayListCollector {
 		}
 	}
 
-    private void processPage(RenderingContext c, Layer layer, DisplayListContainer dlPages,
-            PageResult pg, DisplayListPageContainer dlPageList, boolean includeFloats) {
+    private void processPage(RenderingContext c, Layer layer, PageResult pg, DisplayListPageContainer dlPageList, boolean includeFloats, int pageNumber) {
 
         if (!pg.blocks().isEmpty()) {
             Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
@@ -179,11 +171,10 @@ public class DisplayListCollector {
             DisplayListOperation dlo = new PaintBackgroundAndBorders(pg.blocks(), collapsedTableBorders);
             dlPageList.addOp(dlo);
         }
-
-        if (includeFloats && layer.getFloats() != null && !layer.getFloats().isEmpty()) {
-            for (int iflt = layer.getFloats().size() - 1; iflt >= 0; iflt--) {
-                BlockBox floater = (BlockBox) layer.getFloats().get(iflt);
-                collectFloatAsLayer(c, layer, floater, dlPages);
+        
+        if (includeFloats) {
+            for (BlockBox floater : pg.floats()) {
+                collectFloatAsLayer(c, layer, floater, dlPageList, pageNumber);
             }
         }
 
@@ -203,20 +194,14 @@ public class DisplayListCollector {
         }
     }
 	
-	private void collectFloatAsLayer(RenderingContext c, Layer layer, BlockBox startingPoint,
-			DisplayListContainer dlPages) {
-		PagedBoxCollector collector = createBoxCollector();
+	private void collectFloatAsLayer(RenderingContext c, Layer layer, BlockBox floater, DisplayListPageContainer pageInstructions, int pageNumber) {
+	    SinglePageBoxCollector collector = new SinglePageBoxCollector(pageNumber, _pages.get(pageNumber));
 
-		collector.collect(c, layer, startingPoint);
+		collector.collect(c, layer, floater, pageNumber, pageNumber);
 
-		List<PageResult> pgResults = collector.getCollectedPageResults();
+		PageResult pageBoxes = collector.getPageResult(pageNumber);
 
-		for (int i = 0; i < pgResults.size(); i++) {
-			PageResult pg = pgResults.get(i);
-			DisplayListPageContainer dlPageList = dlPages.getPageInstructions(i);
-			
-			processPage(c, layer, dlPages, pg, dlPageList, false);
-		}
+		processPage(c, layer, pageBoxes, pageInstructions, false, pageNumber);
 	}
 
 	private void collectLayerBackgroundAndBorder(RenderingContext c, Layer layer,
@@ -282,15 +267,29 @@ public class DisplayListCollector {
 		}
 	}
 	
-	protected PagedBoxCollector createBoxCollector() {
-	    return new PagedBoxCollector(_pages);
+	protected PagedBoxCollector createBoundedBoxCollector(int pgStart, int pgEnd) {
+	    return new PagedBoxCollector(_pages, pgStart, pgEnd);
 	}
 	
 	protected int findStartPage(RenderingContext c, Layer layer) {
-	    return PagedBoxCollector.findStartPage(c, layer.getMaster(), _pages);
+	    int start = PagedBoxCollector.findStartPage(c, layer.getMaster(), _pages);
+	    
+	    // Floats maybe outside the master box.
+	    for (BlockBox floater : layer.getFloats()) {
+	        start = Math.min(start, PagedBoxCollector.findStartPage(c, floater, _pages));
+	    }
+	    
+	    return start;
 	}
 	
 	protected int findEndPage(RenderingContext c, Layer layer) {
-	    return PagedBoxCollector.findEndPage(c, layer.getMaster(), _pages);
+	    int end = PagedBoxCollector.findEndPage(c, layer.getMaster(), _pages);
+	    
+	    // Floats may be outside the master box.
+	    for (BlockBox floater : layer.getFloats()) {
+	        end = Math.max(end, PagedBoxCollector.findEndPage(c, floater, _pages));
+	    }
+	    
+	    return end;
 	}
 }

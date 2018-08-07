@@ -1,9 +1,6 @@
 package com.openhtmltopdf.render.displaylist;
 
 import java.awt.geom.AffineTransform;
-import java.util.Collections;
-import java.util.List;
-
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
@@ -42,8 +39,8 @@ public class SinglePageBoxCollector extends PagedBoxCollector {
     }
     
     @Override
-    public List<PageResult> getCollectedPageResults() {
-        return Collections.singletonList(pageResult);
+    protected int getMinPageNumber() {
+        return this.pageNo;
     }
     
     @Override

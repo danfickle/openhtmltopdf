@@ -166,7 +166,7 @@ public class DisplayListPainter {
     	List<PageBox> pages = layer.getPages();
         SinglePageDisplayListCollector dlCollector = new SinglePageDisplayListCollector(pages.get(c.getPageNo()), c.getPageNo());
         DisplayListContainer dlPages = dlCollector.collectFixed(c, layer); 
-        paint(c, dlPages.getPageInstructions(0));
+        paint(c, dlPages.getPageInstructions(c.getPageNo()));
     }
 
 	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {

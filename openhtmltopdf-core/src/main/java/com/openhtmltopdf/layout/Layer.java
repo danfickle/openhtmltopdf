@@ -65,7 +65,7 @@ public class Layer {
 
     private Box _end;
 
-    private List _floats;
+    private List<BlockBox> _floats;
 
     private boolean _fixedBackground;
 
@@ -250,7 +250,7 @@ public class Layer {
 
     public void addFloat(BlockBox floater, BlockFormattingContext bfc) {
         if (_floats == null) {
-            _floats = new ArrayList();
+            _floats = new ArrayList<BlockBox>();
         }
 
         _floats.add(floater);
@@ -459,8 +459,8 @@ public class Layer {
     	}
     }
 
-    public List getFloats() {
-        return _floats == null ? Collections.EMPTY_LIST : _floats;
+    public List<BlockBox> getFloats() {
+        return _floats == null ? Collections.<BlockBox>emptyList() : _floats;
     }
 
     /**

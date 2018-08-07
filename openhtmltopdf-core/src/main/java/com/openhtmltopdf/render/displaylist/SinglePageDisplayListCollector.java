@@ -19,11 +19,11 @@ public class SinglePageDisplayListCollector extends DisplayListCollector {
     
     @Override
     protected void addItem(DisplayListOperation item, int pgStart, int pgEnd, DisplayListContainer dlPages) {
-        dlPages.getPageInstructions(0).addOp(item);
+        dlPages.getPageInstructions(this.pageNumber).addOp(item);
     }
     
     @Override
-    protected PagedBoxCollector createBoxCollector() {
+    protected PagedBoxCollector createBoundedBoxCollector(int pageStart, int pageEnd) {
         return new SinglePageBoxCollector(this.pageNumber, this.pageBox);
     }
     
@@ -39,7 +39,7 @@ public class SinglePageDisplayListCollector extends DisplayListCollector {
     
     public DisplayListContainer collectFixed(RenderingContext c, Layer layer) {
         // This is called from the painter to collect fixed boxes just before paint.
-        DisplayListContainer res = new DisplayListContainer(1);
+        DisplayListContainer res = new DisplayListContainer(this.pageNumber, this.pageNumber);
         collect(c, layer, res, EnumSet.of(CollectFlags.INCLUDE_FIXED_BOXES));
         return res;
     }
