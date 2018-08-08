@@ -61,7 +61,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     
     private int _inlineWidth;
     
-    private List _textDecorations;
+    private List<TextDecoration> _textDecorations;
     
     private int _containingBlockWidth;
     
@@ -243,6 +243,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         }
     }
     
+    @Override
     public void paintInline(RenderingContext c) {
         if (! getStyle().isVisible(c, this)) {
             return;
@@ -255,15 +256,12 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             paintDebugOutline(c);
         }
         
-        List textDecorations = getTextDecorations();
-        if (textDecorations != null) {
-            for (Iterator i = textDecorations.iterator(); i.hasNext(); ) {
-                TextDecoration tD = (TextDecoration)i.next();
+        List<TextDecoration> textDecorations = getTextDecorations();
+        for (TextDecoration tD : textDecorations) {
                 IdentValue ident = tD.getIdentValue();
                 if (ident == IdentValue.UNDERLINE || ident == IdentValue.OVERLINE) {
                     c.getOutputDevice().drawTextDecoration(c, this, tD);    
                 }
-            }
         }
         
         for (int i = 0; i < getInlineChildCount(); i++) {
@@ -273,17 +271,15 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             }
         }
         
-        if (textDecorations != null) {
-            for (Iterator i = textDecorations.iterator(); i.hasNext(); ) {
-                TextDecoration tD = (TextDecoration)i.next();
+        for (TextDecoration tD : textDecorations) {
                 IdentValue ident = tD.getIdentValue();
                 if (ident == IdentValue.LINE_THROUGH) {
                     c.getOutputDevice().drawTextDecoration(c, this, tD);    
                 }
-            }
         }
     }
     
+    @Override
     public int getBorderSides() {
         int result = BorderPainter.TOP + BorderPainter.BOTTOM;
         
@@ -451,11 +447,11 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         return false;
     }
 
-    public List getTextDecorations() {
-        return _textDecorations;
+    public List<TextDecoration> getTextDecorations() {
+        return _textDecorations == null ? Collections.<TextDecoration>emptyList() : _textDecorations;
     }
 
-    public void setTextDecorations(List textDecoration) {
+    public void setTextDecorations(List<TextDecoration> textDecoration) {
         _textDecorations = textDecoration;
     }
     
@@ -480,7 +476,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         return (LineBox)b;
     }
     
-    public List getElementWithContent() {
+    public List<Box> getElementWithContent() {
         // inefficient, but the lists in question shouldn't be very long
         
         List result = new ArrayList();

@@ -5,6 +5,7 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -219,9 +220,9 @@ public class PagedBoxCollector {
 	 */
 	public PagedBoxCollector(List<PageBox> pages, int minPage, int maxPage) {
 	    this.pages = pages;
-	    this.result = new ArrayList<PageResult>((maxPage - minPage) + 1);
+	    this.result = new ArrayList<PageResult>(Math.max(maxPage - minPage, 0) + 1);
 	    this.finder = new PageFinder(pages);
-	    this.startPage = minPage;
+	    this.startPage = Math.max(0, minPage);
 	    
 	    for (int i = minPage; i <= maxPage; i++) {
 	        result.add(new PageResult());
@@ -239,7 +240,7 @@ public class PagedBoxCollector {
 	private void collectInline(CssContext c, Layer layer) {
         InlineLayoutBox iB = (InlineLayoutBox) layer.getMaster();
         List<Box> content = iB.getElementWithContent();
-        
+
         for (Box b : content) {
 
         	int pgStart = findStartPage(c, b, layer.getCurrentTransformMatrix());

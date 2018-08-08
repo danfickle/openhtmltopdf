@@ -271,7 +271,8 @@ public class BlockBox extends Box implements InlinePaintable {
 
         return result;
     }
-
+    
+    @Override
     public void paintInline(RenderingContext c) {
         if (! getStyle().isVisible(c, this)) {
             return;

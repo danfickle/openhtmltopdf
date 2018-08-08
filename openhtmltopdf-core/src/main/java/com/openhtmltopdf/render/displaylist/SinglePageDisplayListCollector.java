@@ -2,10 +2,15 @@ package com.openhtmltopdf.render.displaylist;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Set;
 
 import com.openhtmltopdf.layout.Layer;
+import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.render.displaylist.DisplayListCollector.CollectFlags;
+import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
+import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
 public class SinglePageDisplayListCollector extends DisplayListCollector {
     private final int pageNumber;
@@ -42,5 +47,20 @@ public class SinglePageDisplayListCollector extends DisplayListCollector {
         DisplayListContainer res = new DisplayListContainer(this.pageNumber, this.pageNumber);
         collect(c, layer, res, EnumSet.of(CollectFlags.INCLUDE_FIXED_BOXES));
         return res;
+    }
+    
+    public void collectInlineBlockBoxForSinglePage(RenderingContext c, BlockBox bb, DisplayListPageContainer pageInstructions, Set<CollectFlags> flags) {
+        int pageNumber = c.getPageNo();
+        
+        PagedBoxCollector collector = createBoundedBoxCollector(pageNumber, pageNumber);
+        
+        if (pageNumber < collector.getMinPageNumber() || pageNumber > collector.getMaxPageNumber()) {
+            return;
+        }
+
+        collector.collect(c, bb.getContainingLayer(), bb, pageNumber, pageNumber);
+            
+        PageResult pg = collector.getPageResult(pageNumber);
+        processPage(c, bb.getContainingLayer(), pg, pageInstructions, /* includeFloats: */ false, pageNumber);
     }
 }

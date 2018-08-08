@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import com.openhtmltopdf.render.OperatorClip;
 import com.openhtmltopdf.render.OperatorSetClip;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.render.displaylist.DisplayListCollector.CollectFlags;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 
 public class DisplayListPainter {
@@ -101,9 +103,16 @@ public class DisplayListPainter {
 			} else if (dli instanceof OperatorSetClip) {
 				OperatorSetClip setClip = (OperatorSetClip) dli;
 				setClip(c, setClip);
+			} else if (dli instanceof BlockBox) {
+			    // Inline blocks need to be painted as a layer.
+			    BlockBox bb = (BlockBox) dli;
+		        SinglePageDisplayListCollector dlCollector = new SinglePageDisplayListCollector(bb.getContainingLayer().getPages().get(c.getPageNo()), c.getPageNo());
+		        DisplayListPageContainer pageInstructions = new DisplayListPageContainer();
+		        dlCollector.collectInlineBlockBoxForSinglePage(c, bb, /* out: */ pageInstructions, EnumSet.noneOf(CollectFlags.class));
+		        paint(c, pageInstructions);
 			} else {
-				InlinePaintable paintable = (InlinePaintable) dli;
-				paintable.paintInline(c);
+                InlinePaintable paintable = (InlinePaintable) dli;
+                paintable.paintInline(c);
 			}
 		}
 	}

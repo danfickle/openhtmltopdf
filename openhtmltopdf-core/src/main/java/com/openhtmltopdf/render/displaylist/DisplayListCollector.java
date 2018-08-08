@@ -137,6 +137,12 @@ public class DisplayListCollector {
 			}
 
 			for (int pageNumber = layerPageStart; pageNumber <= layerPageEnd; pageNumber++) {
+			    
+			    if (pageNumber < dlPages.getMinPage() || pageNumber > dlPages.getMaxPage() ||
+			        pageNumber < collector.getMinPageNumber() || pageNumber > collector.getMaxPageNumber()) {
+			        continue;
+			    }
+			    
 				PageResult pg = collector.getPageResult(pageNumber);
 				DisplayListPageContainer dlPageList = dlPages.getPageInstructions(pageNumber);
 
@@ -163,7 +169,7 @@ public class DisplayListCollector {
 		}
 	}
 
-    private void processPage(RenderingContext c, Layer layer, PageResult pg, DisplayListPageContainer dlPageList, boolean includeFloats, int pageNumber) {
+    protected void processPage(RenderingContext c, Layer layer, PageResult pg, DisplayListPageContainer dlPageList, boolean includeFloats, int pageNumber) {
 
         if (!pg.blocks().isEmpty()) {
             Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
