@@ -273,6 +273,32 @@ public class PageBox {
     			getContentHeight(c));
     }
     
+    /**
+     * Get the shadow page (a page inserted to carry cut off content) content area of the layed out document.
+     * For example: If a page one is 100 units high and 150 wide and has a margin of 10 then this will return a
+     * rect(130, 0, 130, 80) for the first shadow page and a rect(260, 0, 130, 80) for the second shadow page. 
+     */
+    public Rectangle getDocumentCoordinatesContentBoundsForInsertedPage(CssContext c, int shadowPageNumber) {
+        return new Rectangle(
+                getContentWidth(c) * (shadowPageNumber + 1),
+                getPaintingTop(),
+                getContentWidth(c),
+                getContentHeight(c));
+    }
+    
+    /**
+     * Should shadow pages be inserted for cut off content for this page.
+     */
+    public boolean shouldInsertPages() {
+        // TODO
+        return false;
+    }
+    
+    public int getMaxInsertedPages() {
+        // TODO Auto-generated method stub
+        return 10;
+    }
+    
     public Rectangle getPagedViewClippingBounds(CssContext cssCtx, int additionalClearance) {
         Rectangle result = new Rectangle(
                 additionalClearance + 
@@ -775,5 +801,5 @@ public class PageBox {
             
             return new Point(left, top);
         }
-    } 
+    }
 }

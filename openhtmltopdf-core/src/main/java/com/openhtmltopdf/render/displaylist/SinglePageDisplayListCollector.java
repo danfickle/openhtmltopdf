@@ -8,7 +8,6 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.render.displaylist.DisplayListCollector.CollectFlags;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 

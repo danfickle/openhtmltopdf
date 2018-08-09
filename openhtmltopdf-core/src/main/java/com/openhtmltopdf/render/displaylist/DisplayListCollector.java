@@ -48,10 +48,6 @@ public class DisplayListCollector {
 	protected void addItem(DisplayListOperation item, int pgStart, int pgEnd,
 			DisplayListContainer dlPages) {
 		for (int i = pgStart; i <= pgEnd; i++) {
-			if (i < dlPages.getMinPage() || i >= dlPages.getMaxPage()) {
-				continue;
-			}
-			
 			dlPages.getPageInstructions(i).addOp(item);
 		}
 	}
@@ -120,7 +116,7 @@ public class DisplayListCollector {
 		}
 		
 		if (!layer.isInline() && ((BlockBox) layer.getMaster()).isReplaced()) {
-			collectReplacedElementLayer(c, layer, dlPages);
+			collectReplacedElementLayer(c, layer, dlPages, layerPageStart, layerPageEnd);
 		} else {
 
 			PagedBoxCollector collector = createBoundedBoxCollector(layerPageStart, layerPageEnd);
@@ -129,7 +125,7 @@ public class DisplayListCollector {
 			collector.collect(c, layer);
 
 			if (!layer.isInline() && layer.getMaster() instanceof BlockBox) {
-				collectLayerBackgroundAndBorder(c, layer, dlPages);
+				collectLayerBackgroundAndBorder(c, layer, dlPages, layerPageStart, layerPageEnd);
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
@@ -137,16 +133,19 @@ public class DisplayListCollector {
 			}
 
 			for (int pageNumber = layerPageStart; pageNumber <= layerPageEnd; pageNumber++) {
-			    
-			    if (pageNumber < dlPages.getMinPage() || pageNumber > dlPages.getMaxPage() ||
-			        pageNumber < collector.getMinPageNumber() || pageNumber > collector.getMaxPageNumber()) {
-			        continue;
-			    }
-			    
 				PageResult pg = collector.getPageResult(pageNumber);
 				DisplayListPageContainer dlPageList = dlPages.getPageInstructions(pageNumber);
 
 				processPage(c, layer, pg, dlPageList, true, pageNumber);
+				
+				int shadowCnt = 0;
+			    for (PageResult shadow : pg.shadowPages()) {
+			        DisplayListPageContainer shadowPage = dlPageList.getShadowPage(shadowCnt);
+			        
+				    processPage(c, layer, shadow, shadowPage, true, pageNumber);
+				    
+				    shadowCnt++;
+			    }
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
@@ -211,20 +210,16 @@ public class DisplayListCollector {
 	}
 
 	private void collectLayerBackgroundAndBorder(RenderingContext c, Layer layer,
-			DisplayListContainer dlPages) {
+			DisplayListContainer dlPages, int pgStart, int pgEnd) {
 
 		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
-		int pgStart = findStartPage(c, layer);
-		int pgEnd = findEndPage(c, layer);
 		addItem(dlo, pgStart, pgEnd, dlPages);
 	}
 
 	private void collectReplacedElementLayer(RenderingContext c, Layer layer,
-			DisplayListContainer dlPages) {
+			DisplayListContainer dlPages, int pgStart, int pgEnd) {
 
 		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
-		int pgStart = findStartPage(c, layer);
-		int pgEnd = findEndPage(c, layer);
 		addItem(dlo, pgStart, pgEnd, dlPages);
 
 		DisplayListOperation dlo2 = new PaintReplacedElement((BlockBox) layer.getMaster());

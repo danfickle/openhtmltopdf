@@ -605,8 +605,25 @@ public class PdfBoxRenderer implements Closeable {
             PageBox currentPage = pages.get(i);
             DisplayListPageContainer pageOperations = dlPages.getPageInstructions(i);
             c.setPage(i, currentPage);
-            paintPageFast(c, currentPage, pageOperations);
+            paintPageFast(c, currentPage, pageOperations, 0);
             _outputDevice.finishPage();
+            
+            if (!pageOperations.shadowPages().isEmpty()) {
+                // TODO.
+                int translateX = (int) (firstPageSize.getWidth() * _outputDevice.getDotsPerPoint());
+                for (DisplayListPageContainer shadowPage : pageOperations.shadowPages()) {
+                    PDPage shadowPdPage = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
+                    PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);
+                    doc.addPage(shadowPdPage);
+
+                    _outputDevice.initializePage(shadowCs, shadowPdPage, (float) firstPageSize.getHeight());
+                    paintPageFast(c, currentPage, shadowPage, -translateX);
+                    _outputDevice.finishPage();
+                    translateX += (int) (firstPageSize.getWidth() * _outputDevice.getDotsPerPoint());
+                    System.out.println("!!!!!!!!" + translateX + "#" + firstPageSize.getWidth());
+                }
+            }
+            
             
             if (i != pageCount - 1) {
                 PageBox nextPage = pages.get(i + 1);
@@ -750,7 +767,7 @@ public class PdfBoxRenderer implements Closeable {
         doc.setDocumentInformation(info);
     }
     
-    private void paintPageFast(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations) {
+    private void paintPageFast(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations, int additionalTranslateX) {
         page.paintBackground(c, 0, Layer.PAGED_MODE_PRINT);
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
@@ -762,10 +779,12 @@ public class PdfBoxRenderer implements Closeable {
 
         int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
 
-        _outputDevice.translate(left, top);
+        int translateX = left + additionalTranslateX;
+        
+        _outputDevice.translate(translateX, top);
         DisplayListPainter painter = new DisplayListPainter();
         painter.paint(c, pageOperations);
-        _outputDevice.translate(-left, -top);
+        _outputDevice.translate(-translateX, -top);
 
         _outputDevice.popClip();
     }
