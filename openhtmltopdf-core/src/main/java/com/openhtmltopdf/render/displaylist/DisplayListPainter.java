@@ -107,7 +107,7 @@ public class DisplayListPainter {
 			    // Inline blocks need to be painted as a layer.
 			    BlockBox bb = (BlockBox) dli;
 		        SinglePageDisplayListCollector dlCollector = new SinglePageDisplayListCollector(bb.getContainingLayer().getPages().get(c.getPageNo()), c.getPageNo());
-		        DisplayListPageContainer pageInstructions = new DisplayListPageContainer();
+		        DisplayListPageContainer pageInstructions = new DisplayListPageContainer(null); // TODO
 		        dlCollector.collectInlineBlockBoxForSinglePage(c, bb, /* out: */ pageInstructions, EnumSet.noneOf(CollectFlags.class));
 		        paint(c, pageInstructions);
 			} else {
@@ -201,6 +201,7 @@ public class DisplayListPainter {
 
 				PaintBackgroundAndBorders dlo = (PaintBackgroundAndBorders) op;
 				paintBackgroundAndBorders(c, dlo.getBlocks(), dlo.getCollapedTableBorders());
+				//System.out.println("painting blocks: " + dlo.getBlocks());
 
 			} else if (op instanceof PaintListMarkers) {
 

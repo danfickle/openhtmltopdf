@@ -294,6 +294,9 @@ public class PageBox {
         return false;
     }
     
+    /**
+     * The maximum number of shadow pages to insert.
+     */
     public int getMaxInsertedPages() {
         // TODO Auto-generated method stub
         return 10;

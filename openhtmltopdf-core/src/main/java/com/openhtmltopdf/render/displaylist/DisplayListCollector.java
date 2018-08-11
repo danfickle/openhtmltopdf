@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.newtable.CollapsedBorderValue;
@@ -64,7 +63,7 @@ public class DisplayListCollector {
 		// We propagate any transformation matrixes recursively after layout has finished.
 		rootLayer.propagateCurrentTransformationMatrix(c);
 
-		DisplayListContainer displayList = new DisplayListContainer(0, _pages.size());
+		DisplayListContainer displayList = new DisplayListContainer(0, _pages.size() - 1);
 
 		// Recursively collect boxes for root layer and any children layers. Don't include
 		// fixed boxes at this point. They are collected by the <code>SinglePageDisplayListCollector</code>
@@ -136,16 +135,8 @@ public class DisplayListCollector {
 				PageResult pg = collector.getPageResult(pageNumber);
 				DisplayListPageContainer dlPageList = dlPages.getPageInstructions(pageNumber);
 
-				processPage(c, layer, pg, dlPageList, true, pageNumber);
-				
-				int shadowCnt = 0;
-			    for (PageResult shadow : pg.shadowPages()) {
-			        DisplayListPageContainer shadowPage = dlPageList.getShadowPage(shadowCnt);
-			        
-				    processPage(c, layer, shadow, shadowPage, true, pageNumber);
-				    
-				    shadowCnt++;
-			    }
+				processPage(c, layer, pg, dlPageList, true, pageNumber, -1);
+				processShadowPages(c, layer, pageNumber, pg, dlPageList, true);
 			}
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
@@ -168,7 +159,10 @@ public class DisplayListCollector {
 		}
 	}
 
-    protected void processPage(RenderingContext c, Layer layer, PageResult pg, DisplayListPageContainer dlPageList, boolean includeFloats, int pageNumber) {
+    /**
+     * Convert a list of boxes to a list of paint instructions for a page.
+     */
+    protected void processPage(RenderingContext c, Layer layer, PageResult pg, DisplayListPageContainer dlPageList, boolean includeFloats, int pageNumber, int shadowPageNumber) {
 
         if (!pg.blocks().isEmpty()) {
             Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = pg.tcells().isEmpty() ? null
@@ -179,7 +173,7 @@ public class DisplayListCollector {
         
         if (includeFloats) {
             for (BlockBox floater : pg.floats()) {
-                collectFloatAsLayer(c, layer, floater, dlPageList, pageNumber);
+                collectFloatAsLayer(c, layer, floater, dlPageList, pageNumber, shadowPageNumber);
             }
         }
 
@@ -198,15 +192,40 @@ public class DisplayListCollector {
             dlPageList.addOp(dlo);
         }
     }
-	
-	private void collectFloatAsLayer(RenderingContext c, Layer layer, BlockBox floater, DisplayListPageContainer pageInstructions, int pageNumber) {
-	    SinglePageBoxCollector collector = new SinglePageBoxCollector(pageNumber, _pages.get(pageNumber));
+    
+    /**
+     * If we have cut-off boxes we have to process them as separate pages.
+     */
+    private void processShadowPages(RenderingContext c, Layer layer, int pageNumber, PageResult pg, DisplayListPageContainer dlPageList, boolean includeFloats) {
+        int shadowCnt = 0;
+        for (PageResult shadow : pg.shadowPages()) {
+            DisplayListPageContainer shadowPage = dlPageList.getShadowPage(shadowCnt);
+            processPage(c, layer, shadow, shadowPage, includeFloats, pageNumber, shadowCnt);
+            shadowCnt++;
+        }
+    }
+ 
+    /**
+     * This method can be reached by two code paths:
+     * <code>
+     * collectRoot -: collect -: processPage -: collectFloatAsLayer -: processPage
+     * collectRoot -: collect -: processShadowPages -: foreach(shadowPage) -: processPage -: collectFloatAsLayer -: processPage
+     * </code>
+     * Therefore, it is important to be careful when expecting a base page or shadow page.
+     */
+	private void collectFloatAsLayer(RenderingContext c, Layer layer, BlockBox floater, DisplayListPageContainer pageInstructions, int pageNumber, int shadowPageNumber) {
+	    PagedBoxCollector collector = createBoundedBoxCollector(pageNumber, pageNumber);
+	    collector.collect(c, layer, floater, pageNumber, pageNumber, shadowPageNumber);
+	    PageResult pageBoxes = collector.getPageResult(pageNumber);
 
-		collector.collect(c, layer, floater, pageNumber, pageNumber);
+	    if (shadowPageNumber != -1 && pageBoxes.hasShadowPage(shadowPageNumber)) {
+		    pageBoxes = pageBoxes.shadowPages().get(shadowPageNumber);
+		} else if (shadowPageNumber != -1) {
+		    /* Nothing for this float on this shadow page. */
+		    return;
+		}
 
-		PageResult pageBoxes = collector.getPageResult(pageNumber);
-
-		processPage(c, layer, pageBoxes, pageInstructions, false, pageNumber);
+		processPage(c, layer, pageBoxes, pageInstructions, false, pageNumber, shadowPageNumber);
 	}
 
 	private void collectLayerBackgroundAndBorder(RenderingContext c, Layer layer,

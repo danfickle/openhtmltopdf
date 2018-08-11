@@ -617,6 +617,7 @@ public class PdfBoxRenderer implements Closeable {
                     doc.addPage(shadowPdPage);
 
                     _outputDevice.initializePage(shadowCs, shadowPdPage, (float) firstPageSize.getHeight());
+                    System.out.println("shadow now!!!");
                     paintPageFast(c, currentPage, shadowPage, -translateX);
                     _outputDevice.finishPage();
                     translateX += (int) (firstPageSize.getWidth() * _outputDevice.getDotsPerPoint());

@@ -275,10 +275,11 @@ public class PagedBoxCollector {
 		if (layer.isInline()) {
 			collectInline(c, layer);
 		} else {
-			collect(c, layer, layer.getMaster());
+			collect(c, layer, layer.getMaster(), PAGE_ALL);
 		}
 	}
 	
+	// TODO: MAke sahdow page aware.
 	private void collectInline(CssContext c, Layer layer) {
         InlineLayoutBox iB = (InlineLayoutBox) layer.getMaster();
         List<Box> content = iB.getElementWithContent();
@@ -289,11 +290,7 @@ public class PagedBoxCollector {
         	int pgEnd = findEndPage(c, b, layer.getCurrentTransformMatrix());
         	
         	for (int i = pgStart; i <= pgEnd; i++) {
-        		if (i < getMinPageNumber() || i > getMaxPageNumber()) {
-        			continue;
-        		}
-        		
-        		Shape pageClip = getPageResult(i).getContentWindowOnDocument(getPageBox(i), c);
+        	    Shape pageClip = getPageResult(i).getContentWindowOnDocument(getPageBox(i), c);
         	
         		if (b.intersects(c, pageClip)) {
         			if (b instanceof InlineLayoutBox) {
@@ -306,7 +303,7 @@ public class PagedBoxCollector {
         						getPageResult(i).addInline(b);
         					}
         				} else {
-        					collect(c, layer, bb);
+        					collect(c, layer, bb, PAGE_ALL);
         				}
         			}
         		}
@@ -323,7 +320,15 @@ public class PagedBoxCollector {
             
             for (int i = pgStart; i <= pgEnd; i++) {
                 PageResult pgRes = getPageResult(i);
-                pgRes.addFloat(floater);
+                PageBox pageBox = getPageBox(i);
+                
+                if (intersectsAggregateBounds(pgRes.getContentWindowOnDocument(pageBox, c), floater)) {
+                    pgRes.addFloat(floater);
+                }
+                
+                if (pageBox.shouldInsertPages()) {
+                    addBoxToShadowPages(c, floater, i, pgRes, null, null, layer, AddFloatToShadowPage.INSTANCE);
+                }
             }
         }
 	}
@@ -337,14 +342,23 @@ public class PagedBoxCollector {
 	 * @param layer
 	 * @param container
 	 */
-	public void collect(CssContext c, Layer layer, Box container) {
+	public void collect(CssContext c, Layer layer, Box container, int shadowPageNumber) {
 	    int pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
 	    int pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
-	    
-	    collect(c, layer, container, pgStart, pgEnd);
+	    collect(c, layer, container, pgStart, pgEnd, shadowPageNumber);
 	}
 	
-	public void collect(CssContext c, Layer layer, Box container, int pgStart, int pgEnd) {
+	/**
+	 * Add collected items to base page only, ignoring inserted shadow pages.
+	 */
+	public static final int PAGE_BASE_ONLY = -1;
+	
+	/**
+	 * Add collected boxes to all pages, including inserted shadow pages.
+	 */
+	public static final int PAGE_ALL = -2;
+	
+	public void collect(CssContext c, Layer layer, Box container, int pgStart, int pgEnd, int shadowPageNumber) {
 		if (layer != container.getContainingLayer()) {
 			// Different layers are responsible for their own box collection.
 			return;
@@ -353,19 +367,12 @@ public class PagedBoxCollector {
         if (container instanceof LineBox) {
 
             for (int i = pgStart; i <= pgEnd; i++) {
-                PageResult pageResult = getPageResult(i);
-                PageBox pageBox = getPageBox(i);
-                Rectangle pageClip = pageResult.getContentWindowOnDocument(pageBox, c);
-
-                if (intersectsAggregateBounds(pageClip, container)) {
-                    pageResult.addInline(container);
-
-                    // Recursively add all children of the line box to the inlines list.
-                    ((LineBox) container).addAllChildren(pageResult._inlines, layer);
-                }
-                
-                if (pageBox.shouldInsertPages()) {
-                    addBoxToShadowPages(c, container, i, pageResult, null, null, layer, AddInlineToShadowPage.INSTANCE);
+                if (shadowPageNumber == PAGE_ALL) {
+                    addLineBoxToAll(c, layer, (LineBox) container, i, true);
+                } else if (shadowPageNumber == PAGE_BASE_ONLY) {
+                    addLineBoxToAll(c, layer, (LineBox) container, i, false);
+                } else {
+                    addLineBoxToShadowPage(c, layer, (LineBox) container, i, shadowPageNumber);
                 }
             }
 
@@ -391,26 +398,12 @@ public class PagedBoxCollector {
              		}
             	}
             	
-            	for (int i = pgStart; i <= pgEnd; i++) {
-            		PageResult pageResult = getPageResult(i);
-            		Rectangle pageClip = pageResult.getContentWindowOnDocument(getPageBox(i), c);
-
-            		// Test to see if it fits within the page margins.
-            		if (intersectsAggregateBounds(pageClip, container)) {
-            			addBlock(container, pageResult);
-
-            			if (ourClip != null) {
-            				// Add a clip operation before the block's descendents (inline or block).
-            				pageResult.clipAll(new OperatorClip(ourClip));
-            				
-            				// Add the page result to a list, so we can pop clip later.
-            				clipPages.add(pageResult);
-            			}
-            		}
-            		
-            		if (getPageBox(i).shouldInsertPages()) {
-            		    addBoxToShadowPages(c, container, i, pageResult, ourClip, clipPages, layer, AddBlockToShadowPage.INSTANCE);
-            		}
+            	if (shadowPageNumber == PAGE_ALL) {
+            	    addBlockToAll(c, layer, container, pgStart, pgEnd, ourClip, clipPages, true);
+            	} else if (shadowPageNumber == PAGE_BASE_ONLY) {
+            	    addBlockToAll(c, layer, container, pgStart, pgEnd, ourClip, clipPages, false);
+            	} else {
+            	    addBlockToShadowPage(c, layer, container, pgStart, pgEnd, ourClip, clipPages, shadowPageNumber);
             	}
         	}
 
@@ -420,13 +413,13 @@ public class PagedBoxCollector {
                 (container.getLayer() == null || container == layer.getMaster()) &&
                 c instanceof RenderingContext) {
                 
-                addTableHeaderFooter(c, layer, container);
+                addTableHeaderFooter(c, layer, container, shadowPageNumber);
             } else {
                 // Recursively, process all children and their children.
                 if (container.getLayer() == null || container == layer.getMaster()) {
                     for (int i = 0; i < container.getChildCount(); i++) {
                         Box child = container.getChild(i);
-                        collect(c, layer, child);
+                        collect(c, layer, child, shadowPageNumber);
                     }
                 }
             }
@@ -439,20 +432,99 @@ public class PagedBoxCollector {
             }
         }
 	}
-	
-    /**
-     * Inserts a shadow page as needed.
-     */
-	private PageResult getOrCreateShadowPage(PageResult basePage, int shadowPageNumber) {
-        PageResult shadowPageResult = basePage.hasShadowPage(shadowPageNumber) ? 
-                basePage.shadowPages().get(shadowPageNumber) : 
-                new PageResult();
 
-        if (!basePage.hasShadowPage(shadowPageNumber)) {
-            basePage.addShadowPage(shadowPageResult);
+    private void addBlockToAll(CssContext c, Layer layer, Box container, int pgStart, int pgEnd, Shape ourClip,
+            List<PageResult> clipPages, boolean includeShadowPages) {
+        for (int i = pgStart; i <= pgEnd; i++) {
+        	PageResult pageResult = getPageResult(i);
+        	PageBox pageBox = getPageBox(i);
+        	Rectangle pageClip = pageResult.getContentWindowOnDocument(pageBox, c);
+
+        	// Test to see if it fits within the page margins.
+        	if (intersectsAggregateBounds(pageClip, container)) {
+        		addBlock(container, pageResult);
+
+        		if (ourClip != null) {
+        			// Add a clip operation before the block's descendents (inline or block).
+        			pageResult.clipAll(new OperatorClip(ourClip));
+        			
+        			// Add the page result to a list, so we can pop clip later.
+        			clipPages.add(pageResult);
+        		}
+        	}
+        	
+        	if (includeShadowPages && pageBox.shouldInsertPages()) {
+        	    addBoxToShadowPages(c, container, i, pageResult, ourClip, clipPages, layer, AddBlockToShadowPage.INSTANCE);
+        	}
+        }
+    }
+    
+    private void addBlockToShadowPage(CssContext c, Layer layer, Box container, int pgStart, int pgEnd, Shape ourClip, List<PageResult> clipPages, int shadowPageNumber) {
+        for (int i = pgStart; i <= pgEnd; i++) {
+            PageResult pageResult = getPageResult(i);
+            PageBox pageBox = getPageBox(i);
+            Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(pageBox, c, shadowPageNumber);
+
+            // Test to see if it fits within the page margins.
+            if (intersectsAggregateBounds(shadowPageClip, container)) {
+                PageResult shadowPageResult = getOrCreateShadowPage(pageResult, shadowPageNumber);
+                addBlock(container, shadowPageResult);
+
+                if (ourClip != null) {
+                    // Add a clip operation before the block's descendents (inline or block).
+                    shadowPageResult.clipAll(new OperatorClip(ourClip));
+
+                    // Add the page result to a list, so we can pop clip later.
+                    clipPages.add(shadowPageResult);
+                }
+            } 
+        }
+    }
+
+	private void addLineBoxToShadowPage(CssContext c, Layer layer, LineBox container, int basePageNumber, int shadowPageNumber) {
+        PageResult pageResult = getPageResult(basePageNumber);
+        PageBox pageBox = getPageBox(basePageNumber);
+        Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(pageBox, c, shadowPageNumber);
+        
+        if (intersectsAggregateBounds(shadowPageClip, container)) {
+            PageResult shadowPageResult = getOrCreateShadowPage(pageResult, shadowPageNumber);
+            
+            shadowPageResult.addInline(container);
+
+            // Recursively add all children of the line box to the inlines list.
+            ((LineBox) container).addAllChildren(shadowPageResult._inlines, layer);
+        }
+    }
+
+    /**
+	 * Adds a line box to the base page if needed and any shadow pages as needed.
+	 */
+    private void addLineBoxToAll(CssContext c, Layer layer, LineBox container, int basePageNumber, boolean includeShadowPages) {
+        PageResult pageResult = getPageResult(basePageNumber);
+        PageBox pageBox = getPageBox(basePageNumber);
+        Rectangle pageClip = pageResult.getContentWindowOnDocument(pageBox, c);
+
+        if (intersectsAggregateBounds(pageClip, container)) {
+            pageResult.addInline(container);
+
+            // Recursively add all children of the line box to the inlines list.
+            ((LineBox) container).addAllChildren(pageResult._inlines, layer);
         }
         
-        return shadowPageResult;
+        if (includeShadowPages && pageBox.shouldInsertPages()) {
+            addBoxToShadowPages(c, container, basePageNumber, pageResult, null, null, layer, AddInlineToShadowPage.INSTANCE);
+        }
+    }
+	
+    /**
+     * Inserts shadow pages as needed.
+     */
+	private PageResult getOrCreateShadowPage(PageResult basePage, int shadowPageNumber) {
+	    while (shadowPageNumber >= basePage.shadowPages().size()) {
+	        basePage.addShadowPage(new PageResult());
+	    }
+	    
+	    return basePage.shadowPages().get(shadowPageNumber);
 	}
 	
 	private interface AddToShadowPage {
@@ -489,6 +561,16 @@ public class PagedBoxCollector {
         }
 	}
 	
+	private static class AddFloatToShadowPage implements AddToShadowPage {
+	    private static final AddToShadowPage INSTANCE = new AddFloatToShadowPage();
+	    
+        @Override
+        public boolean add(PagedBoxCollector collector, PageResult shadowPageResult, Box container, Shape clip, Layer layer) {
+            shadowPageResult.addFloat((BlockBox) container);
+            return false;
+        }
+	}
+	
 	/**
 	 * Adds block to inserted shadow pages as needed.
 	 */
@@ -506,11 +588,14 @@ public class PagedBoxCollector {
             Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(basePageBox, c, i);
             
             if (intersectsAggregateBounds(shadowPageClip, container)) {
+                
                 PageResult shadowPageResult = getOrCreateShadowPage(pageResult, i);
-
+                
                 if (addToMethod.add(this, shadowPageResult, container, ourClip, layer)) {
                     clipPages.add(shadowPageResult);
                 }
+            } else {
+                // Nothing.
             }
         }
         
@@ -525,12 +610,12 @@ public class PagedBoxCollector {
                     clipPages.add(shadowPageResult);
                 }
             } else {
-               // break;
+                break;
             }
         }
     }
 
-    private void addTableHeaderFooter(CssContext c, Layer layer, Box container) {
+    private void addTableHeaderFooter(CssContext c, Layer layer, Box container, int shadowPageNumber) {
         // Yes, this is one giant hack. The problem is that there is only one tfoot and thead box per table
         // but if -fs-table-paginate is set to paginate we need to collect the header and footer on every page
         // that the table appears on. The solution we use here is to loop through the table's pages and update 
@@ -543,16 +628,12 @@ public class PagedBoxCollector {
         int tableEnd = findEndPage(c, table, layer.getCurrentTransformMatrix());
         
         for (int pgTable = tableStart; pgTable <= tableEnd; pgTable++) {
-            if (pgTable < getMinPageNumber() || pgTable > getMaxPageNumber()) {
-                continue;
-            }
-            
             rc.setPage(pgTable, getPageBox(pgTable));
             table.updateHeaderFooterPosition(rc);
 
             for (int i = 0; i < container.getChildCount(); i++) {
                 Box child = container.getChild(i);
-                collect(c, layer, child);
+                collect(c, layer, child, shadowPageNumber);
             }
         }
     }
@@ -707,10 +788,6 @@ public class PagedBoxCollector {
     }
     
     protected PageResult getPageResult(int pageNo) {
-        if (pageNo - this.startPage < 0 || pageNo - this.startPage >= result.size()) {
-            return null;
-        }
-        
         return result.get(pageNo - this.startPage);
     }
     

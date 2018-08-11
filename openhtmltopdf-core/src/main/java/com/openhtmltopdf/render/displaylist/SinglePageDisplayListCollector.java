@@ -50,16 +50,17 @@ public class SinglePageDisplayListCollector extends DisplayListCollector {
     
     public void collectInlineBlockBoxForSinglePage(RenderingContext c, BlockBox bb, DisplayListPageContainer pageInstructions, Set<CollectFlags> flags) {
         int pageNumber = c.getPageNo();
-        
+        // TODO
         PagedBoxCollector collector = createBoundedBoxCollector(pageNumber, pageNumber);
         
         if (pageNumber < collector.getMinPageNumber() || pageNumber > collector.getMaxPageNumber()) {
             return;
         }
 
-        collector.collect(c, bb.getContainingLayer(), bb, pageNumber, pageNumber);
+        collector.collect(c, bb.getContainingLayer(), bb, pageNumber, pageNumber, PagedBoxCollector.PAGE_ALL /* TODO */);
             
         PageResult pg = collector.getPageResult(pageNumber);
-        processPage(c, bb.getContainingLayer(), pg, pageInstructions, /* includeFloats: */ false, pageNumber);
+        // TODO
+        processPage(c, bb.getContainingLayer(), pg, pageInstructions, /* includeFloats: */ false, pageNumber, -1);
     }
 }
