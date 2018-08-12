@@ -262,9 +262,9 @@ public class PagedBoxCollector {
 	 */
 	public PagedBoxCollector(List<PageBox> pages, int minPage, int maxPage) {
 	    this.pages = pages;
-	    this.result = new ArrayList<PageResult>(Math.max(maxPage - minPage, 0) + 1);
+	    this.result = new ArrayList<PageResult>(maxPage - minPage + 1);
 	    this.finder = new PageFinder(pages);
-	    this.startPage = Math.max(0, minPage);
+	    this.startPage = minPage;
 	    
 	    for (int i = minPage; i <= maxPage; i++) {
 	        result.add(new PageResult());
@@ -319,6 +319,10 @@ public class PagedBoxCollector {
             int pgEnd = findEndPage(c, floater, layer.getCurrentTransformMatrix());
             
             for (int i = pgStart; i <= pgEnd; i++) {
+                if (!isValidPage(i)) {
+                    continue;
+                }
+                
                 PageResult pgRes = getPageResult(i);
                 PageBox pageBox = getPageBox(i);
                 
@@ -367,6 +371,10 @@ public class PagedBoxCollector {
         if (container instanceof LineBox) {
 
             for (int i = pgStart; i <= pgEnd; i++) {
+                if (!isValidPage(i)) {
+                    continue;
+                }
+                
                 if (shadowPageNumber == PAGE_ALL) {
                     addLineBoxToAll(c, layer, (LineBox) container, i, true);
                 } else if (shadowPageNumber == PAGE_BASE_ONLY) {
@@ -436,6 +444,10 @@ public class PagedBoxCollector {
     private void addBlockToAll(CssContext c, Layer layer, Box container, int pgStart, int pgEnd, Shape ourClip,
             List<PageResult> clipPages, boolean includeShadowPages) {
         for (int i = pgStart; i <= pgEnd; i++) {
+            if (!isValidPage(i)) {
+                continue;
+            }
+            
         	PageResult pageResult = getPageResult(i);
         	PageBox pageBox = getPageBox(i);
         	Rectangle pageClip = pageResult.getContentWindowOnDocument(pageBox, c);
@@ -461,6 +473,10 @@ public class PagedBoxCollector {
     
     private void addBlockToShadowPage(CssContext c, Layer layer, Box container, int pgStart, int pgEnd, Shape ourClip, List<PageResult> clipPages, int shadowPageNumber) {
         for (int i = pgStart; i <= pgEnd; i++) {
+            if (!isValidPage(i)) {
+                continue;
+            }
+            
             PageResult pageResult = getPageResult(i);
             PageBox pageBox = getPageBox(i);
             Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(pageBox, c, shadowPageNumber);
@@ -628,6 +644,10 @@ public class PagedBoxCollector {
         int tableEnd = findEndPage(c, table, layer.getCurrentTransformMatrix());
         
         for (int pgTable = tableStart; pgTable <= tableEnd; pgTable++) {
+            if (!isValidPage(pgTable)) {
+                continue;
+            }
+            
             rc.setPage(pgTable, getPageBox(pgTable));
             table.updateHeaderFooterPosition(rc);
 
@@ -797,6 +817,10 @@ public class PagedBoxCollector {
     
     protected int getMinPageNumber() {
         return this.startPage;
+    }
+    
+    protected boolean isValidPage(int pageNo) {
+        return pageNo >= getMinPageNumber() && pageNo <= getMaxPageNumber();
     }
     
     protected PageBox getPageBox(int pageNo) {
