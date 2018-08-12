@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.css.CSSPrimitiveValue;
 
@@ -276,11 +274,14 @@ public class PageBox {
     /**
      * Get the shadow page (a page inserted to carry cut off content) content area of the layed out document.
      * For example: If a page one is 100 units high and 150 wide and has a margin of 10 then this will return a
-     * rect(130, 0, 130, 80) for the first shadow page and a rect(260, 0, 130, 80) for the second shadow page. 
+     * rect(130, 0, 130, 80) for the first shadow page and a rect(260, 0, 130, 80) for the second shadow page
+     * assuming cut-off direction is LTR.
+     * 
+     * For RTL the rects would be rect(-130, 0, 130, 80) and rect(-260, 0, 130, 80).
      */
     public Rectangle getDocumentCoordinatesContentBoundsForInsertedPage(CssContext c, int shadowPageNumber) {
         return new Rectangle(
-                getContentWidth(c) * (shadowPageNumber + 1),
+                getContentWidth(c) * (shadowPageNumber + 1) * (getCutOffPageDirection() == IdentValue.LTR ? 1 : -1),
                 getPaintingTop(),
                 getContentWidth(c),
                 getContentHeight(c));
@@ -298,6 +299,14 @@ public class PageBox {
      */
     public int getMaxInsertedPages() {
         return getStyle().fsMaxOverflowPages();
+    }
+    
+    /**
+     * @return Either ltr (should insert cut-off content to the right of the page) or
+     * rtl (should insert cut-off content to the left of the page).
+     */
+    public IdentValue getCutOffPageDirection() {
+        return getStyle().getIdent(CSSName.FS_OVERFLOW_PAGES_DIRECTION);
     }
     
     public Rectangle getPagedViewClippingBounds(CssContext cssCtx, int additionalClearance) {

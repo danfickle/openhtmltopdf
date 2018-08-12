@@ -24,6 +24,7 @@ import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.BoxBuilder;
@@ -610,7 +611,7 @@ public class PdfBoxRenderer implements Closeable {
             
             if (!pageOperations.shadowPages().isEmpty()) {
                 // TODO.
-                int translateX = (int) (firstPageSize.getWidth() * _outputDevice.getDotsPerPoint());
+                int translateX = (int) (firstPageSize.getWidth() * _outputDevice.getDotsPerPoint()) * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1);
                 for (DisplayListPageContainer shadowPage : pageOperations.shadowPages()) {
                     PDPage shadowPdPage = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
                     PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);

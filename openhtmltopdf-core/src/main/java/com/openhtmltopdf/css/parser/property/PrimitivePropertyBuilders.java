@@ -1855,4 +1855,14 @@ public class PrimitivePropertyBuilders {
             return false;
         }
     }
+    
+    public static class FSOverflowPagesDirection extends SingleIdent {
+        private static final BitSet ALLOWED = setFor(new IdentValue[] { IdentValue.LTR, IdentValue.RTL });
+        
+        @Override
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
+    
 }

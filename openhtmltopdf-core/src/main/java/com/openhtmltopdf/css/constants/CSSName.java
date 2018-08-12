@@ -1491,6 +1491,9 @@ public final class CSSName implements Comparable {
                     new PrimitivePropertyBuilders.BoxSizing()
             );
     
+    /**
+     * The maximum number of inserted shadow pages to insert for cut-off content.
+     */
     public final static CSSName FS_MAX_OVERFLOW_PAGES = 
             addProperty(
                     "-fs-max-overflow-pages",
@@ -1499,6 +1502,19 @@ public final class CSSName implements Comparable {
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSMaxOverflowPages()
             );
+    
+    /**
+     * Whether cut-off content to the right (default) of the page or left
+     * of the page should be inserted as shadow pages.
+     */
+    public final static CSSName FS_OVERFLOW_PAGES_DIRECTION =
+            addProperty(
+                    "-fs-overflow-pages-direction",
+                    PRIMITIVE,
+                    "ltr",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOverflowPagesDirection()
+             );
 
 
     /**
