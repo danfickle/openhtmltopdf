@@ -290,16 +290,14 @@ public class PageBox {
      * Should shadow pages be inserted for cut off content for this page.
      */
     public boolean shouldInsertPages() {
-        // TODO
-        return false;
+        return getMaxInsertedPages() > 0;
     }
     
     /**
-     * The maximum number of shadow pages to insert.
+     * The maximum number of shadow pages to insert for cut-off content.
      */
     public int getMaxInsertedPages() {
-        // TODO Auto-generated method stub
-        return 10;
+        return getStyle().fsMaxOverflowPages();
     }
     
     public Rectangle getPagedViewClippingBounds(CssContext cssCtx, int additionalClearance) {

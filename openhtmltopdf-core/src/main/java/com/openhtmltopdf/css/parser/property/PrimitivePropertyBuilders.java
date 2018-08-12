@@ -1848,4 +1848,11 @@ public class PrimitivePropertyBuilders {
             return ALLOWED;
         }
     }
+    
+    public static class FSMaxOverflowPages extends PlainInteger {
+        @Override
+        protected boolean isNegativeValuesAllowed() {
+            return false;
+        }
+    }
 }

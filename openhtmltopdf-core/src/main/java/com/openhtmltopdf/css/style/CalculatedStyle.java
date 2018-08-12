@@ -1035,6 +1035,10 @@ public class CalculatedStyle {
     public int columnCount() {
     	return (int) asFloat(CSSName.COLUMN_COUNT);
     }
+    
+    public int fsMaxOverflowPages() {
+        return (int) asFloat(CSSName.FS_MAX_OVERFLOW_PAGES);
+    }
 
 	/**
      * Determine if the element is visible. This is normaly the case

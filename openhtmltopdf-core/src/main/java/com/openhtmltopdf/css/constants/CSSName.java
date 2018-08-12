@@ -1490,6 +1490,15 @@ public final class CSSName implements Comparable {
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.BoxSizing()
             );
+    
+    public final static CSSName FS_MAX_OVERFLOW_PAGES = 
+            addProperty(
+                    "-fs-max-overflow-pages",
+                    PRIMITIVE,
+                    "0",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSMaxOverflowPages()
+            );
 
 
     /**
