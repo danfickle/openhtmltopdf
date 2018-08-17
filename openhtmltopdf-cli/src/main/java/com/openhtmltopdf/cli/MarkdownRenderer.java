@@ -1,5 +1,7 @@
 package com.openhtmltopdf.cli;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -14,7 +16,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,6 +30,11 @@ import picocli.CommandLine.Option;
     mixinStandardHelpOptions = true,
     version = "render-markdown - 0.1")
 public class MarkdownRenderer implements Runnable {
+
+  @Option(
+      names = {"-d", "--debug"},
+      description = "Enable debug mode. Print html files.")
+  boolean debug;
 
   @Option(
       names = {"-r", "--markdown-header"},
@@ -54,14 +60,20 @@ public class MarkdownRenderer implements Runnable {
     try {
 
       byte[] bytes = Files.readAllBytes(input.toPath());
-      String md = new String(bytes, StandardCharsets.UTF_8);
+      String md = new String(bytes, UTF_8);
       String html = markdown(md);
 
       String hdr = getHeader();
 
       Path dstPath = getDestinationWithFallback(output, input);
 
-      renderPDF(hdr + html + "</body></html>", new FileOutputStream(dstPath.toFile()));
+      String result = hdr + html + "</body></html>";
+
+      if (debug) {
+        Files.write(Paths.get(input.getName() + ".debug.html"), result.getBytes(UTF_8));
+      }
+
+      renderPDF(result, new FileOutputStream(dstPath.toFile()));
 
     } catch (Exception e) {
       System.err.printf("Exception %s", e);
