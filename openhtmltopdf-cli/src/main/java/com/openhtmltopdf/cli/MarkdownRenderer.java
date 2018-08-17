@@ -5,6 +5,7 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
+import com.vladsch.flexmark.ext.attributes.AttributesExtension;
 import com.vladsch.flexmark.ext.toc.TocExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
@@ -88,7 +89,10 @@ public class MarkdownRenderer implements Runnable {
   private String markdown(String md) {
     MutableDataSet options = new MutableDataSet();
     options.set(
-        Parser.EXTENSIONS, Arrays.asList(TocExtension.create(), AnchorLinkExtension.create()));
+        Parser.EXTENSIONS,
+        Arrays.asList(
+            TocExtension.create(), AnchorLinkExtension.create(), AttributesExtension.create()));
+
     options.set(AnchorLinkExtension.ANCHORLINKS_WRAP_TEXT, false);
 
     Parser parser = Parser.builder(options).build();
