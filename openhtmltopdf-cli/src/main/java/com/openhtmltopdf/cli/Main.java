@@ -1,8 +1,10 @@
 package com.openhtmltopdf.cli;
 
+import picocli.CommandLine;
+
 public class Main {
 
   public static void main(String[] args) {
-    System.out.println("Tada");
+    CommandLine.run(new MarkdownRenderer(), args);
   }
 }
