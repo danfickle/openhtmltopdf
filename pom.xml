@@ -34,6 +34,7 @@
     <module>openhtmltopdf-objects</module>
     <module>openhtmltopdf-mathml-support</module>
     <module>openhtmltopdf-latex-support</module>
+    <module>openhtmltopdf-cli</module>
   </modules>
 
   <scm>
@@ -142,6 +143,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <flexmark.version>0.19.6</flexmark.version>
+    <picocli.version>3.5.2</picocli.version>
   </properties>
 
 </project>
