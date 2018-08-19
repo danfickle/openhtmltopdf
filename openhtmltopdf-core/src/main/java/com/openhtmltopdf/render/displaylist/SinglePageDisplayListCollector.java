@@ -11,6 +11,7 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
+@Deprecated
 public class SinglePageDisplayListCollector extends DisplayListCollector {
     private final int pageNumber;
     private final PageBox pageBox;

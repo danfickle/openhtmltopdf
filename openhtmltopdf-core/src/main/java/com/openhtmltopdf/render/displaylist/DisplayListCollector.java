@@ -218,9 +218,9 @@ public class DisplayListCollector {
 	    collector.collect(c, layer, floater, pageNumber, pageNumber, shadowPageNumber);
 	    PageResult pageBoxes = collector.getPageResult(pageNumber);
 
-	    if (shadowPageNumber != -1 && pageBoxes.hasShadowPage(shadowPageNumber)) {
+	    if (shadowPageNumber >= 0 && pageBoxes.hasShadowPage(shadowPageNumber)) {
 		    pageBoxes = pageBoxes.shadowPages().get(shadowPageNumber);
-		} else if (shadowPageNumber != -1) {
+		} else if (shadowPageNumber >= 0) {
 		    /* Nothing for this float on this shadow page. */
 		    return;
 		}
@@ -286,6 +286,15 @@ public class DisplayListCollector {
 			return result;
 		}
 	}
+	
+	public DisplayListContainer collectFixed(RenderingContext c, Layer layer) {
+        // This is called from the painter to collect fixed boxes just before paint.
+
+	    // TODO: Make more efficient. We onl;y need one page usually.
+        DisplayListContainer res = new DisplayListContainer(0, _pages.size() - 1);
+        collect(c, layer, res, EnumSet.of(CollectFlags.INCLUDE_FIXED_BOXES));
+        return res;
+    }
 	
 	protected PagedBoxCollector createBoundedBoxCollector(int pgStart, int pgEnd) {
 	    return new PagedBoxCollector(_pages, pgStart, pgEnd);

@@ -5,6 +5,7 @@ import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
 
+@Deprecated
 public class SinglePageBoxCollector extends PagedBoxCollector {
     private final PageResult pageResult;
     private final int pageNo;
