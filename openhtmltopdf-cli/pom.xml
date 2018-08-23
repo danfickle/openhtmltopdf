@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>openhtmltopdf-parent</artifactId>
@@ -13,7 +13,8 @@
   <artifactId>openhtmltopdf-cli</artifactId>
 
   <name>Openhtmltopdf CLI</name>
-  <description>Command line tool for openhtml to pdf. Generate PDF's from command line.</description>
+  <description>Command line tool for openhtml to pdf. Generate PDF's from command line.
+  </description>
 
   <licenses>
     <license>
@@ -28,6 +29,20 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.2</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.3</version>
+      <!--<scope>runtime</scope>-->
+    </dependency>
+
     <dependency>
       <groupId>com.openhtmltopdf</groupId>
       <artifactId>openhtmltopdf-core</artifactId>
@@ -83,6 +98,12 @@
       <groupId>com.vladsch.flexmark</groupId>
       <artifactId>flexmark-ext-toc</artifactId>
       <version>${flexmark.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.8</version>
     </dependency>
 
     <dependency>

@@ -2,8 +2,14 @@ package com.openhtmltopdf.cli;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
+import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.extend.FSCacheEx;
+import com.openhtmltopdf.extend.FSCacheValue;
+import com.openhtmltopdf.extend.impl.FSDefaultCacheStore;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
@@ -12,18 +18,22 @@ import com.vladsch.flexmark.ext.toc.TocExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.options.MutableDataSet;
+import java.awt.Font;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.util.Charsets;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+@Slf4j
 @Command(
     name = "render",
     description = "OpenHtmlToPdf - Render markdown document to PDF.",
@@ -119,12 +129,44 @@ public class MarkdownRenderer implements Runnable {
       PdfRendererBuilder builder = new PdfRendererBuilder();
       builder.useSVGDrawer(new BatikSVGDrawer());
       builder.useMathMLDrawer(new MathMLDrawer());
-
+      builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+      builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
+      builder.defaultTextDirection(PdfRendererBuilder.TextDirection.LTR);
       builder.withHtmlContent(html, ".");
+      builder.useCacheStore(CacheStore.PDF_FONT_METRICS, getCache());
+      useFonts(builder);
+
       builder.toStream(outputStream);
       builder.run();
     } finally {
       outputStream.close();
     }
+  }
+
+  private void useFonts(PdfRendererBuilder builder) throws IOException {
+    Path fonts = Paths.get("fonts");
+    log.info("Loading fonts from {}", fonts.toAbsolutePath().toString());
+
+    try (DirectoryStream<Path> ds = Files.newDirectoryStream(fonts)) {
+      for (Path font : ds) {
+        String familyName = readFontFamilyName(font);
+        log.info("Loading font {} - {}", font.toString(), familyName);
+        builder.useFont(font.toFile(), familyName);
+      }
+    }
+  }
+
+  private String readFontFamilyName(Path font) {
+    try {
+      Font f = Font.createFont(Font.TRUETYPE_FONT, font.toFile());
+      return f.getFamily();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  FSCacheEx<String, FSCacheValue> getCache() {
+    FSDefaultCacheStore cacheStore = new FSDefaultCacheStore();
+    return cacheStore;
   }
 }
