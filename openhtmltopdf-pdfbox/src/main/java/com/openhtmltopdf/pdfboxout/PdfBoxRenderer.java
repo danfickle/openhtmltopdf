@@ -606,23 +606,25 @@ public class PdfBoxRenderer implements Closeable {
             PageBox currentPage = pages.get(i);
             DisplayListPageContainer pageOperations = dlPages.getPageInstructions(i);
             c.setPage(i, currentPage);
+            System.out.println("NEW PAGE");
             paintPageFast(c, currentPage, pageOperations, 0);
             _outputDevice.finishPage();
             
             if (!pageOperations.shadowPages().isEmpty()) {
-                // TODO.
-                int translateX = (int) (firstPageSize.getWidth() * _outputDevice.getDotsPerPoint()) * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1);
+                int pageContentWidth = currentPage.getContentWidth(c);
+                int translateX = pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1);
+
                 for (DisplayListPageContainer shadowPage : pageOperations.shadowPages()) {
-                    PDPage shadowPdPage = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
+                    PDPage shadowPdPage = new PDPage(new PDRectangle((float) currentPage.getWidth(c) / _dotsPerPoint, (float) currentPage.getHeight(c) / _dotsPerPoint));
                     PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);
                     doc.addPage(shadowPdPage);
 
                     _outputDevice.initializePage(shadowCs, shadowPdPage, (float) firstPageSize.getHeight());
                     System.out.println("shadow now!!!");
+                    System.out.println("!!!!!!!!" + translateX + "#" + firstPageSize.getWidth());
                     paintPageFast(c, currentPage, shadowPage, -translateX);
                     _outputDevice.finishPage();
-                    translateX += (int) (firstPageSize.getWidth() * _outputDevice.getDotsPerPoint());
-                    System.out.println("!!!!!!!!" + translateX + "#" + firstPageSize.getWidth());
+                    translateX += (pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1));
                 }
             }
             

@@ -318,11 +318,7 @@ public class PagedBoxCollector {
             int pgStart = findStartPage(c, floater, layer.getCurrentTransformMatrix());
             int pgEnd = findEndPage(c, floater, layer.getCurrentTransformMatrix());
             
-            for (int i = pgStart; i <= pgEnd; i++) {
-                if (!isValidPage(i)) {
-                    continue;
-                }
-                
+            for (int i = getValidMinPageNumber(pgStart); i <= getValidMaxPageNumber(pgEnd); i++) {
                 PageResult pgRes = getPageResult(i);
                 PageBox pageBox = getPageBox(i);
                 
@@ -347,8 +343,18 @@ public class PagedBoxCollector {
 	 * @param container
 	 */
 	public void collect(CssContext c, Layer layer, Box container, int shadowPageNumber) {
-	    int pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
-	    int pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
+	    int pgStart;
+	    int pgEnd;
+	    
+	    if (container instanceof BlockBox) {
+           Rectangle bounds = container.getBorderBox(c);
+           pgStart = findStartPage(c, bounds, layer.getCurrentTransformMatrix());
+           pgEnd = findEndPage(c, bounds, layer.getCurrentTransformMatrix());
+	    } else {
+	       pgStart = findStartPage(c, container, layer.getCurrentTransformMatrix());
+	       pgEnd = findEndPage(c, container, layer.getCurrentTransformMatrix());
+	    }
+
 	    collect(c, layer, container, pgStart, pgEnd, shadowPageNumber);
 	}
 	
@@ -370,11 +376,7 @@ public class PagedBoxCollector {
 
         if (container instanceof LineBox) {
 
-            for (int i = pgStart; i <= pgEnd; i++) {
-                if (!isValidPage(i)) {
-                    continue;
-                }
-                
+            for (int i = getValidMinPageNumber(pgStart); i <= getValidMaxPageNumber(pgEnd); i++) {
                 if (shadowPageNumber == PAGE_ALL) {
                     addLineBoxToAll(c, layer, (LineBox) container, i, true);
                 } else if (shadowPageNumber == PAGE_BASE_ONLY) {
@@ -443,17 +445,13 @@ public class PagedBoxCollector {
 
     private void addBlockToAll(CssContext c, Layer layer, Box container, int pgStart, int pgEnd, Shape ourClip,
             List<PageResult> clipPages, boolean includeShadowPages) {
-        for (int i = pgStart; i <= pgEnd; i++) {
-            if (!isValidPage(i)) {
-                continue;
-            }
-            
+        for (int i = getValidMinPageNumber(pgStart); i <= getValidMaxPageNumber(pgEnd); i++) {
         	PageResult pageResult = getPageResult(i);
         	PageBox pageBox = getPageBox(i);
         	Rectangle pageClip = pageResult.getContentWindowOnDocument(pageBox, c);
 
         	// Test to see if it fits within the page margins.
-        	if (intersectsAggregateBounds(pageClip, container)) {
+        	if (intersectsBorderBoxBounds(c, pageClip, container)) {
         		addBlock(container, pageResult);
 
         		if (ourClip != null) {
@@ -472,17 +470,13 @@ public class PagedBoxCollector {
     }
     
     private void addBlockToShadowPage(CssContext c, Layer layer, Box container, int pgStart, int pgEnd, Shape ourClip, List<PageResult> clipPages, int shadowPageNumber) {
-        for (int i = pgStart; i <= pgEnd; i++) {
-            if (!isValidPage(i)) {
-                continue;
-            }
-            
+        for (int i = getValidMinPageNumber(pgStart); i <= getValidMaxPageNumber(pgEnd); i++) {
             PageResult pageResult = getPageResult(i);
             PageBox pageBox = getPageBox(i);
             Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(pageBox, c, shadowPageNumber);
 
             // Test to see if it fits within the page margins.
-            if (intersectsAggregateBounds(shadowPageClip, container)) {
+            if (intersectsBorderBoxBounds(c, shadowPageClip, container)) {
                 PageResult shadowPageResult = getOrCreateShadowPage(pageResult, shadowPageNumber);
                 addBlock(container, shadowPageResult);
 
@@ -543,12 +537,27 @@ public class PagedBoxCollector {
 	    return basePage.shadowPages().get(shadowPageNumber);
 	}
 	
+	/**
+	 * The joys of lambda style programming in Java 6! Provides a method to add a box to a shadow page
+	 * if it is determined to sit on a particular shadow page.
+	 * 
+	 * Other method (boundsBox) is whether to use the border-box or the aggregate (includes overflowing children)
+	 * to test whether a box sits on a particular shadow page.
+	 */
 	private interface AddToShadowPage {
+	    final static int BORDER_BOX = 1;
+	    final static int AGGREGATE_BOX = 2;
+	    int boundsBox();
 	    boolean add(PagedBoxCollector collector, PageResult shadowPageResult, Box container, Shape clip, Layer layer);
 	}
 	
 	private static class AddBlockToShadowPage implements AddToShadowPage  {
 	    private static final AddToShadowPage INSTANCE = new AddBlockToShadowPage();
+	    
+	    @Override
+	    public int boundsBox() {
+	        return AddToShadowPage.BORDER_BOX;
+	    }
 	    
         @Override
         public boolean add(PagedBoxCollector collector, PageResult shadowPageResult, Box container, Shape clip, Layer layer) {
@@ -566,6 +575,11 @@ public class PagedBoxCollector {
 	private static class AddInlineToShadowPage implements AddToShadowPage {
 	    private static final AddToShadowPage INSTANCE = new AddInlineToShadowPage();
 	    
+	    @Override
+	    public int boundsBox() {
+	       return AddToShadowPage.AGGREGATE_BOX;
+	    }
+	    
         @Override
         public boolean add(PagedBoxCollector collector, PageResult shadowPageResult, Box container, Shape clip, Layer layer) {
             shadowPageResult.addInline(container);
@@ -580,6 +594,11 @@ public class PagedBoxCollector {
 	private static class AddFloatToShadowPage implements AddToShadowPage {
 	    private static final AddToShadowPage INSTANCE = new AddFloatToShadowPage();
 	    
+	    @Override
+	    public int boundsBox() {
+	       return AddToShadowPage.BORDER_BOX;
+	    }
+	    
         @Override
         public boolean add(PagedBoxCollector collector, PageResult shadowPageResult, Box container, Shape clip, Layer layer) {
             shadowPageResult.addFloat((BlockBox) container);
@@ -588,7 +607,7 @@ public class PagedBoxCollector {
 	}
 	
 	/**
-	 * Adds block to inserted shadow pages as needed.
+	 * Adds box to inserted shadow pages as needed.
 	 */
     private void addBoxToShadowPages(
             CssContext c, Box container, int pageNumber,
@@ -596,37 +615,26 @@ public class PagedBoxCollector {
             /* adds-to: */ List<PageResult> clipPages,
             Layer layer, AddToShadowPage addToMethod) {
         
-        int shadowPageCount = pageResult.shadowPages().size();
         PageBox basePageBox = getPageBox(pageNumber);
         
-        // First check if the box overlaps any existing shadow page.
-        for (int i = 0; i < shadowPageCount; i++) {
+        AffineTransform ctm = container.getContainingLayer().getCurrentTransformMatrix();
+        Rectangle bounds = container.getBorderBox(c);
+        int maxX = (int) (ctm == null ? bounds.getMaxX() : getMaxXFromTransformedBox(bounds, ctm));
+        int maxShadowPages = basePageBox.getMaxShadowPagesForXPos(c, maxX);
+        
+        for (int i = 0; i < maxShadowPages; i++) {
             Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(basePageBox, c, i);
             
-            if (intersectsAggregateBounds(shadowPageClip, container)) {
-                
+            boolean intersects = addToMethod.boundsBox() == AddToShadowPage.AGGREGATE_BOX ? 
+                    intersectsAggregateBounds(shadowPageClip, container) :
+                    intersectsBorderBoxBounds(c, shadowPageClip, container);
+            
+            if (intersects) {
                 PageResult shadowPageResult = getOrCreateShadowPage(pageResult, i);
                 
                 if (addToMethod.add(this, shadowPageResult, container, ourClip, layer)) {
                     clipPages.add(shadowPageResult);
                 }
-            } else {
-                // Nothing.
-            }
-        }
-        
-        // Now keep creating shadow pages until the box no longer overlaps the newly created shadow page.
-        for (int j = shadowPageCount; j < basePageBox.getMaxInsertedPages(); j++) {
-            Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(basePageBox, c, j);
-
-            if (intersectsAggregateBounds(shadowPageClip, container)) {
-                PageResult shadowPageResult = getOrCreateShadowPage(pageResult, j);
-
-                if (addToMethod.add(this, shadowPageResult, container, ourClip, layer)) {
-                    clipPages.add(shadowPageResult);
-                }
-            } else {
-                break;
             }
         }
     }
@@ -643,11 +651,7 @@ public class PagedBoxCollector {
         int tableStart = findStartPage(c, table, layer.getCurrentTransformMatrix());
         int tableEnd = findEndPage(c, table, layer.getCurrentTransformMatrix());
         
-        for (int pgTable = tableStart; pgTable <= tableEnd; pgTable++) {
-            if (!isValidPage(pgTable)) {
-                continue;
-            }
-            
+        for (int pgTable = getValidMinPageNumber(tableStart); pgTable <= getValidMaxPageNumber(tableEnd); pgTable++) {
             rc.setPage(pgTable, getPageBox(pgTable));
             table.updateHeaderFooterPosition(rc);
 
@@ -705,6 +709,23 @@ public class PagedBoxCollector {
         }
     }
     
+    /**
+     * Returns whether a box (out to the outside edge of border) is partially or fully in a clip shape.
+     * This should give us the painting bounds of the box itself, although child boxes can overflow.
+     */
+    private boolean intersectsBorderBoxBounds(CssContext c, Shape clip, Box box) {
+        Rectangle borderBoxBounds = box.getBorderBox(c);
+        
+        AffineTransform ctm = box.getContainingLayer().getCurrentTransformMatrix();
+        
+        if (ctm == null) {
+            return clip.intersects(borderBoxBounds);
+        } else {
+            Shape boxShape = ctm.createTransformedShape(borderBoxBounds);
+            return clip.intersects(boxShape.getBounds2D());
+        }
+    }
+    
     private boolean intersectsAny(
             CssContext c, Shape clip, 
             Box master, Box container) {
@@ -733,27 +754,47 @@ public class PagedBoxCollector {
         return false;
     }
     
+    private static class FourPoint {
+        private final Point2D ul;
+        private final Point2D ur;
+        private final Point2D ll;
+        private final Point2D lr;
+        
+        private FourPoint(Point2D ul, Point2D ur, Point2D ll, Point2D lr) {
+            this.ul = ul;
+            this.ur = ur;
+            this.ll = ll;
+            this.lr = lr;
+        }
+    }
+    
+    private static FourPoint getCornersFromTransformedBounds(Rectangle bounds, AffineTransform transform) {
+        Point2D ul = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+        Point2D ur = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+        Point2D ll = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+        Point2D lr = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+        
+        Point2D ult = transform.transform(ul, null);
+        Point2D urt = transform.transform(ur, null);
+        Point2D llt = transform.transform(ll, null);
+        Point2D lrt = transform.transform(lr, null);
+
+        return new FourPoint(ult, urt, llt, lrt);
+    }
+    
 	/**
 	 * There is a matrix in effect, we have to apply it to the box bounds before checking what page(s) it
 	 * sits on. To do this we transform the four corners of the box.
 	 */
     private static double getMinYFromTransformedBox(Rectangle bounds, AffineTransform transform) {
-		Point2D ul = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-		Point2D ur = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-		Point2D ll = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-		Point2D lr = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-		
-		Point2D ult = transform.transform(ul, null);
-		Point2D urt = transform.transform(ur, null);
-		Point2D llt = transform.transform(ll, null);
-		Point2D lrt = transform.transform(lr, null);
+        FourPoint corners = getCornersFromTransformedBounds(bounds, transform);
 
-		// Now get the least Y.
-		double minY = Math.min(ult.getY(), urt.getY());
-		minY = Math.min(llt.getY(), minY);
-		minY = Math.min(lrt.getY(), minY);
-		
-		return minY;
+        // Now get the least Y.
+        double minY = Math.min(corners.ul.getY(), corners.ur.getY());
+        minY = Math.min(corners.ll.getY(), minY);
+        minY = Math.min(corners.lr.getY(), minY);
+        
+        return minY;
     }
     
 	/**
@@ -761,23 +802,40 @@ public class PagedBoxCollector {
 	 * sits on. To do this we transform the four corners of the box.
 	 */
     private static double getMaxYFromTransformedBox(Rectangle bounds, AffineTransform transform) {
-		Point2D ul = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-		Point2D ur = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-		Point2D ll = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-		Point2D lr = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+		FourPoint corners = getCornersFromTransformedBounds(bounds, transform);
 		
-		Point2D ult = transform.transform(ul, null);
-		Point2D urt = transform.transform(ur, null);
-		Point2D llt = transform.transform(ll, null);
-		Point2D lrt = transform.transform(lr, null);
-
 		// Now get the max Y.
-		double maxY = Math.max(ult.getY(), urt.getY());
-		maxY = Math.max(llt.getY(), maxY);
-		maxY = Math.max(lrt.getY(), maxY);
+		double maxY = Math.max(corners.ul.getY(), corners.ur.getY());
+		maxY = Math.max(corners.ll.getY(), maxY);
+		maxY = Math.max(corners.lr.getY(), maxY);
 		
 		return maxY;
     }
+    
+    /**
+     * There is a matrix in effect. We need the max x to see how many shadow pages need creating.
+     */
+    private static double getMaxXFromTransformedBox(Rectangle bounds, AffineTransform transform) {
+        FourPoint corners = getCornersFromTransformedBounds(bounds, transform);
+
+        // Now get the max X.
+        double maxX = Math.max(corners.ul.getX(), corners.ur.getX());
+        maxX = Math.max(corners.ll.getX(), maxX);
+        maxX = Math.max(corners.lr.getX(), maxX);
+        
+        return maxX;
+    }
+    
+    protected int findStartPage(CssContext c, Rectangle bounds, AffineTransform transform) {
+        double minY = transform == null ? bounds.getMinY() : getMinYFromTransformedBox(bounds, transform);
+        return this.finder.findPageAdjusted(c, (int) minY);
+    }
+    
+    protected int findEndPage(CssContext c, Rectangle bounds, AffineTransform transform) {
+        double maxY = transform == null ? bounds.getMaxY() : getMaxYFromTransformedBox(bounds, transform);
+        return this.finder.findPageAdjusted(c, (int) maxY);
+    }
+   
     
     protected int findStartPage(CssContext c, Box container, AffineTransform transform) {
     	PaintingInfo info = container.calcPaintingInfo(c, true);
@@ -819,8 +877,12 @@ public class PagedBoxCollector {
         return this.startPage;
     }
     
-    protected boolean isValidPage(int pageNo) {
-        return pageNo >= getMinPageNumber() && pageNo <= getMaxPageNumber();
+    protected int getValidMinPageNumber(int pageNo) {
+        return Math.max(pageNo, getMinPageNumber());
+    }
+    
+    protected int getValidMaxPageNumber(int pageNo) {
+        return Math.min(pageNo, getMaxPageNumber());
     }
     
     protected PageBox getPageBox(int pageNo) {

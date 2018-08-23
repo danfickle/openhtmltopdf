@@ -173,8 +173,8 @@ public class DisplayListPainter {
     	layer.positionFixedLayer(c);
 
     	List<PageBox> pages = layer.getPages();
-        SinglePageDisplayListCollector dlCollector = new SinglePageDisplayListCollector(pages.get(c.getPageNo()), c.getPageNo());
-        DisplayListContainer dlPages = dlCollector.collectFixed(c, layer); 
+    	DisplayListCollector collector = new DisplayListCollector(pages);
+        DisplayListContainer dlPages = collector.collectFixed(c, layer); 
         paint(c, dlPages.getPageInstructions(c.getPageNo()));
     }
 

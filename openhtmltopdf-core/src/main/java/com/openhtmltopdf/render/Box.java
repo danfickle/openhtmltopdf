@@ -997,6 +997,15 @@ public abstract class Box implements Styleable, DisplayListItem {
         RectPropertySet padding = getPadding(c);
         return (int) (getHeight() + border.height() + padding.height());
     }
+    
+    public Rectangle getBorderBox(CssContext c) {
+        int w = getBorderBoxWidth(c);
+        int h = getBorderBoxHeight(c);
+        int x = getAbsX();
+        int y = getAbsY();
+        
+        return new Rectangle(x, y, w, h);
+    }
 
     public void setContentWidth(int contentWidth) {
         _contentWidth = contentWidth < 0 ? 0 : contentWidth;
