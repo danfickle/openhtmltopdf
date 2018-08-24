@@ -11,12 +11,17 @@ import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
+import com.vladsch.flexmark.Extension;
 import com.vladsch.flexmark.ast.Node;
 import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
 import com.vladsch.flexmark.ext.attributes.AttributesExtension;
+import com.vladsch.flexmark.ext.emoji.EmojiExtension;
+import com.vladsch.flexmark.ext.emoji.EmojiImageType;
 import com.vladsch.flexmark.ext.toc.TocExtension;
+import com.vladsch.flexmark.ext.yaml.front.matter.YamlFrontMatterExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.superscript.SuperscriptExtension;
 import com.vladsch.flexmark.util.options.MutableDataSet;
 import java.awt.Font;
 import java.io.File;
@@ -28,6 +33,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -125,9 +133,17 @@ public class MarkdownRenderer implements Runnable {
             TocExtension.create(), AnchorLinkExtension.create(), AttributesExtension.create()));
 
     options.set(AnchorLinkExtension.ANCHORLINKS_WRAP_TEXT, false);
+    options.set(EmojiExtension.USE_IMAGE_TYPE, EmojiImageType.UNICODE_FALLBACK_TO_IMAGE);
 
-    Parser parser = Parser.builder(options).build();
-    HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+    List<Extension> extensionList =
+        Stream.of(
+                YamlFrontMatterExtension.create(),
+                SuperscriptExtension.create(),
+                EmojiExtension.create())
+            .collect(Collectors.toList());
+
+    Parser parser = Parser.builder(options).extensions(extensionList).build();
+    HtmlRenderer renderer = HtmlRenderer.builder(options).extensions(extensionList).build();
 
     Node document = parser.parse(md);
     return renderer.render(document);

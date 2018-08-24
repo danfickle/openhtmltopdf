@@ -99,6 +99,26 @@
       <artifactId>flexmark-ext-toc</artifactId>
       <version>${flexmark.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-yaml-front-matter</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-gfm-tables</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-superscript</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.vladsch.flexmark</groupId>
+      <artifactId>flexmark-ext-emoji</artifactId>
+      <version>${flexmark.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.commons</groupId>
