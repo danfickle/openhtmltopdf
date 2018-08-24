@@ -28,12 +28,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.util.Charsets;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Slf4j
+@Data
 @Command(
     name = "render",
     description = "OpenHtmlToPdf - Render markdown document to PDF.",
@@ -51,6 +53,12 @@ public class MarkdownRenderer implements Runnable {
       paramLabel = "FILE",
       description = "Html file to be used as header for markdown content.")
   File header;
+
+  @Option(
+      names = {"--fonts-dir"},
+      paramLabel = "FILE",
+      description = "Path to directory that contains the fonts to be added.")
+  File fontsDir;
 
   @Option(
       names = {"-i", "--input"},
@@ -98,7 +106,7 @@ public class MarkdownRenderer implements Runnable {
   }
 
   private String getHeader() throws IOException {
-    String hdr = null;
+    String hdr;
     if (header != null) {
       byte[] hdrBytes = Files.readAllBytes(header.toPath());
       hdr = new String(hdrBytes, Charsets.UTF_8);
@@ -144,8 +152,8 @@ public class MarkdownRenderer implements Runnable {
   }
 
   private void useFonts(PdfRendererBuilder builder) throws IOException {
-    Path fonts = Paths.get("fonts");
-    log.info("Loading fonts from {}", fonts.toAbsolutePath().toString());
+    Path fonts = fontsDir.toPath();
+    log.debug("Loading fonts from {}", fonts.toAbsolutePath().toString());
 
     try (DirectoryStream<Path> ds = Files.newDirectoryStream(fonts)) {
       for (Path font : ds) {
@@ -165,8 +173,7 @@ public class MarkdownRenderer implements Runnable {
     }
   }
 
-  FSCacheEx<String, FSCacheValue> getCache() {
-    FSDefaultCacheStore cacheStore = new FSDefaultCacheStore();
-    return cacheStore;
+  private FSCacheEx<String, FSCacheValue> getCache() {
+    return new FSDefaultCacheStore();
   }
 }
