@@ -28,14 +28,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.util.Charsets;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Slf4j
-@Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Command(
     name = "render",
     description = "OpenHtmlToPdf - Render markdown document to PDF.",
@@ -57,8 +58,8 @@ public class MarkdownRenderer implements Runnable {
   @Option(
       names = {"--fonts-dir"},
       paramLabel = "FILE",
-      description = "Path to directory that contains the fonts to be added.")
-  File fontsDir;
+      description = "Path to directory that contains the fonts to be added. Defaults to 'fonts'")
+  File fontsDir = new File("fonts");
 
   @Option(
       names = {"-i", "--input"},
