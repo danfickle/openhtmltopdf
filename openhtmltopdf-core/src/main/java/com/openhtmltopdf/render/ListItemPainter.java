@@ -104,11 +104,10 @@ public class ListItemPainter {
         StrutMetrics strutMetrics = box.getMarkerData().getStructMetrics();
         MarkerData.GlyphMarker marker = box.getMarkerData().getGlyphMarker();
         int x = getReferenceX(c, box);
-
-        if (direction == IdentValue.LTR) {
+        if (style.getDirection() == IdentValue.LTR) {
             x += -marker.getLayoutWidth();
         }
-        if (direction == IdentValue.RTL){
+        if (style.getDirection() == IdentValue.RTL){
             x += box.getMarkerData().getReferenceLine().getWidth() + marker.getLayoutWidth();
         }
         int y = getReferenceBaseline(c, box)
