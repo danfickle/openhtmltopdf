@@ -212,6 +212,7 @@ public class DisplayListPainter {
 
 				PaintInlineContent dlo = (PaintInlineContent) op;
 				paintInlineContent(c, dlo.getInlines());
+				//System.out.println("painting inlines: " + dlo.getInlines());
 
 			} else if (op instanceof PaintReplacedElements) {
 

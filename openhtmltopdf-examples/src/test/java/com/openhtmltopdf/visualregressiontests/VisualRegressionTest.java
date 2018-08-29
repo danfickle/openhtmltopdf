@@ -61,4 +61,29 @@ public class VisualRegressionTest {
     public void testOverflow() throws IOException {
         assertTrue(vt.runTest("overflow"));
     }
+    
+    @Test
+    public void testHorizPageOverflowStatic() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-static"));
+    }
+    
+    @Test
+    public void testHorizPageOverflowAbsolute() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-absolute"));
+    }
+
+    @Test
+    public void testHorizPageOverflowFloat() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-float"));
+    }
+    
+    @Test
+    public void testHorizPageOverflowTable() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-table"));
+    }
+    
+    @Test
+    public void testHorizPageOverflowTablePaged() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-table-paged"));
+    }
 }
