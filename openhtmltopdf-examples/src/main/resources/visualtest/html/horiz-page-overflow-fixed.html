@@ -1,0 +1,26 @@
+ <html>
+<head>
+<style>
+@page {
+  size: 80px 120px;
+  margin: 10px;
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: ltr;
+}
+body {
+  margin: 0;
+}
+div {
+  box-sizing: border-box;
+  margin: 0;
+  position: fixed;
+}
+</style>
+</head>
+<body>
+<!-- Fixed elements should not overflow onto shadow pages. -->
+<div style="width: 150%; height: 40px; background-color: blue;top: 0;"></div> 
+<div style="width: 150%; height: 40px; background-color: red;top: 40px;"></div>
+<div style="width: 50px; height: 40px; background-color: red;top: 40px;left: 90px;"></div>
+</body>
+</html>

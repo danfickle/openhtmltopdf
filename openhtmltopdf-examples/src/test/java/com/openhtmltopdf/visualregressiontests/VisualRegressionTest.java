@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.openhtmltopdf.visualtest.VisualTester;
@@ -85,5 +86,54 @@ public class VisualRegressionTest {
     @Test
     public void testHorizPageOverflowTablePaged() throws IOException {
         assertTrue(vt.runTest("horiz-page-overflow-table-paged"));
+    }
+    
+    @Test
+    public void testHorizPageOverflowFixed() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-fixed"));
+    }
+    
+    @Test
+    public void testHorizPageOverflowInlineBlock() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-inline-block"));
+    }
+    
+    @Ignore // Overflow: hidden is generating shadow page and is visible on shadow page.
+    @Test
+    public void testHorizPageOverflowHidden() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-hidden"));
+    }
+
+    @Ignore // Tranforms not working on shadow pages.
+    @Test
+    public void testHorizPageOverflowTransform() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-transform"));
+    }
+    
+    @Test
+    public void testHiddenStatic() throws IOException {
+        assertTrue(vt.runTest("hidden-static"));
+    }
+
+    @Test
+    public void testHiddenInlineBlock() throws IOException {
+        assertTrue(vt.runTest("hidden-inline-block"));
+    }
+
+    @Test
+    public void testHiddenFloat() throws IOException {
+        assertTrue(vt.runTest("hidden-float"));
+    }
+
+    @Ignore // Transformed elements escaping overflow:hidden on their containing block.
+    @Test
+    public void testHiddenTransform() throws IOException {
+        assertTrue(vt.runTest("hidden-transform"));
+    }
+    
+    @Ignore // Positioned elements escaping overflow:hidden on their containing block. Issue#273.
+    @Test
+    public void testHiddenAbsolute() throws IOException {
+        assertTrue(vt.runTest("hidden-absolute"));
     }
 }
