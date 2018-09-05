@@ -227,4 +227,37 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("hidden-absolute"));
     }
     
+    /**
+     * Tests that static inline-blocks too long for the line stack one on top of the other.
+     */
+    @Test
+    public void testInlineBlockStacked() throws IOException {
+        assertTrue(vt.runTest("inline-block-stacked"));
+    }
+
+    /**
+     * Tests that static inline-blocks that can stack from left to right, top to bottom.
+     */
+    @Test
+    public void testInlineBlockInline() throws IOException {
+        assertTrue(vt.runTest("inline-block-inline"));
+    }
+
+    /**
+     * Tests that static inline-block can contain floating static block.
+     */
+    @Ignore // Float is hidden behind the background-color of inline-block. Perhaps painting order issue?
+    @Test
+    public void testInlineBlockFloat() throws IOException {
+        assertTrue(vt.runTest("inline-block-float"));
+    }
+    
+    /**
+     * Tests that relative inline-block can contain absolute positioned block.
+     */
+    @Test
+    public void testInlineBlockAbsolute() throws IOException {
+        assertTrue(vt.runTest("inline-block-absolute"));
+    }
+    
 }
