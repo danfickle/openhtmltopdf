@@ -1,0 +1,21 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 0;
+}
+body {
+ margin: 0;
+}
+span {
+  page-break-inside: auto;
+}
+</style>
+</head>
+<body>
+  <!-- span should be split between first and second page. -->
+  <div style="height: 150px;"></div>
+  <span style="display: inline-block; width: 50%; height: 100px;background-color: orange;"/>
+</body>
+</html>

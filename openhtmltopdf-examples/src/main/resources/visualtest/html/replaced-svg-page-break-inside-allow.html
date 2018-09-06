@@ -1,0 +1,23 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 0;
+}
+body {
+ margin: 0;
+}
+svg {
+  page-break-inside: auto;
+}
+</style>
+</head>
+<body>
+  <!-- svg should be split between first and second page. -->
+  <div style="height: 150px;"></div>
+  <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150">
+    <rect width="150" height="150" style="fill:rgb(0,0,255);" />
+  </svg>
+</body>
+</html>

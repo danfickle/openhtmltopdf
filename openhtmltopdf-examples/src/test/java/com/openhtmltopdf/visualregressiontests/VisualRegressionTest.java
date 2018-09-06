@@ -8,7 +8,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.visualtest.VisualTester;
+import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
 public class VisualRegressionTest {
     private VisualTester vt;
@@ -27,6 +30,15 @@ public class VisualRegressionTest {
                 outputDirectory
                 );
     }
+    
+    private static class WithSvg implements BuilderConfig {
+        @Override
+        public void configure(PdfRendererBuilder builder) {
+            builder.useSVGDrawer(new BatikSVGDrawer());
+        }
+    }
+    
+    private static final BuilderConfig WITH_SVG = new WithSvg();
     
     /**
      * Tests z-index property with absolute positioned elements. 
@@ -260,4 +272,53 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("inline-block-absolute"));
     }
     
+    /**
+     * Tests that page-break-inside: avoid works for img elements.
+     */
+    @Test
+    public void testReplacedImgPageBreakInsideAvoid() throws IOException {
+        assertTrue(vt.runTest("replaced-img-page-break-inside-avoid"));
+    }
+
+    /**
+     * Tests that page-break-inside: auto works for img elements.
+     */
+    @Ignore // Currently img elements are not allowed to split between pages (because they are inline-blocks). Issue#117.
+    @Test
+    public void testReplacedImgPageBreakInsideAllow() throws IOException {
+        assertTrue(vt.runTest("replaced-img-page-break-inside-allow"));
+    }
+    
+    /**
+     * Tests that page-break-inside: avoid works for svg elements.
+     */
+    @Test
+    public void testReplacedSvgPageBreakInsideAvoid() throws IOException {
+        assertTrue(vt.runTest("replaced-svg-page-break-inside-avoid", WITH_SVG));
+    }
+
+    /**
+     * Tests that page-break-inside: auto works for svg elements.
+     */
+    @Test
+    public void testReplacedSvgPageBreakInsideAllow() throws IOException {
+        assertTrue(vt.runTest("replaced-svg-page-break-inside-allow", WITH_SVG));
+    }
+    
+    /**
+     * Tests that page-break-inside: avoid works for static inline-block elements.
+     */
+    @Test
+    public void testInlineBlockPageBreakInsideAvoid() throws IOException {
+        assertTrue(vt.runTest("inline-block-page-break-inside-avoid"));
+    }
+
+    /**
+     * Tests that page-break-inside: auto works for static inline-block elements.
+     */
+    @Ignore // No way currently to specify that inline-block elements can split between pages. Issue#117.
+    @Test
+    public void testInlineBlockPageBreakInsideAllow() throws IOException {
+        assertTrue(vt.runTest("inline-block-page-break-inside-allow"));
+    }
 }
