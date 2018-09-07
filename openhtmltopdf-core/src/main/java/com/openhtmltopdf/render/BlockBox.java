@@ -844,7 +844,7 @@ public class BlockBox extends Box implements InlinePaintable {
             	}
             	c.getRootLayer().addPage(c);
             }
-        } else if (style.requiresLayer()) {
+        } else if (style.requiresLayer() && this.getLayer() == null) {
             pushedLayer = true;
             c.pushLayer(this);
         }
