@@ -63,7 +63,7 @@ public class DisplayListCollector {
 		// We propagate any transformation matrixes recursively after layout has finished.
 		rootLayer.propagateCurrentTransformationMatrix(c);
 
-		DisplayListContainer displayList = new DisplayListContainer(0, _pages.size() - 1);
+		DisplayListContainer displayList = new ArrayDisplayListContainer(0, _pages.size() - 1);
 
 		// Recursively collect boxes for root layer and any children layers. Don't include
 		// fixed boxes at this point. They are collected by the <code>SinglePageDisplayListCollector</code>
@@ -289,9 +289,7 @@ public class DisplayListCollector {
 	
 	public DisplayListContainer collectFixed(RenderingContext c, Layer layer) {
         // This is called from the painter to collect fixed boxes just before paint.
-
-	    // TODO: Make more efficient. We onl;y need one page usually.
-        DisplayListContainer res = new DisplayListContainer(0, _pages.size() - 1);
+        DisplayListContainer res = new MapDisplayListContainer(_pages.size(), 1);
         collect(c, layer, res, EnumSet.of(CollectFlags.INCLUDE_FIXED_BOXES));
         return res;
     }

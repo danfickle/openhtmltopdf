@@ -43,10 +43,7 @@ public class SinglePageDisplayListCollector extends DisplayListCollector {
     }
     
     public DisplayListContainer collectFixed(RenderingContext c, Layer layer) {
-        // This is called from the painter to collect fixed boxes just before paint.
-        DisplayListContainer res = new DisplayListContainer(this.pageNumber, this.pageNumber);
-        collect(c, layer, res, EnumSet.of(CollectFlags.INCLUDE_FIXED_BOXES));
-        return res;
+        throw new UnsupportedOperationException();
     }
     
     public void collectInlineBlockBoxForSinglePage(RenderingContext c, BlockBox bb, DisplayListPageContainer pageInstructions, Set<CollectFlags> flags) {

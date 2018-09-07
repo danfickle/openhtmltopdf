@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DisplayListContainer {
+public abstract class DisplayListContainer {
 	public static class DisplayListPageContainer {
 		private List<DisplayListOperation> ops = null;
 		private List<DisplayListPageContainer> shadowPages = null;
@@ -61,27 +61,7 @@ public class DisplayListContainer {
 		}
 	}
 	
-	private final List<DisplayListPageContainer> pageInstructions;
-	private final int startPage;
-	
-	public DisplayListContainer(int startPage, int endPage) {
-		this.pageInstructions = new ArrayList<DisplayListPageContainer>(endPage - startPage + 1);
-		this.startPage = startPage;
-		
-		for (int i = 0; i < endPage - startPage + 1; i++) {
-			this.pageInstructions.add(new DisplayListPageContainer(null));
-		}
-	}
-	
-	public DisplayListPageContainer getPageInstructions(int pg) {
-		return this.pageInstructions.get(pg - this.startPage);
-	}
-	
-	public int getMinPage() {
-	    return this.startPage;
-	}
-	
-	public int getMaxPage() {
-	    return this.startPage + this.pageInstructions.size() - 1;
-	}
+	public abstract DisplayListPageContainer getPageInstructions(int pg);
+	public abstract int getMinPage();
+	public abstract int getMaxPage();
 }
