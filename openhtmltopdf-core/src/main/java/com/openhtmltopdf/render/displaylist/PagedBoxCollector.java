@@ -249,13 +249,6 @@ public class PagedBoxCollector {
 	private final PageFinder finder;
 	private final int startPage;
 	
-	protected PagedBoxCollector() {
-	    this.result = null;
-	    this.pages = null;
-	    this.finder = null;
-	    this.startPage = 0;
-	}
-	
 	/**
 	 * A more efficient paged box collector that can only find boxes on pages minPage to
 	 * maxPage inclusive.

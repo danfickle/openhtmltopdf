@@ -287,6 +287,17 @@ public class DisplayListCollector {
 		}
 	}
 	
+    public DisplayListPageContainer collectInlineBlock(RenderingContext c, BlockBox bb, EnumSet<CollectFlags> noneOf) {
+        DisplayListPageContainer pgInstructions = new DisplayListPageContainer(null);
+        PagedBoxCollector boxCollector = createBoundedBoxCollector(c.getPageNo(), c.getPageNo());
+        boxCollector.collect(c, bb.getContainingLayer(), bb, c.getPageNo(), c.getPageNo(), PagedBoxCollector.PAGE_BASE_ONLY);
+        
+        PageResult pgResult = boxCollector.getPageResult(c.getPageNo());
+        processPage(c, bb.getContainingLayer(), pgResult, pgInstructions, /* includeFloats: */ false, c.getPageNo(), /* shadow page number: */ -1);
+        
+        return pgInstructions;
+    }
+	
 	public DisplayListContainer collectFixed(RenderingContext c, Layer layer) {
         // This is called from the painter to collect fixed boxes just before paint.
         DisplayListContainer res = new MapDisplayListContainer(_pages.size(), 1);
