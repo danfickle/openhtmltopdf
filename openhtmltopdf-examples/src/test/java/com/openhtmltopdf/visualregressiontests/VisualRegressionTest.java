@@ -223,7 +223,6 @@ public class VisualRegressionTest {
     /**
      * Tests that transformed static blocks do not overflow static block parent with overflow:hidden.
      */
-    @Ignore // Transformed elements escaping overflow:hidden on their containing block.
     @Test
     public void testHiddenTransform() throws IOException {
         assertTrue(vt.runTest("hidden-transform"));
@@ -231,9 +230,8 @@ public class VisualRegressionTest {
     
     /**
      * Tests that absolute block does not overflow relative block parent with overflow:hidden.
-     * @throws IOException
+     * Issue#273.
      */
-    @Ignore // Positioned elements escaping overflow:hidden on their containing block. Issue#273.
     @Test
     public void testHiddenAbsolute() throws IOException {
         assertTrue(vt.runTest("hidden-absolute"));

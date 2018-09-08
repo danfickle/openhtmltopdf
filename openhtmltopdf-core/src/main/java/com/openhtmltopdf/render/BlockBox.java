@@ -965,6 +965,10 @@ public class BlockBox extends Box implements InlinePaintable {
         return 0;
     }
 
+    /**
+     * Oh oh! Up to this method height is used to track content height. After this method it is used
+     * to track total layout height! 
+     */
     protected void calcLayoutHeight(
             LayoutContext c, BorderPropertySet border,
             RectPropertySet margin, RectPropertySet padding) {

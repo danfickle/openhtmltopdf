@@ -88,24 +88,27 @@ public class DisplayListCollector {
 		
 		int layerPageStart = findStartPage(c, layer);
 		int layerPageEnd = findEndPage(c, layer);
+		boolean pushedClip = false;
 
-	    if (layer.hasLocalTransform()) {
+		if (!layer.getMaster().getStyle().isPositioned() &&
+	            !layer.getClipBoxes().isEmpty()) {
+            // This layer was triggered by a transform. We have to honor the clip of parent elements.
+            DisplayListOperation  dlo = new PaintPushClipLayer(layer.getClipBoxes());
+            addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+		} else if (layer.getMaster().getClipBox(c, layer) != null) {
+		    // This layer was triggered by a positioned element. We should honor the clip of the
+		    // containing block (closest ancestor with position other than static) and its containing block and
+		    // so on.
+		    DisplayListOperation dlo = new PaintPushClipRect(layer.getMaster().getClipBox(c, layer));
+		    addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+		    pushedClip = true;
+		}
+		
+		if (layer.hasLocalTransform()) {
 	        DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
 	        addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 	    }
 		
-		if (!layer.getMaster().getStyle().isPositioned() &&
-			!layer.getClipBoxes().isEmpty()) {
-			// This layer was triggered by a transform. We have to honor the clip of parent elements.
-			DisplayListOperation  dlo = new PaintPushClipLayer(layer.getClipBoxes());
-			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
-		} else {
-			// This layer was triggered by a positioned element. We should honor the clip of the
-			// containing block (closest ancestor with position other than static) and its containing block and
-			// so on.
-			// TODO
-		}
-
 		if (layer.isRootLayer() && layer.getMaster().hasRootElementBackground(c)) {
 
 			// IMPROVEMENT: If the background image doesn't cover every page,
@@ -156,6 +159,9 @@ public class DisplayListCollector {
 			!layer.getClipBoxes().isEmpty()) {
 			DisplayListOperation dlo = new PaintPopClipLayer(layer.getClipBoxes());
 			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+		} else if (pushedClip) {
+		    DisplayListOperation dlo = new PaintPopClipRect();
+            addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 		}
 	}
 

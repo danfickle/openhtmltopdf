@@ -159,9 +159,17 @@ public class DisplayListPainter {
     
     private void pushClips(RenderingContext c, PaintPushClipLayer clips) {
     	for (Box clipBox : clips.getClipBoxes()) {
-    		Shape clip = clipBox.getChildrenClipEdge(c);
+    		Shape clip = clipBox.getBorderBox(c);
     		c.getOutputDevice().pushClip(clip);
     	}
+    }
+    
+    private void pushClipRect(RenderingContext c, Rectangle clip) {
+        c.getOutputDevice().pushClip(clip);
+    }
+    
+    private void popClipRect(RenderingContext c) {
+        c.getOutputDevice().popClip();
     }
     
     private void popClips(RenderingContext c, PaintPopClipLayer clips) {
@@ -245,6 +253,15 @@ public class DisplayListPainter {
 				PaintFixedLayer dlo = (PaintFixedLayer) op;
 				paintFixed(c, dlo.getLayer());
 				
+			} else if (op instanceof PaintPushClipRect) {
+			    
+			    PaintPushClipRect dlo = (PaintPushClipRect) op;
+			    pushClipRect(c, dlo.getClipBox());
+			    
+			} else if (op instanceof PaintPopClipRect) {
+			    
+			    popClipRect(c);
+			    
 			}
 		}
 	}

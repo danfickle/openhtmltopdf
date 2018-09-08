@@ -96,10 +96,52 @@ public abstract class Box implements Styleable, DisplayListItem {
     private String _pseudoElementOrClass;
 
     private boolean _anonymous;
-
+    
+    private Rectangle _clipBox;
+    private boolean _clipBoxCalculated = false;
+    
     protected Box() {
     }
-
+    
+    public Rectangle getClipBox(CssContext c, Layer layer) {
+        if (!_clipBoxCalculated) {
+            _clipBox = calcClipBox(c, layer);
+            _clipBoxCalculated = true;
+        }
+        
+        return _clipBox;
+    }
+    
+    private Rectangle calcClipBox(CssContext c, Layer layer) {
+        if (getStyle() == null) {
+            return null;
+        } else if (getLayer() != null && getLayer() != layer) {
+            return null;
+        } else if (getStyle().isIdent(CSSName.OVERFLOW, IdentValue.HIDDEN)) {
+            Rectangle parentClip = null;
+            if (getStyle().isPositioned()) {
+                parentClip = (getContainingBlock().getClipBox(c, layer));
+            } else if (getStyle().isFloated()) {
+                BlockBox that = (BlockBox) this;
+                parentClip = (that.getPersistentBFC().getFloatManager().getMaster().getClipBox(c, layer));
+            } else if (getParent() != null) {
+                parentClip = (getParent().getClipBox(c, layer));
+            }
+            return parentClip != null ? getBorderBox(c).intersection(parentClip) : getBorderBox(c);
+        } else {
+            if (getStyle().isPositioned()) {
+                return getContainingBlock().getClipBox(c, layer);
+            } else if (getStyle().isFloated()) {
+                BlockBox that = (BlockBox) this;
+                return that.getPersistentBFC().getFloatManager().getMaster().getClipBox(c, layer);
+            } else if (getParent() != null) {
+                return getParent().getClipBox(c, layer);
+            } else {
+                return null;
+            }
+        }
+    }
+    
     public abstract String dump(LayoutContext c, String indent, int which);
 
     protected void dumpBoxes(
@@ -978,31 +1020,42 @@ public abstract class Box implements Styleable, DisplayListItem {
         return _leftMBP;
     }
 
+    /**
+     * Uh oh! This refers to content height during layout but total height after layout!
+     */
     public void setHeight(int height) {
         _height = height;
     }
 
+    /**
+     * Uh oh! This refers to content height during layout but total height after layout!
+     */
     public int getHeight() {
         return _height;
     }
     
-    public void setBorderBoxHeight(CssContext c, int h) {
+    protected void setBorderBoxHeight(CssContext c, int h) {
         BorderPropertySet border = getBorder(c);
         RectPropertySet padding = getPadding(c);
         setHeight((int) Math.max(0f, h - border.height() - padding.height()));
     }
     
-    public int getBorderBoxHeight(CssContext c) {
+    protected int getBorderBoxHeight(CssContext c) {
         BorderPropertySet border = getBorder(c);
         RectPropertySet padding = getPadding(c);
         return (int) (getHeight() + border.height() + padding.height());
     }
     
+    /**
+     * Only to be called after layout, due to double use of getHeight().
+     */
     public Rectangle getBorderBox(CssContext c) {
+        RectPropertySet margin = getMargin(c);
+
         int w = getBorderBoxWidth(c);
-        int h = getBorderBoxHeight(c);
-        int x = getAbsX();
-        int y = getAbsY();
+        int h = getHeight() - (int) margin.top() - (int) margin.bottom();
+        int x = getAbsX() + (int) margin.left();
+        int y = getAbsY() + (int) margin.top();
         
         return new Rectangle(x, y, w, h);
     }
