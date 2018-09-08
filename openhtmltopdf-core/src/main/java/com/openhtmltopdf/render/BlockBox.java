@@ -426,6 +426,7 @@ public class BlockBox extends Box implements InlinePaintable {
         return _replacedElement != null;
     }
 
+    @Override
     public void calcCanvasLocation() {
         if (isFloated()) {
             FloatManager manager = _floatedBoxData.getManager();
@@ -469,6 +470,7 @@ public class BlockBox extends Box implements InlinePaintable {
         setAbsY(manager.getMaster().getAbsY() + getY() - offset.y);
     }
 
+    @Override
     public void calcChildLocations() {
         super.calcChildLocations();
 
@@ -584,6 +586,7 @@ public class BlockBox extends Box implements InlinePaintable {
         _replacedElement = replacedElement;
     }
 
+    @Override
     public void reset(LayoutContext c) {
         super.reset(c);
         setTopMarginCalculated(false);
@@ -1876,6 +1879,7 @@ public class BlockBox extends Box implements InlinePaintable {
         }
     }
 
+    @Override
     protected void calcChildPaintingInfo(
             final CssContext c, final PaintingInfo result, final boolean useCache) {
         if (getPersistentBFC() != null) {
@@ -2154,6 +2158,7 @@ public class BlockBox extends Box implements InlinePaintable {
         return flowRoot.isRoot();
     }
 
+    @Override
     public Box getDocumentParent() {
         Box staticEquivalent = getStaticEquivalent();
         if (staticEquivalent != null) {

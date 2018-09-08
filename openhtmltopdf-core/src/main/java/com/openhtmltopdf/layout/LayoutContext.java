@@ -74,12 +74,12 @@ public class LayoutContext implements CssContext {
 
     private FontContext _fontContext;
 
-    private ContentFunctionFactory _contentFunctionFactory = new ContentFunctionFactory();
+    private final ContentFunctionFactory _contentFunctionFactory = new ContentFunctionFactory();
 
     private int _extraSpaceTop;
     private int _extraSpaceBottom;
 
-    private Map _counterContextMap = new HashMap();
+    private final Map<CalculatedStyle, CounterContext> _counterContextMap = new HashMap<CalculatedStyle, CounterContext>();
 
     private String _pendingPageName;
     private String _pageName;
@@ -435,7 +435,7 @@ public class LayoutContext implements CssContext {
     }
 
     public CounterContext getCounterContext(CalculatedStyle style) {
-        return (CounterContext) _counterContextMap.get(style);
+        return _counterContextMap.get(style);
     }
 
     public FSFontMetrics getFSFontMetrics(FSFont font) {
@@ -443,7 +443,7 @@ public class LayoutContext implements CssContext {
     }
 
     public class CounterContext {
-        private Map _counters = new HashMap();
+        private Map<String, Integer> _counters = new HashMap<String, Integer>();
         /**
          * This is different because it needs to work even when the counter- properties cascade
          * and it should also logically be redefined on each level (think list-items within list-items)
@@ -461,7 +461,7 @@ public class LayoutContext implements CssContext {
 			if (startIndex != null) {
 				_counters.put("list-item", startIndex);
 			}
-            _parent = (LayoutContext.CounterContext) _counterContextMap.get(style.getParent());
+            _parent = _counterContextMap.get(style.getParent());
             if (_parent == null) _parent = new CounterContext();//top-level context, above root element
             //first the explicitly named counters
             List resets = style.getCounterReset();
