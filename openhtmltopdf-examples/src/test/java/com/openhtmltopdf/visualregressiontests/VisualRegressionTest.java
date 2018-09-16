@@ -319,4 +319,70 @@ public class VisualRegressionTest {
     public void testInlineBlockPageBreakInsideAllow() throws IOException {
         assertTrue(vt.runTest("inline-block-page-break-inside-allow"));
     }
+    
+    /**
+     * With a static block, rotate, no page margin, no block margin or padding.
+     */
+    @Test
+    public void testTransformStaticNoPageMargin() throws IOException {
+        assertTrue(vt.runTest("transform-static-no-page-margin"));
+    }
+    
+    /**
+     * With a static block, rotate, large page margin, no block margin or padding.
+     */
+    @Test
+    public void testTransformStaticPageMargin() throws IOException {
+        assertTrue(vt.runTest("transform-static-page-margin"));
+    }
+
+    /**
+     * With static blocks, rotate then translate, no page margin, no block margin or padding.
+     */
+    @Test
+    public void testTransformWithinTransform() throws IOException {
+        assertTrue(vt.runTest("transform-inside-transform"));
+    }
+
+    /**
+     * With single static block, rotate then translate, small page margin, no block margin or padding.
+     */
+    @Test
+    public void testTransformMultiTranform() throws IOException {
+        assertTrue(vt.runTest("transform-multi-transform"));
+    }
+
+    /**
+     * With a static block, rotate, large page margin, small block margin, no padding.
+     */
+    @Test
+    public void testTransformStaticBlockMargin() throws IOException {
+        assertTrue(vt.runTest("transform-static-block-margin"));
+    }
+    
+    /**
+     * With a static block, rotate, large page margin, no block margin, small padding.
+     */
+    @Test
+    public void testTransformStaticBlockPadding() throws IOException {
+        assertTrue(vt.runTest("transform-static-block-padding"));
+    }
+    
+    /**
+     * With an absolute block, rotate, large page margin, small block margin, small padding, small border.
+     */
+    @Test
+    public void testTransformAbsolute() throws IOException {
+        assertTrue(vt.runTest("transform-absolute"));
+    }
+
+    /**
+     * With a floated static block, rotate, large page margin, small block margin, small padding, small border.
+     */
+    @Ignore // Causes a stack overflow in Box::getClipBox.
+    @Test
+    public void testTransformFloat() throws IOException {
+        assertTrue(vt.runTest("transform-float"));
+    }
+    
 }
