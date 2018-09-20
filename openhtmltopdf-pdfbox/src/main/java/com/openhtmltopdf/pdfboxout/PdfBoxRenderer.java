@@ -660,7 +660,7 @@ public class PdfBoxRenderer implements Closeable {
         setDidValues(doc); // set PDF header fields from meta data
 
         if (_pdfAConformance != PdfAConformance.NONE) {
-            addPdfASchema(doc, _pdfAConformance.getConformanceValue());
+            addPdfASchema(doc, _pdfAConformance.getPart(), _pdfAConformance.getConformanceValue());
         }
 
         for (int i = 0; i < pageCount; i++) {
@@ -684,14 +684,14 @@ public class PdfBoxRenderer implements Closeable {
         _outputDevice.finish(c, _root);
     }
 
-    private void addPdfASchema(PDDocument document, String conformance) {
+    private void addPdfASchema(PDDocument document, int part, String conformance) {
         PDDocumentInformation information = document.getDocumentInformation();
         XMPMetadata metadata = XMPMetadata.createXMPMetadata();
 
         try {
             PDFAIdentificationSchema pdfaid = metadata.createAndAddPFAIdentificationSchema();
             pdfaid.setConformance(conformance);
-            pdfaid.setPart(1);
+            pdfaid.setPart(part);
 
             AdobePDFSchema pdfSchema = metadata.createAndAddAdobePDFSchema();
             pdfSchema.setProducer(information.getProducer());
