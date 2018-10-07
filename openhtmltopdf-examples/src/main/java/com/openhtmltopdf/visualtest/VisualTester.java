@@ -104,8 +104,12 @@ public class VisualTester {
 
 	            @Override
 	            public void log(String where, Level level, String msg, Throwable th) {
+					if (th == null) {
+						log(where, level, msg);
+						return;
+					}
 	                StringWriter sw = new StringWriter();
-	                th.printStackTrace(new PrintWriter(sw, true));
+					th.printStackTrace(new PrintWriter(sw, true));
 	                sb.append(where + ": " + level + ":\n" + msg + sw.toString() + "\n");
 	                delegate.log(where, level, msg, th);
 	            }
