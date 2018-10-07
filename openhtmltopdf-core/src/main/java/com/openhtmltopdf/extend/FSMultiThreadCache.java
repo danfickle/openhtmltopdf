@@ -8,7 +8,7 @@ package com.openhtmltopdf.extend;
  * If rolling your own cache implementation and using accross threads,
  * please make sure that the put method publishes the value accross threads.
  * 
- * @param <Value>
+ * @param <Value> Type of the cached value
  */
 public interface FSMultiThreadCache<Value> {
 	/**

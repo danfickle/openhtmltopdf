@@ -2,7 +2,7 @@ package com.openhtmltopdf.extend;
 
 /**
  * Represents a very simple stream/reader client for any protocol.
- * @see {@link FSStream}
+ * @see FSStream
  */
 public interface FSStreamFactory 
 {

@@ -61,7 +61,7 @@ import com.openhtmltopdf.util.XRRuntimeException;
  * when this style is created. A property retrieved by name should always have
  * only one value in this class (e.g. one-one map). Any methods to retrieve
  * property values from an instance of this class require a valid {@link
- * com.openhtmltopdf.layout.Context} be given to it, for some cases of property
+ * com.openhtmltopdf.layout.LayoutContext} be given to it, for some cases of property
  * resolution. Generally, a programmer will not use this class directly, but
  * will retrieve properties using a {@link com.openhtmltopdf.context.StyleReference}
  * implementation.

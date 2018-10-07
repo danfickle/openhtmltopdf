@@ -5,7 +5,7 @@ import java.awt.*;
 /**
  * Render something on a Graphics2D on the OutputDevice.
  *
- * @FunctionalInterface
+ * Intented to be a FunctionalInterface in Java 8.
  */
 public interface OutputDeviceGraphicsDrawer {
 

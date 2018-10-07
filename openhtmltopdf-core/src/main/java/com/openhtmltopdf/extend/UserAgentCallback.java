@@ -28,13 +28,10 @@ import com.openhtmltopdf.resource.XMLResource;
  * <p>To be implemented by any user agent using the panel. "User agent" is a
  * term defined by the W3C in the documentation for XHTML and CSS; in most
  * cases, you can think of this as the rendering component for a browser.</p>
- * <p/>
  *
  * <p>This interface defines a simple callback mechanism for Flying Saucer to
  * interact with a user agent. The FS toolkit provides a default implementation
- * for this interface which in most cases you can leave as is. You can provide your
- * own UserAgentCallback when constructing an {@link com.openhtmltopdf.simple.XHTMLPanel}
- * or {@link com.openhtmltopdf.swing.BasicPanel}.</p>
+ * for this interface which in most cases you can leave as is. </p>
  *
  * <p>The user agent in this case is responsible for retrieving external resources. For
  * privacy reasons, if using the library in an application that can access URIs

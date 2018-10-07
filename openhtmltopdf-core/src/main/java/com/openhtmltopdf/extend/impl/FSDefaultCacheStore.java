@@ -12,7 +12,7 @@ import com.openhtmltopdf.util.XRLog;
 
 /**
  * A simple default cache implementation, mainly for testing. For production you will probably want to wrap Guava's cache implementation
- * or something similar. This implementation does not use synchronisation beyond using a <code>ConcurrentHashMap<code> internally.
+ * or something similar. This implementation does not use synchronisation beyond using a <code>ConcurrentHashMap</code> internally.
  * Specifically, the {@link #get(String, Callable)} may call the loader multiple times if called in close succession.
  */
 public class FSDefaultCacheStore implements FSCacheEx<String, FSCacheValue> {

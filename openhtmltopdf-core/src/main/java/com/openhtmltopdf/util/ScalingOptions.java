@@ -26,7 +26,7 @@ import java.util.Map;
 
 /**
  * POJO used when calling
- * {@link com.openhtmltopdf.util.ImageUtil#getScaledInstance(ScalingOptions,java.awt.Image)}.
+ * {@link com.openhtmltopdf.util.ImageUtil#getScaledInstance(ScalingOptions,java.awt.image.BufferedImage)}.
  * Encapsulates a set of parameters related to scaling quality and output. Values are final once constructed, except
  * for target width and height, which can be change and the options instance reused.
  * There is a default constructor for average quality and performance.

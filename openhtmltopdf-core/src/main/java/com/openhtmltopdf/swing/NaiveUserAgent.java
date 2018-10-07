@@ -60,7 +60,7 @@ import com.openhtmltopdf.util.XRLog;
  *
  * <p>The NaiveUserAgent has a small cache for images,
  * the size of which (number of images) can be passed as a constructor argument. There is no automatic cleaning of
- * the cache; call {@link #shrinkImageCache()} to remove the least-accessed elements--for example, you might do this
+ * the cache; call {@link #clearImageCache()} to remove the least-accessed elements--for example, you might do this
  * when a new document is about to be loaded. The NaiveUserAgent is also a DocumentListener; if registered with a
  * source of document events (like the panel hierarchy), it will respond to the
  * {@link com.openhtmltopdf.event.DocumentListener#documentStarted()} call and attempt to shrink its cache.
