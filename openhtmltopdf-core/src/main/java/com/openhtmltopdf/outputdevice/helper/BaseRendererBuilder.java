@@ -25,8 +25,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	public static final PageSizeUnits PAGE_SIZE_LETTER_UNITS = PageSizeUnits.INCHES;
 
 	/**
-	 * This class is an internal implementation detail
-	 * @internal
+	 * This class is an internal implementation detail.<br>
+	 * This is internal, please don't use directly.
 	 */
 	public abstract static class BaseRendererBuilderState {
 		public final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
@@ -146,9 +146,9 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides an HttpStreamFactory implementation if the user desires to use an
 	 * external HTTP/HTTPS implementation. Uses URL::openStream by default.
 	 * 
-	 * @see {@link {@link #useProtocolsStreamImplementation(FSStreamFactory, String[])}
+	 * @see #useProtocolsStreamImplementation(FSStreamFactory, String[])
 	 *
-	 * @param factory
+	 * @param factory the factory to use for HTTP/HTTPS
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useHttpStreamImplementation(FSStreamFactory factory) {
@@ -165,10 +165,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * NOTE: HttpStreamFactory, despite its historical name, can be used for any protocol
 	 * including private made-up protocols.
 	 * 
-	 * @see {@link #useHttpStreamImplementation(FSStreamFactory)}
-	 * @see {@link #useProtocolsStreamImplementation(FSStreamFactory, String[])}
-	 * @param factory
-	 * @param protocols
+	 * @see #useHttpStreamImplementation(FSStreamFactory)
+	 * @see #useProtocolsStreamImplementation(FSStreamFactory, String[])
+	 * @param factory the stream factory to use
+	 * @param protocols the list of protocols the factory should be used for
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useProtocolsStreamImplementation(FSStreamFactory factory, Set<String> protocols) {
@@ -187,10 +187,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * NOTE: HttpStreamFactory, despite its historical name, can be used for any protocol
 	 * including private made-up protocols.
 	 * 
-	 * @see {@link #useHttpStreamImplementation(FSStreamFactory)}
-	 * @see {@link #useProtocolsStreamImplementation(FSStreamFactory, Set)}
-	 * @param factory
-	 * @param protocols
+	 * @see #useHttpStreamImplementation(FSStreamFactory)
+	 * @see #useProtocolsStreamImplementation(FSStreamFactory, Set)
+	 * @param factory the stream factory to use
+	 * @param protocols the list of protocols the stream factory should be used for
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useProtocolsStreamImplementation(FSStreamFactory factory, String... protocols) {
@@ -203,7 +203,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	/**
 	 * Provides a uri resolver to resolve relative uris or private uri schemes.
 	 *
-	 * @param resolver
+	 * @param resolver the URI resolver used to resolve any kind of private URIs/protocolls
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useUriResolver(FSUriResolver resolver) {
@@ -219,8 +219,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * also be checked before loading the resource. In this case the byte array
 	 * will be interpreted as UTF-8.
 	 * 
-	 * @see {@link #useMultiThreadByteCache(FSMultiThreadCache)}
-	 * @see {@link com.openhtmltopdf.extend.FSMultiThreadCache}
+	 * @see #useMultiThreadByteCache(FSMultiThreadCache)
+	 * @see com.openhtmltopdf.extend.FSMultiThreadCache
 	 */
     public final TFinalClass useMultiThreadStringCache(
             FSMultiThreadCache<String> textCache) {
@@ -232,8 +232,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides a cache implementation that may be used accross threads.
 	 * Typically used with <code>useMultiThreadStringCache</code>
 	 * 
-	 * @see {@link #useMultiThreadStringCache(FSMultiThreadCache)}
-	 * @see {@link com.openhtmltopdf.extend.FSMultiThreadCache}
+	 * @see #useMultiThreadStringCache(FSMultiThreadCache)
+	 * @see com.openhtmltopdf.extend.FSMultiThreadCache
 	 */
     public final TFinalClass useMultiThreadByteCache(
             FSMultiThreadCache<byte[]> byteCache) {
@@ -246,7 +246,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides an external cache which can choose to cache items between runs, such
 	 * as fonts or logo images.
 	 *
-	 * @param cache
+	 * @param cache the external cache to use
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useCache(FSCache cache) {
@@ -258,7 +258,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides a text splitter to split text into directional runs. Does nothing by
 	 * default.
 	 *
-	 * @param splitter
+	 * @param splitter the unicode bidi splitter to use.
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeBidiSplitter(BidiSplitterFactory splitter) {
@@ -269,7 +269,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	/**
 	 * Provides a reorderer to properly reverse RTL text. No-op by default.
 	 *
-	 * @param reorderer
+	 * @param reorderer the unicode bidi reorderer to use.
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeBidiReorderer(BidiReorderer reorderer) {
@@ -280,8 +280,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	/**
 	 * Provides a string containing XHTML/XML to convert to PDF.
 	 *
-	 * @param html
-	 * @param baseUri
+	 * @param html the HTML file to use.
+	 * @param baseUri the base URI to resolve future resources (e.g. images)
 	 * @return this for method chaining
 	 */
 	public final TFinalClass withHtmlContent(String html, String baseUri) {
@@ -293,8 +293,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	/**
 	 * Provides a w3c DOM Document acquired from an external source.
 	 *
-	 * @param doc
-	 * @param baseUri
+	 * @param doc the DOM of the HTML document
+	 * @param baseUri the base URI, it will be used to resolve future resources (images, etc.
 	 * @return this for method chaining
 	 */
 	public final TFinalClass withW3cDocument(org.w3c.dom.Document doc, String baseUri) {
@@ -307,7 +307,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides a URI to convert to PDF. The URI MUST point to a strict XHTML/XML
 	 * document.
 	 *
-	 * @param uri
+	 * @param uri the URI of the HTML source to convert.
 	 * @return this for method chaining
 	 */
 	public final TFinalClass withUri(String uri) {
@@ -319,7 +319,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Provides a file to convert to PDF. The file MUST contain XHTML/XML in UTF-8
 	 * encoding.
 	 *
-	 * @param file
+	 * @param file the file with the HTML source to convert
 	 * @return this for method chaining
 	 */
 	public final TFinalClass withFile(File file) {
@@ -376,8 +376,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * UrlAwareLineBreakIterator or not) or a more advanced BreakIterator from icu4j
 	 * (see the rtl-support module for an example).
 	 *
-	 * @param breaker
-	 * @return
+	 * @param breaker the text breaker to use
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeLineBreaker(FSTextBreaker breaker) {
 		state._lineBreaker = breaker;
@@ -389,8 +389,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * is used with US locale. Currently this is used when
 	 * <code>word-wrap: break-word</code> is in effect.
 	 *
-	 * @param breaker
-	 * @return
+	 * @param breaker the character breaker to use
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeCharacterBreaker(FSTextBreaker breaker) {
 		state._charBreaker = breaker;
@@ -401,8 +401,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Specify a transformer to use to upper case strings. By default
 	 * <code>String::toUpperCase(Locale.US)</code> is used.
 	 *
-	 * @param tr
-	 * @return
+	 * @param tr the text transformer to use
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeToUpperTransformer(FSTextTransformer tr) {
 		state._unicodeToUpperTransformer = tr;
@@ -413,8 +413,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Specify a transformer to use to lower case strings. By default
 	 * <code>String::toLowerCase(Locale.US)</code> is used.
 	 *
-	 * @param tr
-	 * @return
+	 * @param tr the text transformer to use.
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeToLowerTransformer(FSTextTransformer tr) {
 		state._unicodeToLowerTransformer = tr;
@@ -425,8 +425,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * Specify a transformer to title case strings. By default a best effort
 	 * implementation (non locale aware) is used.
 	 *
-	 * @param tr
-	 * @return
+	 * @param tr the text transformer to use
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useUnicodeToTitleTransformer(FSTextTransformer tr) {
 		state._unicodeToTitleTransformer = tr;
@@ -436,13 +436,14 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	/**
 	 * Specifies the default page size to use if none is specified in CSS.
 	 *
-	 * @param pageWidth
-	 * @param pageHeight
+	 * @param pageWidth the new default width
+	 * @param pageHeight  the new default height
 	 * @param units
 	 *            either mm or inches.
-	 * @see {@link #PAGE_SIZE_LETTER_WIDTH}, {@link #PAGE_SIZE_LETTER_HEIGHT} and
-	 *      {@link #PAGE_SIZE_LETTER_UNITS}
-	 * @return
+	 * @see #PAGE_SIZE_LETTER_WIDTH
+	 * @see  #PAGE_SIZE_LETTER_HEIGHT
+	 * @see  #PAGE_SIZE_LETTER_UNITS
+	 * @return this for method chaining
 	 */
 	public final TFinalClass useDefaultPageSize(float pageWidth, float pageHeight, PageSizeUnits units) {
 		state._pageWidth = pageWidth;

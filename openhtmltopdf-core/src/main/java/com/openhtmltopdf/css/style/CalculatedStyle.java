@@ -171,7 +171,7 @@ public class CalculatedStyle {
 
     /**
      * derives a child style from this style.
-     * <p/>
+     * <br>
      * depends on the ability to return the identical CascadedStyle each time a child style is needed
      *
      * @param matched the CascadedStyle to apply

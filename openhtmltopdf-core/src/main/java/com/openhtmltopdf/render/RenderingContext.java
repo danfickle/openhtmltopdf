@@ -53,7 +53,6 @@ public class RenderingContext implements CssContext {
     private boolean isFastRenderer = false;
     
     /**
-     * <p/>
      * needs a new instance every run
      */
     public RenderingContext(SharedContext sharedContext) {

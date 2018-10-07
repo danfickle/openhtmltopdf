@@ -537,7 +537,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     /**
      * URL relative to which URIs are resolved.
      *
-     * @param url A URI which anchors other, possibly relative URIs.
+     * @param uri A URI which anchors other, possibly relative URIs.
      */
     @Override
     public void setBaseURL(String uri) {
