@@ -914,6 +914,9 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
                 iT.setX(iT.getX() + Math.round(result));
                 
                 float adj = iT.calcTotalAdjustment(info);
+                
+                iT.setWidth((int) (iT.getWidth() + adj));
+                
                 result += adj;
                 runningTotal += adj;
             } else {
@@ -928,6 +931,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             }
         }
         
+        setInlineWidth((int) (getInlineWidth() + result));
         return result;
     }
     
