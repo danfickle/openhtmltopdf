@@ -777,7 +777,7 @@ public class PdfBoxFontResolver implements FontResolver {
 
         /**
          * Returns whether the font is available yet.
-         * @see {@link #getFont()}
+         * @see #getFont()
          */
         public boolean isFontAvailable() {
             return _font != null;
@@ -808,7 +808,7 @@ public class PdfBoxFontResolver implements FontResolver {
         
         /**
          * If the metrics are available yet.
-         * @see {@link #getFontMetrics()}
+         * @see #getFontMetrics()
          */
         public boolean isMetricsAvailable() {
             return _metrics != null;
@@ -818,7 +818,7 @@ public class PdfBoxFontResolver implements FontResolver {
          * Downloads and parses the font if required (metrics were not available from cache).
          * Should only be called when the font metrics are definitely needed.
          * @return the font metrics or null if there was a problem.
-         * @see {@link #isMetricsAvailable()}
+         * @see #isMetricsAvailable()
          */
         public PdfBoxRawPDFontMetrics getFontMetrics() {
             if (!isMetricsAvailable()) {

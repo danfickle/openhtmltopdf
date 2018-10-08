@@ -90,7 +90,7 @@ public class DOMUtil {
      * Appends all text content in all offspring of an element to a StringBuffer.
      * Ignores all attributes, comments and processing instructions.
      *
-     * @return a String with the text content of an element (may be an empty string but will not be null).
+     * @param sb will get the text content of the element children
      */
     public static void getText(Element parent, StringBuilder sb) {
         NodeList children = parent.getChildNodes();

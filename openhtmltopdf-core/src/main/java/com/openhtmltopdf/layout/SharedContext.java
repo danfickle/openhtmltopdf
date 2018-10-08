@@ -522,7 +522,7 @@ public class SharedContext {
     /**
      * Stores a default page width.
      * @return default page width or null.
-     * @see {@link #isDefaultPageSizeInches()}
+     * @see #isDefaultPageSizeInches()
      */
 	public Float getDefaultPageWidth() {
 		return this.defaultPageWidth;
@@ -531,7 +531,7 @@ public class SharedContext {
     /**
      * Stores a default page height.
      * @return default page height or null.
-     * @see {@link #isDefaultPageSizeInches()}
+     * @see #isDefaultPageSizeInches()
      */
 	public Float getDefaultPageHeight() {
 		return this.defaultPageHeight;
@@ -539,7 +539,7 @@ public class SharedContext {
 	
 	/**
 	 * If not, consider it as mm.
-	 * @return
+	 * @return true if the page size is in inches, false if it is in mm.
 	 */
 	public boolean isDefaultPageSizeInches() {
 		return this.defaultPageSizeIsInches;
@@ -548,7 +548,7 @@ public class SharedContext {
 	/**
 	 * The replacement text to be used if a character cannot be 
 	 * renderered by the current or fallback fonts.
-	 * @return
+	 * @return the current replacement text, "#" by default
 	 */
 	public String getReplacementText() {
 		return this.replacementText;

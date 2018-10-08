@@ -31,8 +31,8 @@ import com.openhtmltopdf.render.RenderingContext;
 public interface ContentFunction {
     /**
      * Whether or not the function value can change at render time.  If true,
-     * {@link #calculate(LayoutContext, String, TextContent)} will be called.  If false,
-     * {@link #calculate(RenderingContext, String, TextContent)} will be called.
+     * {@link #calculate(LayoutContext, FSFunction)} will be called.  If false,
+     * {@link #calculate(RenderingContext, FSFunction, InlineText)} will be called.
      */
     public boolean isStatic();
     

@@ -32,7 +32,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * provided by the page processor.
 	 *
 	 * @param g2d
-	 * @return
+	 * @return this for method chaining
 	 */
 	public Java2DRendererBuilder useLayoutGraphics(Graphics2D g2d) {
 		state._layoutGraphics = g2d;
@@ -51,7 +51,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @param fontFamily
 	 * @param fontWeight
 	 * @param fontStyle
-	 * @return
+	 * @return this for method chaining
 	 */
 	public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
 			FontStyle fontStyle) {
@@ -64,7 +64,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 *
 	 * @param supplier
 	 * @param fontFamily
-	 * @return
+	 * @return this for method chaining
 	 */
 	public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily) {
 		return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL);
@@ -74,7 +74,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * Used to set an initial page number for use with page counters, etc.
 	 *
 	 * @param pageNumberInitial
-	 * @return
+	 * @return this for method chaining
 	 */
 	public Java2DRendererBuilder useInitialPageNumber(int pageNumberInitial) {
 		state._initialPageNumber = pageNumberInitial;
@@ -97,7 +97,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * processor for advanced usage.
 	 *
 	 * @param pageProcessor
-	 * @return
+	 * @return this for method chaining
 	 */
 	public Java2DRendererBuilder toPageProcessor(FSPageProcessor pageProcessor) {
 		state._pagingMode = Layer.PAGED_MODE_PRINT;
@@ -176,7 +176,6 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 
 	/**
 	 * This class is internal to this library, please do not use or override it!
-	 * @internal
 	 */
 	public static abstract class Graphics2DPaintingReplacedElement extends EmptyReplacedElement {
 		protected Graphics2DPaintingReplacedElement(int width, int height) {

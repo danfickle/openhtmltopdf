@@ -50,8 +50,7 @@ public class WhitespaceStripper {
      * 
      * <b>NOTE:</b> The <code>inlineContent</code> parameter may be modified
      *
-     * @param c
-     * @param inlineContent
+     * @param inlineContent the inline content to strip the whitespaces on
      */
     public static void stripInlineContent(List inlineContent) {
         boolean collapse = false;

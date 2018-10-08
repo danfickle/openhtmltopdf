@@ -21,9 +21,9 @@ package com.openhtmltopdf.css.extend;
 
 /**
  * @author scott
- *         <p/>
+ *         <br>
  *         Gives the css matcher access to the information it needs about the tree structure.
- *         <p/>
+ *         <br>
  *         Elements are the "things" in the tree structure that can be matched by the matcher.
  */
 public interface TreeResolver {

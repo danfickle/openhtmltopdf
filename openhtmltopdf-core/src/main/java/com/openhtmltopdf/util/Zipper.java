@@ -28,7 +28,7 @@ import java.util.zip.ZipOutputStream;
  * in the directory are included. To use, instantiate with a reference to
  * the directory to ZIP, and to the output file to create, then call
  * {@link #zipDirectory()} to create the output file.
- * <p/>
+ * <br>
  * Note that this is ZIP-compatible, not GZIP-compatible (ZIP is both an archive format
  * and a compression format, GZIP is just a compression format).
  */

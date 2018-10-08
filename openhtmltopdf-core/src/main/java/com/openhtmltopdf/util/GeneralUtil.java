@@ -107,7 +107,7 @@ public class GeneralUtil {
      * Returns a String tracking the last n method calls, from oldest to most
      * recent. You can use this as a simple tracing mechanism to find out the
      * calls that got to where you execute the <code>trackBack()</code> call
-     * from. Example:</p>
+     * from. Example:<br>
      * <pre>
      * // called from Box.calcBorders(), line 639
      * String tback = GeneralUtil.trackBack(6);
@@ -329,7 +329,7 @@ public class GeneralUtil {
     }
 
     /**
-     * Converts any special characters into their corresponding HTML entities , for example < to &lt;. This is done using a character
+     * Converts any special characters into their corresponding HTML entities, for example &lt; to &amp;lt;. This is done using a character
      * by character test, so you may consider other approaches for large documents. Make sure you declare the
      * entities that might appear in this replacement, e.g. the latin-1 entities
      * This method was taken from a code-samples website, written and hosted by Real Gagnon, at

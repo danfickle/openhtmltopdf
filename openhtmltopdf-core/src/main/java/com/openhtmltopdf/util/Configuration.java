@@ -564,7 +564,7 @@ public class Configuration {
      *
      * @param key Name of the property
      * @param defaultVal PARAM
-     * @returnValue assigned to the key, as a character
+     * @return Value assigned to the key, as a character
      */
     public static char valueAsChar(String key, char defaultVal) {
         String val = valueFor(key);

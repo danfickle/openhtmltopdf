@@ -9,8 +9,6 @@ import java.util.List;
 /**
  * This class is an internal implementation detail. This class is only public
  * because there are no friend classes in Java. DO NOT USE!
- * 
- * @internal
  */
 public class Java2DRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState {
 	/* Internal! */

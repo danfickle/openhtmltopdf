@@ -50,7 +50,7 @@ public class BorderPainter {
      * Generates a full round rectangle that is made of bounds and border
      * @param bounds Dimmensions of the rect
      * @param border The border specs
-     * @param Set true if you want the inner bounds of borders
+     * @param inside true if you want the inner bounds of borders
      * @return A Path that is all sides of the round rectangle
      */
     public static Path2D generateBorderBounds(Rectangle bounds, BorderPropertySet border, boolean inside) {
