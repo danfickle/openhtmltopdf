@@ -19,7 +19,7 @@ to get good results. Avoid floats near page breaks and use table layouts.
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
 + [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
 + [Documentation wiki](https://github.com/danfickle/openhtmltopdf/wiki)
-+ [Template Author Guide - PDF - WIP](https://openhtmltopdf.com/template-guide.pdf) - Moving info to wiki
++ [Template Author Guide - PDF - DEPRECATED - Prefer wiki](https://openhtmltopdf.com/template-guide.pdf) - Moving info to wiki
 + [RC11 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
 + [Sample Project - Pretty Resume Generator](https://github.com/danfickle/pretty-resume)
 
@@ -54,14 +54,14 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 ## CHANGELOG
 
 ### head - 0.0.1-RC16-SNAPSHOT
-+ IMPORTANT: This release was brought forward so that we link against PDFBOX-2.0.12 as previous versions had another DOS security vulnerability when parsing arbitary PDF files. Also there was a security issue in the old version of JSoup used by the optional jsoup-dom-converter module.
++ [#279](https://github.com/danfickle/openhtmltopdf/pull/279) [#264](https://github.com/danfickle/openhtmltopdf/pull/264)
+IMPORTANT: This release was brought forward so that we link against PDFBOX-2.0.12 as previous versions had another DOS security vulnerability when parsing arbitary PDF files. Also there was a security issue in the old version of JSoup used by the optional jsoup-dom-converter module.
   While I believe these vulnerabilities should not impact this project directly, having an insecure library on your classpath may be dangerous if you use it for other tasks.
-  [#279](https://github.com/danfickle/openhtmltopdf/pull/279) Thanks @rototor
-  [#264](https://github.com/danfickle/openhtmltopdf/pull/264) Thanks @dheid
-+ Support for testing and running on JDK-11. Extensive work by @rototor. Thanks.
-+ Support for additional PDF/A conformance levels. [#278](https://github.com/danfickle/openhtmltopdf/pull/278) Thanks @TheUnnamedDude
-+ Fixed nasty bug where positioned elements (absolute, fixed) were being printed twice. [87dc1a9](https://github.com/danfickle/openhtmltopdf/commit/87dc1a98f5821b4b80b6f85db93def53f770ecc5) By @danfickle
-+ Support right-to-left list items. [#271](https://github.com/danfickle/openhtmltopdf/pull/271) Thanks @ieugen for work, @sandre1 for reporting.
+  Thanks @rototor, @dheid
++ [#279](https://github.com/danfickle/openhtmltopdf/pull/279) Support for testing and running on JDK-11. Extensive work by @rototor. Thanks.
++ [#278](https://github.com/danfickle/openhtmltopdf/pull/278) Support for additional PDF/A conformance levels.  Thanks @TheUnnamedDude
++ [87dc1a9](https://github.com/danfickle/openhtmltopdf/commit/87dc1a98f5821b4b80b6f85db93def53f770ecc5) Fixed nasty bug where positioned elements (absolute, fixed) were being printed twice. By @danfickle
++ [#271](https://github.com/danfickle/openhtmltopdf/pull/271) Support right-to-left list items. Thanks @ieugen for work, @sandre1 for reporting.
 + Much more work on the fast renderer. But not ready for prime time yet!
 
 
