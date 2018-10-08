@@ -53,7 +53,10 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 
 ## CHANGELOG
 
-### head - 0.0.1-RC16-SNAPSHOT
+### head - 0.0.1-RC17-SNAPSHOT
+
+
+### 0.0.1-RC16
 + [#279](https://github.com/danfickle/openhtmltopdf/pull/279) [#264](https://github.com/danfickle/openhtmltopdf/pull/264)
 IMPORTANT: This release was brought forward so that we link against PDFBOX-2.0.12 as previous versions had another DOS security vulnerability when parsing arbitary PDF files. Also there was a security issue in the old version of JSoup used by the optional jsoup-dom-converter module.
   While I believe these vulnerabilities should not impact this project directly, having an insecure library on your classpath may be dangerous if you use it for other tasks.
