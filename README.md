@@ -3,6 +3,7 @@
 # OPEN HTML TO PDF
 
 ## CURRENTY SEEKING FEEDBACK
++ [Thinking of moving to Java 8](https://github.com/danfickle/openhtmltopdf/issues/280)
 + [Roadmap for version 1](https://github.com/danfickle/openhtmltopdf/issues/170)
 
 ## OVERVIEW
