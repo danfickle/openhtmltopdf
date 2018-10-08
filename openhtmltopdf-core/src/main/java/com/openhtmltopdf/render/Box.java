@@ -74,7 +74,7 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     private Box _parent;
 
-    private List _boxes;
+    private List<Box> _boxes;
 
     /**
      * Keeps track of the start of childrens containing block.
@@ -145,10 +145,10 @@ public abstract class Box implements Styleable, DisplayListItem {
     public abstract String dump(LayoutContext c, String indent, int which);
 
     protected void dumpBoxes(
-            LayoutContext c, String indent, List boxes,
+            LayoutContext c, String indent, List<Box> boxes,
             int which, StringBuilder result) {
-        for (Iterator i = boxes.iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        for (Iterator<Box> i = boxes.iterator(); i.hasNext(); ) {
+            Box b = i.next();
             result.append(b.dump(c, indent + "  ", which));
             if (i.hasNext()) {
                 result.append('\n');
@@ -175,7 +175,7 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     public void addChild(Box child) {
         if (_boxes == null) {
-            _boxes = new ArrayList();
+            _boxes = new ArrayList<Box>();
         }
         if (child == null) {
             throw new NullPointerException("trying to add null child");
@@ -185,9 +185,8 @@ public abstract class Box implements Styleable, DisplayListItem {
         _boxes.add(child);
     }
 
-    public void addAllChildren(List children) {
-        for (Iterator i = children.iterator(); i.hasNext(); ) {
-            Box box = (Box)i.next();
+    public void addAllChildren(List<Box> children) {
+        for (Box box : children) {
             addChild(box);
         }
     }
@@ -201,8 +200,8 @@ public abstract class Box implements Styleable, DisplayListItem {
     public void removeChild(Box target) {
         if (_boxes != null) {
             boolean found = false;
-            for (Iterator i = getChildIterator(); i.hasNext(); ) {
-                Box child = (Box)i.next();
+            for (Iterator<Box> i = getChildIterator(); i.hasNext(); ) {
+                Box child = i.next();
                 if (child.equals(target)) {
                     i.remove();
                     found = true;
@@ -261,12 +260,12 @@ public abstract class Box implements Styleable, DisplayListItem {
         }
     }
 
-    public Iterator getChildIterator() {
-        return _boxes == null ? Collections.EMPTY_LIST.iterator() : _boxes.iterator();
+    public Iterator<Box> getChildIterator() {
+        return (_boxes == null ? Collections.<Box>emptyIterator() : _boxes.iterator());
     }
 
-    public List getChildren() {
-        return _boxes == null ? Collections.EMPTY_LIST : _boxes;
+    public List<Box> getChildren() {
+        return _boxes == null ? Collections.<Box>emptyList() : _boxes;
     }
 
     public static final int NOTHING = 0;

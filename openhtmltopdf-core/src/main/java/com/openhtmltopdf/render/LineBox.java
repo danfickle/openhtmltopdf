@@ -255,8 +255,7 @@ public class LineBox extends Box implements InlinePaintable {
     
     private void adjustChildren(JustificationInfo info) {
         float adjust = 0.0f;
-        for (Iterator i = getChildIterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        for (Box b : getChildren()) {
             b.setX(b.getX() + Math.round(adjust));
             
             if (b instanceof InlineLayoutBox) {

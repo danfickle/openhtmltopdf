@@ -20,20 +20,16 @@
  */
 package com.openhtmltopdf.render;
 
-import com.openhtmltopdf.bidi.BidiSplitter;
-import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
-import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.layout.*;
 import org.w3c.dom.Element;
 
 import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -55,7 +51,10 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     private boolean _startsHere;
     private boolean _endsHere;
     
-    private List _inlineChildren;
+    /**
+     * @see {@link #getInlineChildren()}
+     */
+    private List<Object> _inlineChildren;
     
     private boolean _pending;
     
@@ -122,7 +121,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     
     public void addInlineChild(LayoutContext c, Object child, boolean callUnmarkPending) {
         if (_inlineChildren == null) {
-            _inlineChildren = new ArrayList();
+            _inlineChildren = new ArrayList<Object>();
         }
         
         _inlineChildren.add(child);
@@ -142,8 +141,11 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         }
     }
     
-    public List getInlineChildren() {
-        return _inlineChildren == null ? Collections.EMPTY_LIST : _inlineChildren;
+    /**
+     * Either <bode>Box</code>, including <code>InlineLayoutBox</code> or <code>InlineText</code> objects.
+     */
+    public List<Object> getInlineChildren() {
+        return _inlineChildren == null ? Collections.emptyList() : _inlineChildren;
     }
     
     public Object getInlineChild(int i) {
@@ -221,6 +223,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         }
     }
     
+    @Override
     public void connectChildrenToCurrentLayer(LayoutContext c) {
         if (getInlineChildCount() > 0) {
             for (int i = 0; i < getInlineChildCount(); i++) {
@@ -293,6 +296,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         return result;
     }
     
+    @Override
     public Rectangle getBorderEdge(int left, int top, CssContext cssCtx) {
         // x, y pins the content area of the box so subtract off top border and padding
         // too
@@ -319,6 +323,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         return result;
     }
     
+    @Override
     public Rectangle getMarginEdge(int left, int top, CssContext cssCtx, int tx, int ty) {
         Rectangle result = getBorderEdge(left, top, cssCtx);
         float marginLeft = 0;
@@ -343,6 +348,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         return result;
     }    
     
+    @Override
     public Rectangle getContentAreaEdge(int left, int top, CssContext cssCtx) {
         BorderPropertySet border = getBorder(cssCtx);
         RectPropertySet padding = getPadding(cssCtx);
@@ -455,7 +461,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         _textDecorations = textDecoration;
     }
     
-    private void addToContentList(List list) {
+    private void addToContentList(List<Box> list) {
         list.add(this);
         
         for (int i = 0; i < getInlineChildCount(); i++) {
@@ -463,7 +469,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             if (child instanceof InlineLayoutBox) {
                 ((InlineLayoutBox)child).addToContentList(list);
             } else if (child instanceof Box) {
-                list.add(child);
+                list.add((Box) child);
             }
         }
     }
@@ -479,11 +485,11 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     public List<Box> getElementWithContent() {
         // inefficient, but the lists in question shouldn't be very long
         
-        List result = new ArrayList();
+        List<Box> result = new ArrayList<Box>();
         
         BlockBox container = (BlockBox)getLineBox().getParent();
         while (true) {
-            List elementBoxes = container.getElementBoxes(getElement());
+            List<Box> elementBoxes = container.getElementBoxes(getElement());
             for (int i = 0; i < elementBoxes.size(); i++) {
                 InlineLayoutBox iB = (InlineLayoutBox)elementBoxes.get(i);
                 iB.addToContentList(result);
@@ -827,7 +833,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         result.append(this);
         result.append('\n');
         
-        for (Iterator i = getInlineChildren().iterator(); i.hasNext(); ) {
+        for (Iterator<Object> i = getInlineChildren().iterator(); i.hasNext(); ) {
             Object obj = i.next();
             if (obj instanceof Box) {
                 Box b = (Box)obj;
@@ -884,7 +890,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     
     public void countJustifiableChars(CharCounts counts) {
         boolean justifyThis = getStyle().isTextJustify();
-        for (Iterator i = getInlineChildren().iterator(); i.hasNext(); ) {
+        for (Iterator<Object> i = getInlineChildren().iterator(); i.hasNext(); ) {
             Object o = i.next();
             if (o instanceof InlineLayoutBox) {
                 ((InlineLayoutBox)o).countJustifiableChars(counts);
@@ -899,7 +905,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         
         float result = 0.0f;
         
-        for (Iterator i = getInlineChildren().iterator(); i.hasNext(); ) {
+        for (Iterator<Object> i = getInlineChildren().iterator(); i.hasNext(); ) {
             Object o = i.next();
             
             if (o instanceof InlineText) {
