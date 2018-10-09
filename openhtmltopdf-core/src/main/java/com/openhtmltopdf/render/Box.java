@@ -103,7 +103,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     protected Box() {
     }
     
-    public Rectangle getClipBox(CssContext c, Layer layer) {
+    public Rectangle getClipBox(RenderingContext c, Layer layer) {
         if (!_clipBoxCalculated) {
             _clipBox = calcClipBox(c, layer);
             _clipBoxCalculated = true;
@@ -112,27 +112,37 @@ public abstract class Box implements Styleable, DisplayListItem {
         return _clipBox;
     }
     
-    private Rectangle calcClipBox(CssContext c, Layer layer) {
+    public Box getClipParent() {
+        if (getStyle().isPositioned()) {
+            return getContainingBlock();
+        } else if (this instanceof BlockBox && 
+                ((BlockBox) this).isFloated()) {
+            return getContainingBlock();
+        } else {
+            return getParent();
+        }
+    }
+    
+    public Rectangle calcParentClipBox(RenderingContext c, Layer layer) {
+        Box clipParent = getClipParent();
+        
+        if (clipParent != null && clipParent.getContainingLayer() != layer) {
+            return null;
+        }
+        
+        return clipParent != null ? clipParent.getClipBox(c, layer) : null;
+    }
+    
+    private Rectangle calcClipBox(RenderingContext c, Layer layer) {
         if (getStyle() == null) {
             return null;
         } else if (getLayer() != null && getLayer() != layer) {
             return null;
         } else if (getStyle().isIdent(CSSName.OVERFLOW, IdentValue.HIDDEN)) {
-            Rectangle parentClip = null;
-            if (getStyle().isPositioned()) {
-                parentClip = (getContainingBlock().getClipBox(c, layer));
-            } else if (getParent() != null) {
-                parentClip = (getParent().getClipBox(c, layer));
-            }
-            return parentClip != null ? getBorderBox(c).intersection(parentClip) : getBorderBox(c);
+            Rectangle parentClip = calcParentClipBox(c, layer);
+            return parentClip != null ? getChildrenClipEdge(c).intersection(parentClip) : getChildrenClipEdge(c);
         } else {
-            if (getStyle().isPositioned()) {
-                return getContainingBlock().getClipBox(c, layer);
-            } else if (getParent() != null) {
-                return getParent().getClipBox(c, layer);
-            } else {
-                return null;
-            }
+            return calcParentClipBox(c, layer);
         }
     }
     

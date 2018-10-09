@@ -830,7 +830,7 @@ public class BlockBox extends Box implements InlinePaintable {
     public void layout(LayoutContext c, int contentStart) {
         CalculatedStyle style = getStyle();
         boolean pushedLayer = false;
-        
+
         if (isRoot()) {
         	pushedLayer = true;
             c.pushLayer(this);

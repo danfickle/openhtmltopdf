@@ -14,6 +14,7 @@ import com.openhtmltopdf.newtable.CollapsedBorderValue;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
@@ -90,9 +91,10 @@ public class DisplayListCollector {
 		int layerPageEnd = findEndPage(c, layer);
 		boolean pushedClip = false;
 
-        if (layer.getMaster().getClipBox(c, layer) != null) {
+		Box clipParent = layer.getMaster().getClipParent();
+        if (clipParent != null && clipParent.getClipBox(c, layer.getParent()) != null) {
             // There is a clip in effect, so use it.
-		    DisplayListOperation dlo = new PaintPushClipRect(layer.getMaster().getClipBox(c, layer));
+		    DisplayListOperation dlo = new PaintPushClipRect(layer.getMaster().calcParentClipBox(c, layer.getParent()));
 		    addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 		    pushedClip = true;
 		}
@@ -219,8 +221,22 @@ public class DisplayListCollector {
 		    /* Nothing for this float on this shadow page. */
 		    return;
 		}
+	    
+	    boolean pushedClip = false;
+	    
+	    if (floater.getClipBox(c, floater.getContainingLayer()) != null) {
+            // There is a clip in effect, so use it.
+            DisplayListOperation dlo = new PaintPushClipRect(floater.getClipBox(c, floater.getContainingLayer()));
+            pageInstructions.addOp(dlo);
+            pushedClip = true;
+        }
 
 		processPage(c, layer, pageBoxes, pageInstructions, false, pageNumber, shadowPageNumber);
+
+		if (pushedClip) {
+		    DisplayListOperation dlo = new PaintPopClipRect();
+		    pageInstructions.addOp(dlo);
+		}
 	}
 
 	private void collectLayerBackgroundAndBorder(RenderingContext c, Layer layer,

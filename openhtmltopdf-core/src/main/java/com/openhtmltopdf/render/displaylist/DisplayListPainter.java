@@ -2,7 +2,6 @@ package com.openhtmltopdf.render.displaylist;
 
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.util.EnumSet;
 import java.util.List;
@@ -60,7 +59,7 @@ public class DisplayListPainter {
 				BlockBox box = (BlockBox) dli;
 				
 				updateTableHeaderFooterPosition(c, box);
-
+				//System.out.println("painting bg = " + box);
 				box.paintBackground(c);
 				box.paintBorder(c);
 
@@ -157,25 +156,12 @@ public class DisplayListPainter {
     	c.getOutputDevice().popTransformLayer();
     }
     
-    private void pushClips(RenderingContext c, PaintPushClipLayer clips) {
-    	for (Box clipBox : clips.getClipBoxes()) {
-    		Shape clip = clipBox.getBorderBox(c);
-    		c.getOutputDevice().pushClip(clip);
-    	}
-    }
-    
     private void pushClipRect(RenderingContext c, Rectangle clip) {
         c.getOutputDevice().pushClip(clip);
     }
     
     private void popClipRect(RenderingContext c) {
         c.getOutputDevice().popClip();
-    }
-    
-    private void popClips(RenderingContext c, PaintPopClipLayer clips) {
-    	for (int i = 0; i < clips.getClipBoxes().size(); i++) {
-    		c.getOutputDevice().popClip();
-    	}
     }
     
     private void paintFixed(RenderingContext c, Layer layer) {
@@ -237,16 +223,6 @@ public class DisplayListPainter {
 				
 				PaintPopTransformLayer dlo = (PaintPopTransformLayer) op;
 				popTransform(c, dlo.getMaster());
-				
-			} else if (op instanceof PaintPushClipLayer) {
-				
-				PaintPushClipLayer dlo = (PaintPushClipLayer) op;
-				pushClips(c, dlo);
-				
-			} else if (op instanceof PaintPopClipLayer) {
-				
-				PaintPopClipLayer dlo = (PaintPopClipLayer) op;
-				popClips(c, dlo);
 				
 			} else if (op instanceof PaintFixedLayer) {
 				
