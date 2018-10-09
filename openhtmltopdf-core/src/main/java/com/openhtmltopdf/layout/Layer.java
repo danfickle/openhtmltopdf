@@ -90,12 +90,6 @@ public class Layer {
     private int _selectionEndY;
     
     /**
-     * @see {@link #getClipBoxes()}
-     */
-    private List<Box> _clippingBoxes;
-    
-
-    /**
      * @see {@link #getCurrentTransformMatrix()}
      */
     private AffineTransform _ctm;
@@ -105,14 +99,14 @@ public class Layer {
      * Creates the root layer.
      */
     public Layer(Box master, CssContext c) {
-        this(null, master, c, null);
+        this(null, master, c);
         setStackingContext(true);
     }
 
     /**
      * Creates a child layer.
      */
-    public Layer(Layer parent, Box master, CssContext c, List<Box> clippingBoxes) {
+    public Layer(Layer parent, Box master, CssContext c) {
         _parent = parent;
         _master = master;
         setStackingContext(
@@ -120,7 +114,6 @@ public class Layer {
                 (!master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE)));
         master.setLayer(this);
         master.setContainingLayer(this);
-        _clippingBoxes = clippingBoxes;
         _hasLocalTransform = !master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE);
     }
     
@@ -156,16 +149,6 @@ public class Layer {
     	return _hasLocalTransform;
     }
     
-    /**
-     * The clipping boxes that were in effect when this layer was created. These should only be 
-     * used by layers triggered by something other than a positioned element (transform / opacity, etc).
-     * Positioned elements will have to use the clip box of the containing block and its containing block
-     * and so on. 
-     */
-    public List<Box> getClipBoxes() {
-    	return _clippingBoxes == null ? Collections.<Box>emptyList() : _clippingBoxes;
-    }
-
     public Layer getParent() {
         return _parent;
     }

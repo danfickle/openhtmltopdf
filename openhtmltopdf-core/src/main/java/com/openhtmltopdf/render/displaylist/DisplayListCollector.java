@@ -90,15 +90,8 @@ public class DisplayListCollector {
 		int layerPageEnd = findEndPage(c, layer);
 		boolean pushedClip = false;
 
-		if (!layer.getMaster().getStyle().isPositioned() &&
-	            !layer.getClipBoxes().isEmpty()) {
-            // This layer was triggered by a transform. We have to honor the clip of parent elements.
-            DisplayListOperation  dlo = new PaintPushClipLayer(layer.getClipBoxes());
-            addItem(dlo, layerPageStart, layerPageEnd, dlPages);
-		} else if (layer.getMaster().getClipBox(c, layer) != null) {
-		    // This layer was triggered by a positioned element. We should honor the clip of the
-		    // containing block (closest ancestor with position other than static) and its containing block and
-		    // so on.
+        if (layer.getMaster().getClipBox(c, layer) != null) {
+            // There is a clip in effect, so use it.
 		    DisplayListOperation dlo = new PaintPushClipRect(layer.getMaster().getClipBox(c, layer));
 		    addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 		    pushedClip = true;
@@ -155,11 +148,7 @@ public class DisplayListCollector {
 			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 		}
 		
-		if (!layer.getMaster().getStyle().isPositioned() &&
-			!layer.getClipBoxes().isEmpty()) {
-			DisplayListOperation dlo = new PaintPopClipLayer(layer.getClipBoxes());
-			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
-		} else if (pushedClip) {
+        if (pushedClip) {
 		    DisplayListOperation dlo = new PaintPopClipRect();
             addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 		}

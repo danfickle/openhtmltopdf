@@ -121,9 +121,6 @@ public abstract class Box implements Styleable, DisplayListItem {
             Rectangle parentClip = null;
             if (getStyle().isPositioned()) {
                 parentClip = (getContainingBlock().getClipBox(c, layer));
-            } else if (getStyle().isFloated()) {
-                BlockBox that = (BlockBox) this;
-                parentClip = (that.getPersistentBFC().getFloatManager().getMaster().getClipBox(c, layer));
             } else if (getParent() != null) {
                 parentClip = (getParent().getClipBox(c, layer));
             }
@@ -131,9 +128,6 @@ public abstract class Box implements Styleable, DisplayListItem {
         } else {
             if (getStyle().isPositioned()) {
                 return getContainingBlock().getClipBox(c, layer);
-            } else if (getStyle().isFloated()) {
-                BlockBox that = (BlockBox) this;
-                return that.getPersistentBFC().getFloatManager().getMaster().getClipBox(c, layer);
             } else if (getParent() != null) {
                 return getParent().getClipBox(c, layer);
             } else {

@@ -379,7 +379,6 @@ public class VisualRegressionTest {
     /**
      * With a floated static block, rotate, large page margin, small block margin, small padding, small border.
      */
-    @Ignore // Causes a stack overflow in Box::getClipBox.
     @Test
     public void testTransformFloat() throws IOException {
         assertTrue(vt.runTest("transform-float"));

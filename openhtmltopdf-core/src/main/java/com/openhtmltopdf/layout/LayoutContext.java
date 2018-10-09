@@ -70,7 +70,6 @@ public class LayoutContext implements CssContext {
 
     private LinkedList<BlockFormattingContext> _bfcs;
     private LinkedList<Layer> _layers;
-    private LinkedList<Box> _clippingBoxes;
 
     private FontContext _fontContext;
 
@@ -171,7 +170,6 @@ public class LayoutContext implements CssContext {
         
         _bfcs = new LinkedList<BlockFormattingContext>();
         _layers = new LinkedList<Layer>();
-        _clippingBoxes = new LinkedList<Box>();
 
         _firstLines = new StyleTracker();
         _firstLetters = new StyleTracker();
@@ -187,7 +185,6 @@ public class LayoutContext implements CssContext {
         if (! keepLayers) {
             _rootLayer = null;
             _layers = new LinkedList<Layer>();
-            _clippingBoxes = new LinkedList<Box>();
         }
 
         _extraSpaceTop = 0;
@@ -266,18 +263,6 @@ public class LayoutContext implements CssContext {
         _bfcs.removeLast();
     }
 
-    /**
-     * We need to keep a list of clipping boxes so we can apply to layers triggered by a transform.
-     * MUST be matched with a call to {@link #popClippingBox()}
-     */
-    public void pushClippingBox(Box clipBox) {
-    	_clippingBoxes.add(clipBox);
-    }
-    
-    public void popClippingBox() {
-    	_clippingBoxes.removeLast();
-    }
-
     public void pushLayer(Box master) {
         Layer layer = null;
 
@@ -287,8 +272,7 @@ public class LayoutContext implements CssContext {
         } else {
             Layer parent = getLayer();
 
-            layer = new Layer(parent, master, this, 
-            		_clippingBoxes.isEmpty() ? null : new ArrayList<Box>(_clippingBoxes));
+            layer = new Layer(parent, master, this);
 
             parent.addChild(layer);
         }
