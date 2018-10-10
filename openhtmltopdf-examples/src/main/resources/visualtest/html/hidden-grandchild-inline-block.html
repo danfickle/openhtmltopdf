@@ -1,0 +1,35 @@
+<html>
+<head>
+  <style>
+    @page {
+       size: 200px 100px;
+       margin: 0;
+    }
+    body {
+      margin: 10px;
+      max-width: 200px;
+    }
+    .container {
+       margin: 10px;
+       overflow: hidden;
+       width: 130px;
+       border: 2px solid blue;
+    }
+    .inside {
+       border: 2px solid green;
+       width: 100px;
+    }
+    .gc {
+       display: inline-block;
+       width: 250px;
+       min-height: 30px;
+       background-color: red;
+       margin-left: -20px;
+    }
+  </style>
+</head>
+<body>
+<!-- gc should overflow inside but not container. -->
+<div class="container"><div class="inside"><div class="gc"></div></div></div>
+</body>
+</html>

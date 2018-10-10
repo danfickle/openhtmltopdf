@@ -391,4 +391,38 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("transform-float-inside-transform"));
     }
     
+    /**
+     * Tests that a grandchild inline-block does not overflow its grandparent with overflow hidden.
+     */
+    @Test
+    public void testHiddenGrandchildInlineBlock() throws IOException {
+        assertTrue(vt.runTest("hidden-grandchild-inline-block"));
+    }
+    
+    /**
+     * Tests that a grandchild absolute does not overflow its grandparent with overflow hidden.
+     */
+    @Test
+    public void testHiddenGrandchildAbsolute() throws IOException {
+        assertTrue(vt.runTest("hidden-grandchild-absolute"));
+    }
+    
+    /**
+     * Tests that a grandchild absolute overflows its grandparent with overflow hidden,
+     * when the grandparent is not the containing block.
+     */
+    @Test
+    public void testHiddenGrandchildAbsoluteEscapes() throws IOException {
+        assertTrue(vt.runTest("hidden-grandchild-absolute-escapes"));
+    }
+    
+    /**
+     * Tests that a grandchild fixed overflows its grandparent with overflow hidden,
+     * because the grandparent is not the containing block, the viewport is, even
+     * though the grandparent has position relative.
+     */
+    @Test
+    public void testHiddenGrandchildFixedEscapes() throws IOException {
+        assertTrue(vt.runTest("hidden-grandchild-fixed-escapes"));
+    }
 }

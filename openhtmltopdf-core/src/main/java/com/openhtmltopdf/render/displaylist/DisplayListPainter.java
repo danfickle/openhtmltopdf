@@ -23,12 +23,18 @@ import com.openhtmltopdf.render.displaylist.DisplayListCollector.CollectFlags;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 
 public class DisplayListPainter {
+    
+    private void debugOnly(String msg, Object arg) {
+        //System.out.println(msg + " : " + arg);
+    }
 	
 	private void clip(RenderingContext c, OperatorClip clip) {
+	    debugOnly("clipping", clip.getClip());
 		c.getOutputDevice().pushClip(clip.getClip());
 	}
 	
 	private void setClip(RenderingContext c, OperatorSetClip setclip) {
+	    debugOnly("popping clip", null);
 		c.getOutputDevice().popClip();
 	}
 	
@@ -59,7 +65,7 @@ public class DisplayListPainter {
 				BlockBox box = (BlockBox) dli;
 				
 				updateTableHeaderFooterPosition(c, box);
-				//System.out.println("painting bg = " + box);
+				debugOnly("painting bg", box);
 				box.paintBackground(c);
 				box.paintBorder(c);
 
@@ -157,10 +163,12 @@ public class DisplayListPainter {
     }
     
     private void pushClipRect(RenderingContext c, Rectangle clip) {
+        debugOnly("pushing clip rect", clip);
         c.getOutputDevice().pushClip(clip);
     }
     
     private void popClipRect(RenderingContext c) {
+        debugOnly("popping clip rect", null);
         c.getOutputDevice().popClip();
     }
     
