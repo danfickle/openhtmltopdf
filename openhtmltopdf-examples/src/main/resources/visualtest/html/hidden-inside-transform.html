@@ -1,0 +1,40 @@
+<html>
+<head>
+  <style>
+    @page {
+       size: 200px 200px;
+       margin: 0;
+    }
+    body {
+      margin: 10px;
+      max-width: 200px;
+    }
+    .container {
+       margin: 10px;
+       width: 150px;
+       border: 2px solid blue;
+    }
+    .inside {
+       border: 2px solid green;
+       width: 100px;
+       transform: rotate(45deg);
+    }
+    .gc {
+       width: 200px;
+       min-height: 30px;
+       border: 2px solid red;
+       overflow: hidden;
+    }
+    .gcc {
+       background-color: orange;
+       min-height: 30px;
+       width: 250px;
+    }
+  </style>
+</head>
+<body>
+<!-- gcc should overflow inside and container, but not gc. -->
+<!-- testing whether overflow hidden works in a transformed coordinate space. -->
+<div class="container"><div class="inside"><div class="gc"><div class="gcc"></div></div></div></div>
+</body>
+</html>

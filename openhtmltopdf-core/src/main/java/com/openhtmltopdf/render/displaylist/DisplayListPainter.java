@@ -155,10 +155,12 @@ public class DisplayListPainter {
     
     private void pushTransform(RenderingContext c, Box master) {
     	AffineTransform transform = TransformCreator.createPageCoordinatesTranform(c, master, c.getPage());
+    	debugOnly("pushing transform", transform);
     	c.getOutputDevice().pushTransformLayer(transform);
     }
     
     private void popTransform(RenderingContext c, Box master) {
+        debugOnly("popping transform", null);
     	c.getOutputDevice().popTransformLayer();
     }
     

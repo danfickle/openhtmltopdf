@@ -425,4 +425,14 @@ public class VisualRegressionTest {
     public void testHiddenGrandchildFixedEscapes() throws IOException {
         assertTrue(vt.runTest("hidden-grandchild-fixed-escapes"));
     }
+
+    /**
+     * Tests that overflow hidden inside a transformed element correctly uses
+     * the transformed coordinate space.
+     */
+    @Test
+    public void testHiddenInsideTransform() throws IOException {
+        assertTrue(vt.runTest("hidden-inside-transform"));
+    }
+
 }
