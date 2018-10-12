@@ -171,7 +171,6 @@ public class VisualRegressionTest {
      * Tests that overflow:hidden content does NOT generate shadow pages. Includes case where content
      * is absolute block and a case where content is a static block. 
      */
-    @Ignore // Overflow: hidden is generating shadow page and is visible on shadow page.
     @Test
     public void testHorizPageOverflowHidden() throws IOException {
         assertTrue(vt.runTest("horiz-page-overflow-hidden"));
@@ -434,5 +433,9 @@ public class VisualRegressionTest {
     public void testHiddenInsideTransform() throws IOException {
         assertTrue(vt.runTest("hidden-inside-transform"));
     }
+    
+    // TODO:
+    // + hidden overflow boxes on shadow pages.
+    // + transformed clip and shadow pages.
 
 }

@@ -38,6 +38,7 @@ import org.w3c.dom.Node;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -97,23 +98,39 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     private boolean _anonymous;
     
-    private Rectangle _clipBox;
+    private Area _absoluteClipBox;
     private boolean _clipBoxCalculated = false;
     
     protected Box() {
     }
     
+    /**
+     * Gets the combined clip of this box relative to the containing layer.
+     * The returned clip is in document coordinate space (not transformed in any way).
+     * For example, if we have the following nesting:
+     *
+     * overflow hidden := transformed box := overflow hidden := overflow hidden := overflow visible
+     * 
+     * this function called on the overflow visible box will return the combined clip of its
+     * two immediate ancestors in document coordinate space. It stops at the transformed box because
+     * the transform triggers a layer.
+     * 
+     * Currently this method is used for getting the clip to apply to a float, which are nested in layers
+     * but taken out of the default block list and therefore clip stack.
+     * 
+     * Since it is only used for floats, the result is not cached. Revisit this decision if using for every box.
+     * 
+     * There are several other clip methods available:
+     * + {@link #getChildrenClipEdge(RenderingContext)} - gets the local clip for a single box.
+     * + {@link #getParentClipBox(RenderingContext, Layer)} - gets the layer relative clip for the parent box.
+     * + {@link #getAbsoluteClipBox(RenderingContext)} - gets the absolute clip box in document coordinates
+     */
     public Rectangle getClipBox(RenderingContext c, Layer layer) {
-        if (!_clipBoxCalculated) {
-            _clipBox = calcClipBox(c, layer);
-            _clipBoxCalculated = true;
-        }
-        
-        return _clipBox;
+        return calcClipBox(c, layer);
     }
     
-    public Box getClipParent() {
-        if (getStyle().isPositioned()) {
+    private Box getClipParent() {
+        if (getStyle() != null && getStyle().isPositioned()) {
             return getContainingBlock();
         } else if (this instanceof BlockBox && 
                 ((BlockBox) this).isFloated()) {
@@ -123,26 +140,57 @@ public abstract class Box implements Styleable, DisplayListItem {
         }
     }
     
-    public Rectangle calcParentClipBox(RenderingContext c, Layer layer) {
+    /**
+     * Gets the layer relative clip for the parent box.
+     * @see {@link #getClipBox(RenderingContext, Layer)}
+     */
+    public Rectangle getParentClipBox(RenderingContext c, Layer layer) {
         Box clipParent = getClipParent();
         
-        if (clipParent != null && clipParent.getContainingLayer() != layer) {
+        if (clipParent == null || clipParent.getContainingLayer() != layer) {
             return null;
         }
         
-        return clipParent != null ? clipParent.getClipBox(c, layer) : null;
+        return clipParent.getClipBox(c, layer);
     }
     
     private Rectangle calcClipBox(RenderingContext c, Layer layer) {
-        if (getStyle() == null) {
+        if (getContainingLayer() != layer) {
             return null;
-        } else if (getLayer() != null && getLayer() != layer) {
-            return null;
-        } else if (getStyle().isIdent(CSSName.OVERFLOW, IdentValue.HIDDEN)) {
-            Rectangle parentClip = calcParentClipBox(c, layer);
+        } else if (getStyle() != null && getStyle().isIdent(CSSName.OVERFLOW, IdentValue.HIDDEN)) {
+            Rectangle parentClip = getParentClipBox(c, layer);
             return parentClip != null ? getChildrenClipEdge(c).intersection(parentClip) : getChildrenClipEdge(c);
         } else {
-            return calcParentClipBox(c, layer);
+            return getParentClipBox(c, layer);
+        }
+    }
+    
+    /**
+     * Returns the absolute (ie transformed if needed) clip area for this box.
+     * Cached as this will be needed on every box to check if the clip area is inside a page. 
+     */
+    public Area getAbsoluteClipBox(CssContext c) {
+        if (!_clipBoxCalculated) {
+            _absoluteClipBox = calcAbsoluteClipBox(c);
+            _clipBoxCalculated = true;
+        }
+        return _absoluteClipBox != null ? (Area) _absoluteClipBox.clone() : null;
+    }
+    
+    private Area calcAbsoluteClipBox(CssContext c) {
+        Rectangle localClip = getStyle() != null && getStyle().isIdent(CSSName.OVERFLOW, IdentValue.HIDDEN) ? getChildrenClipEdge(c) : null;
+        Box parentBox = getClipParent();
+        Area parentClip = parentBox != null ? parentBox.getAbsoluteClipBox(c) : null;
+
+        if (localClip != null) {
+            AffineTransform transform = getContainingLayer().getCurrentTransformMatrix();
+            Area ourClip = new Area(transform != null ? transform.createTransformedShape(localClip) : localClip);
+            if (parentClip != null) {
+                ourClip.intersect(parentClip);
+            }
+            return ourClip;
+        } else {
+            return parentClip;
         }
     }
     
@@ -346,7 +394,7 @@ public abstract class Box implements Styleable, DisplayListItem {
         return getPaintingBorderEdge(cssCtx);
     }
 
-    public Rectangle getChildrenClipEdge(RenderingContext c) {
+    public Rectangle getChildrenClipEdge(CssContext c) {
         return getPaintingPaddingEdge(c);
     }
 

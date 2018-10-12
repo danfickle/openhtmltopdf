@@ -1,5 +1,6 @@
 package com.openhtmltopdf.render.displaylist;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -91,10 +92,10 @@ public class DisplayListCollector {
 		int layerPageEnd = findEndPage(c, layer);
 		boolean pushedClip = false;
 
-		Box clipParent = layer.getMaster().getClipParent();
-        if (clipParent != null && clipParent.getClipBox(c, layer.getParent()) != null) {
+		Rectangle parentClip = layer.getMaster().getParentClipBox(c, layer.getParent());
+        if (parentClip != null) {
             // There is a clip in effect, so use it.
-		    DisplayListOperation dlo = new PaintPushClipRect(layer.getMaster().calcParentClipBox(c, layer.getParent()));
+		    DisplayListOperation dlo = new PaintPushClipRect(parentClip);
 		    addItem(dlo, layerPageStart, layerPageEnd, dlPages);
 		    pushedClip = true;
 		}

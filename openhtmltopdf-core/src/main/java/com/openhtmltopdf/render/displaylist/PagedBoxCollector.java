@@ -3,6 +3,7 @@ package com.openhtmltopdf.render.displaylist;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -710,12 +711,23 @@ public class PagedBoxCollector {
         Rectangle borderBoxBounds = box.getBorderBox(c);
         
         AffineTransform ctm = box.getContainingLayer().getCurrentTransformMatrix();
-        
-        if (ctm == null) {
+        Area overflowClip = box.getAbsoluteClipBox(c);
+
+        if (ctm == null && overflowClip == null) {
             return clip.intersects(borderBoxBounds);
-        } else {
+        } else if (ctm != null && overflowClip == null) {
             Shape boxShape = ctm.createTransformedShape(borderBoxBounds);
-            return clip.intersects(boxShape.getBounds2D());
+            Area boxArea = new Area(boxShape);
+            Area clipArea = new Area(clip);
+            boxArea.intersect(clipArea);
+
+            return !boxArea.isEmpty();
+        } else { // if (overflowClip != null)
+            Area boxArea = new Area(ctm == null ? borderBoxBounds : ctm.createTransformedShape(borderBoxBounds));
+            boxArea.intersect(overflowClip);
+            boxArea.intersect(new Area(clip));
+            
+            return !boxArea.isEmpty();
         }
     }
     
