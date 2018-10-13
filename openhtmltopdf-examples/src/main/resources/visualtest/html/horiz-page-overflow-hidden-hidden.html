@@ -1,0 +1,39 @@
+<html>
+<head>
+<style>
+@page {
+  size: 140px 70px;
+  margin: 0;
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: ltr;
+}
+body {
+  margin: 0;
+  max-width: 140px;
+}
+div {
+  box-sizing: border-box;
+  margin: 0;
+}
+.outer {
+  border: 1px solid black;
+  background-color: red;
+  min-height: 20px;
+}
+.inner2 {
+  border: 1px solid green;
+  background-color: purple;
+  min-height: 15px;
+}
+</style>
+</head>
+<body>
+<!-- These should create one overflow page only with clipped content. -->
+<div class="outer" style="width: 150%;position: relative;overflow: hidden;">
+  <div class="inner2" style="width: 100%;position: absolute;left: 50%;top: 0;"></div>
+</div>
+<div class="outer" style="width: 150%;overflow: hidden;">
+  <div class="inner2" style="width: 150%;"></div>
+</div>
+</body>
+</html>

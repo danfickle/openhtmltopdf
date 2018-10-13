@@ -9,16 +9,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.newtable.CollapsedBorderValue;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
+import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageInfo;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
 public class DisplayListCollector {
@@ -51,6 +52,16 @@ public class DisplayListCollector {
 		for (int i = pgStart; i <= pgEnd; i++) {
 			dlPages.getPageInstructions(i).addOp(item);
 		}
+	}
+	
+	protected void addItem(DisplayListOperation item, List<PageInfo> pages, DisplayListContainer dlPages) {
+	    for (PageInfo pg : pages) {
+	        if (pg.shadowPageNumber == PageInfo.BASE_PAGE) {
+	            dlPages.getPageInstructions(pg.pageNumber).addOp(item);
+	        } else {
+	            dlPages.getPageInstructions(pg.pageNumber).getShadowPage(pg.shadowPageNumber).addOp(item);
+	        }
+	    }
 	}
 
 	/**
@@ -88,21 +99,23 @@ public class DisplayListCollector {
 			return;
 		}
 		
+		List<PageInfo> layerPages = PagedBoxCollector.findLayerPages(c, layer, _pages);
 		int layerPageStart = findStartPage(c, layer);
 		int layerPageEnd = findEndPage(c, layer);
 		boolean pushedClip = false;
 
 		Rectangle parentClip = layer.getMaster().getParentClipBox(c, layer.getParent());
+
         if (parentClip != null) {
             // There is a clip in effect, so use it.
 		    DisplayListOperation dlo = new PaintPushClipRect(parentClip);
-		    addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+		    addItem(dlo, layerPages, dlPages);
 		    pushedClip = true;
 		}
 		
 		if (layer.hasLocalTransform()) {
 	        DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
-	        addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+	        addItem(dlo, layerPages, dlPages);
 	    }
 		
 		if (layer.isRootLayer() && layer.getMaster().hasRootElementBackground(c)) {
@@ -148,12 +161,12 @@ public class DisplayListCollector {
 		
 		if (layer.hasLocalTransform()) {
 			DisplayListOperation dlo = new PaintPopTransformLayer(layer.getMaster());
-			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+			addItem(dlo, layerPages, dlPages);
 		}
 		
         if (pushedClip) {
 		    DisplayListOperation dlo = new PaintPopClipRect();
-            addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+            addItem(dlo, layerPages, dlPages);
 		}
 	}
 

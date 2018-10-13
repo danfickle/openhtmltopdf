@@ -175,6 +175,15 @@ public class VisualRegressionTest {
     public void testHorizPageOverflowHidden() throws IOException {
         assertTrue(vt.runTest("horiz-page-overflow-hidden"));
     }
+    
+    /**
+     * Tests that overflow hidden clipping works on generated shadow page. Includes case where content
+     * is absolute block and a case where content is a static block. 
+     */
+    @Test
+    public void testHorizPageOverflowHiddenHidden() throws IOException {
+        assertTrue(vt.runTest("horiz-page-overflow-hidden-hidden"));
+    }
 
     /**
      * Tests that content transformed past page edge generates a shadow page.
@@ -435,7 +444,7 @@ public class VisualRegressionTest {
     }
     
     // TODO:
-    // + hidden overflow boxes on shadow pages.
+    // + RTL overflow pages.
     // + transformed clip and shadow pages.
 
 }
