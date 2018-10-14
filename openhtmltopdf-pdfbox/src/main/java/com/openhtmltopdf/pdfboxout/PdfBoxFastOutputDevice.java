@@ -39,7 +39,6 @@ import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.FontRun;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.ArrayUtil;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
@@ -87,14 +86,31 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     //   Theoretically, this is all configurable, but not tested at all with other values.
     //
     
-    private static final int FILL = 1;
-    private static final int STROKE = 2;
-    private static final int CLIP = 3;
+    private static enum GraphicsOperation {
+        FILL,
+        STROKE,
+        CLIP;
+    }
 
+    private static class PageState {
+        // The actual fill and stroke colors set on the PDF graphics stream.
+        // We keep these so we don't bloat the PDF with unneeded color calls.
+        private FSColor fillColor;
+        private FSColor strokeColor;
+        
+        private PageState copy() {
+            PageState ret = new PageState();
+            
+            ret.fillColor = this.fillColor;
+            ret.strokeColor = this.strokeColor;
+            
+            return ret;
+        }
+    }
+    
     private static final AffineTransform IDENTITY = new AffineTransform();
     private static final BasicStroke STROKE_ONE = new BasicStroke(1);
-
-    private static final boolean ROUND_RECT_DIMENSIONS_DOWN = Configuration.isTrue("xr.pdf.round.rect.dimensions.down", false);
+    private static final boolean ROUND_RECT_DIMENSIONS_DOWN = false;
 
     // The current PDF page.
     private PDPage _page;
@@ -115,29 +131,13 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     // It scales from internal dots to PDF points.
     // It translates positions to implement page margins.
     private AffineTransform _transform = new AffineTransform();
-    
-    // A stack of currently in force transforms on the PDF graphics state.
-    // NOTE: Transforms are cumulative and order is important.
-    // After the graphics state is restored in setClip we must appropriately reapply the transforms
-    // that should be in effect.
-    private final Deque<AffineTransform> transformStack = new ArrayDeque<AffineTransform>();
 
-    // An index into the transformStack. When we save state we set this to the length of transformStack
-    // then we know we have to reapply those transforms set after saving state upon restoring state.
-    private int clipTransformIndex;
-    
-    // We use these to keep track of where the current transform-origin is in absolute internal dots units.
-    private float _absoluteTransformOriginX = 0;
-    private float _absoluteTransformOriginY = 0;
-    
-    // The desired color as set by setColor.
+    // The desired colors as set by setColor.
     // To make sure this color is set on the PDF graphics stream call ensureFillColor or ensureStrokeColor.
-    private FSColor _color = FSRGBColor.BLACK;
-
-    // The actual fill and stroke colors set on the PDF graphics stream.
-    // We keep these so we don't bloat the PDF with unneeded color calls.
-    private FSColor _fillColor;
-    private FSColor _strokeColor;
+    private final PageState _desiredPageState = new PageState();
+    
+    // The page state stack
+    private final Deque<PageState> _pageStateStack = new ArrayDeque<PageState>();
 
     // The currently set stroke. This will not yet be set on the PDF graphics stream.
     // This is already transformed to PDF points units.
@@ -193,6 +193,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private PdfBoxLinkManager _linkManager;
     
     // Not used currently.
+    @SuppressWarnings("unused")
     private RenderingContext _renderingContext;
     
     // The bidi reorderer is responsible for shaping Arabic text, deshaping and 
@@ -207,10 +208,12 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _testMode = testMode;
     }
 
+    @Override
     public void setWriter(PDDocument writer) {
         _writer = writer;
     }
 
+    @Override
     public PDDocument getWriter() {
         return _writer;
     }
@@ -219,22 +222,19 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      * Start a page. A new PDF page starts a new content stream so all graphics state has to be 
      * set back to default.
      */
+    @Override
     public void initializePage(PDPageContentStream currentPage, PDPage page, float height) {
         _cp = new PdfContentStreamAdapter(currentPage);
         _page = page;
         _pageHeight = height;
-
-        if (!isFastRenderer()) {
-            // We call saveGraphics so we can get back to a raw (unclipped) state after we have clipped.
-            // restoreGraphics is only used by setClip and page finish (unless the fast renderer is in use).
-            _cp.saveGraphics();
-        }
+        
+        _desiredPageState.fillColor = null;
+        _desiredPageState.strokeColor = null;
+        
+        pushState(new PageState());
         
         _transform = new AffineTransform();
         _transform.scale(1.0d / _dotsPerPoint, 1.0d / _dotsPerPoint);
-
-        _absoluteTransformOriginX = 0;
-        _absoluteTransformOriginY += height * _dotsPerPoint;
 
         _stroke = transformStroke(STROKE_ONE);
         _originalStroke = _stroke;
@@ -248,13 +248,23 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             dest.setPage(page);
         }
     }
+    
+    private PageState currentState() {
+        return _pageStateStack.peekFirst();
+    }
+    
+    private void pushState(PageState state) {
+        _pageStateStack.addFirst(state);
+    }
+    
+    private PageState popState() {
+        return _pageStateStack.removeFirst();
+    }
 
+    @Override
     public void finishPage() {
-        if (!isFastRenderer()) {
-            _cp.restoreGraphics();
-        }
-        
         _cp.closeContent();
+        popState();
     }
 
     public void paintReplacedElement(RenderingContext c, BlockBox box) {
@@ -285,8 +295,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private void processControls() {
         _formState.processControls(_sharedContext, _writer, _root);
     }
-    
-
 
     /**
      * Given a value in dots units, converts to PDF points.
@@ -301,16 +309,18 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     public void setColor(FSColor color) {
         if (color instanceof FSRGBColor) {
-             _color = color;
+             this._desiredPageState.fillColor = color;
+             this._desiredPageState.strokeColor = color;
         } else if (color instanceof FSCMYKColor) {
-            _color = color;
+            this._desiredPageState.fillColor = color;
+            this._desiredPageState.strokeColor = color;
         } else {
-            assert(_color instanceof FSRGBColor || _color instanceof FSCMYKColor);
+            assert(color instanceof FSRGBColor || color instanceof FSCMYKColor);
         }
     }
 
     public void draw(Shape s) {
-        followPath(s, STROKE);
+        followPath(s, GraphicsOperation.STROKE);
     }
 
     protected void drawLine(int x1, int y1, int x2, int y2) {
@@ -328,7 +338,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     public void fill(Shape s) {
-        followPath(s, FILL);
+        followPath(s, GraphicsOperation.FILL);
     }
 
     public void fillRect(int x, int y, int width, int height) {
@@ -486,35 +496,37 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     private void ensureFillColor() {
-        if (!(_color.equals(_fillColor))) {
-            _fillColor = _color;
+        PageState state = currentState();
+        if (state.fillColor == null || !(state.fillColor.equals(_desiredPageState.fillColor))) {
+            state.fillColor = _desiredPageState.fillColor;
 
-            if (_fillColor instanceof FSRGBColor) {
-                FSRGBColor rgb = (FSRGBColor) _fillColor;
+            if (state.fillColor instanceof FSRGBColor) {
+                FSRGBColor rgb = (FSRGBColor) state.fillColor;
                 _cp.setFillColor(rgb.getRed(), rgb.getGreen(), rgb.getBlue());
-            } else if (_fillColor instanceof FSCMYKColor) {
-                FSCMYKColor cmyk = (FSCMYKColor) _fillColor;
+            } else if (state.fillColor instanceof FSCMYKColor) {
+                FSCMYKColor cmyk = (FSCMYKColor) state.fillColor;
                 _cp.setFillColor(cmyk.getCyan(), cmyk.getMagenta(), cmyk.getYellow(), cmyk.getBlack());
             }
             else {
-                assert(_fillColor instanceof FSRGBColor || _fillColor instanceof FSCMYKColor);
+                assert(state.fillColor instanceof FSRGBColor || state.fillColor instanceof FSCMYKColor);
             }
        }
     }
 
     private void ensureStrokeColor() {
-        if (!(_color.equals(_strokeColor))) {
-            _strokeColor = _color;
+        PageState state = currentState();
+        if (state.strokeColor == null || !(state.strokeColor.equals(_desiredPageState.strokeColor))) {
+            state.strokeColor = _desiredPageState.strokeColor;
 
-            if (_strokeColor instanceof FSRGBColor) {
-                FSRGBColor rgb = (FSRGBColor) _strokeColor;
+            if (state.strokeColor instanceof FSRGBColor) {
+                FSRGBColor rgb = (FSRGBColor) state.strokeColor;
                 _cp.setStrokingColor(rgb.getRed(), rgb.getGreen(), rgb.getBlue());
-            } else if (_strokeColor instanceof FSCMYKColor) {
-                FSCMYKColor cmyk = (FSCMYKColor) _strokeColor;
+            } else if (state.strokeColor instanceof FSCMYKColor) {
+                FSCMYKColor cmyk = (FSCMYKColor) state.strokeColor;
                 _cp.setStrokingColor(cmyk.getCyan(), cmyk.getMagenta(), cmyk.getYellow(), cmyk.getBlack());
             }
             else {
-                assert(_strokeColor instanceof FSRGBColor || _strokeColor instanceof FSCMYKColor);
+                assert(state.strokeColor instanceof FSRGBColor || state.strokeColor instanceof FSCMYKColor);
             }
         }
     }
@@ -527,27 +539,27 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         return _page;
     }
 
-    private void followPath(Shape s, int drawType) {
+    private void followPath(Shape s, GraphicsOperation drawType) {
         if (s == null)
             return;
         
-        if (drawType == STROKE) {
+        if (drawType == GraphicsOperation.STROKE) {
             if (!(_stroke instanceof BasicStroke)) {
                 s = _stroke.createStrokedShape(s);
-                followPath(s, FILL);
+                followPath(s, GraphicsOperation.FILL);
                 return;
             }
         }
-        if (drawType == STROKE) {
+        if (drawType == GraphicsOperation.STROKE) {
             setStrokeDiff(_stroke, _oldStroke);
             _oldStroke = _stroke;
             ensureStrokeColor();
-        } else if (drawType == FILL) {
+        } else if (drawType == GraphicsOperation.FILL) {
             ensureFillColor();
         }
         
         PathIterator points;
-        if (drawType == CLIP) {
+        if (drawType == GraphicsOperation.CLIP) {
             points = s.getPathIterator(IDENTITY);
         } else {
             points = s.getPathIterator(_transform);
@@ -721,7 +733,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
                 _clip = new Area(s);
             else
                 _clip.intersect(new Area(s));
-            followPath(s, CLIP);
+            followPath(s, GraphicsOperation.CLIP);
         } else {
             assert(s != null);
         }
@@ -729,69 +741,37 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     public Shape getClip() {
-        if (isFastRenderer()) {
-            XRLog.render(Level.SEVERE, "getClip MUST not be used by the fast renderer. Please consider reporting this bug.");
-            return null;
-        }
-        
-        try {
-            return _transform.createInverse().createTransformedShape(_clip);
-        } catch (NoninvertibleTransformException e) {
-            return null;
-        }
+        throw new UnsupportedOperationException();
     }
     
     @Override
     public void popClip() {
         _cp.restoreGraphics();
+        popState();
         clearPageState();
     }
     
     @Override
     public void pushClip(Shape s) {
         _cp.saveGraphics();
+        pushState(currentState().copy());
+        
         if (s != null) {
             Shape s1 = _transform.createTransformedShape(s);
-            followPath(s1, CLIP);
+            followPath(s1, GraphicsOperation.CLIP);
         }
     }
 
     @Override
     public void setClip(Shape s) {
-        if (isFastRenderer()) {
-            XRLog.render(Level.SEVERE, "setClip MUST not be used by the fast renderer. Please consider reporting this bug.");
-            return;
-        }
-
-        // Restore graphics to get back to a no-clip situation.
-        _cp.restoreGraphics();
-
-        // Reapply the transforms that are in effect.
-        reapplyTransforms();
-        
-        // Save graphics so we can do this again.
-        _cp.saveGraphics();
-        
-        // Set the index so we know which transforms have to be reapplied
-        // when we next restore graphics.
-        clipTransformIndex = transformStack.size();
-        
-        if (s != null)
-            s = _transform.createTransformedShape(s);
-        if (s == null) {
-            _clip = null;
-        } else {
-            _clip = new Area(s);
-            followPath(s, CLIP);
-        }
-        
-        clearPageState();
+        throw new UnsupportedOperationException();
     }
 
     public Stroke getStroke() {
         return _originalStroke;
     }
     
+    @Override
     public void realizeImage(PdfBoxImage img) {
         PDImageXObject xobject;
         try {
@@ -811,6 +791,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         img.setXObject(xobject);
     }
 
+    @Override
     public void drawImage(FSImage fsImage, int x, int y, boolean interpolate) {
         PdfBoxImage img = (PdfBoxImage) fsImage;
 
@@ -850,48 +831,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _cp.drawImage(xobject, (float) mx[4], (float) mx[5], (float) mx[0],
                 (float) mx[3]);
     }
-/*
-    private void drawPDFAsImage(PDFAsImage image, int x, int y) {
-        URI uri = image.getURI();
-        PdfReader reader = null;
 
-        try {
-            reader = getReader(uri);
-        } catch (IOException e) {
-            throw new XRRuntimeException("Could not load " + uri + ": " + e.getMessage(), e);
-        }
-
-        PdfImportedPage page = getWriter().getImportedPage(reader, 1);
-
-        AffineTransform at = AffineTransform.getTranslateInstance(x, y);
-        at.translate(0, image.getHeightAsFloat());
-        at.scale(image.getWidthAsFloat(), image.getHeightAsFloat());
-
-        AffineTransform inverse = normalizeMatrix(_transform);
-        AffineTransform flipper = AffineTransform.getScaleInstance(1, -1);
-        inverse.concatenate(at);
-        inverse.concatenate(flipper);
-
-        double[] mx = new double[6];
-        inverse.getMatrix(mx);
-
-        mx[0] = image.scaleWidth();
-        mx[3] = image.scaleHeight();
-
-        _currentPage.restoreState();
-        _currentPage.addTemplate(page, (float) mx[0], (float) mx[1], (float) mx[2], (float) mx[3], (float) mx[4], (float) mx[5]);
-        _currentPage.saveState();
-    }
-
-    public PdfReader getReader(URI uri) throws IOException {
-        PdfReader result = (PdfReader) _readerCache.get(uri);
-        if (result == null) {
-            result = new PdfReader(getSharedContext().getUserAgentCallback().getBinaryResource(uri.toString()));
-            _readerCache.put(uri, result);
-        }
-        return result;
-    }
-*/
     public float getDotsPerPoint() {
         return _dotsPerPoint;
     }
@@ -1022,7 +962,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     // Metadata methods
-
     // Methods to load and search a document's metadata
 
     /**
@@ -1333,73 +1272,36 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         return result;
     }
 
+    @Override
     public void setRenderingContext(RenderingContext result) {
         _renderingContext = result;
     }
 
+    @Override
     public void setBidiReorderer(BidiReorderer reorderer) {
         _reorderer = reorderer;
     }
     
     @Override
     public void popTransforms(List<AffineTransform> inverse) {
-        Collections.reverse(inverse);
-        for (AffineTransform transform : inverse) {
-            transformStack.pop();
-            _cp.applyPdfMatrix(transform);
-        }
+        throw new UnsupportedOperationException();
     }
     
     @Override
     public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
-		if (transforms.size() == 0)
-			return Collections.emptyList();
-        // We simply do a saveGraphics here, so we don't have to apply the inverse later to restore
-        List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
-        try {
-            for (AffineTransform transform : transforms) {
-                double[] mx = new double[6];
-                transform.getMatrix(mx);
-                mx[4] /= _dotsPerPoint;
-                mx[5] /= _dotsPerPoint;
-                mx[5] = -mx[5];
-               
-                AffineTransform normalized = new AffineTransform(mx);
-                inverse.add(normalized.createInverse());
-                transformStack.push(normalized);
-                _cp.applyPdfMatrix(normalized);
-            }
-        } catch (NoninvertibleTransformException e) {
-            XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
-        }
-        return inverse;
-    }
-    
-    // FIXME: Not sure if this is ever needed.
-    private void reapplyTransforms() {
-        int idx = 0;
-
-        for (Iterator<AffineTransform> iter = transformStack.descendingIterator(); iter.hasNext(); ) {
-            AffineTransform transform = iter.next();
-            if (idx >= clipTransformIndex) {
-                _cp.applyPdfMatrix(transform);
-            }
-            idx++;
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public float getAbsoluteTransformOriginX() {
-        return _absoluteTransformOriginX;
+        throw new UnsupportedOperationException();
     }
     
     @Override
     public float getAbsoluteTransformOriginY() {
-        return _absoluteTransformOriginY;
+        throw new UnsupportedOperationException();
     }
     
-
-
     @Override
     public void setPaint(Paint paint) {
         if (paint instanceof Color) {
@@ -1418,6 +1320,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     /**
      * Perform any internal cleanup needed
      */
+    @Override
     public void close() {
         if (_fontTextDrawer != null) {
             _fontTextDrawer.close();
@@ -1435,6 +1338,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     @Override
     public void pushTransformLayer(AffineTransform transform) {
         _cp.saveGraphics();
+        pushState(currentState().copy());
         AffineTransform normalized = normalizeTransform(transform);
         _cp.applyPdfMatrix(normalized);
     }
@@ -1442,17 +1346,16 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     @Override
     public void popTransformLayer() {
         _cp.restoreGraphics();
+        popState();
         clearPageState();
     }
     
     @Override
     public boolean isFastRenderer() {
-        return _renderingContext.isFastRenderer();
+        return true;
     }
     
     private void clearPageState() {
-        _fillColor = null;
-        _strokeColor = null;
         _oldStroke = null;
     }
 }
