@@ -291,10 +291,6 @@ public class BoxBuilder {
             stripAllWhitespace(children);
         }
 
-        if (children.size() == 0 && style.isAutoWidth() && ! alwaysCreate) {
-            return null;
-        }
-
         resolveChildTableContent(c, result, children, info, IdentValue.TABLE_CELL);
 
         return result;
