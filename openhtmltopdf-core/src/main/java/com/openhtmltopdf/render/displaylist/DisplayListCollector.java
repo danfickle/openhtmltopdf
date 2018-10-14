@@ -277,7 +277,7 @@ public class DisplayListCollector {
 	// we're about to draw and returns a map with the last cell in a given table
 	// we'll paint as a key and a sorted list of borders as values. These are
 	// then painted after we've drawn the background for this cell.
-	private Map<TableCellBox, List<CollapsedBorderSide>> collectCollapsedTableBorders(RenderingContext c,
+	public static Map<TableCellBox, List<CollapsedBorderSide>> collectCollapsedTableBorders(RenderingContext c,
 			List<TableCellBox> tcells) {
 		Map<TableBox, List<CollapsedBorderSide>> cellBordersByTable = new HashMap<TableBox, List<CollapsedBorderSide>>();
 		Map<TableBox, TableCellBox> triggerCellsByTable = new HashMap<TableBox, TableCellBox>();

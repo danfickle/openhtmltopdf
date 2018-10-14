@@ -44,6 +44,7 @@ import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.newtable.TableBox;
+import com.openhtmltopdf.render.simplepainter.SimplePainter;
 import com.openhtmltopdf.util.ThreadCtx;
 
 public class PageBox {
@@ -392,16 +393,23 @@ public class PageBox {
 
     private MarginAreaContainer currentMarginAreaContainer;
     public void paintMarginAreas(RenderingContext c, int additionalClearance, short mode) {
+        SimplePainter painter = c.getOutputDevice().isFastRenderer() ? new SimplePainter() : null;
+        
         for (int i = 0; i < MARGIN_AREA_DEFS.length; i++) {
             MarginAreaContainer container = _marginAreas[i];
+      
             if (container != null) {
                 currentMarginAreaContainer = container;
                 TableBox table = _marginAreas[i].getTable();
                 Point p = container.getArea().getPaintingPosition(
                         c, this, additionalClearance, mode);
-                
+
                 c.getOutputDevice().translate(p.x, p.y);
-                table.getLayer().paint(c);
+                if (c.getOutputDevice().isFastRenderer()) {
+                    painter.paintLayer(c, table.getLayer());
+                } else {
+                    table.getLayer().paint(c);
+                }
                 c.getOutputDevice().translate(-p.x, -p.y);
             }
         }

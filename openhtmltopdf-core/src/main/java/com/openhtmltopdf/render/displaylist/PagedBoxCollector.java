@@ -23,7 +23,6 @@ import com.openhtmltopdf.render.InlineLayoutBox;
 import com.openhtmltopdf.render.LineBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageFinder;
 import com.openhtmltopdf.render.OperatorSetClip;
 
 public class PagedBoxCollector {
