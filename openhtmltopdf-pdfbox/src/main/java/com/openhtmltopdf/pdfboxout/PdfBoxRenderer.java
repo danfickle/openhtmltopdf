@@ -35,7 +35,7 @@ import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.extend.FSDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
-import com.openhtmltopdf.pdfboxout.PdfBoxOutputDevice.Metadata;
+import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import com.openhtmltopdf.render.BlockBox;
@@ -144,7 +144,7 @@ public class PdfBoxRenderer implements Closeable {
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = state._testMode;
         _useFastMode = state._useFastRenderer;
-        _outputDevice = new PdfBoxOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
+        _outputDevice = state._useFastRenderer ? new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode) : new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
         _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
         
