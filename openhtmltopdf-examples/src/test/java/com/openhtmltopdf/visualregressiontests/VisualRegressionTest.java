@@ -443,8 +443,23 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("hidden-inside-transform"));
     }
     
+    /**
+     * Tests a simple color in each margin box cell on two pages.
+     */
+    @Test
+    public void testPageMarginsSimple() throws IOException {
+        assertTrue(vt.runTest("page-margins-simple"));
+    }
+    
     // TODO:
+    // + Inline layers.
+    // + Replaced elements.
+    // + Page border, background.
+    // + More page margins tests.
+    // + vertical page overflow, page-break-inside, etc.
+    // + Running elements.
     // + RTL overflow pages.
     // + transformed clip and shadow pages.
+    // + Text tests.
 
 }
