@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.openhtmltopdf.layout.CollapsedBorderSide;
+import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
@@ -18,6 +19,14 @@ import com.openhtmltopdf.render.displaylist.DisplayListCollector;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
 
 public class SimplePainter {
+    private final int xTranslate;
+    private final int yTranslate;
+    
+    public SimplePainter(int xtrans, int ytrans) {
+        this.xTranslate = xtrans;
+        this.yTranslate = ytrans;
+    }
+    
     private void debugOnly(String msg, Object arg) {
         //System.out.println(msg + " : " + arg);
     }
@@ -31,8 +40,7 @@ public class SimplePainter {
         }
         
         if (layer.hasLocalTransform()) {
-            // TODO: This is not correct for page margins!
-            AffineTransform transform = TransformCreator.createPageCoordinatesTranform(c, master, c.getPage());
+            AffineTransform transform = TransformCreator.createPageMarginCoordinatesTransform(c, master, c.getPage(), xTranslate, yTranslate);
             c.getOutputDevice().pushTransformLayer(transform);
         }
         
@@ -131,7 +139,22 @@ public class SimplePainter {
     }
 
     private void paintInlineContent(RenderingContext c, List<DisplayListItem> inlines) {
-        // TODO Auto-generated method stub
+        for (DisplayListItem dli : inlines) {
+            if (dli instanceof OperatorClip) {
+                OperatorClip clip = (OperatorClip) dli;
+                clip(c, clip);
+            } else if (dli instanceof OperatorSetClip) {
+                OperatorSetClip setClip = (OperatorSetClip) dli;
+                setClip(c, setClip);
+            } else if (dli instanceof BlockBox) {
+                // Inline blocks need to be painted as a layer.
+                BlockBox bb = (BlockBox) dli;
+                paintAsLayer(c, bb);
+            } else {
+                InlinePaintable paintable = (InlinePaintable) dli;
+                paintable.paintInline(c);
+            }
+        }
         
     }
 

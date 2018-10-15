@@ -40,6 +40,47 @@ public class TransformCreator {
 		return start;
 	}
 	
+	public static AffineTransform createPageMarginCoordinatesTransform(RenderingContext c, Box box, PageBox page, int xTranslate, int yTranslate) {
+        FSDerivedValue transforms = box.getStyle().valueByName(CSSName.TRANSFORM);
+
+        float relOriginX = box.getStyle().getFloatPropertyProportionalWidth(CSSName.FS_TRANSFORM_ORIGIN_X,
+                box.getWidth(), c);
+        float relOriginY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y,
+                box.getHeight(), c);
+
+        float flipFactor = c.getOutputDevice().isPDF() ? -1 : 1;
+
+        float absTranslateX = relOriginX + box.getAbsX();
+        float absTranslateY = relOriginY + box.getAbsY();
+
+        float pageTranslateX;
+        float pageTranslateY;
+
+        if (c.getOutputDevice().isPDF()) {
+            // The transform point is the lower left of the page (PDF coordinate system).
+            pageTranslateX = absTranslateX + xTranslate;
+            float topDownPageTranslateY = (absTranslateY + yTranslate);
+            pageTranslateY = (page.getHeight(c) - topDownPageTranslateY);
+        } else { // PAGE_TOP
+            // The transform point is the upper left of the page.
+            pageTranslateX = absTranslateX + xTranslate;
+            pageTranslateY = (absTranslateY) + yTranslate;
+        }
+
+        AffineTransform translateToOrigin = AffineTransform.getTranslateInstance(pageTranslateX, pageTranslateY);
+        AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-pageTranslateX,
+                -pageTranslateY);
+
+        List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
+
+        AffineTransform result = new AffineTransform();
+        result.concatenate(translateToOrigin);
+        applyTransformFunctions(flipFactor, transformList, result, box, c);
+        result.concatenate(translateBackFromOrigin);
+
+        return result;
+	}
+	
 	/**
 	 * Creates an absolute transform in document coordinates. This is typically used to figure out what pages the box will
 	 * fall on. The <code>_parentCtm</code> may be null in case the parent layer uses the identity tranform. If it is not null

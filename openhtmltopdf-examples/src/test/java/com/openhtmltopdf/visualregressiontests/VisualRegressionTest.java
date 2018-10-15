@@ -451,6 +451,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("page-margins-simple"));
     }
     
+    /**
+     * Tests a simple transform in top-center, bottom-center, left-middle, right-middle.
+     */
+    @Test
+    public void testPageMarginsSimpleTransform() throws IOException {
+        assertTrue(vt.runTest("page-margins-simple-transform"));
+    }
+    
+    
     // TODO:
     // + Inline layers.
     // + Replaced elements.

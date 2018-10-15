@@ -393,8 +393,6 @@ public class PageBox {
 
     private MarginAreaContainer currentMarginAreaContainer;
     public void paintMarginAreas(RenderingContext c, int additionalClearance, short mode) {
-        SimplePainter painter = c.getOutputDevice().isFastRenderer() ? new SimplePainter() : null;
-        
         for (int i = 0; i < MARGIN_AREA_DEFS.length; i++) {
             MarginAreaContainer container = _marginAreas[i];
       
@@ -406,6 +404,7 @@ public class PageBox {
 
                 c.getOutputDevice().translate(p.x, p.y);
                 if (c.getOutputDevice().isFastRenderer()) {
+                    SimplePainter painter = new SimplePainter(p.x, p.y);
                     painter.paintLayer(c, table.getLayer());
                 } else {
                     table.getLayer().paint(c);
