@@ -4,7 +4,7 @@ OPEN HTML TO PDF
 GETTING OPEN HTML TO PDF
 ========
 New releases of Open HTML to PDF will be distributed through Maven.  Search maven for [com.openhtmltopdf](http://mvnrepository.com/artifact/com.openhtmltopdf).
-Current maven release is ````0.0.1-RC16````. If you would like to be notified of new releases, please subscribe to the [Maven issue](https://github.com/danfickle/openhtmltopdf/issues/7).
+Current maven release is ````0.0.1-RC17````. If you would like to be notified of new releases, please subscribe to the [Maven issue](https://github.com/danfickle/openhtmltopdf/issues/7).
 [You can ask for a new release, if needed](https://github.com/danfickle/openhtmltopdf/issues/182).
 
 MAVEN ARTIFACTS
@@ -13,7 +13,7 @@ Add these to your maven dependencies section as needed:
 ````xml
   	<properties>
   		<!-- Define the version of OPEN HTML TO PDF in the properties section of your POM. -->  	       
-  		<openhtml.version>0.0.1-RC16</openhtml.version>
+  		<openhtml.version>0.0.1-RC17</openhtml.version>
   	</properties>
 
   	<dependency>
