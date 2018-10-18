@@ -3,7 +3,6 @@
 # OPEN HTML TO PDF
 
 ## CURRENTY SEEKING FEEDBACK
-+ [Thinking of moving to Java 8](https://github.com/danfickle/openhtmltopdf/issues/280)
 + [Roadmap for version 1](https://github.com/danfickle/openhtmltopdf/issues/170)
 
 ## OVERVIEW
@@ -21,7 +20,7 @@ to get good results. Avoid floats near page breaks and use table layouts.
 + [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
 + [Documentation wiki](https://github.com/danfickle/openhtmltopdf/wiki)
 + [Template Author Guide - PDF - DEPRECATED - Prefer wiki](https://openhtmltopdf.com/template-guide.pdf) - Moving info to wiki
-+ [RC11 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
++ [RC16 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
 + [Sample Project - Pretty Resume Generator](https://github.com/danfickle/pretty-resume)
 
 ## LICENSE
@@ -55,7 +54,10 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 ## CHANGELOG
 
 ### head - 0.0.1-RC17-SNAPSHOT
-
++ [#284](https://github.com/danfickle/openhtmltopdf/pull/284) [#288](https://github.com/danfickle/openhtmltopdf/issues/288) IMPORTANT: This release was brought forward due to a CVE in Apache Batik used by the optional SVG module.
+  While this project strongly advises not to use untrusted XML either in SVG or XHTML, you may be using Batik in another part of your project and therefore it is a good idea to update. Thanks a lot @ghenadiibatalski, @chubbard
++ [#286](https://github.com/danfickle/openhtmltopdf/issues/286) [#281](https://github.com/danfickle/openhtmltopdf/issues/281) Fix for text decorations/background incorrect coverage in justified text. Thanks @koritakoa, @allartammik
++ [#280](https://github.com/danfickle/openhtmltopdf/issues/280) This will be the last release compatible with Java 7, from now on Java 8 or above will be required. Thanks for everyone's thoughts on this.
 
 ### 0.0.1-RC16
 + [#279](https://github.com/danfickle/openhtmltopdf/pull/279) [#264](https://github.com/danfickle/openhtmltopdf/pull/264)
