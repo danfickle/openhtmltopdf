@@ -459,6 +459,23 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("page-margins-simple-transform"));
     }
     
+    /**
+     * Tests that default overflow visible works.
+     */
+    @Test
+    @Ignore // Margin boxes are currently expanding to fit their content so overflow is impossible to test reliably.
+    public void testPageMarginsOverflowVisible() throws IOException {
+        assertTrue(vt.runTest("page-margins-overflow-visible"));
+    }
+    
+    /**
+     * Tests a long text transform in left-middle. Issue no. 269.
+     * Common case of wanting a strip of vertical text in the left margin.
+     */
+    @Test
+    public void testPageMarginsLongTextTransform() throws IOException {
+        assertTrue(vt.runTest("page-margins-long-text-transform"));
+    }
     
     // TODO:
     // + Inline layers.
