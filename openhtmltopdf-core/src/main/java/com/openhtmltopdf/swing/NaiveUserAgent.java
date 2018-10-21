@@ -378,7 +378,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     @Override
     public ImageResource getImageResource(String uri) {
-    	System.out.println("Getting image: " + uri);
         ImageResource ir;
         
         if (ImageUtil.isEmbeddedBase64Image(uri)) {
