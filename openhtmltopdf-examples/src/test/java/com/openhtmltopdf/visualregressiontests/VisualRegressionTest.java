@@ -477,15 +477,59 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("page-margins-long-text-transform"));
     }
     
+    /**
+     * Tests a simple header and footer running blocks with background-color. 
+     */
+    @Test
+    public void testRunningSimple() throws IOException {
+        assertTrue(vt.runTest("running-simple"));
+    }
+    
+    /**
+     * Tests a simple rotate transform of the running elements themselves. 
+     */
+    @Test
+    public void testRunningTransform() throws IOException {
+        assertTrue(vt.runTest("running-transform"));
+    }
+    
+    /**
+     * Tests nested transforms inside running elements. 
+     */
+    @Test
+    public void testRunningNestedTransform() throws IOException {
+        assertTrue(vt.runTest("running-nested-transform"));
+    }
+    
+    /**
+     * Tests nested floats inside running elements. 
+     */
+    @Test
+    public void testRunningNestedFloat() throws IOException {
+        assertTrue(vt.runTest("running-nested-float"));
+    }
+
+    /**
+     * Tests nested list items inside running elements. 
+     */
+    @Test
+    public void testRunningNestedListItems() throws IOException {
+        assertTrue(vt.runTest("running-nested-list-items"));
+    }
+    
     // TODO:
     // + Inline layers.
     // + Replaced elements.
     // + Page border, background.
-    // + More page margins tests.
     // + vertical page overflow, page-break-inside, etc.
-    // + Running elements.
     // + RTL overflow pages.
     // + transformed clip and shadow pages.
     // + Text tests.
+    // + CSS columns.
+    // + Running:
+    //   - hidden overflow
+    //   - replaced
+    //   - nested replaced
+    //   - table header/footer
 
 }

@@ -1,0 +1,49 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 30px;
+  @top-center {
+    content: element(hdr);
+  }
+  @bottom-center {
+    content: element(ftr);
+  }
+}
+body {
+  width: 200px;
+  height: 200px;
+}
+.header {
+  height: 30px;
+  position: running(hdr);
+}
+.footer {
+  height: 30px;
+  position: running(ftr);
+}
+.header .inner {
+  float: right;
+}
+.footer .inner {
+  float: left;
+}
+.inner {
+  background-color: orange;
+  border: 2px solid black;
+  width: 30px;
+  height: 15px;
+}
+.float2 {
+  background-color: green;
+}
+</style>
+</head>
+<body>
+<div class="header" style="background-color: blue;"><div class="inner"></div><div class="inner float2"></div></div>
+<div class="footer" style="background-color: red;"><div class="inner"></div><div class="inner float2"></div></div>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

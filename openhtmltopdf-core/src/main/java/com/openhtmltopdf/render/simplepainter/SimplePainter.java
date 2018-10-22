@@ -134,8 +134,18 @@ public class SimplePainter {
     }
 
     private void paintListMarkers(RenderingContext c, List<DisplayListItem> listItems) {
-        // TODO Auto-generated method stub
-        
+        for (DisplayListItem dli : listItems) {
+            if (dli instanceof OperatorClip) {
+                OperatorClip clip = (OperatorClip) dli;
+                clip(c, clip);
+            } else if (dli instanceof OperatorSetClip) {
+                OperatorSetClip setClip = (OperatorSetClip) dli;
+                setClip(c, setClip);
+            } else {
+                debugOnly("Painting list item", dli);
+                ((BlockBox) dli).paintListMarker(c);
+            }
+        }
     }
 
     private void paintInlineContent(RenderingContext c, List<DisplayListItem> inlines) {
@@ -152,6 +162,7 @@ public class SimplePainter {
                 paintAsLayer(c, bb);
             } else {
                 InlinePaintable paintable = (InlinePaintable) dli;
+                debugOnly("Painting Inline", paintable);
                 paintable.paintInline(c);
             }
         }
@@ -164,7 +175,9 @@ public class SimplePainter {
     }
 
     private void paintFloats(RenderingContext c, List<BlockBox> floaters) {
-        
+        for (int i = floaters.size() - 1; i >= 0; i--) {
+            paintAsLayer(c, floaters.get(i));
+        }
     }
     
     private void paintLayers(RenderingContext c, List<Layer> layers) {

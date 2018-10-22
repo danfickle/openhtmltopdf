@@ -1,0 +1,40 @@
+<html>
+<head>
+<style>
+@font-face {
+  src: url(fonts/Karla-Bold.ttf);
+  font-family: 'TestFont';
+}
+@page {
+  size: 200px 200px;
+  margin: 30px;
+  @top-center {
+    content: element(hdr);
+  }
+  @bottom-center {
+    content: element(ftr);
+  }
+}
+.header {
+  font-family: 'TestFont';
+  height: 30px;
+  position: running(hdr);
+  transform: rotate(90deg);
+  transform-origin: left top;
+}
+.footer {
+  font-family: 'TestFont';
+  height: 30px;
+  position: running(ftr);
+  transform: rotate(-90deg);
+  transform-origin: left top;
+}
+</style>
+</head>
+<body>
+<div class="header" style="background-color: blue;">ABC</div>
+<div class="footer" style="background-color: red;">CBA</div>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

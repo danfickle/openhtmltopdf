@@ -1,0 +1,42 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 30px;
+  @top-center {
+    content: element(hdr);
+  }
+  @bottom-center {
+    content: element(ftr);
+  }
+}
+body {
+  width: 200px;
+  height: 200px;
+  font-size: 20px;
+}
+.header {
+  height: 30px;
+  position: running(hdr);
+}
+.footer {
+  height: 30px;
+  position: running(ftr);
+}
+ul {
+  margin: 0;
+  color: orange;
+}
+li {
+  height: 10px;
+}
+</style>
+</head>
+<body>
+<div class="header" style="background-color: blue;"><ul><li></li><li></li></ul></div>
+<div class="footer" style="background-color: red;"><ul><li></li><li></li></ul></div>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>
