@@ -1,0 +1,24 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 60px;
+  @top-center {
+    content: element(hdr);
+  }
+}
+.header {
+  transform: rotate(90deg);
+  transform-origin: 0 0;
+  width: 50px;
+  position: running(hdr);
+}
+</style>
+</head>
+<body>
+<img class="header" src="../../demos/images/flyingsaucer.png" alt="image"/>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

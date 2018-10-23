@@ -1,5 +1,6 @@
 package com.openhtmltopdf.render.simplepainter;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.util.List;
@@ -45,7 +46,8 @@ public class SimplePainter {
         }
         
         if (!layer.isInline() && ((BlockBox) master).isReplaced()) {
-            // TODO
+            paintLayerBackgroundAndBorder(c, master);
+            paintReplacedElement(c, (BlockBox) master);
         } else {
             SimpleBoxCollector boxCollector = new SimpleBoxCollector();
             boxCollector.collect(c, layer);
@@ -110,7 +112,6 @@ public class SimplePainter {
             } else {
                 BlockBox box = (BlockBox) dli;
                 
-                // TODO: updateTableHeaderFooterPosition(c, box);
                 debugOnly("painting bg", box);
                 box.paintBackground(c);
                 box.paintBorder(c);
@@ -168,10 +169,35 @@ public class SimplePainter {
         }
         
     }
+    
+    private void paintReplacedElement(RenderingContext c, BlockBox replaced) {
+        
+        Rectangle contentBounds = replaced.getContentAreaEdge(
+                replaced.getAbsX(), replaced.getAbsY(), c);
+        
+        // Minor hack:  It's inconvenient to adjust for margins, border, padding during
+        // layout so just do it here.
+        Point loc = replaced.getReplacedElement().getLocation();
+        if (contentBounds.x != loc.x || contentBounds.y != loc.y) {
+            replaced.getReplacedElement().setLocation(contentBounds.x, contentBounds.y);
+        }
+        
+        c.getOutputDevice().paintReplacedElement(c, replaced);
+    }
 
     private void paintReplacedElements(RenderingContext c, List<DisplayListItem> replaceds) {
-        // TODO Auto-generated method stub
-        
+        for (DisplayListItem dli : replaceds) {
+            if (dli instanceof OperatorClip) {
+                OperatorClip clip = (OperatorClip) dli;
+                clip(c, clip);
+            } else if (dli instanceof OperatorSetClip) {
+                OperatorSetClip setClip = (OperatorSetClip) dli;
+                setClip(c, setClip);
+            } else {
+                BlockBox box = (BlockBox) dli;
+                paintReplacedElement(c, box);
+            }
+        }
     }
 
     private void paintFloats(RenderingContext c, List<BlockBox> floaters) {

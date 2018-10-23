@@ -517,6 +517,38 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("running-nested-list-items"));
     }
     
+    /**
+     * Tests a simple replaced img as the running element. 
+     */
+    @Test
+    public void testRunningReplaced() throws IOException {
+        assertTrue(vt.runTest("running-replaced"));
+    }
+    
+    /**
+     * Tests a replaced img with a transform as the running element. 
+     */
+    @Test
+    public void testRunningReplacedTransform() throws IOException {
+        assertTrue(vt.runTest("running-replaced-transform"));
+    }
+    
+    /**
+     * Tests a running div with overflow hidden containing a larger replaced img. 
+     */
+    @Test
+    public void testRunningOverflowHidden() throws IOException {
+        assertTrue(vt.runTest("running-overflow-hidden"));
+    }
+    
+    /**
+     * Tests a running table including table header. 
+     */
+    @Test
+    public void testRunningTable() throws IOException {
+        assertTrue(vt.runTest("running-table"));
+    }
+    
     // TODO:
     // + Inline layers.
     // + Replaced elements.
@@ -526,10 +558,5 @@ public class VisualRegressionTest {
     // + transformed clip and shadow pages.
     // + Text tests.
     // + CSS columns.
-    // + Running:
-    //   - hidden overflow
-    //   - replaced
-    //   - nested replaced
-    //   - table header/footer
 
 }
