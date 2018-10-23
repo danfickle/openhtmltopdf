@@ -549,10 +549,18 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("running-table"));
     }
     
+    /**
+     * Tests that page border and background-color work.
+     */
+    @Test
+    @Ignore // Leaving a 2px white border around the background-color for some reason.
+    public void testPageBorderBackground() throws IOException {
+        assertTrue(vt.runTest("page-border-background"));
+    }
+    
     // TODO:
     // + Inline layers.
     // + Replaced elements.
-    // + Page border, background.
     // + vertical page overflow, page-break-inside, etc.
     // + RTL overflow pages.
     // + transformed clip and shadow pages.
