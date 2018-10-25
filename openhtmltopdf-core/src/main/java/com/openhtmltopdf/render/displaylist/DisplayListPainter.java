@@ -153,8 +153,8 @@ public class DisplayListPainter {
         c.getOutputDevice().paintReplacedElement(c, replaced);
     }
     
-    private void pushTransform(RenderingContext c, Box master) {
-    	AffineTransform transform = TransformCreator.createPageCoordinatesTranform(c, master, c.getPage());
+    private void pushTransform(RenderingContext c, Box master, int shadowPage) {
+    	AffineTransform transform = TransformCreator.createPageCoordinatesTranform(c, master, c.getPage(), shadowPage);
     	debugOnly("pushing transform", transform);
     	c.getOutputDevice().pushTransformLayer(transform);
     }
@@ -227,7 +227,7 @@ public class DisplayListPainter {
 			} else if (op instanceof PaintPushTransformLayer) {
 				
 				PaintPushTransformLayer dlo = (PaintPushTransformLayer) op;
-				pushTransform(c, dlo.getMaster());
+				pushTransform(c, dlo.getMaster(), dlo.getShadowPageNumber());
 				
 			} else if (op instanceof PaintPopTransformLayer) {
 				

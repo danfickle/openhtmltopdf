@@ -16,6 +16,7 @@ import com.openhtmltopdf.newtable.CollapsedBorderValue;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
@@ -61,6 +62,16 @@ public class DisplayListCollector {
 	        } else {
 	            dlPages.getPageInstructions(pg.pageNumber).getShadowPage(pg.shadowPageNumber).addOp(item);
 	        }
+	    }
+	}
+	
+	protected void addTransformItem(Box master, List<PageInfo> pages, DisplayListContainer dlPages) {
+	    for (PageInfo pg : pages) {
+	        if (pg.shadowPageNumber == PageInfo.BASE_PAGE) {
+                dlPages.getPageInstructions(pg.pageNumber).addOp(new PaintPushTransformLayer(master, -1));
+            } else {
+                dlPages.getPageInstructions(pg.pageNumber).getShadowPage(pg.shadowPageNumber).addOp(new PaintPushTransformLayer(master, pg.shadowPageNumber));
+            }
 	    }
 	}
 
@@ -114,8 +125,7 @@ public class DisplayListCollector {
 		}
 		
 		if (layer.hasLocalTransform()) {
-	        DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
-	        addItem(dlo, layerPages, dlPages);
+	        addTransformItem(layer.getMaster(), layerPages, dlPages);
 	    }
 		
 		if (layer.isRootLayer() && layer.getMaster().hasRootElementBackground(c)) {

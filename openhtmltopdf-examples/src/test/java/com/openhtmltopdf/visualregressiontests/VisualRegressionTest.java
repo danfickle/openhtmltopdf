@@ -188,7 +188,6 @@ public class VisualRegressionTest {
     /**
      * Tests that content transformed past page edge generates a shadow page.
      */
-    @Ignore // Tranforms not working on shadow pages.
     @Test
     public void testHorizPageOverflowTransform() throws IOException {
         assertTrue(vt.runTest("horiz-page-overflow-transform"));
