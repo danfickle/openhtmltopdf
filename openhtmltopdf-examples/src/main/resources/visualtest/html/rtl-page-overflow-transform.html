@@ -1,0 +1,26 @@
+ <html>
+<head>
+<style>
+@page {
+  size: 80px 200px;
+  margin: 10px;
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: rtl;
+}
+body {
+  margin: 0;
+  max-width: 60px;
+  max-height: 130px;
+}
+div {
+  box-sizing: border-box;
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div style="width: 100%; height: 90px; transform: translateX(10px) rotate(90deg); transform-origin: left top; background-color: blue;"></div> 
+<div style="width: 100%; height: 50px; transform: translateX(-50px);background-color: red;"></div>
+<div style="width: 100%; height: 10px; transform: translateX(-30px) rotate(-45deg);background-color: green;"></div>
+</body>
+</html>

@@ -304,10 +304,10 @@ public class PageBox {
         }
         
         if (dir == IdentValue.LTR) { 
-            return (x > 0 ? ((int) (fx / fw)) : 0);
+            return (int) (x > 0 ? (Math.ceil(fx / fw) - 1) : 0);
         }
         
-        return (x < 0 ? ((int) (Math.abs(fx) / fw)) : 0);
+        return (int) (x < 0 ? (Math.ceil(Math.abs(fx) / fw)) : 0);
     }
     
     /**

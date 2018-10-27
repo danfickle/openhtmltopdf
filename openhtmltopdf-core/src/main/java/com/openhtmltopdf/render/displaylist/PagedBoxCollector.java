@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.PaintingInfo;
@@ -613,9 +614,16 @@ public class PagedBoxCollector {
         
         AffineTransform ctm = container.getContainingLayer().getCurrentTransformMatrix();
         Rectangle bounds = container.getBorderBox(c);
-        // TODO: RTL overflow.
-        int maxX = (int) (ctm == null ? bounds.getMaxX() : getMaxXFromTransformedBox(bounds, ctm));
-        int maxShadowPages = basePageBox.getMaxShadowPagesForXPos(c, maxX);
+        FourPoint corners = ctm == null ? null : getCornersFromTransformedBounds(bounds, ctm);
+
+        int maxShadowPages;
+        if (basePageBox.getCutOffPageDirection() == IdentValue.LTR) { 
+            int maxX = (int) (ctm == null ? bounds.getMaxX() : getMaxX(corners));
+            maxShadowPages = Math.min(basePageBox.getMaxInsertedPages(), basePageBox.getMaxShadowPagesForXPos(c, maxX));
+        } else {
+            int minX = (int) (ctm == null ? bounds.getMinX() : getMinX(corners));
+            maxShadowPages = Math.min(basePageBox.getMaxInsertedPages(), basePageBox.getMaxShadowPagesForXPos(c, minX));
+        }
         
         for (int i = 0; i < maxShadowPages; i++) {
             Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(basePageBox, c, i);

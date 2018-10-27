@@ -103,11 +103,7 @@ public class TransformCreator {
 	    
 	    Rectangle shadow = page.getDocumentCoordinatesContentBoundsForInsertedPage(c, shadowPageNumber);
 	    
-	    if (page.getCutOffPageDirection() == IdentValue.LTR) { 
-	        return absTranslateX - (float) shadow.getMinX() + (page.getMarginBorderPadding(c, CalculatedStyle.LEFT) * (shadowPageNumber + 1));
-	    } else {
-	        return absTranslateX - (float) shadow.getMinX() + (page.getMarginBorderPadding(c, CalculatedStyle.RIGHT) * (shadowPageNumber + 1));
-	    }
+	    return absTranslateX - (float) shadow.getMinX() + (page.getMarginBorderPadding(c, CalculatedStyle.LEFT));
 	}
 	
 	/**

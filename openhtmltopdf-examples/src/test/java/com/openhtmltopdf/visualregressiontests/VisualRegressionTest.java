@@ -557,13 +557,37 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("page-border-background"));
     }
     
+    /**
+     * Tests that transforms to the left of the page margin generate an overflow page.
+     */
+    @Test
+    public void testRtlPageOverflowTransform() throws IOException {
+        assertTrue(vt.runTest("rtl-page-overflow-transform"));
+    }
+    
+    /**
+     * Tests that blocks with negative margin-left generate an overflow page.
+     */
+    @Test
+    public void testRtlPageOverflowStatic() throws IOException {
+        assertTrue(vt.runTest("rtl-page-overflow-static"));
+    }
+    
+    /**
+     * Tests that blocks with overflow hidden work correctly on overflow pages.
+     */
+    @Test
+    public void testRtlPageOverflowHiddenHidden() throws IOException {
+        assertTrue(vt.runTest("rtl-page-overflow-hidden-hidden"));
+    }
+    
     // TODO:
+    // + content property (page counters, etc)
     // + Inline layers.
     // + Replaced elements.
     // + vertical page overflow, page-break-inside, etc.
-    // + RTL overflow pages.
-    // + transformed clip and shadow pages.
     // + Text tests.
     // + CSS columns.
+    // + Links, form controls, meta information.
 
 }
