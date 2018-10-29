@@ -588,6 +588,4 @@ public class VisualRegressionTest {
     // + vertical page overflow, page-break-inside, etc.
     // + Text tests.
     // + CSS columns.
-    // + Links, form controls, meta information.
-
 }
