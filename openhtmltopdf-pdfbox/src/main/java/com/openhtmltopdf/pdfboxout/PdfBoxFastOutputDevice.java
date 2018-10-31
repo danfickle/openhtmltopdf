@@ -38,6 +38,7 @@ import com.openhtmltopdf.pdfboxout.PdfBoxPerDocumentFormState;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.FontRun;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
@@ -111,6 +112,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private static final AffineTransform IDENTITY = new AffineTransform();
     private static final BasicStroke STROKE_ONE = new BasicStroke(1);
     private static final boolean ROUND_RECT_DIMENSIONS_DOWN = false;
+    
+    private Document _xml;
 
     // The current PDF page.
     private PDPage _page;
@@ -837,12 +840,13 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     public void start(Document doc) {
+        _xml = doc;
         _linkManager = new PdfBoxLinkManager(_sharedContext, _dotsPerPoint, _root, this);
-        loadBookmarks(doc);
         loadMetadata(doc);
     }
 
     public void finish(RenderingContext c, Box root) {
+        loadBookmarks(_xml);
         processControls();
         _linkManager.processLinks();
         writeOutline(c, root);
@@ -883,13 +887,20 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         if (href.length() > 0 && href.charAt(0) == '#') {
             Box box = _sharedContext.getBoxById(href.substring(1));
             if (box != null) {
-                PageBox page = root.getLayer().getPage(c, getPageRefY(box));
-                int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
-                distanceFromTop += box.getAbsY() - page.getTop();
+                List<PageBox> pages = root.getLayer().getPages();
+                Rectangle bounds = PagedBoxCollector.findAdjustedBoundsForBorderBox(c, box, pages);
 
-                target = new PDPageXYZDestination();
-                target.setTop((int) normalizeY(distanceFromTop / _dotsPerPoint));
-                target.setPage(_writer.getPage(_startPageNo + page.getPageNo()));
+                if (!bounds.isEmpty()) {
+                    int pageBoxIndex = PagedBoxCollector.findPageForY(c, bounds.getMinY(), pages);
+                    PageBox page = pages.get(pageBoxIndex);
+                
+                    int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
+                    distanceFromTop += bounds.getMinY() - page.getTop();
+
+                    target = new PDPageXYZDestination();
+                    target.setTop((int) normalizeY(distanceFromTop / _dotsPerPoint));
+                    target.setPage(_writer.getPage(_startPageNo + page.getPageNo()));
+                }
             }
         }
 

@@ -840,6 +840,25 @@ public class PagedBoxCollector {
         return maxX;
     }
     
+    public static int findPageForY(CssContext c, double y, List<PageBox> pages) {
+        PageFinder finder = new PageFinder(pages);
+        return finder.findPageAdjusted(c, (int) y);
+    }
+    
+    /**
+     * Finds the document coordinates border box bounds of a box adjusted for transform and clipped according to overflow hidden.
+     */
+    public static Rectangle findAdjustedBoundsForBorderBox(CssContext c, Box container, List<PageBox> pages) {
+        Rectangle bounds = container.getBorderBox(c);
+        AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
+        Area overflowClip = container.getAbsoluteClipBox(c);
+        
+        transformBounds(bounds, transform);
+        bounds = applyOverflowClip(bounds, overflowClip);
+        
+        return bounds;
+    }
+    
     protected int findStartPage(CssContext c, Rectangle bounds, AffineTransform transform) {
         double minY = transform == null ? bounds.getMinY() : getMinYFromTransformedBox(bounds, transform);
         return this.finder.findPageAdjusted(c, (int) minY);
@@ -940,8 +959,8 @@ public class PagedBoxCollector {
     
     private static double getMaxY(FourPoint corners) {
         double maxY = Math.max(corners.ul.getY(), corners.ur.getY());
-        maxY = Math.max(corners.ll.getX(), maxY);
-        maxY = Math.max(corners.lr.getX(), maxY);
+        maxY = Math.max(corners.ll.getY(), maxY);
+        maxY = Math.max(corners.lr.getY(), maxY);
         return maxY;
     }
     
@@ -962,6 +981,28 @@ public class PagedBoxCollector {
         public final int pageNumber;
         public final int shadowPageNumber;
     }
+    
+    private static void transformBounds(Rectangle bounds, AffineTransform transform) {
+        if (transform != null) {
+            FourPoint corners = getCornersFromTransformedBounds(bounds, transform);
+
+            double minX = getMinX(corners);
+            double minY = getMinY(corners);
+            double maxX = getMaxX(corners);
+            double maxY = getMaxY(corners);
+            
+            bounds.setBounds((int) minX, (int) minY, (int) (maxX - minX), (int) (maxY - minY));
+        }
+    }
+    
+    private static Rectangle applyOverflowClip(Rectangle bounds, Area overflowClip) {
+        if (overflowClip != null) {
+            Area boxArea = new Area(bounds);
+            boxArea.intersect(overflowClip);
+            return boxArea.getBounds();
+        }
+        return bounds;
+    }
 
     /**
      * Returns the pages a layer appears on including inserted overflow pages.
@@ -973,23 +1014,9 @@ public class PagedBoxCollector {
         Box container = layer.getMaster();
         AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
         Area overflowClip = container.getAbsoluteClipBox(c);
-        
-        if (transform != null) {
-            FourPoint corners = getCornersFromTransformedBounds(bounds, transform);
 
-            double minX = getMinX(corners);
-            double minY = getMinY(corners);
-            double maxX = getMaxX(corners);
-            double maxY = getMaxY(corners);
-            
-            bounds.setBounds((int) minX, (int) minY, (int) (maxX - minX), (int) (maxY - minY));
-        }
-        
-        if (overflowClip != null) {
-            Area boxArea = new Area(bounds);
-            boxArea.intersect(overflowClip);
-            bounds = boxArea.getBounds();
-        }
+        transformBounds(bounds, transform);
+        bounds = applyOverflowClip(bounds, overflowClip);
         
         int firstPage = finder.findPageAdjusted(c, (int) bounds.getMinY());
         int lastPage = finder.findPageAdjusted(c, (int) bounds.getMaxY());
