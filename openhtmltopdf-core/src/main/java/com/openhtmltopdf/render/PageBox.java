@@ -83,6 +83,25 @@ public class PageBox {
     
     private Element _metadata;
     
+    private int _basePagePdfPageIndex;
+    private int _shadowPageCount;
+    
+    public void setBasePagePdfPageIndex(int idx) {
+        this._basePagePdfPageIndex = idx;
+    }
+    
+    public void setShadowPageCount(int cnt) {
+        this._shadowPageCount = cnt;
+    }
+    
+    public int getBasePagePdfPageIndex() {
+        return _basePagePdfPageIndex;
+    }
+    
+    public int getShadowPageCount() {
+        return _shadowPageCount;
+    }
+    
     public int getWidth(CssContext cssCtx) {
         resolvePageDimensions(cssCtx);
         

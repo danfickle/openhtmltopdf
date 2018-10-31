@@ -896,10 +896,14 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
                 
                     int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
                     distanceFromTop += bounds.getMinY() - page.getTop();
+                    
+                    int shadowPage = PagedBoxCollector.getShadowPageForBounds(c, bounds, page);
+                    
+                    int pdfPageIndex = shadowPage == -1 ? page.getBasePagePdfPageIndex() : shadowPage + 1 + page.getBasePagePdfPageIndex();
 
                     target = new PDPageXYZDestination();
                     target.setTop((int) normalizeY(distanceFromTop / _dotsPerPoint));
-                    target.setPage(_writer.getPage(_startPageNo + page.getPageNo()));
+                    target.setPage(_writer.getPage(pdfPageIndex));
                 }
             }
         }

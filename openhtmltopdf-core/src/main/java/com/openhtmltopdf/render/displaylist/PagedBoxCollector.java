@@ -845,6 +845,20 @@ public class PagedBoxCollector {
         return finder.findPageAdjusted(c, (int) y);
     }
     
+    public static int getShadowPageForBounds(CssContext c, Rectangle bounds, PageBox page) {
+        if (!page.shouldInsertPages()) {
+            return -1;
+        }
+        
+        if (page.getCutOffPageDirection() == IdentValue.LTR) {
+            int minXShadowPage = page.getMaxShadowPagesForXPos(c, (int) bounds.getMinX());
+            return Math.min(minXShadowPage - 1, page.getMaxInsertedPages());
+        } else {
+            int maxXShadowPage = page.getMaxShadowPagesForXPos(c, (int) bounds.getMaxX());
+            return Math.min(maxXShadowPage, page.getMaxInsertedPages());
+        }
+    }
+    
     /**
      * Finds the document coordinates border box bounds of a box adjusted for transform and clipped according to overflow hidden.
      */
@@ -1003,6 +1017,7 @@ public class PagedBoxCollector {
         }
         return bounds;
     }
+    
 
     /**
      * Returns the pages a layer appears on including inserted overflow pages.

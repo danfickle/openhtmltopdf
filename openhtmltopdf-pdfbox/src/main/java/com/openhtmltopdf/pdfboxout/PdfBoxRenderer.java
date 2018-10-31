@@ -601,16 +601,21 @@ public class PdfBoxRenderer implements Closeable {
         
         DisplayListCollector dlCollector = new DisplayListCollector(_root.getLayer().getPages());
         DisplayListContainer dlPages = dlCollector.collectRoot(c, _root.getLayer()); 
+
+        int pdfPageIndex = 0;
         
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
+            currentPage.setBasePagePdfPageIndex(pdfPageIndex);
             DisplayListPageContainer pageOperations = dlPages.getPageInstructions(i);
             c.setPage(i, currentPage);
-            System.out.println("NEW PAGE");
             paintPageFast(c, currentPage, pageOperations, 0);
             _outputDevice.finishPage();
+            pdfPageIndex++;
             
             if (!pageOperations.shadowPages().isEmpty()) {
+                currentPage.setShadowPageCount(pageOperations.shadowPages().size());
+                
                 int pageContentWidth = currentPage.getContentWidth(c);
                 int translateX = pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1);
 
@@ -620,14 +625,12 @@ public class PdfBoxRenderer implements Closeable {
                     doc.addPage(shadowPdPage);
 
                     _outputDevice.initializePage(shadowCs, shadowPdPage, (float) firstPageSize.getHeight());
-                    System.out.println("shadow now!!!");
-                    System.out.println("!!!!!!!!" + translateX + "#" + firstPageSize.getWidth());
                     paintPageFast(c, currentPage, shadowPage, -translateX);
                     _outputDevice.finishPage();
                     translateX += (pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1));
+                    pdfPageIndex++;
                 }
             }
-            
             
             if (i != pageCount - 1) {
                 PageBox nextPage = pages.get(i + 1);

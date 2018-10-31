@@ -77,6 +77,14 @@ public class NonVisualRegressionTest {
         new File(OUT_PATH, fileName + ".pdf").delete();
     }
     
+    private static double cssPixelsToPdfPoints(double cssPixels) {
+        return cssPixels * 72d / 96d;
+    }
+    
+    private static double cssPixelYToPdfPoints(double cssPixelsY, double cssPixelsPageHeight) {
+        return cssPixelsToPdfPoints(cssPixelsPageHeight - cssPixelsY);
+    }
+    
     /**
      * Tests meta info: title, author, subject, keywords.
      */
@@ -131,6 +139,26 @@ public class NonVisualRegressionTest {
         assertEquals(doc.getPage(2).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
         
         remove("bookmark-head-transform");
+    }
+    
+    /**
+     * Tests that a head bookmark linking to element (on overflow page). 
+     */
+    @Test
+    public void testBookmarkHeadOnOverflowPage() throws IOException {
+        PDDocument doc = run("bookmark-head-on-overflow-page");
+        PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+        
+        PDOutlineItem bm = outline.getFirstChild();
+        assertThat(bm.getTitle(), equalTo("Test bookmark"));
+        assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
+        PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
+        
+        assertEquals(dest.getPage(), doc.getPage(2));
+        // Should be 11px down (10px margin, 1px outer border).
+        assertEquals(cssPixelYToPdfPoints(11, 50), dest.getTop(), 1.0d);
+        
+        remove("bookmark-head-on-overflow-page");
     }
     
     /**

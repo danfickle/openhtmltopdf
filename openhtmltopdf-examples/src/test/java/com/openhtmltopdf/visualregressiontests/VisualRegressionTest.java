@@ -582,6 +582,7 @@ public class VisualRegressionTest {
     }
     
     // TODO:
+    // + Elements that appear just on generated overflow pages. Especially inline-block.
     // + content property (page counters, etc)
     // + Inline layers.
     // + Replaced elements.
