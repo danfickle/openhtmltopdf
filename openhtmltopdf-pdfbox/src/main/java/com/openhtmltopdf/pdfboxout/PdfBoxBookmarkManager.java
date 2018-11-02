@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
@@ -21,6 +22,7 @@ import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
+import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxBookmarkManager {
     private final List<Bookmark> _bookmarks = new ArrayList<Bookmark>();
@@ -88,6 +90,10 @@ public class PdfBoxBookmarkManager {
                 target.setTop((int) (_od.normalizeY(distanceFromTop, page.getHeight(c)) / _dotsPerPoint));
                 target.setPage(_writer.getPage(pdfPageIndex));
             }
+        }
+        
+        if (target == null) {
+            XRLog.general(Level.WARNING, "Could not find valid target for bookmark. Bookmark href = " + href);
         }
 
         PDOutlineItem outline = new PDOutlineItem();
