@@ -38,7 +38,6 @@ import com.openhtmltopdf.pdfboxout.PdfBoxPerDocumentFormState;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.FontRun;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.render.*;
-import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
@@ -53,12 +52,6 @@ import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitHeightDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import javax.imageio.ImageIO;
@@ -112,8 +105,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private static final AffineTransform IDENTITY = new AffineTransform();
     private static final BasicStroke STROKE_ONE = new BasicStroke(1);
     private static final boolean ROUND_RECT_DIMENSIONS_DOWN = false;
-    
-    private Document _xml;
 
     // The current PDF page.
     private PDPage _page;
@@ -165,10 +156,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     // The PDF document. Note: We are not responsible for closing it.
     private PDDocument _writer;
-
-    // The default destination for the current page.
-    // This is used to create bookmarks without a valid destination.
-    private PDDestination _defaultDestination;
 
     // Manages bookmarks for the current document.
     private PdfBoxBookmarkManager _bmManager;
@@ -618,7 +605,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     /**
      * Converts a top down unit to a bottom up PDF unit for the current page.
      */
-    public float normalizeY(float y) {
+    private float normalizeY(float y) {
         return _pageHeight - y;
     }
     

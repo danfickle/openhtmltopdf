@@ -85,7 +85,7 @@ public class PdfBoxBookmarkManager {
                 int pdfPageIndex = shadowPage == -1 ? page.getBasePagePdfPageIndex() : shadowPage + 1 + page.getBasePagePdfPageIndex();
 
                 target = new PDPageXYZDestination();
-                target.setTop((int) _od.normalizeY(distanceFromTop / _dotsPerPoint));
+                target.setTop((int) (_od.normalizeY(distanceFromTop, page.getHeight(c)) / _dotsPerPoint));
                 target.setPage(_writer.getPage(pdfPageIndex));
             }
         }
