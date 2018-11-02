@@ -890,21 +890,19 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
                 List<PageBox> pages = root.getLayer().getPages();
                 Rectangle bounds = PagedBoxCollector.findAdjustedBoundsForBorderBox(c, box, pages);
 
-                if (!bounds.isEmpty()) {
-                    int pageBoxIndex = PagedBoxCollector.findPageForY(c, bounds.getMinY(), pages);
-                    PageBox page = pages.get(pageBoxIndex);
+                int pageBoxIndex = PagedBoxCollector.findPageForY(c, bounds.getMinY(), pages);
+                PageBox page = pages.get(pageBoxIndex);
                 
-                    int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
-                    distanceFromTop += bounds.getMinY() - page.getTop();
+                int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
+                distanceFromTop += bounds.getMinY() - page.getTop();
                     
-                    int shadowPage = PagedBoxCollector.getShadowPageForBounds(c, bounds, page);
+                int shadowPage = PagedBoxCollector.getShadowPageForBounds(c, bounds, page);
                     
-                    int pdfPageIndex = shadowPage == -1 ? page.getBasePagePdfPageIndex() : shadowPage + 1 + page.getBasePagePdfPageIndex();
+                int pdfPageIndex = shadowPage == -1 ? page.getBasePagePdfPageIndex() : shadowPage + 1 + page.getBasePagePdfPageIndex();
 
-                    target = new PDPageXYZDestination();
-                    target.setTop((int) normalizeY(distanceFromTop / _dotsPerPoint));
-                    target.setPage(_writer.getPage(pdfPageIndex));
-                }
+                target = new PDPageXYZDestination();
+                target.setTop((int) normalizeY(distanceFromTop / _dotsPerPoint));
+                target.setPage(_writer.getPage(pdfPageIndex));
             }
         }
 
