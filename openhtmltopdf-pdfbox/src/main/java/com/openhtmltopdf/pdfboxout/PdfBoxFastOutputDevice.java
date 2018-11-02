@@ -170,8 +170,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     // This is used to create bookmarks without a valid destination.
     private PDDestination _defaultDestination;
 
-    // Contains a list of bookmarks for the document.
-    private final List<Bookmark> _bookmarks = new ArrayList<Bookmark>();
+    // Manages bookmarks for the current document.
+    private PdfBoxBookmarkManager _bmManager;
 
     // Contains a list of metadata items for the document.
     private final List<Metadata> _metadata = new ArrayList<Metadata>();
@@ -244,12 +244,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _oldStroke = _stroke;
 
         setStrokeDiff(_stroke, null);
-
-        if (_defaultDestination == null) {
-            // Create a default destination to the top of the first page.
-            PDPageFitHeightDestination dest = new PDPageFitHeightDestination();
-            dest.setPage(page);
-        }
     }
     
     private PageState currentState() {
@@ -624,7 +618,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     /**
      * Converts a top down unit to a bottom up PDF unit for the current page.
      */
-    private float normalizeY(float y) {
+    public float normalizeY(float y) {
         return _pageHeight - y;
     }
     
@@ -840,137 +834,25 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     public void start(Document doc) {
-        _xml = doc;
+        _bmManager = new PdfBoxBookmarkManager(doc, _writer, _sharedContext, _dotsPerPoint, this);
         _linkManager = new PdfBoxLinkManager(_sharedContext, _dotsPerPoint, _root, this);
         loadMetadata(doc);
     }
 
     public void finish(RenderingContext c, Box root) {
-        loadBookmarks(_xml);
+        _bmManager.loadBookmarks();
+        _bmManager.writeOutline(c, root);
         processControls();
         _linkManager.processLinks();
-        writeOutline(c, root);
     }
-
-    private void writeOutline(RenderingContext c, Box root) {
-        if (_bookmarks.size() > 0) {
-            // TODO: .setViewerPreferences(PdfWriter.PageModeUseOutlines);
     
-            PDDocumentOutline outline = _writer.getDocumentCatalog().getDocumentOutline();
-			if (outline == null) {
-                outline = new PDDocumentOutline();
-                _writer.getDocumentCatalog().setDocumentOutline(outline);
-            }
-            
-            writeBookmarks(c, root, outline, _bookmarks);
-        }
-    }
-
-    private void writeBookmarks(RenderingContext c, Box root, PDOutlineNode parent, List<Bookmark> bookmarks) {
-        for (Bookmark bookmark : bookmarks) {
-            writeBookmark(c, root, parent, bookmark);
-        }
-    }
-
+    @Override
     public int getPageRefY(Box box) {
         if (box instanceof InlineLayoutBox) {
             InlineLayoutBox iB = (InlineLayoutBox) box;
             return iB.getAbsY() + iB.getBaseline();
         } else {
             return box.getAbsY();
-        }
-    }
-
-    private void writeBookmark(RenderingContext c, Box root, PDOutlineNode parent, Bookmark bookmark) {
-        String href = bookmark.getHRef();
-        PDPageXYZDestination target = null;
-        if (href.length() > 0 && href.charAt(0) == '#') {
-            Box box = _sharedContext.getBoxById(href.substring(1));
-            if (box != null) {
-                List<PageBox> pages = root.getLayer().getPages();
-                Rectangle bounds = PagedBoxCollector.findAdjustedBoundsForBorderBox(c, box, pages);
-
-                int pageBoxIndex = PagedBoxCollector.findPageForY(c, bounds.getMinY(), pages);
-                PageBox page = pages.get(pageBoxIndex);
-                
-                int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
-                distanceFromTop += bounds.getMinY() - page.getTop();
-                    
-                int shadowPage = PagedBoxCollector.getShadowPageForBounds(c, bounds, page);
-                    
-                int pdfPageIndex = shadowPage == -1 ? page.getBasePagePdfPageIndex() : shadowPage + 1 + page.getBasePagePdfPageIndex();
-
-                target = new PDPageXYZDestination();
-                target.setTop((int) normalizeY(distanceFromTop / _dotsPerPoint));
-                target.setPage(_writer.getPage(pdfPageIndex));
-            }
-        }
-
-        PDOutlineItem outline = new PDOutlineItem();
-        outline.setDestination(target == null ? _defaultDestination : target);
-        outline.setTitle(bookmark.getName());
-        parent.addLast(outline);
-        writeBookmarks(c, root, outline, bookmark.getChildren());
-    }
-
-    private void loadBookmarks(Document doc) {
-        Element head = DOMUtil.getChild(doc.getDocumentElement(), "head");
-        if (head != null) {
-            Element bookmarks = DOMUtil.getChild(head, "bookmarks");
-            if (bookmarks != null) {
-                List<Element> l = DOMUtil.getChildren(bookmarks, "bookmark");
-                if (l != null) {
-                    for (Element e : l) {
-                        loadBookmark(null, e);
-                    }
-                }
-            }
-        }
-    }
-
-    private void loadBookmark(Bookmark parent, Element bookmark) {
-        Bookmark us = new Bookmark(bookmark.getAttribute("name"), bookmark.getAttribute("href"));
-        if (parent == null) {
-            _bookmarks.add(us);
-        } else {
-            parent.addChild(us);
-        }
-        List<Element> l = DOMUtil.getChildren(bookmark, "bookmark");
-        if (l != null) {
-            for (Element e : l) {
-                loadBookmark(us, e);
-            }
-        }
-    }
-
-    private static class Bookmark {
-        private final String _name;
-        private final String _HRef;
-
-        private List<Bookmark> _children;
-
-        public Bookmark(String name, String href) {
-            _name = name;
-            _HRef = href;
-        }
-
-        public String getHRef() {
-            return _HRef;
-        }
-
-        public String getName() {
-            return _name;
-        }
-
-        public void addChild(Bookmark child) {
-            if (_children == null) {
-                _children = new ArrayList<Bookmark>();
-            }
-            _children.add(child);
-        }
-
-        public List<Bookmark> getChildren() {
-            return _children == null ? Collections.<Bookmark>emptyList() : _children;
         }
     }
 
