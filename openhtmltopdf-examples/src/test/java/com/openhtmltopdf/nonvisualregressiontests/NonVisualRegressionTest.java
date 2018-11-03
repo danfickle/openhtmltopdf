@@ -13,11 +13,15 @@ import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.util.Charsets;
+import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Test;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -83,6 +87,36 @@ public class NonVisualRegressionTest {
     
     private static double cssPixelYToPdfPoints(double cssPixelsY, double cssPixelsPageHeight) {
         return cssPixelsToPdfPoints(cssPixelsPageHeight - cssPixelsY);
+    }
+
+    private static class RectangleCompare extends CustomTypeSafeMatcher<PDRectangle> {
+        private final PDRectangle expec;
+        private final double pageHeight;
+        
+        private RectangleCompare(PDRectangle expected, double pageHeight) {
+            super("Compare Rectangles");
+            this.expec = expected;
+            this.pageHeight = pageHeight;
+        }
+        
+        @Override
+        protected boolean matchesSafely(PDRectangle item) {
+            assertEquals(cssPixelsToPdfPoints(this.expec.getLowerLeftX()), item.getLowerLeftX(), 1.0d);
+            assertEquals(cssPixelsToPdfPoints(this.expec.getUpperRightX()), item.getUpperRightX(), 1.0d);
+            
+            // Note: We swap the Ys here because PDFBOX returns a rect in bottom up units while expected is in topdown units.
+            assertEquals(cssPixelYToPdfPoints(this.expec.getUpperRightY(), pageHeight), item.getLowerLeftY(), 1.0d);
+            assertEquals(cssPixelYToPdfPoints(this.expec.getLowerLeftY(), pageHeight), item.getUpperRightY(), 1.0d);
+            
+            return true;
+        }
+    }
+
+    /**
+     * Expected rect is in top down CSS pixel units. Actual rect is in bottom up PDF points.
+     */
+    private CustomTypeSafeMatcher<PDRectangle> rectEquals(PDRectangle expected, double pageHeight) {
+        return new RectangleCompare(expected, pageHeight);
     }
     
     /**
@@ -209,11 +243,38 @@ public class NonVisualRegressionTest {
         
         remove("bookmark-head-nested");
     }
+    
+    /**
+     * Tests that a simple block link successfully links to a simple block target on second page. 
+     */
+    @Test
+    public void testLinkSimpleBlock() throws IOException {
+        PDDocument doc = run("link-simple-block");
+        assertEquals(1, doc.getPage(0).getAnnotations().size());
+        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+        
+        // LINK: Top of first page, 100px by 10px.
+        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+        assertThat(link.getRectangle(), rectEquals(new PDRectangle(0f, 0f, 100f, 10f), 200d));
+        
+        assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
+        PDActionGoTo action = (PDActionGoTo) link.getAction();
+        
+        assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
+        PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
+        
+        // TARGET: Top of second page.
+        assertEquals(doc.getPage(1), dest.getPage());
+        assertEquals(cssPixelYToPdfPoints(0, 200), dest.getTop(), 1.0d);
+        
+        remove("link-simple-block");
+    }
 
 
     // TODO:
-    // + Bookmark target on/after overflow page.
-    // + Link simple
+    // + Link to external URL
+    // + Link over multiple lines (ie. not simple box).
+    // + Link simple inline
     // + Link with target after generated overflow pages.
     // + Link with target on generated overflow page.
     // + Link with active area on generated overflow page.
