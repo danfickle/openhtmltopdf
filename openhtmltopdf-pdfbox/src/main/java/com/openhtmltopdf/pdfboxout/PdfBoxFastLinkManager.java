@@ -9,6 +9,8 @@ import com.openhtmltopdf.pdfboxout.quads.Triangle;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.util.XRLog;
+
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
@@ -27,6 +29,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 public class PdfBoxFastLinkManager {
 
@@ -217,6 +220,8 @@ public class PdfBoxFastLinkManager {
 					return;
 
 				addLinkToPage(page, annot);
+			} else {
+			    XRLog.general(Level.WARNING, "Could not find valid target for link. Link href = " + uri);
 			}
 		} else if (uri.contains("://")) {
 			PDActionURI uriAct = new PDActionURI();
