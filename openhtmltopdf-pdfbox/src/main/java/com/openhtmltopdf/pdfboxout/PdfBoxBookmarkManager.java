@@ -73,22 +73,7 @@ public class PdfBoxBookmarkManager {
             Box box = _sharedContext.getBoxById(href.substring(1));
 
             if (box != null) {
-                List<PageBox> pages = root.getLayer().getPages();
-                Rectangle bounds = PagedBoxCollector.findAdjustedBoundsForBorderBox(c, box, pages);
-
-                int pageBoxIndex = PagedBoxCollector.findPageForY(c, bounds.getMinY(), pages);
-                PageBox page = pages.get(pageBoxIndex);
-
-                int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
-                distanceFromTop += bounds.getMinY() - page.getTop();
-
-                int shadowPage = PagedBoxCollector.getShadowPageForBounds(c, bounds, page);
-
-                int pdfPageIndex = shadowPage == -1 ? page.getBasePagePdfPageIndex() : shadowPage + 1 + page.getBasePagePdfPageIndex();
-
-                target = new PDPageXYZDestination();
-                target.setTop((int) (_od.normalizeY(distanceFromTop, page.getHeight(c)) / _dotsPerPoint));
-                target.setPage(_writer.getPage(pdfPageIndex));
+                target = createBoxDestination(c, _writer, _od, _dotsPerPoint, root, box);
             }
         }
         
@@ -101,6 +86,33 @@ public class PdfBoxBookmarkManager {
         outline.setTitle(bookmark.getName());
         parent.addLast(outline);
         writeBookmarks(c, root, outline, bookmark.getChildren());
+    }
+
+    /**
+     * Creates a <code>PDPageXYZDestination</code> with the Y set to the min Y of the border box and 
+     * the X and Z set to null. Takes into account any transforms set for the box as well as inserted overflow pages.
+     */
+    public static PDPageXYZDestination createBoxDestination(
+            RenderingContext c, PDDocument writer, PdfBoxFastOutputDevice od, float dotsPerPoint, Box root, Box box) {
+        
+        List<PageBox> pages = root.getLayer().getPages();
+        Rectangle bounds = PagedBoxCollector.findAdjustedBoundsForBorderBox(c, box, pages);
+
+        int pageBoxIndex = PagedBoxCollector.findPageForY(c, bounds.getMinY(), pages);
+        PageBox page = pages.get(pageBoxIndex);
+
+        int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
+        distanceFromTop += bounds.getMinY() - page.getTop();
+
+        int shadowPage = PagedBoxCollector.getShadowPageForBounds(c, bounds, page);
+
+        int pdfPageIndex = shadowPage == -1 ? page.getBasePagePdfPageIndex() : shadowPage + 1 + page.getBasePagePdfPageIndex();
+
+        PDPageXYZDestination target = new PDPageXYZDestination();
+        target.setTop((int) (od.normalizeY(distanceFromTop, page.getHeight(c)) / dotsPerPoint));
+        target.setPage(writer.getPage(pdfPageIndex));
+        
+        return target;
     }
 
     public void loadBookmarks() {

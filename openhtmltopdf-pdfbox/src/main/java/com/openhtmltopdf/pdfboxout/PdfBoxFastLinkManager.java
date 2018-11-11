@@ -1,6 +1,5 @@
 package com.openhtmltopdf.pdfboxout;
 
-import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.SharedContext;
@@ -9,7 +8,6 @@ import com.openhtmltopdf.pdfboxout.quads.KongAlgo;
 import com.openhtmltopdf.pdfboxout.quads.Triangle;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -36,10 +34,10 @@ public class PdfBoxFastLinkManager {
 	private final SharedContext _sharedContext;
 	private final float _dotsPerPoint;
 	private final Box _root;
-	private final PdfBoxOutputDevice _od;
+	private final PdfBoxFastOutputDevice _od;
 	private final List<LinkDetails> _links;
 
-	public PdfBoxFastLinkManager(SharedContext ctx, float dotsPerPoint, Box root, PdfBoxOutputDevice od) {
+	public PdfBoxFastLinkManager(SharedContext ctx, float dotsPerPoint, Box root, PdfBoxFastOutputDevice od) {
 		this._sharedContext = ctx;
 		this._dotsPerPoint = dotsPerPoint;
 		this._root = root;
@@ -340,16 +338,7 @@ public class PdfBoxFastLinkManager {
 	}
 
 	private PDPageXYZDestination createDestination(RenderingContext c, Box box) {
-		PDPageXYZDestination result = new PDPageXYZDestination();
-
-		PageBox page = _root.getLayer().getPage(c, _od.getPageRefY(box));
-		int distanceFromTop = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
-		distanceFromTop += box.getAbsY() + box.getMargin(c).top() - page.getTop();
-
-		result.setTop((int) (page.getHeight(c) / _dotsPerPoint - distanceFromTop / _dotsPerPoint));
-		result.setPage(_od.getWriter().getPage(_od.getStartPageNo() + page.getPageNo()));
-
-		return result;
+	    return PdfBoxBookmarkManager.createBoxDestination(c, _od.getWriter(), _od, _dotsPerPoint, _root, box);
 	}
 
 	public static Rectangle2D createTargetArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform,
