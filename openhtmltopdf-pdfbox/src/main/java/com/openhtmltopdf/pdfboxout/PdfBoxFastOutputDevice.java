@@ -180,7 +180,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private final boolean _testMode;
     
     // Link manage handles a links. We add the link in paintBackground and then output links when the document is finished.
-    private PdfBoxLinkManager _linkManager;
+    private PdfBoxFastLinkManager _linkManager;
     
     // Not used currently.
     @SuppressWarnings("unused")
@@ -822,7 +822,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     public void start(Document doc) {
         _bmManager = new PdfBoxBookmarkManager(doc, _writer, _sharedContext, _dotsPerPoint, this);
-        _linkManager = new PdfBoxLinkManager(_sharedContext, _dotsPerPoint, _root, this);
+        _linkManager = new PdfBoxFastLinkManager(_sharedContext, _dotsPerPoint, _root, this);
         loadMetadata(doc);
     }
 
