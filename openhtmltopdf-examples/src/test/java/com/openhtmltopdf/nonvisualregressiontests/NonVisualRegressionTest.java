@@ -305,7 +305,7 @@ public class NonVisualRegressionTest {
         assertEquals(1, doc.getPage(0).getAnnotations().size());
         assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
         
-        // LINK: Top of first page, 100px by 10px (page margin is 10px).
+        // LINK: Top of first page, 80px by 10px (page margin is 10px).
         PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
         assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
         
@@ -321,13 +321,38 @@ public class NonVisualRegressionTest {
         
         remove("link-after-overflow-target");
     }
+    
+    /**
+     * Tests that a simple block link successfully links to an element on an inserted overflow page.
+     */
+    @Test
+    public void testLinkOnOverflowTarget() throws IOException {
+        PDDocument doc = run("link-on-overflow-target");
+        assertEquals(1, doc.getPage(0).getAnnotations().size());
+        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+        
+        // LINK: Top of first page, 80px by 10px (page margin is 10px).
+        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
+        
+        assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
+        PDActionGoTo action = (PDActionGoTo) link.getAction();
+        
+        assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
+        PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
+        
+        // TARGET: Top of third page.
+        assertEquals(doc.getPage(2), dest.getPage());
+        assertEquals(cssPixelYToPdfPoints(11, 100), dest.getTop(), 1.0d);
+        
+        remove("link-on-overflow-target");
+    }
 
 
     // TODO:
     // + Link to external URL
     // + Link over multiple lines (ie. not simple box).
-    // + Link simple inline
-    // + Link with target on generated overflow page.
+    // + Link simple inline target/area.
     // + Link with active area on generated overflow page.
     // + Link with active area after generated overflow pages.
     // + Form controls plus on/after overflow page.
