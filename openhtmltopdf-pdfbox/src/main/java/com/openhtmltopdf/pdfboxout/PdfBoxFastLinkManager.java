@@ -4,6 +4,7 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.pdfboxout.PdfBoxLinkManager.IPdfBoxElementWithShapedLinks;
 import com.openhtmltopdf.pdfboxout.quads.KongAlgo;
 import com.openhtmltopdf.pdfboxout.quads.Triangle;
 import com.openhtmltopdf.render.BlockBox;
@@ -37,13 +38,6 @@ public class PdfBoxFastLinkManager {
 	private final Box _root;
 	private final PdfBoxOutputDevice _od;
 	private final List<LinkDetails> _links;
-
-	/**
-	 * All Elements which can have a shaped image map implement this
-	 */
-	public interface IPdfBoxElementWithShapedLinks {
-		Map<Shape, String> getLinkMap();
-	}
 
 	public PdfBoxFastLinkManager(SharedContext ctx, float dotsPerPoint, Box root, PdfBoxOutputDevice od) {
 		this._sharedContext = ctx;
@@ -371,7 +365,7 @@ public class PdfBoxFastLinkManager {
                     _od.getDeviceLength(bounds.height));
 	}
 
-	public static class LinkDetails {
+	private static class LinkDetails {
 
 		RenderingContext c;
 		Box box;
