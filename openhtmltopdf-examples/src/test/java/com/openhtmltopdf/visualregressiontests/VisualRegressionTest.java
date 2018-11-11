@@ -581,6 +581,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("rtl-page-overflow-hidden-hidden"));
     }
     
+    /**
+     * Tests that tds with a background-color do not have fine lines between them. Issues: 291 and 169.
+     */
+    @Test
+    @Ignore // Fine lines appear between tds.
+    public void testTableFineLines() throws IOException {
+        assertTrue(vt.runTest("table-fine-lines"));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages. Especially inline-block.
     // + content property (page counters, etc)
