@@ -347,11 +347,48 @@ public class NonVisualRegressionTest {
         
         remove("link-on-overflow-target");
     }
+    
+    /**
+     * Tests that link annotation area is correctly translated-y.
+     */
+    @Test
+    public void testLinkAreaTransformTranslateY() throws IOException {
+        PDDocument doc = run("link-area-transform-translatey");
+        assertEquals(1, doc.getPage(0).getAnnotations().size());
+        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+        
+        // 150px by 50px, top of page + 10px pg margin + 1px border + 50px translateY = 61px.
+        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 61f, 150f, 50f), 200d));
+
+        remove("link-area-transform-translatey");
+    }
+    
+    /**
+     * Tests that link annotation area is correctly rotated.
+     */
+    @Test
+    public void testLinkAreaTransformRotate() throws IOException {
+        PDDocument doc = run("link-area-transform-rotate");
+        assertEquals(1, doc.getPage(0).getAnnotations().size());
+        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+        
+        // Confirmed by looking at the resulting PDF.
+        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+        assertEquals(11.4375, link.getRectangle().getLowerLeftX(), 1.0d);
+        assertEquals(69.975, link.getRectangle().getLowerLeftY(), 1.0d);
+        assertEquals(117.4875, link.getRectangle().getUpperRightX(), 1.0d);
+        assertEquals(176.025, link.getRectangle().getUpperRightY(), 1.0d);
+
+        remove("link-area-transform-rotate");
+    }
 
 
     // TODO:
     // + Link to external URL
     // + Link over multiple lines (ie. not simple box).
+    // + Link over multiple pages.
+    // + Link in margin area/transformed.
     // + Link simple inline target/area.
     // + Link with active area on generated overflow page.
     // + Link with active area after generated overflow pages.

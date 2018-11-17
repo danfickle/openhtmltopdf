@@ -873,6 +873,20 @@ public class PagedBoxCollector {
         return bounds;
     }
     
+    /**
+     * Finds the document coordinates content box bounds of a box adjusted for transform and clipped according to overflow hidden.
+     */
+    public static Rectangle findAdjustedBoundsForContentBox(CssContext c, Box container) {
+        Rectangle bounds = container.getContentAreaEdge(container.getAbsX(), container.getAbsY(), c);
+        AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
+        Area overflowClip = container.getAbsoluteClipBox(c);
+        
+        transformBounds(bounds, transform);
+        bounds = applyOverflowClip(bounds, overflowClip);
+        
+        return bounds;
+    }
+    
     protected int findStartPage(CssContext c, Rectangle bounds, AffineTransform transform) {
         double minY = transform == null ? bounds.getMinY() : getMinYFromTransformedBox(bounds, transform);
         return this.finder.findPageAdjusted(c, (int) minY);

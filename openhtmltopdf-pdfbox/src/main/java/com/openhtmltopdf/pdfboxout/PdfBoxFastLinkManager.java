@@ -9,6 +9,7 @@ import com.openhtmltopdf.pdfboxout.quads.Triangle;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -348,7 +349,7 @@ public class PdfBoxFastLinkManager {
 
 	public static Rectangle2D createTargetArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform,
 			Box _root, PdfBoxOutputDevice _od) {
-		Rectangle bounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), c);
+		Rectangle bounds = PagedBoxCollector.findAdjustedBoundsForContentBox(c, box); 
 		
 		Point2D pt = new Point2D.Float(bounds.x, (float) bounds.getMaxY());
 		Point2D ptTransformed = transform.transform(pt, null);
