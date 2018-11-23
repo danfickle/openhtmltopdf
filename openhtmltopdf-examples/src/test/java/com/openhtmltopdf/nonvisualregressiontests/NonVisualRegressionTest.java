@@ -79,7 +79,8 @@ public class NonVisualRegressionTest {
         return PDDocument.load(new File(OUT_PATH, filename + ".pdf"));
     }
     
-    private static void remove(String fileName) {
+    private static void remove(String fileName, PDDocument doc) throws IOException {
+        doc.close();
         new File(OUT_PATH, fileName + ".pdf").delete();
     }
     
@@ -134,7 +135,7 @@ public class NonVisualRegressionTest {
         assertThat(did.getSubject(), equalTo("Test subject"));
         assertThat(did.getKeywords(), equalTo("Test keywords"));
         
-        remove("meta-information");
+        remove("meta-information", doc);
     }
 
     /**
@@ -154,7 +155,7 @@ public class NonVisualRegressionTest {
         assertEquals(dest.getPage(), doc.getPage(1));
         assertEquals(doc.getPage(1).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
         
-        remove("bookmark-head-simple");
+        remove("bookmark-head-simple", doc);
     }
 
     /**
@@ -174,7 +175,7 @@ public class NonVisualRegressionTest {
         assertEquals(dest.getPage(), doc.getPage(2));
         assertEquals(doc.getPage(2).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
         
-        remove("bookmark-head-transform");
+        remove("bookmark-head-transform", doc);
     }
     
     /**
@@ -194,7 +195,7 @@ public class NonVisualRegressionTest {
         // Should be 11px down (10px margin, 1px outer border).
         assertEquals(cssPixelYToPdfPoints(11, 50), dest.getTop(), 1.0d);
         
-        remove("bookmark-head-on-overflow-page");
+        remove("bookmark-head-on-overflow-page", doc);
     }
 
     /**
@@ -214,7 +215,7 @@ public class NonVisualRegressionTest {
         // Should be 10px down (10px page margin).
         assertEquals(cssPixelYToPdfPoints(10, 50), dest.getTop(), 1.0d);
         
-        remove("bookmark-head-after-overflow-page");
+        remove("bookmark-head-after-overflow-page", doc);
     }
     
     /**
@@ -243,7 +244,7 @@ public class NonVisualRegressionTest {
         assertEquals(dest2.getPage(), doc.getPage(2));
         assertEquals(doc.getPage(2).getMediaBox().getUpperRightY(), dest2.getTop(), 1.0d);
         
-        remove("bookmark-head-nested");
+        remove("bookmark-head-nested", doc);
     }
     
     /**
@@ -269,7 +270,7 @@ public class NonVisualRegressionTest {
         assertEquals(doc.getPage(1), dest.getPage());
         assertEquals(cssPixelYToPdfPoints(0, 200), dest.getTop(), 1.0d);
         
-        remove("link-simple-block");
+        remove("link-simple-block", doc);
     }
     
     /**
@@ -295,7 +296,7 @@ public class NonVisualRegressionTest {
         assertEquals(doc.getPage(2), dest.getPage());
         assertEquals(cssPixelYToPdfPoints(0, 100), dest.getTop(), 1.0d);
         
-        remove("link-transform-target");
+        remove("link-transform-target", doc);
     }
     
     /**
@@ -321,7 +322,7 @@ public class NonVisualRegressionTest {
         assertEquals(doc.getPage(2), dest.getPage());
         assertEquals(cssPixelYToPdfPoints(10, 100), dest.getTop(), 1.0d);
         
-        remove("link-after-overflow-target");
+        remove("link-after-overflow-target", doc);
     }
     
     /**
@@ -347,7 +348,7 @@ public class NonVisualRegressionTest {
         assertEquals(doc.getPage(2), dest.getPage());
         assertEquals(cssPixelYToPdfPoints(11, 100), dest.getTop(), 1.0d);
         
-        remove("link-on-overflow-target");
+        remove("link-on-overflow-target", doc);
     }
     
     /**
@@ -363,7 +364,7 @@ public class NonVisualRegressionTest {
         PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
         assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 61f, 150f, 50f), 200d));
 
-        remove("link-area-transform-translatey");
+        remove("link-area-transform-translatey", doc);
     }
     
     /**
@@ -382,7 +383,7 @@ public class NonVisualRegressionTest {
         assertEquals(117.4875, link.getRectangle().getUpperRightX(), 1.0d);
         assertEquals(176.025, link.getRectangle().getUpperRightY(), 1.0d);
 
-        remove("link-area-transform-rotate");
+        remove("link-area-transform-rotate", doc);
     }
     
     /**
@@ -399,7 +400,7 @@ public class NonVisualRegressionTest {
         PDAnnotationLink link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
         assertThat(link.getRectangle(), rectEquals(new PDRectangle(30f, 11f, 40f, 10f), 100d));
         
-        remove("link-area-overflow-page");
+        remove("link-area-overflow-page", doc);
     }
 
     /**
@@ -419,7 +420,7 @@ public class NonVisualRegressionTest {
         PDAnnotationLink link = (PDAnnotationLink) doc.getPage(2).getAnnotations().get(0);
         assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
         
-        remove("link-area-after-overflow-page");
+        remove("link-area-after-overflow-page", doc);
     }
 
     /**
@@ -439,7 +440,7 @@ public class NonVisualRegressionTest {
         
         assertEquals("https://openhtmltopdf.com", action.getURI());
         
-        remove("link-external-url");
+        remove("link-external-url", doc);
     }
     
     /**
@@ -459,7 +460,7 @@ public class NonVisualRegressionTest {
         link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
         assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 80f, 30f, 10f), 100d));
         
-        remove("link-area-page-margin");
+        remove("link-area-page-margin", doc);
     }
     
     /**
@@ -480,7 +481,7 @@ public class NonVisualRegressionTest {
         link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
         assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 70f, 10f, 30f), 100d));
         
-        remove("link-area-page-margin-transform");
+        remove("link-area-page-margin-transform", doc);
     }
     
     // TODO:
