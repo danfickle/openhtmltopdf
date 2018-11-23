@@ -382,6 +382,23 @@ public class NonVisualRegressionTest {
 
         remove("link-area-transform-rotate");
     }
+    
+    /**
+     * Tests link area on overflow page is correctly placed.
+     */
+    @Test
+    public void testLinkAreaOverflowPage() throws IOException {
+        PDDocument doc = run("link-area-overflow-page");
+        
+        assertEquals(0, doc.getPage(0).getAnnotations().size());
+        assertThat(doc.getPage(1).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+
+        // On second page (which is the first overflow page).
+        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
+        assertThat(link.getRectangle(), rectEquals(new PDRectangle(30f, 11f, 40f, 10f), 100d));
+        
+        remove("link-area-overflow-page");
+    }
 
 
     // TODO:
@@ -390,7 +407,6 @@ public class NonVisualRegressionTest {
     // + Link over multiple pages.
     // + Link in margin area/transformed.
     // + Link simple inline target/area.
-    // + Link with active area on generated overflow page.
     // + Link with active area after generated overflow pages.
     // + Form controls plus on/after overflow page.
     // + Custom meta info.
