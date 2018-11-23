@@ -1,0 +1,25 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 100px;
+  margin: 30px;
+  
+  @bottom-right-corner {
+    content: element(hdr);
+    background-color: green;
+    vertical-align: top;
+  }
+}
+</style>
+</head>
+<body>
+<div id="one"></div>
+
+<div style="position: running(hdr); height: 20px; background-color: red; width: 30px; transform:  translateX(20px) rotate(90deg); transform-origin: left top;">
+  <a href="#one" style="display: block; height: 10px; background-color: orange;margin-top: 10px;"></a>
+</div>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>
