@@ -16,6 +16,7 @@ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
@@ -420,9 +421,28 @@ public class NonVisualRegressionTest {
         remove("link-area-after-overflow-page");
     }
 
+    /**
+     * Tests that a link to an external url works correclty.
+     */
+    @Test
+    public void testLinkExternalUrl() throws IOException {
+        PDDocument doc = run("link-external-url");
 
+        assertEquals(1, doc.getPage(0).getAnnotations().size());
+        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+
+        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+        
+        assertThat(link.getAction(), instanceOf(PDActionURI.class));
+        PDActionURI action = (PDActionURI) link.getAction();
+        
+        assertEquals("https://openhtmltopdf.com", action.getURI());
+        
+        remove("link-external-url");
+    }
+    
+    
     // TODO:
-    // + Link to external URL
     // + Link over multiple lines (ie. not simple box).
     // + Link over multiple pages.
     // + Link in margin area/transformed.
