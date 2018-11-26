@@ -590,6 +590,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("table-fine-lines"));
     }
     
+    /**
+     * Tests than an inline block, floated, with border, that the border is visible. Issue 297.
+     */
+    @Test
+    @Ignore // Border is not visible on a floated element with overflow hidden.
+    public void testHiddenBorder() throws IOException {
+        assertTrue(vt.runTest("hidden-border"));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages. Especially inline-block.
     // + content property (page counters, etc)
