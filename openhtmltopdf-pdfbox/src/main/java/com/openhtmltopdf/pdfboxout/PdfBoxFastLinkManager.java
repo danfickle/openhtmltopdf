@@ -351,6 +351,15 @@ public class PdfBoxFastLinkManager {
 			Box _root, PdfBoxOutputDevice _od) {
 		Rectangle bounds = PagedBoxCollector.findAdjustedBoundsForContentBox(c, box); 
 		
+		if (!c.isInPageMargins()) {
+		    int shadow = c.getShadowPageNumber();
+		    Rectangle pageBounds = shadow == -1 ? 
+		        c.getPage().getDocumentCoordinatesContentBounds(c) :
+		        c.getPage().getDocumentCoordinatesContentBoundsForInsertedPage(c, shadow);
+		    
+		    bounds = bounds.intersection(pageBounds);
+		}
+		
 		Point2D pt = new Point2D.Float(bounds.x, (float) bounds.getMaxY());
 		Point2D ptTransformed = transform.transform(pt, null);
 		
@@ -377,7 +386,7 @@ public class PdfBoxFastLinkManager {
 	        (box.getElement() != null && box.getElement().getNodeName().equals("a"))) {
 	    
 		LinkDetails link = new LinkDetails();
-		link.c = c;
+		link.c = (RenderingContext) c.clone();
 		link.box = box;
 		link.page = page;
 		link.pageHeight = pageHeight;

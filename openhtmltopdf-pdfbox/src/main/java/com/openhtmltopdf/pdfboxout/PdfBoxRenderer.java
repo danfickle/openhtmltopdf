@@ -609,6 +609,7 @@ public class PdfBoxRenderer implements Closeable {
             currentPage.setBasePagePdfPageIndex(pdfPageIndex);
             DisplayListPageContainer pageOperations = dlPages.getPageInstructions(i);
             c.setPage(i, currentPage);
+            c.setShadowPageNumber(-1);
             paintPageFast(c, currentPage, pageOperations, 0);
             _outputDevice.finishPage();
             pdfPageIndex++;
@@ -616,6 +617,7 @@ public class PdfBoxRenderer implements Closeable {
             if (!pageOperations.shadowPages().isEmpty()) {
                 currentPage.setShadowPageCount(pageOperations.shadowPages().size());
                 
+                int shadowPageIndex = 0;
                 int pageContentWidth = currentPage.getContentWidth(c);
                 int translateX = pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1);
 
@@ -624,7 +626,8 @@ public class PdfBoxRenderer implements Closeable {
                     PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);
                     doc.addPage(shadowPdPage);
 
-                    _outputDevice.initializePage(shadowCs, shadowPdPage, (float) firstPageSize.getHeight());
+                    _outputDevice.initializePage(shadowCs, shadowPdPage, (float) currentPage.getHeight(c) / _dotsPerPoint);
+                    c.setShadowPageNumber(shadowPageIndex);
                     paintPageFast(c, currentPage, shadowPage, -translateX);
                     _outputDevice.finishPage();
                     translateX += (pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1));
@@ -776,7 +779,11 @@ public class PdfBoxRenderer implements Closeable {
     
     private void paintPageFast(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations, int additionalTranslateX) {
         page.paintBackground(c, 0, Layer.PAGED_MODE_PRINT);
+        
+        c.setInPageMargins(true);
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
+        c.setInPageMargins(false);
+        
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
         Rectangle content = page.getPrintClippingBounds(c);

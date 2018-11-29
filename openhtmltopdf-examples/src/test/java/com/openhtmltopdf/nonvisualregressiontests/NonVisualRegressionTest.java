@@ -381,7 +381,7 @@ public class NonVisualRegressionTest {
         assertEquals(11.4375, link.getRectangle().getLowerLeftX(), 1.0d);
         assertEquals(69.975, link.getRectangle().getLowerLeftY(), 1.0d);
         assertEquals(117.4875, link.getRectangle().getUpperRightX(), 1.0d);
-        assertEquals(176.025, link.getRectangle().getUpperRightY(), 1.0d);
+        assertEquals(142.5, link.getRectangle().getUpperRightY(), 1.0d);
 
         remove("link-area-transform-rotate", doc);
     }
@@ -499,9 +499,38 @@ public class NonVisualRegressionTest {
         remove("link-area-transform-nested", doc);
     }
     
+    /**
+     * Tests that a link area is created for each page (normal and overflow) that the link appears on.
+     */
+    @Test
+    public void testLinkAreaMultiplePage() throws IOException {
+        PDDocument doc = run("link-area-multiple-page");
+        assertEquals(1, doc.getPage(0).getAnnotations().size());
+        assertEquals(1, doc.getPage(1).getAnnotations().size());
+        assertEquals(1, doc.getPage(2).getAnnotations().size());
+        assertEquals(1, doc.getPage(3).getAnnotations().size());
+        
+        // First page.
+        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+        assertThat(link.getRectangle(), rectEquals(new PDRectangle(11f, 11f, 79f, 79f), 100d));
+
+        // Overflow page for first page.
+        link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
+        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 11f, 61f, 79f), 100d));
+
+        // Second page.
+        link = (PDAnnotationLink) doc.getPage(2).getAnnotations().get(0);
+        assertThat(link.getRectangle(), rectEquals(new PDRectangle(11f, 10f, 79f, 71f), 100d));
+
+        // Overflow page for second page.
+        link = (PDAnnotationLink) doc.getPage(3).getAnnotations().get(0);
+        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 61f, 71f), 100d));
+        
+        remove("link-area-multiple-page", doc);
+    }
+    
     // TODO:
     // + Link over multiple lines (ie. not simple box).
-    // + Link over multiple pages.
     // + Link simple inline target/area.
     // + Form controls plus on/after overflow page.
     // + Custom meta info.
