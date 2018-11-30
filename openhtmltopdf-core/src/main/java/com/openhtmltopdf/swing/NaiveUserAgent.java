@@ -348,7 +348,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
     @Override
     public byte[] getBinaryResource(String uri) {
-    	String resolved = _resolver.resolveURI(this._baseUri, uri);
+        if (ImageUtil.isDataUri(uri)) {
+            return ImageUtil.getEmbeddedDataUri(uri);
+        }
+
+        String resolved = _resolver.resolveURI(this._baseUri, uri);
     	
     	if (resolved == null) {
     		XRLog.load(Level.INFO, "URI resolver rejected loading binary resource at (" + uri + ")");

@@ -599,6 +599,14 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("hidden-border"));
     }
     
+    /**
+     * Tests that a data uri can be used for fonts. Issue 290.
+     */
+    @Test
+    public void testDataUriFont() throws IOException {
+        assertTrue(vt.runTest("data-uri-font"));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages. Especially inline-block.
     // + content property (page counters, etc)

@@ -280,6 +280,10 @@ public class ImageUtil {
         return (uri != null && uri.startsWith("data:image/"));
     }
     
+    public static boolean isDataUri(String uri) {
+        return uri != null && uri.startsWith("data:");
+    }
+    
     /**
      * Get the binary content of an embedded base 64 image.
      *
@@ -292,9 +296,13 @@ public class ImageUtil {
             String b64encoded = imageDataUri.substring(b64Index + "base64,".length());
             return Base64.getMimeDecoder().decode(b64encoded);
         } else {
-            XRLog.load(Level.SEVERE, "Embedded XHTML images must be encoded in base 64.");
+            XRLog.load(Level.SEVERE, "Embedded data uris must be encoded in base 64.");
         }
         return null;
+    }
+    
+    public static byte[] getEmbeddedDataUri(String dataUri) {
+        return getEmbeddedBase64Image(dataUri);
     }
     
     /**
