@@ -41,8 +41,6 @@ import java.util.logging.Level;
 import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.event.DocumentListener;
-import com.openhtmltopdf.extend.FSCache;
-import com.openhtmltopdf.extend.FSMultiThreadCache;
 import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.FSStreamFactory;
 import com.openhtmltopdf.extend.FSStream;
@@ -55,15 +53,10 @@ import com.openhtmltopdf.util.XRLog;
 
 /**
  * <p>NaiveUserAgent is a simple implementation of {@link UserAgentCallback} which places no restrictions on what
- * XML, CSS or images are loaded, and reports visited links without any filtering. The most straightforward process
- * available in the JDK is used to load the resources in question--either using java.io or java.net classes.
+ * XML, CSS or images are loaded.</p>
  *
- * <p>The NaiveUserAgent has a small cache for images,
- * the size of which (number of images) can be passed as a constructor argument. There is no automatic cleaning of
- * the cache; call {@link #clearImageCache()} to remove the least-accessed elements--for example, you might do this
- * when a new document is about to be loaded. The NaiveUserAgent is also a DocumentListener; if registered with a
- * source of document events (like the panel hierarchy), it will respond to the
- * {@link com.openhtmltopdf.event.DocumentListener#documentStarted()} call and attempt to shrink its cache.
+ * <p>The NaiveUserAgent has a simple per-run cache for images so that the same image is not embedded in a document
+ *  multiple times.</p>
  *
  * @author Torbjoern Gannholm
  */
@@ -71,30 +64,14 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
     /**
      * a (simple) cache
-     * This is only useful for the one run. For more than one run, set an external cache with
-     * setFSCache.
+     * This is only useful for the one run.
      */
     protected final LinkedHashMap<String, ImageResource> _imageCache = new LinkedHashMap<String, ImageResource>();
     protected final FSUriResolver DEFAULT_URI_RESOLVER = new DefaultUriResolver(); 
 
-    protected FSCache _externalCache = new NullFSCache(false);
     protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
     protected String _baseUri;
 	protected Map<String, FSStreamFactory> _protocolsStreamFactory = new HashMap<String, FSStreamFactory>(2);
-	protected FSMultiThreadCache<String> _textCache = new NullCache<String>();
-	protected FSMultiThreadCache<byte[]> _byteCache = new NullCache<byte[]>();
-	
-	protected static class NullCache<T> implements FSMultiThreadCache<T> {
-		@Override
-		public T get(String uri) {
-			return null;
-		}
-
-		@Override
-		public void put(String uri, T value) {
-			// Empty
-		}
-	}
     
     public static class DefaultHttpStream implements FSStream {
     	private InputStream strm;
@@ -140,30 +117,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		}
     }
     
-    public static class NullFSCache implements FSCache {
-    	
-    	private final boolean _log;
-    	
-    	public NullFSCache(boolean log) {
-    		this._log = log;
-    	}
-    	
-		@Override
-		public Object get(FSCacheKey cacheKey) {
-			if (_log) {
-				XRLog.load(Level.INFO, "Trying to retrieve object from cache: " + cacheKey.toString());
-			}
-			return null;
-		}
-
-		@Override
-		public void put(FSCacheKey cacheKey, Object obj) {
-			if (_log) {
-				XRLog.load(Level.INFO, "Trying to put object in cache: " + cacheKey.toString());
-			}
-		}
-    }
-    
     public NaiveUserAgent() {
     	FSStreamFactory factory = new DefaultHttpStreamFactory();
     	this._protocolsStreamFactory.put("http", factory);
@@ -172,10 +125,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     
     public void setProtocolsStreamFactory(Map<String, FSStreamFactory> protocolsStreamFactory) {
     	this._protocolsStreamFactory = protocolsStreamFactory;
-    }
-    
-    public void setExternalCache(FSCache cache) {
-    	this._externalCache = cache;
     }
 
     public void setUriResolver(FSUriResolver resolver) {
@@ -189,6 +138,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     /**
      * Empties the image cache entirely.
      */
+    @Deprecated
     public void clearImageCache() {
         _imageCache.clear();
     }
@@ -269,24 +219,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	return null;
     }
     
-    protected String getCacheText(String uri) {
-    	String text = _textCache.get(uri);
-    	
-    	if (text != null) {
-    		return text;
-    	}
-    	
-    	byte[] bytes = _byteCache.get(uri);
-    	
-    	if (bytes != null) {
-    		try {
-				return new String(bytes, "UTF-8");
-			} catch (UnsupportedEncodingException e) { }
-    	}
-
-    	return null;
-    }
-    
     protected String readAll(Reader reader) throws IOException {
     	char[] arr = new char[8 * 1024];
     	StringBuilder buffer = new StringBuilder();
@@ -295,26 +227,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     		buffer.append(arr, 0, numCharsRead);
     	}
     	return buffer.toString();
-    }
-    
-    protected Reader getCacheReader(String uri) {
-    	String text = getCacheText(uri);
-    	
-    	if (text != null) {
-    		return new StringReader(text);
-    	}
-    	
-    	return null;
-    }
-    
-    protected InputStream getCacheStream(String uri) {
-    	byte[] bytes = _byteCache.get(uri);
-    	
-    	if (bytes != null) {
-    		return new ByteArrayInputStream(bytes);
-    	}
-    	
-    	return null;
     }
     
     /**
@@ -334,38 +246,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     		return null;
     	}
     	
-    	Reader reader = getCacheReader(resolved);
-    	
-    	if (reader != null) {
-    		return new CSSResource(reader);
-    	}
-    	
-		if (!(_textCache instanceof NullCache)) {
-			Reader res = null;
-			
-			try {
-				res = openReader(resolved);
-
-				if (res != null) {
-					String css = readAll(res);
-					_textCache.put(resolved, css);
-					return new CSSResource(new StringReader(css));
-				}
-			} catch (IOException e) {
-				XRLog.cssParse(Level.WARNING, "Couldn't load stylesheet at URI " + uri + ": " + e.getMessage(), e);
-			} finally {
-				if (res != null) {
-					try {
-						res.close();
-					} catch (IOException e) {
-					}
-				}
-			}
-		} else {
-			return new CSSResource(openReader(resolved));
-		}
-
-    	return null;
+		return new CSSResource(openReader(resolved));
     }
 
     /**
@@ -397,12 +278,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             	return ir;
             }
             
-           	// Then check the external multi run cache.
-            AWTFSImage fsImage = (AWTFSImage) _externalCache.get(new FSCacheKey(resolved, AWTFSImage.class));
-            if (fsImage != null) {
-            	return new ImageResource(resolved, fsImage);
-            }
-            
             // Finally we fetch from the network or file, etc.
             InputStream is = openStream(resolved);
 
@@ -414,7 +289,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
                         }
                         
                         AWTFSImage fsImage2 = (AWTFSImage) AWTFSImage.createImage(img);
-                        _externalCache.put(new FSCacheKey(resolved, AWTFSImage.class), fsImage2);
                         
                         ir = new ImageResource(resolved, fsImage2);
                         _imageCache.put(resolved, ir);
@@ -454,11 +328,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     		return null;
     	}
     	
-    	XMLResource res = (XMLResource) _externalCache.get(new FSCacheKey(resolved, XMLResource.class));
-    	if (res != null) {
-    		return res;
-    	}
-    	
         Reader inputReader = openReader(resolved);
         XMLResource xmlResource;
 
@@ -473,7 +342,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
                 }
             }
         }
-        _externalCache.put(new FSCacheKey(resolved, XMLResource.class), xmlResource);
+
         return xmlResource;
     }
 
@@ -484,11 +353,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	if (resolved == null) {
     		XRLog.load(Level.INFO, "URI resolver rejected loading binary resource at (" + uri + ")");
     		return null;
-    	}
-    	
-    	byte[] bytes = (byte[]) _externalCache.get(new FSCacheKey(resolved, byte[].class));
-    	if (bytes != null) {
-    		return bytes;
     	}
     	
         InputStream is = openStream(resolved);
@@ -507,7 +371,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             is = null;
 
             byte[] bytes2 = result.toByteArray();
-            _externalCache.put(new FSCacheKey(resolved, byte[].class), bytes2);
             return bytes2;
         } catch (IOException e) {
             return null;
@@ -601,17 +464,21 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
 
     @Override
+    @Deprecated
     public void documentStarted() {
         clearImageCache();
     }
 
     @Override
+    @Deprecated
     public void documentLoaded() { /* ignore*/ }
 
     @Override
+    @Deprecated
     public void onLayoutException(Throwable t) { /* ignore*/ }
 
     @Override
+    @Deprecated
     public void onRenderException(Throwable t) { /* ignore*/ }
 
 	@Override
@@ -623,15 +490,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	public String resolveUri(String baseUri, String uri) {
 		return _resolver.resolveURI(baseUri, uri);
 	}
-	
-    public void setExternalTextCache(FSMultiThreadCache<String> textCache) {
-        this._textCache = textCache;
-        
-    }
-
-    public void setExternalByteCache(FSMultiThreadCache<byte[]> byteCache) {
-    	this._byteCache = byteCache;
-    }
 }
 
 /*

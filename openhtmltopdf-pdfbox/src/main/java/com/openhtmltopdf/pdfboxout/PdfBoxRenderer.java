@@ -156,18 +156,6 @@ public class PdfBoxRenderer implements Closeable {
             userAgent.setUriResolver(state._resolver);
         }
         
-        if (state._cache != null) {
-            userAgent.setExternalCache(state._cache);
-        }
-        
-        if (state._textCache != null) {
-            userAgent.setExternalTextCache(state._textCache);
-        }
-        
-        if (state._byteCache != null) {
-            userAgent.setExternalByteCache(state._byteCache);
-        }
-        
         _sharedContext = new SharedContext();
         _sharedContext.registerWithThread();
         

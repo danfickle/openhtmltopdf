@@ -31,9 +31,6 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	public abstract static class BaseRendererBuilderState {
 		public final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
 		public Map<String, FSStreamFactory> _streamFactoryMap = new HashMap<String, FSStreamFactory>();
-		public FSCache _cache;
-		public FSMultiThreadCache<String> _textCache;
-		public FSMultiThreadCache<byte[]> _byteCache;
 		public FSUriResolver _resolver;
 		public String _html;
 		public String _baseUri;
@@ -208,49 +205,6 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 */
 	public final TFinalClass useUriResolver(FSUriResolver resolver) {
 		state._resolver = resolver;
-		return (TFinalClass) this;
-	}
-
-	/**
-	 * Provides a cache implementation that may be used accross threads.
-	 * Typically used with <code>useMultiThreadByteCache</code>
-	 * The String cache is used in preference of the byte cache for
-	 * resources that are needed as text, althrough the byte cache will
-	 * also be checked before loading the resource. In this case the byte array
-	 * will be interpreted as UTF-8.
-	 * 
-	 * @see #useMultiThreadByteCache(FSMultiThreadCache)
-	 * @see com.openhtmltopdf.extend.FSMultiThreadCache
-	 */
-    public final TFinalClass useMultiThreadStringCache(
-            FSMultiThreadCache<String> textCache) {
-    	state._textCache = textCache;
-    	return (TFinalClass) this;
-    }
-
-	/**
-	 * Provides a cache implementation that may be used accross threads.
-	 * Typically used with <code>useMultiThreadStringCache</code>
-	 * 
-	 * @see #useMultiThreadStringCache(FSMultiThreadCache)
-	 * @see com.openhtmltopdf.extend.FSMultiThreadCache
-	 */
-    public final TFinalClass useMultiThreadByteCache(
-            FSMultiThreadCache<byte[]> byteCache) {
-    	state._byteCache = byteCache;
-    	return (TFinalClass) this;
-    }
-
-    
-	/**
-	 * Provides an external cache which can choose to cache items between runs, such
-	 * as fonts or logo images.
-	 *
-	 * @param cache the external cache to use
-	 * @return this for method chaining
-	 */
-	public final TFinalClass useCache(FSCache cache) {
-		state._cache = cache;
 		return (TFinalClass) this;
 	}
 

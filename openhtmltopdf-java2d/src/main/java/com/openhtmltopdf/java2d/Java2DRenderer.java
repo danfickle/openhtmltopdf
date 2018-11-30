@@ -84,10 +84,6 @@ public class Java2DRenderer implements Closeable {
 			uac.setUriResolver(state._resolver);
 		}
 		
-		if (state._cache != null) {
-			uac.setExternalCache(state._cache);
-		}
-		
         _sharedContext = new SharedContext();
         _sharedContext.registerWithThread();
         
