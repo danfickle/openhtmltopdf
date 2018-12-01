@@ -18,9 +18,12 @@ import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.util.Charsets;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Ignore;
@@ -604,6 +607,30 @@ public class NonVisualRegressionTest {
         assertEquals(127.27, link.getRectangle().getUpperRightY(), 1.0d);
         
         remove("link-area-multiple-boxes", doc);
+    }
+    
+    /**
+     * Tests the positioning, size, name and value of a text type form control.
+     */
+    @Test
+    public void testFormControlText() throws IOException {
+        PDDocument doc = run("form-control-text");
+        
+        assertEquals(1, doc.getPage(0).getAnnotations().size());
+        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
+        
+        PDAnnotationWidget widget = (PDAnnotationWidget) doc.getPage(0).getAnnotations().get(0);
+        assertThat(widget.getRectangle(), rectEquals(new PDRectangle(23f, 23f, 100f, 20f), 200));
+        
+        PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
+        assertEquals(1, form.getFields().size());
+        assertThat(form.getFields().get(0), instanceOf(PDTextField.class));
+        
+        PDTextField field = (PDTextField) form.getFields().get(0);
+        assertEquals("text-input", field.getFullyQualifiedName());
+        assertEquals("Hello World!", field.getValue());
+        
+        remove("form-control-text", doc);
     }
     
     // TODO:
