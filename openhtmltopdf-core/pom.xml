@@ -1,55 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.openhtmltopdf</groupId>
-    <artifactId>openhtmltopdf-parent</artifactId>
-    <version>0.0.1-RC18-SNAPSHOT</version>
-  </parent>
+    <parent>
+        <groupId>com.openhtmltopdf</groupId>
+        <artifactId>openhtmltopdf-parent</artifactId>
+        <version>0.0.1-RC18-SNAPSHOT</version>
+    </parent>
 
-  <artifactId>openhtmltopdf-core</artifactId>
-  <description>Open HTML to PDF is a CSS 2.1 renderer written in Java.  This artifact contains the core rendering and layout code as well as Java2D output.</description>
+    <artifactId>openhtmltopdf-core</artifactId>
+    <description>Open HTML to PDF is a CSS 2.1 renderer written in Java. This artifact contains the core rendering and
+        layout code as well as Java2D output.
+    </description>
 
-  <licenses>
-    <license>
-      <name>GNU Lesser General Public License (LGPL), version 2.1 or later</name>
-      <url>http://www.gnu.org/licenses/lgpl.html</url>
-    </license>
-  </licenses>
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License (LGPL), version 2.1 or later</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+        </license>
+    </licenses>
 
-  <distributionManagement>
-    <repository>
-      <id>bintray</id>
-      <url>https://api.bintray.com/maven/danfickle/maven/com.openhtmltopdf:openhtmltopdf-parent</url>
-    </repository>
-  </distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>bintray</id>
+            <url>https://api.bintray.com/maven/danfickle/maven/com.openhtmltopdf:openhtmltopdf-parent</url>
+        </repository>
+    </distributionManagement>
 
-  <packaging>jar</packaging>
+    <packaging>jar</packaging>
 
-  <name>Openhtmltopdf Core Renderer</name>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+    <name>Openhtmltopdf Core Renderer</name>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.w3c</groupId>
+            <artifactId>dom</artifactId>
+            <version>2.3.0-jaxb-1.0.6</version>
+        </dependency>
 
-  <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>../</directory>
-        <targetPath>${project.build.outputDirectory}/META-INF</targetPath>
-        <includes>
-          <include>LICENSE*</include>
-        </includes>
-      </resource>
-    </resources>
-  </build>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>../</directory>
+                <targetPath>${project.build.outputDirectory}/META-INF</targetPath>
+                <includes>
+                    <include>LICENSE*</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
 </project>

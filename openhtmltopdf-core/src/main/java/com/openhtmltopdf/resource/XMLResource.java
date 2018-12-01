@@ -36,6 +36,7 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXSource;
 
+import com.openhtmltopdf.XMLConstantOfJava7;
 import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
@@ -199,8 +200,8 @@ public class XMLResource extends AbstractResource {
     	
     	private void setTranformerFactorySecurityFeatures(TransformerFactory xformFactory) {
     		try {
-    		  xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-              xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+    		  xformFactory.setAttribute(XMLConstantOfJava7.ACCESS_EXTERNAL_DTD, "");
+              xformFactory.setAttribute(XMLConstantOfJava7.ACCESS_EXTERNAL_STYLESHEET, "");
     		} catch (IllegalArgumentException e) {
     		  XRLog.load(Level.SEVERE, "Unable to disable XML External Entities, which might put you at risk to XXE attacks", e);
     		}
@@ -389,9 +390,11 @@ public class XMLResource extends AbstractResource {
                 	xformFactory = TransformerFactory.newInstance();
                 }
                 
-                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-                
+                xformFactory.setAttribute(XMLConstantOfJava7.ACCESS_EXTERNAL_DTD, "");
+                xformFactory.setAttribute(XMLConstantOfJava7.ACCESS_EXTERNAL_STYLESHEET, "");
+//                xformFactory.setAttribute(XMLConstantOfJava7.ACCESS_EXTERNAL_DTD, "");
+//                xformFactory.setAttribute(XMLConstantOfJava7.ACCESS_EXTERNAL_STYLESHEET, "");
+
                 idTransform = xformFactory.newTransformer();
             } catch (Exception ex) {
                 throw new XRRuntimeException("Failed on configuring SAX to DOM transformer.", ex);
