@@ -491,7 +491,6 @@ public class NonVisualRegressionTest {
     /**
      * Tests a link area inside a transformed element in the page margin.
      */
-    @Ignore // Link annotation rectangle is not respecting the transform of its parent element.
     @Test
     public void testLinkAreaPageMarginTransform() throws IOException {
         PDDocument doc = run("link-area-page-margin-transform");

@@ -90,8 +90,7 @@ public class DisplayListCollector {
 		DisplayListContainer displayList = new ArrayDisplayListContainer(0, _pages.size() - 1);
 
 		// Recursively collect boxes for root layer and any children layers. Don't include
-		// fixed boxes at this point. They are collected by the <code>SinglePageDisplayListCollector</code>
-		// at the point of painting each page.
+		// fixed boxes at this point. They are collected at the point of painting each page.
 		collect(c, rootLayer, displayList, EnumSet.noneOf(CollectFlags.class));
 
 		return displayList;

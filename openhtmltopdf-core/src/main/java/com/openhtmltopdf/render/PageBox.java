@@ -423,6 +423,7 @@ public class PageBox {
 
                 c.getOutputDevice().translate(p.x, p.y);
                 if (c.getOutputDevice().isFastRenderer()) {
+                    table.getLayer().propagateCurrentTransformationMatrix(c);
                     SimplePainter painter = new SimplePainter(p.x, p.y);
                     painter.paintLayer(c, table.getLayer());
                 } else {
