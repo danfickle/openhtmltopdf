@@ -23,10 +23,9 @@ package com.openhtmltopdf.css.style.derived;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.w3c.dom.css.CSSValue;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;

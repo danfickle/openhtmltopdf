@@ -1,18 +1,12 @@
 package com.openhtmltopdf.css.style.derived;
 
 import java.awt.Rectangle;
-import java.util.List;
-
-import org.w3c.dom.css.CSSPrimitiveValue;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSColor;
-import com.openhtmltopdf.css.style.BackgroundPosition;
 import com.openhtmltopdf.css.style.BorderRadiusCorner;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
-import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.newtable.CollapsedBorderValue;
 
 /**

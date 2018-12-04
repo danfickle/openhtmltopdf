@@ -27,7 +27,6 @@ import com.openhtmltopdf.css.parser.property.PropertyBuilder;
 import com.openhtmltopdf.css.sheet.*;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -24,6 +24,7 @@ import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.constants.MarginBoxName;
 import com.openhtmltopdf.css.constants.PageElementPosition;
 import com.openhtmltopdf.css.newmatch.PageInfo;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
@@ -35,7 +36,6 @@ import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
 import com.openhtmltopdf.util.XRLog;
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;

@@ -19,10 +19,10 @@
  */
 package com.openhtmltopdf.css.sheet;
 
-import org.w3c.dom.css.CSSPrimitiveValue;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
+import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 
 
@@ -50,7 +50,7 @@ public class PropertyDeclaration {
     /**
      * Description of the Field
      */
-    private org.w3c.dom.css.CSSPrimitiveValue cssPrimitiveValue;
+    private CSSPrimitiveValue cssPrimitiveValue;
 
     /**
      * Whether the property was declared as important! by the user.
@@ -119,7 +119,7 @@ public class PropertyDeclaration {
      *                StylesheetInfo#USER}, and {@link StylesheetInfo#AUTHOR}.
      */
     public PropertyDeclaration(CSSName cssName,
-                               org.w3c.dom.css.CSSPrimitiveValue value,
+                               CSSPrimitiveValue value,
                                boolean imp,
                                int orig) {
         this.propName = cssName.toString();
@@ -212,14 +212,14 @@ public class PropertyDeclaration {
     }
 
     /**
-     * Returns the specified {@link org.w3c.dom.css.CSSValue} for this property.
+     * Returns the specified {@link CSSValue} for this property.
      * Specified means the value as entered by the user. Modifying the CSSValue
      * returned here will result in indeterminate behavior--consider it
      * immutable.
      *
      * @return See desc.
      */
-    public org.w3c.dom.css.CSSPrimitiveValue getValue() {
+    public CSSPrimitiveValue getValue() {
         return cssPrimitiveValue;
     }
     

@@ -3,10 +3,9 @@ package com.openhtmltopdf.render.displaylist;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.util.List;
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 import com.openhtmltopdf.css.constants.CSSName;
-import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;

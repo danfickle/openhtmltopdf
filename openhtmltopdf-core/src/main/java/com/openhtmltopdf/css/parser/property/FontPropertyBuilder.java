@@ -24,11 +24,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.w3c.dom.css.CSSPrimitiveValue;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.CSSParseException;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.parser.Token;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;

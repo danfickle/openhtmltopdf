@@ -23,7 +23,6 @@ import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.*;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 import java.util.*;
 

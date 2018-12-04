@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSFunction;
 import com.openhtmltopdf.css.parser.FSRGBColor;
@@ -609,7 +610,7 @@ public class CalculatedStyle {
         }
     }
 
-    private FSDerivedValue deriveValue(CSSName cssName, org.w3c.dom.css.CSSPrimitiveValue value) {
+    private FSDerivedValue deriveValue(CSSName cssName, CSSPrimitiveValue value) {
         return DerivedValueFactory.newDerivedValue(this, cssName, (PropertyValue) value);
     }
 
