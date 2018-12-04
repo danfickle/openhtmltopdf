@@ -37,7 +37,6 @@ import com.openhtmltopdf.css.parser.CSSParseException;
 abstract class Condition {
 
     abstract boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes);
-    abstract boolean disablesStyleCache();
 
     /**
      * the CSS condition [attribute]
@@ -240,11 +239,6 @@ abstract class Condition {
         protected boolean compare(String attrValue, String conditionValue) {
             throw new UnsupportedOperationException();
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
-        }
     }
     
     private static class AttributeEqualsCondition extends AttributeCompareCondition {
@@ -254,11 +248,6 @@ abstract class Condition {
 
         protected boolean compare(String attrValue, String conditionValue) {
             return attrValue.equals(conditionValue);
-        }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
         }
     }
     
@@ -270,11 +259,6 @@ abstract class Condition {
         protected boolean compare(String attrValue, String conditionValue) {
             return attrValue.startsWith(conditionValue);
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
-        }
     }
     
     private static class AttributeSuffixCondition extends AttributeCompareCondition {
@@ -285,11 +269,6 @@ abstract class Condition {
         protected boolean compare(String attrValue, String conditionValue) {
             return attrValue.endsWith(conditionValue);
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
-        }
     }
     
     private static class AttributeSubstringCondition extends AttributeCompareCondition {
@@ -299,11 +278,6 @@ abstract class Condition {
 
         protected boolean compare(String attrValue, String conditionValue) {
             return attrValue.indexOf(conditionValue) > -1;
-        }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
         }
     }
     
@@ -322,11 +296,6 @@ abstract class Condition {
             }
             return matched;
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
-        }
     }
 
     private static class AttributeMatchesFirstPartCondition extends AttributeCompareCondition {
@@ -340,11 +309,6 @@ abstract class Condition {
                 return true;
             }
             return false;
-        }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
         }
     }
 
@@ -370,11 +334,6 @@ abstract class Condition {
             // in an XML DOM, space normalization in attributes is supposed to have happened already.
             return (" " + c + " ").indexOf(_paddedClassName) != -1;
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
-        }
     }
 
     private static class IDCondition extends Condition {
@@ -393,11 +352,6 @@ abstract class Condition {
                 return false;
             }
             return true;
-        }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
         }
     }
 
@@ -425,11 +379,6 @@ abstract class Condition {
             }
             return false;
         }
-
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
-        }
     }
 
     private static class FirstChildCondition extends Condition {
@@ -440,12 +389,6 @@ abstract class Condition {
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             return treeRes.isFirstChildElement(e);
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return true;
-        }
-
     }
     
     private static class LastChildCondition extends Condition {
@@ -456,12 +399,6 @@ abstract class Condition {
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             return treeRes.isLastChildElement(e);
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return true;
-        }
-
     }
 
     private static class NthChildCondition extends Condition {
@@ -521,12 +458,6 @@ abstract class Condition {
                 }
             }
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	// We support even and odd nth-child conditions.
-        	return this.a != 2 || (this.b != 1 && this.b != 0);
-        }
     }
 
     private static class EvenChildCondition extends Condition {
@@ -537,11 +468,6 @@ abstract class Condition {
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             int position = treeRes.getPositionOfElement(e);
             return position >= 0 && position % 2 == 0;
-        }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
         }
     }
     
@@ -554,11 +480,6 @@ abstract class Condition {
             int position = treeRes.getPositionOfElement(e);
             return position >= 0 && position % 2 == 1;
         }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
-        }
     }
 
     private static class LinkCondition extends Condition {
@@ -568,11 +489,6 @@ abstract class Condition {
 
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             return attRes.isLink(e);
-        }
-
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
         }
     }
 
@@ -586,11 +502,6 @@ abstract class Condition {
 
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             return false;
-        }
-        
-        @Override
-        boolean disablesStyleCache() {
-        	return false;
         }
     }
     
