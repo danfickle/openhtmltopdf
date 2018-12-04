@@ -20,8 +20,6 @@
  */
 package com.openhtmltopdf.util;
 
-import com.openhtmltopdf.DefaultCSSMarker;
-
 import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
@@ -30,7 +28,6 @@ import java.util.logging.Logger;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.MalformedURLException;
-
 
 /**
  * <p>Stores runtime configuration information for application parameters that may
@@ -101,7 +98,7 @@ public class Configuration {
     /**
      * The location of our default properties file; must be on the CLASSPATH.
      */
-    private final static String SF_FILE_NAME = "resources/conf/xhtmlrenderer.conf";
+    private final static String SF_FILE_NAME = "/resources/conf/xhtmlrenderer.conf";
 
     /**
      * Default constructor. Will parse default configuration file, system properties, override properties, etc. and
@@ -255,30 +252,21 @@ public class Configuration {
 
 
     /**
-     * Loads the default set of properties, which may be overridden.
+     * Loads the default set of properties.
      */
     private void loadDefaultProperties() {
-        try {
-            InputStream readStream = GeneralUtil.openStreamFromClasspath(new DefaultCSSMarker(), SF_FILE_NAME);
-
+        try (InputStream readStream = Configuration.class.getResourceAsStream(SF_FILE_NAME)){
             if (readStream == null) {
                 System.err.println("WARNING: Flying Saucer: No configuration files found in classpath using URL: " + SF_FILE_NAME + ", resorting to hard-coded fallback properties.");
                 this.properties = newFallbackProperties();
             } else {
-                try {
-                    this.properties = new Properties();
-                    this.properties.load(readStream);
-                } finally {
-                    readStream.close();
-                }
+                this.properties = new Properties();
+                this.properties.load(readStream);
+                info("Configuration loaded from " + SF_FILE_NAME);
             }
-        } catch (RuntimeException rex) {
-            throw rex;
         } catch (Exception ex) {
-            throw new RuntimeException("Could not load properties file for configuration.",
-                    ex);
+            throw new RuntimeException("Could not load properties file for configuration.", ex);
         }
-        info("Configuration loaded from " + SF_FILE_NAME);
     }
 
     /**

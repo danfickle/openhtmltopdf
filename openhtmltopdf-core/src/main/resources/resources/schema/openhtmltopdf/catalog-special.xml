@@ -5,8 +5,8 @@
 <!-- XML Catalog data for special DTD created for OpenHTMLToPDF ................................ -->
 <!-- ...................................................................... -->
 
-  <public publicId="-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" uri="resources/schema/openhtmltopdf/char-entities-xhtml-only.ent" />
-  <public publicId="-//OPENHTMLTOPDF//MATH XHTML Character Entities With MathML 1.0//EN" uri="resources/schema/openhtmltopdf/char-entities-xhtml-mathml.ent" />
+  <public publicId="-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" uri="/resources/schema/openhtmltopdf/char-entities-xhtml-only.ent" />
+  <public publicId="-//OPENHTMLTOPDF//MATH XHTML Character Entities With MathML 1.0//EN" uri="/resources/schema/openhtmltopdf/char-entities-xhtml-mathml.ent" />
   
 <!-- ...................................................................... -->
 
