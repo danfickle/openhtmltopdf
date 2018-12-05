@@ -1,0 +1,53 @@
+<html>
+<head>
+<style>
+@page {
+ size: 300px 400px;
+ margin: 10px;
+}
+body {
+  margin: 0;
+  border: 2px solid black;
+  min-height: 700px;
+}
+div {
+ position: absolute;
+ width: 100px;
+ height: 100px;
+ margin: 2px;
+}
+#t-1 {
+ top: 0;
+ left: 0;
+ background-color: red;
+}
+#t-2 {
+ top: 100px;
+ left: 100px;
+ background-color: blue;
+}
+#t-3 {
+ right: 0;
+ top: 0;
+ background-color: green;
+}
+#t-4 {
+  bottom: 10px;
+  left: 50px;
+  background-color: pink;
+}
+pb {
+  display: block;
+  page-break-before: always;
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; color: white; font-size: 20px;">
+<div id="t-1">ABC</div>
+<div id="t-2">DEF</div>
+<div id="t-3">GHI</div>
+<div id="t-4">JKL</div>
+<div id="t-5">MNO</div>
+<pb/>
+</body>
+</html>
