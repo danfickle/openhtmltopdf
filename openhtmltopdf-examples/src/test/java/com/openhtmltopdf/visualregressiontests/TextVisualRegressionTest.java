@@ -91,4 +91,12 @@ public class TextVisualRegressionTest {
     public void testPositioningAbsolute() throws IOException {
         assertTrue(run("positioning-absolute"));
     }
+    
+    /**
+     * Tests z-index property for text with absolute positioned elements. 
+     */
+    @Test
+    public void testZIndexWithAbsolutePosition() throws IOException {
+        assertTrue(run("z-index-absolute"));
+    }
 }

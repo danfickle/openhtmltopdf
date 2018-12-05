@@ -1,0 +1,39 @@
+<html>
+<head>
+<style>
+div {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+}
+body {
+  position: relative;
+}
+
+#one {
+  top: 0;
+  background-color: red;
+  z-index: 3;
+}
+
+#two {
+  left: 30px;
+  top: 30px;
+  background-color: blue;
+  z-index: 2;
+}
+
+#three {
+  left: 60px;
+  top: 60px;
+  background-color: green;
+  z-index: 1;
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; color: white; font-size: 30px;">
+ <div id="one">ABC</div>
+ <div id="two">DEFGH</div>
+ <div id="three">GHIJK</div>
+</body>
+</html>
