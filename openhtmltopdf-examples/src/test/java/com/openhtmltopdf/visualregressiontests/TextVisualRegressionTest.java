@@ -99,4 +99,12 @@ public class TextVisualRegressionTest {
     public void testZIndexWithAbsolutePosition() throws IOException {
         assertTrue(run("z-index-absolute"));
     }
+    
+    /**
+     * Tests fixed element text is repeated on each page.
+     */
+    @Test
+    public void testPositioningFixed() throws IOException {
+        assertTrue(run("positioning-fixed"));
+    } 
 }
