@@ -107,4 +107,16 @@ public class TextVisualRegressionTest {
     public void testPositioningFixed() throws IOException {
         assertTrue(run("positioning-fixed"));
     } 
+
+    /**
+     * Tests overflow:hidden and visible with text. Containers are static blocks.
+     * Overflow content includes static blocks and floats.
+     */
+    @Test
+    public void testOverflow() throws IOException {
+        assertTrue(run("overflow"));
+    }
+    
+
+
 }
