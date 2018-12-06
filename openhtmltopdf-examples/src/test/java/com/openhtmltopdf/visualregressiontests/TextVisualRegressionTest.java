@@ -125,6 +125,12 @@ public class TextVisualRegressionTest {
         assertTrue(run("horiz-page-overflow-static"));
     }
     
-
+    /**
+     * Tests that absolute positioned block text overflows onto inserted shadow page.
+     */
+    @Test
+    public void testHorizPageOverflowAbsolute() throws IOException {
+        assertTrue(run("horiz-page-overflow-absolute"));
+    }
 
 }
