@@ -117,6 +117,14 @@ public class TextVisualRegressionTest {
         assertTrue(run("overflow"));
     }
     
+    /**
+     * Tests that static block text overflows onto inserted shadow page. 
+     */
+    @Test
+    public void testHorizPageOverflowStatic() throws IOException {
+        assertTrue(run("horiz-page-overflow-static"));
+    }
+    
 
 
 }
