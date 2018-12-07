@@ -29,6 +29,7 @@ import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.StandardObjectDrawerFactory;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -123,17 +124,24 @@ public class TestcaseRunner {
 	 * Will throw an exception if a SEVERE or WARNING message is logged.
 	 */
 	public static void runTestWithoutOutput(String testCaseFile) throws Exception {
-		runTestWithoutOutput(testCaseFile, false);
+		runTestWithoutOutput(testCaseFile, PdfAConformance.NONE, false);
+	}
+        
+        /**
+	 * Will throw an exception if a SEVERE or WARNING message is logged.
+	 */
+	public static void runTestWithoutOutput(String testCaseFile, PdfAConformance pdfaConformance) throws Exception {
+		runTestWithoutOutput(testCaseFile, pdfaConformance, false);
 	}
 
 	/**
 	 * Will silently let ALL log messages through.
 	 */
 	public static void runTestWithoutOutputAndAllowWarnings(String testCaseFile) throws Exception {
-		runTestWithoutOutput(testCaseFile, true);
+		runTestWithoutOutput(testCaseFile, PdfAConformance.NONE, true);
 	}
 
-	private static void runTestWithoutOutput(String testCaseFile, boolean allowWarnings) throws Exception {
+	private static void runTestWithoutOutput(String testCaseFile, PdfAConformance pdfaConformance, boolean allowWarnings) throws Exception {
 		System.out.println("Trying to run: " + testCaseFile);
 
 		byte[] htmlBytes = IOUtils
@@ -166,14 +174,14 @@ public class TestcaseRunner {
 			}
 		});
 
-		renderPDF(html, outputStream);
+		renderPDF(html, pdfaConformance, outputStream);
 
 		if (!warnings.isEmpty() && !allowWarnings) {
 			throw warnings.get(0);
 		}
 	}
 
-	private static void renderPDF(String html, OutputStream outputStream) throws Exception {
+	private static void renderPDF(String html, PdfAConformance pdfaConformance, OutputStream outputStream) throws Exception {
 		try {
 			PdfRendererBuilder builder = new PdfRendererBuilder();
 			builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
@@ -183,6 +191,7 @@ public class TestcaseRunner {
 			builder.useMathMLDrawer(new MathMLDrawer());
 			builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
 			builder.useObjectDrawerFactory(buildObjectDrawerFactory());
+                        builder.usePdfAConformance(pdfaConformance);
 
 			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
 			builder.toStream(outputStream);
@@ -241,7 +250,7 @@ public class TestcaseRunner {
 		String testCaseOutputFile = outDir + "/" + testCaseFile + ".pdf";
 		String testCaseOutputPNGFile = outDir + "/" + testCaseFile + ".png";
 		FileOutputStream outputStream = new FileOutputStream(testCaseOutputFile);
-		renderPDF(html, outputStream);
+		renderPDF(html, PdfAConformance.NONE, outputStream);
 		System.out.println("Wrote " + testCaseOutputFile);
 
 		renderPNG(html, testCaseOutputPNGFile);
