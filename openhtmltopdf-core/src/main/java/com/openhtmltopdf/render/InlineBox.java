@@ -36,11 +36,11 @@ import com.openhtmltopdf.layout.TextUtil;
 import com.openhtmltopdf.layout.WhitespaceStripper;
 
 /**
- * A class which reprsents a portion of an inline element. If an inline element
+ * A class which represents a portion of an inline element. If an inline element
  * does not contain any nested elements, then a single <code>InlineBox</code>
  * object will contain the content for the entire element. Otherwise multiple
  * <code>InlineBox</code> objects will be created corresponding to each
- * discrete chunk of text appearing in the elment. It is not rendered directly
+ * discrete chunk of text appearing in the element. It is not rendered directly
  * (and hence does not extend from {@link Box}), but does play an important
  * role in layout (for example, when calculating min/max widths). Note that it
  * does not contain children. Inline content is stored as a flat list in the
@@ -235,7 +235,7 @@ public class InlineBox implements Styleable {
 
     private int calcMinWidthFromWordLength(
             LayoutContext c, int cbWidth, boolean trimLeadingSpace, boolean includeWS) {
-        int spaceWidth = getSpaceWidth(c);
+        int spaceWidth = -1;
 
         int last = 0;
         int current = 0;
@@ -291,6 +291,9 @@ public class InlineBox implements Styleable {
                 } else {
                     break;
                 }
+            }
+            if (spaceCount > 0 && spaceWidth == -1) {
+                spaceWidth = getSpaceWidth(c);
             }
         }
 
