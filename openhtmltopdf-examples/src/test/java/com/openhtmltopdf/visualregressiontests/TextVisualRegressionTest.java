@@ -164,5 +164,13 @@ public class TextVisualRegressionTest {
     public void testHorizPageOverflowFixed() throws IOException {
         assertTrue(run("horiz-page-overflow-fixed"));
     }
+    
+    /**
+     * Tests that nowrap and too long text overflows onto inserted shadow page.
+     */
+    @Test
+    public void testHorizPageOverflowInline() throws IOException {
+        assertTrue(run("horiz-page-overflow-inline"));
+    }
 
 }
