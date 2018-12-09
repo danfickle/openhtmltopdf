@@ -132,5 +132,13 @@ public class TextVisualRegressionTest {
     public void testHorizPageOverflowAbsolute() throws IOException {
         assertTrue(run("horiz-page-overflow-absolute"));
     }
+    
+    /**
+     * Tests that static floated block text overflows onto inserted shadow page.
+     */
+    @Test
+    public void testHorizPageOverflowFloat() throws IOException {
+        assertTrue(run("horiz-page-overflow-float"));
+    }
 
 }
