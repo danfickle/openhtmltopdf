@@ -140,5 +140,13 @@ public class TextVisualRegressionTest {
     public void testHorizPageOverflowFloat() throws IOException {
         assertTrue(run("horiz-page-overflow-float"));
     }
+    
+    /**
+     * Tests that non-paginated table column text overflows onto inserted shadow page.
+     */
+    @Test
+    public void testHorizPageOverflowTable() throws IOException {
+        assertTrue(run("horiz-page-overflow-table"));
+    }
 
 }
