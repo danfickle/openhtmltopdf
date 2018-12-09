@@ -156,5 +156,13 @@ public class TextVisualRegressionTest {
     public void testHorizPageOverflowTablePaged() throws IOException {
         assertTrue(run("horiz-page-overflow-table-paged"));
     }
+    
+    /**
+     * Tests that fixed block text does NOT overflow onto inserted shadow pages.
+     */
+    @Test
+    public void testHorizPageOverflowFixed() throws IOException {
+        assertTrue(run("horiz-page-overflow-fixed"));
+    }
 
 }
