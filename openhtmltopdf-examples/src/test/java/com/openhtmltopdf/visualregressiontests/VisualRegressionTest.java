@@ -451,6 +451,14 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests that simple page margins work on inserted overflow pages.
+     */
+    @Test
+    public void testPageMarginsHorizPageOverflow() throws IOException {
+        assertTrue(vt.runTest("page-margins-horiz-page-overflow"));
+    }
+    
+    /**
      * Tests a simple transform in top-center, bottom-center, left-middle, right-middle.
      */
     @Test
@@ -608,11 +616,11 @@ public class VisualRegressionTest {
     }
     
     // TODO:
+    // + Running and page margins on overflow pages.
     // + Elements that appear just on generated overflow pages. Especially inline-block.
     // + content property (page counters, etc)
     // + Inline layers.
     // + Replaced elements.
     // + vertical page overflow, page-break-inside, etc.
-    // + Text tests.
     // + CSS columns.
 }
