@@ -190,4 +190,14 @@ public class TextVisualRegressionTest {
     public void testHorizPageOverflowInlineBlock2() throws IOException {
         assertTrue(run("horiz-page-overflow-inline-block-2"));
     }
+    
+    /**
+     * Tests that overflow:hidden text does NOT generate shadow pages. Includes case where content
+     * is absolute block and a case where content is a static block. 
+     */
+    @Test
+    @Ignore // Text is causing overflow pages and text appears on overflow pages in contravention of overflow hidden.
+    public void testHorizPageOverflowHidden() throws IOException {
+        assertTrue(run("horiz-page-overflow-hidden"));
+    }
 }
