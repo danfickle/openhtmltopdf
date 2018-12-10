@@ -208,4 +208,12 @@ public class TextVisualRegressionTest {
     public void testHorizPageOverflowTransform() throws IOException {
         assertTrue(run("horiz-page-overflow-transform"));
     }
+    
+    /**
+     * Tests that text content transformed past page edge generates a shadow page.
+     */
+    @Test
+    public void testHorizPageOverflowTransform2() throws IOException {
+        assertTrue(run("horiz-page-overflow-transform-2"));
+    }
 }
