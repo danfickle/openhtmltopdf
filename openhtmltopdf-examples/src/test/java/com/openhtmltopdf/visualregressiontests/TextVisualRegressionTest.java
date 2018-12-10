@@ -172,5 +172,13 @@ public class TextVisualRegressionTest {
     public void testHorizPageOverflowInline() throws IOException {
         assertTrue(run("horiz-page-overflow-inline"));
     }
+    
+    /**
+     * Tests that static inline-block text overflows onto inserted shadow page.
+     */
+    @Test
+    public void testHorizPageOverflowInlineBlock() throws IOException {
+        assertTrue(run("horiz-page-overflow-inline-block"));
+    }
 
 }
