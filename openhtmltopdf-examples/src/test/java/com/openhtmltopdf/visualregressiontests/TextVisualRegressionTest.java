@@ -216,4 +216,41 @@ public class TextVisualRegressionTest {
     public void testHorizPageOverflowTransform2() throws IOException {
         assertTrue(run("horiz-page-overflow-transform-2"));
     }
+    
+    /**
+     * Tests that a nowrap span inside a line wraps to a new line if needed. Issue 302.
+     */
+    @Test
+    @Ignore // Greedily puts nowrap span on same line even though it does not fit.
+    public void testLineWrapNoWrapSpan() throws IOException {
+        assertTrue(run("line-wrap-nowrap-span"));
+    }
+
+    /**
+     * Tests that an element boundary is NOT seen as a line break opportunity by itself (eg. mid word). Issue 39.
+     */
+    @Test
+    @Ignore // Element start and finish are seen as line breaking opportunities.
+    public void testLineWrapShouldNotWrapElementBoundary() throws IOException {
+        assertTrue(run("line-wrap-should-not-wrap-element-boundary"));
+    }
+    
+    /**
+     * Tests that with word-wrap: break-word an oversized word will start on its
+     * own line and be split over as many lines as needed.
+     */
+    @Test
+    public void testLineWrapBreakWord() throws IOException {
+        assertTrue(run("line-wrap-break-word"));
+    }
+    
+    /**
+     * Tests that word-break: break-all is supported. Ie. A break can be inserted in the middle of 
+     * a word at the end of the line even if the word could fit on a line by itself. Issue 113.
+     */
+    @Test
+    @Ignore // We do not support the word-break CSS property.
+    public void testLineWrapBreakAll() throws IOException {
+        assertTrue(run("line-wrap-break-all"));
+    }
 }

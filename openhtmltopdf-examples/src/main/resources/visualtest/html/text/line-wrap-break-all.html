@@ -1,0 +1,18 @@
+<html>
+<head>
+<style>
+@page {
+ size: 200px 200px;
+ margin: 10px;
+}
+body {
+  margin: 0;
+  max-width: 180px;
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; color: black; font-size: 20px; word-break: break-all;">
+<!-- The over sized word starting with M should NOT have a line break before it and it should split over as many lines as needed. -->
+ABCDEFGHIJ A B C D MNOPQRSTUVWXYZ123456789 A B C D
+</body>
+</html>
