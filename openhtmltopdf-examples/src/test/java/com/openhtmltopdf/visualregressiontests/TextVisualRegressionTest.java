@@ -253,4 +253,12 @@ public class TextVisualRegressionTest {
     public void testLineWrapBreakAll() throws IOException {
         assertTrue(run("line-wrap-break-all"));
     }
+    
+    /**
+     * Tests that white-space: pre-wrap works as specified. Issue 305.
+     */
+    @Test
+    public void testLineWrapPreWrap() throws IOException {
+        assertTrue(run("line-wrap-pre-wrap"));
+    }
 }
