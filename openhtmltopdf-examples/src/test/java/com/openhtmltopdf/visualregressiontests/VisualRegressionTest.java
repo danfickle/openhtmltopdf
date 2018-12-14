@@ -399,6 +399,14 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests that two transforms in a row do not impact each other. Issue 259.
+     */
+    @Test
+    public void testTransformConsecutive() throws IOException {
+        assertTrue(vt.runTest("transform-consecutive"));
+    }
+    
+    /**
      * Tests that a grandchild inline-block does not overflow its grandparent with overflow hidden.
      */
     @Test
