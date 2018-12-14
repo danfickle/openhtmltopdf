@@ -407,6 +407,15 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests that a transformed element does not impact subsequent elements. Issue 260.
+     */
+    @Test
+    @Ignore // Images in absolute and fixed positioned elements are not showing up!
+    public void testTransformSubsequent() throws IOException {
+        assertTrue(vt.runTest("transform-subsequent"));
+    }
+    
+    /**
      * Tests that a grandchild inline-block does not overflow its grandparent with overflow hidden.
      */
     @Test
