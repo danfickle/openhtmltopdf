@@ -844,6 +844,9 @@ public class BlockBox extends Box implements InlinePaintable {
         } else if (style.requiresLayer() && this.getLayer() == null) {
             pushedLayer = true;
             c.pushLayer(this);
+        } else if (style.requiresLayer()) {
+            pushedLayer = true;
+            c.pushLayer(this.getLayer());
         }
 
         if (style.isFixedBackground()) {
