@@ -294,6 +294,15 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests that a img inside an absolute positioned element shows up.
+     */
+    @Test
+    @Ignore // Image not showing up or inserted in PDF.
+    public void testReplacedImgInsideAbsolute() throws IOException {
+        assertTrue(vt.runTest("replaced-img-inside-absolute"));
+    }
+    
+    /**
      * Tests that page-break-inside: avoid works for svg elements.
      */
     @Test
