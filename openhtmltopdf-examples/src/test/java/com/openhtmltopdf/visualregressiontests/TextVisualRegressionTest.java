@@ -19,7 +19,7 @@ import com.openhtmltopdf.visualtest.VisualTester;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
 public class TextVisualRegressionTest {
-    private VisualTester vt;
+    private VisualTester vtester;
     
     /**
      * A simple line breaker so that our tests are not reliant on the external Java API.
@@ -74,7 +74,7 @@ public class TextVisualRegressionTest {
         File overrideDirectory = new File("target/test/visual-tests/user-override/");
         File outputDirectory = new File("target/test/visual-tests/test-output/");
         
-        vt = new VisualTester("/visualtest/html/text/", /* Resource path. */
+        vtester = new VisualTester("/visualtest/html/text/", /* Resource path. */
                 new File("src/main/resources/visualtest/expected/text/"), /* Expected directory */
                 overrideDirectory,
                 outputDirectory
@@ -82,7 +82,7 @@ public class TextVisualRegressionTest {
     }
     
     private boolean run(String resource) throws IOException {
-        return vt.runTest(resource, WITH_FONT);
+        return vtester.runTest(resource, WITH_FONT);
     }
     
     /**
@@ -260,5 +260,54 @@ public class TextVisualRegressionTest {
     @Test
     public void testLineWrapPreWrap() throws IOException {
         assertTrue(run("line-wrap-pre-wrap"));
+    }
+    
+    /**
+     * Tests that text content dows not overflow a static block with overflow:hidden.
+     */
+    @Test
+    public void testHiddenStatic() throws IOException {
+        assertTrue(run("hidden-static"));
+    }
+    
+    /**
+     * Tests that text in a static inline-block content does not overflow a static block with overflow:hidden.
+     */
+    @Test
+    public void testHiddenInlineBlock() throws IOException {
+        assertTrue(run("hidden-inline-block"));
+    }
+
+    /**
+     * Tests that text in a floated block does not overflow a static block with overflow:hidden.
+     */
+    @Test
+    public void testHiddenFloat() throws IOException {
+        assertTrue(run("hidden-float"));
+    }
+    
+    /**
+     * Tests that text in transformed static blocks does not overflow static block parent with overflow:hidden.
+     */
+    @Test
+    public void testHiddenTransform() throws IOException {
+        assertTrue(run("hidden-transform"));
+    }
+    
+    /**
+     * Tests that text in an absolute block does not overflow relative block parent with overflow:hidden.
+     */
+    @Test
+    public void testHiddenAbsolute() throws IOException {
+        assertTrue(run("hidden-absolute"));
+    }
+    
+    /**
+     * Tests that overflow hidden inside a transformed element correctly uses
+     * the transformed coordinate space.
+     */
+    @Test
+    public void testHiddenInsideTransform() throws IOException {
+        assertTrue(run("hidden-inside-transform"));
     }
 }
