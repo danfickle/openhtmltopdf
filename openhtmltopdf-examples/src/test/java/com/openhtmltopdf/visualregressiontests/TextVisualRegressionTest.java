@@ -303,6 +303,15 @@ public class TextVisualRegressionTest {
     }
     
     /**
+     * Tests that text in an absolute block does not overflow relative block parent with overflow:hidden.
+     * Issue 273.
+     */
+    @Test
+    public void testHiddenAbsolute2() throws IOException {
+        assertTrue(run("hidden-absolute-2"));
+    }
+    
+    /**
      * Tests that overflow hidden inside a transformed element correctly uses
      * the transformed coordinate space.
      */
