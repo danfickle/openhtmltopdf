@@ -246,10 +246,12 @@ public class DisplayListCollector {
 		}
 	    
 	    boolean pushedClip = false;
-	    
-	    if (floater.getClipBox(c, floater.getContainingLayer()) != null) {
+
+	    Rectangle clipBox = floater.getParentClipBox(c, floater.getContainingLayer());
+
+	    if (clipBox != null) {
             // There is a clip in effect, so use it.
-            DisplayListOperation dlo = new PaintPushClipRect(floater.getClipBox(c, floater.getContainingLayer()));
+            DisplayListOperation dlo = new PaintPushClipRect(clipBox);
             pageInstructions.addOp(dlo);
             pushedClip = true;
         }

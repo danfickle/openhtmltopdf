@@ -218,6 +218,15 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests that static block content does not overflow a floater with overflow set to hidden.
+     * Similar to {@link #testHiddenBorder()}
+     */
+    @Test
+    public void testHiddenInsideFloat() throws IOException {
+        assertTrue(vt.runTest("hidden-inside-float"));
+    }
+    
+    /**
      * Tests that in the case static block :: static block :: static floated block, that the floated
      * element does not overflow its grand parent which has overflow:hidden. 
      */
@@ -626,7 +635,6 @@ public class VisualRegressionTest {
      * Tests than an inline block, floated, with border, that the border is visible. Issue 297.
      */
     @Test
-    @Ignore // Border is not visible on a floated element with overflow hidden.
     public void testHiddenBorder() throws IOException {
         assertTrue(vt.runTest("hidden-border"));
     }

@@ -1,0 +1,19 @@
+<html>
+<head>
+<style>
+@page {
+ size: 80px 60px;
+ margin: 10px;
+}
+body {
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<!-- The inner blue box should not overflow the orange border. -->
+<div style="background-color: red; width: 10px; height: 20px; overflow: hidden; border: 2px solid orange; float: left;">
+  <div style="background-color: blue; width: 150%; height: 70%; margin-top: 3px; margin-left: -10%;"></div>
+</div>
+</body>
+</html>
