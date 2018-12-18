@@ -41,7 +41,7 @@ public class ImageReplacedElement implements ReplacedElement {
 
     /**
      * Creates a new ImageReplacedElement and scales it to the size specified if either width or height has a valid
-     * value (values are > -1), otherwise original size is preserved. The idea is that the image was loaded at
+     * value (values are &gt; -1), otherwise original size is preserved. The idea is that the image was loaded at
      * a certain size (that's the Image instance here) and that at the time we create the ImageReplacedElement
      * we have a target W/H we want to use.
      *

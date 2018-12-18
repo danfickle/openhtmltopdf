@@ -1,0 +1,30 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 40px;
+  @top-center {
+    content: element(hdr);
+  }
+}
+.header {
+  height: 40px;
+  position: running(hdr);
+  border-collapse: collapse;
+}
+td, th {
+  width: 10px;
+  height: 20px;
+}
+</style>
+</head>
+<body>
+<table class="header">
+<tr><th style="background-color: red;"></th><th style="background-color: blue;"></th></tr>
+<tr><td style="background-color: green;"></td><td style="background-color: orange;"></td></tr>
+</table>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

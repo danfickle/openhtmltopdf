@@ -1,0 +1,22 @@
+<html>
+<head>
+<style>
+@page {
+  size: A4;
+  margin: 0;
+}
+</style>
+<bookmarks>
+  <bookmark name="Outer" href="#secondpage">
+    <bookmark name="Inner" href="#thirdpage"/>
+  </bookmark>
+</bookmarks>
+</head>
+<body>
+   <div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+
+   <div id="secondpage" style="background-color: red; height: 10px;"></div>
+   <div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+   <div id="thirdpage" style="background-color: green; height: 10px;"></div>
+</body>
+</html>

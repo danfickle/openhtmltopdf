@@ -21,11 +21,9 @@
 package com.openhtmltopdf.util;
 
 import java.io.*;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 
 /**
  * Description of the Class
@@ -39,50 +37,6 @@ public class GeneralUtil {
      * for 24993066 returns "0024993066"
      */
     public final static java.text.DecimalFormat PADDED_HASH_FORMAT = new java.text.DecimalFormat("0000000000");
-
-    /**
-     * Description of the Method
-     *
-     * @param obj      PARAM
-     * @param resource PARAM
-     * @return Returns
-     */
-    public static InputStream openStreamFromClasspath(Object obj, String resource) {
-        InputStream readStream = null;
-        try {
-            ClassLoader loader = obj.getClass().getClassLoader();
-            if (loader == null) {
-                readStream = ClassLoader.getSystemResourceAsStream(resource);
-            } else {
-                readStream = loader.getResourceAsStream(resource);
-            }
-            if (readStream == null) {
-                URL stream = resource.getClass().getResource(resource);
-                if (stream != null) readStream = stream.openStream();
-            }
-        } catch (Exception ex) {
-            XRLog.exception("Could not open stream from CLASSPATH: " + resource, ex);
-        }
-        return readStream;
-    }
-
-    public static URL getURLFromClasspath(Object obj, String resource) {
-        URL url = null;
-        try {
-            ClassLoader loader = obj.getClass().getClassLoader();
-            if (loader == null) {
-                url = ClassLoader.getSystemResource(resource);
-            } else {
-                url = loader.getResource(resource);
-            }
-            if (url == null) {
-                url = resource.getClass().getResource(resource);
-            }
-        } catch (Exception ex) {
-            XRLog.exception("Could not get URL from CLASSPATH: " + resource, ex);
-        }
-        return url;
-    }
 
     /**
      * Dumps an exception to the console, only the last 5 lines of the stack
@@ -107,7 +61,7 @@ public class GeneralUtil {
      * Returns a String tracking the last n method calls, from oldest to most
      * recent. You can use this as a simple tracing mechanism to find out the
      * calls that got to where you execute the <code>trackBack()</code> call
-     * from. Example:</p>
+     * from. Example:<br>
      * <pre>
      * // called from Box.calcBorders(), line 639
      * String tback = GeneralUtil.trackBack(6);
@@ -329,7 +283,7 @@ public class GeneralUtil {
     }
 
     /**
-     * Converts any special characters into their corresponding HTML entities , for example < to &lt;. This is done using a character
+     * Converts any special characters into their corresponding HTML entities, for example &lt; to &amp;lt;. This is done using a character
      * by character test, so you may consider other approaches for large documents. Make sure you declare the
      * entities that might appear in this replacement, e.g. the latin-1 entities
      * This method was taken from a code-samples website, written and hosted by Real Gagnon, at

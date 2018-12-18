@@ -131,14 +131,14 @@ public abstract class SwingReplacedElementFactory implements ReplacedElementFact
     /**
      * Handles replacement of image elements in the document. May return the same ReplacedElement for a given image
      * on multiple calls. Image will be automatically scaled to cssWidth and cssHeight assuming these are non-zero
-     * positive values. The element is assume to have a src attribute (e.g. it's an <img> element)
+     * positive values. The element is assume to have a src attribute (e.g. it's an &lt;img&gt; element)
      *
      * @param uac       Used to retrieve images on demand from some source.
-     * @param context
+     * @param context   The layout context
      * @param elem      The element with the image reference
      * @param cssWidth  Target width of the image
      * @param cssHeight Target height of the image @return A ReplacedElement for the image; will not be null.
-     * @return
+     * @return the replaced image elemnt created
      */
     protected ReplacedElement replaceImage(UserAgentCallback uac, LayoutContext context, Element elem, int cssWidth, int cssHeight) {
         ReplacedElement re = null;
@@ -241,7 +241,7 @@ public abstract class SwingReplacedElementFactory implements ReplacedElementFact
     /**
      * Adds a form to a local cache for quick lookup.
      *
-     * @param e The element under which the form is keyed (e.g. "<form>" in HTML)
+     * @param e The element under which the form is keyed (e.g. "&lt;form&gt;" in HTML)
      * @param f The form element being stored.
      */
     protected void addForm(Element e, XhtmlForm f) {

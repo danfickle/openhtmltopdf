@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSFunction;
 import com.openhtmltopdf.css.parser.FSRGBColor;
@@ -61,7 +62,7 @@ import com.openhtmltopdf.util.XRRuntimeException;
  * when this style is created. A property retrieved by name should always have
  * only one value in this class (e.g. one-one map). Any methods to retrieve
  * property values from an instance of this class require a valid {@link
- * com.openhtmltopdf.layout.Context} be given to it, for some cases of property
+ * com.openhtmltopdf.layout.LayoutContext} be given to it, for some cases of property
  * resolution. Generally, a programmer will not use this class directly, but
  * will retrieve properties using a {@link com.openhtmltopdf.context.StyleReference}
  * implementation.
@@ -171,7 +172,7 @@ public class CalculatedStyle {
 
     /**
      * derives a child style from this style.
-     * <p/>
+     * <br>
      * depends on the ability to return the identical CascadedStyle each time a child style is needed
      *
      * @param matched the CascadedStyle to apply
@@ -609,7 +610,7 @@ public class CalculatedStyle {
         }
     }
 
-    private FSDerivedValue deriveValue(CSSName cssName, org.w3c.dom.css.CSSPrimitiveValue value) {
+    private FSDerivedValue deriveValue(CSSName cssName, CSSPrimitiveValue value) {
         return DerivedValueFactory.newDerivedValue(this, cssName, (PropertyValue) value);
     }
 

@@ -45,7 +45,7 @@ import java.util.ArrayList;
 public class JDKXRLogger implements XRLogger {
     private static boolean initPending = true;
     
-    /** {@inheritdoc} */
+    /* {@inheritdoc} */
     public void log(String where, Level level, String msg) {
         if (initPending) {
             init();
@@ -54,7 +54,7 @@ public class JDKXRLogger implements XRLogger {
         getLogger(where).log(level, msg);
     }
 
-    /** {@inheritdoc} */
+    /* {@inheritdoc} */
     public void log(String where, Level level, String msg, Throwable th) {
         if (initPending) {
             init();
@@ -63,7 +63,7 @@ public class JDKXRLogger implements XRLogger {
         getLogger(where).log(level, msg, th);
     }
 
-    /** {@inheritdoc} */
+    /* {@inheritdoc} */
     public void setLevel(String logger, Level level) {
         getLogger(logger).setLevel(level);
     }

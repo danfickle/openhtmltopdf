@@ -26,7 +26,7 @@ import java.util.Map;
 
 /**
  * POJO used when calling
- * {@link com.openhtmltopdf.util.ImageUtil#getScaledInstance(ScalingOptions,java.awt.Image)}.
+ * {@link com.openhtmltopdf.util.ImageUtil#getScaledInstance(ScalingOptions,java.awt.image.BufferedImage)}.
  * Encapsulates a set of parameters related to scaling quality and output. Values are final once constructed, except
  * for target width and height, which can be change and the options instance reused.
  * There is a default constructor for average quality and performance.
@@ -42,9 +42,9 @@ public class ScalingOptions {
 	 *
 	 * @param downscalingHint   Directs downscaling quality. One of the enumerated types of
 	 *                          {@link com.openhtmltopdf.util.DownscaleQuality} such as
-	 *                          {@link com.openhtmltopdf.util.ImageUtil.DOWNSCALE_FAST}.
+	 *                          {@link com.openhtmltopdf.util.DownscaleQuality#FAST}.
 	 * @param interpolationHint Hint for interpolation to AWT image renderer, one of the Object constants from
-	 *                          {@link java.awt.RenderingHints} using {@link java.awt.RenderingHints.KEY_INTERPOLATION}
+	 *                          {@link java.awt.RenderingHints} using {@link java.awt.RenderingHints#KEY_INTERPOLATION}
 	 */
 	public ScalingOptions(DownscaleQuality downscalingHint, Object interpolationHint) {
 		this.downscalingHint = downscalingHint;
@@ -68,9 +68,9 @@ public class ScalingOptions {
 	 *                     {@link java.awt.image.BufferedImage#BufferedImage(int,int,int)}
 	 * @param downscalingHint   Directs downscaling quality. One of the enumerated types of
 	 *                          {@link com.openhtmltopdf.util.DownscaleQuality} such as
-	 *                          {@link com.openhtmltopdf.util.ImageUtil.DOWNSCALE_FAST}.
+	 *                          {@link com.openhtmltopdf.util.DownscaleQuality#FAST}.
 	 * @param hint		 Hint for interpolation to AWT image renderer, one of the Object constants from
-	 *                     {@link java.awt.RenderingHints} using {@link java.awt.RenderingHints.KEY_INTERPOLATION}
+	 *                     {@link java.awt.RenderingHints} using {@link java.awt.RenderingHints#KEY_INTERPOLATION}
 	 */
 	public ScalingOptions(int targetWidth, int targetHeight, int type, DownscaleQuality downscalingHint, Object hint) {
 		this(downscalingHint, hint);
@@ -79,14 +79,14 @@ public class ScalingOptions {
 	}
 
 	/**
-	 * @return {@link ScalingOptions#ScalingOptions(int,DownscaleQuality,Object)} docs.
+	 * @return the current scaling hint
 	 */
 	public DownscaleQuality getDownscalingHint() {
 		return downscalingHint;
 	}
 
 	/**
-	 * @return {@link ScalingOptions#ScalingOptions(int,DownscaleQuality,Object)} docs.
+	 * @return the current rendering hint
 	 */
 	public Object getRenderingHint() {
 		return renderingHint;

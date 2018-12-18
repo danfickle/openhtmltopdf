@@ -27,7 +27,7 @@ import com.openhtmltopdf.css.extend.TreeResolver;
 
 /**
  * @author scott
- *         <p/>
+ *         <br>
  *         works for a w3c DOM tree
  */
 public class DOMTreeResolver implements TreeResolver {

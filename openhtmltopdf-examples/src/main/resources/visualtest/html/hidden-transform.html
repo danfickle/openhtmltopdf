@@ -1,0 +1,23 @@
+<html>
+<head>
+<style>
+@page {
+ size: 80px 60px;
+ margin: 10px;
+}
+body {
+  margin: 0;
+  max-width: 60px;
+}
+div {
+  box-sizing: border-box;
+}
+</style>
+</head>
+<body>
+<!-- The inner blue box should not overflow the red box. -->
+<div style="background-color: red; position: static; width: 50%; height: 20px; overflow: hidden;margin-left: 10px;margin-top: 10px;">
+  <div style="background-color: blue; transform: translateX(50%) rotate(45deg); width: 90%; height: 70%; margin-top: 3px; margin-left: -10%;"></div>
+</div>
+</body>
+</html>

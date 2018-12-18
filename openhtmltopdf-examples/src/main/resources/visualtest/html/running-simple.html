@@ -1,0 +1,30 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 30px;
+  @top-center {
+    content: element(hdr);
+  }
+  @bottom-center {
+    content: element(ftr);
+  }
+}
+.header {
+  height: 30px;
+  position: running(hdr);
+}
+.footer {
+  height: 30px;
+  position: running(ftr);
+}
+</style>
+</head>
+<body>
+<div class="header" style="background-color: blue;"></div>
+<div class="footer" style="background-color: red;"></div>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

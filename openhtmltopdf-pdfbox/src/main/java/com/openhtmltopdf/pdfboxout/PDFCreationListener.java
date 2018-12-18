@@ -20,37 +20,28 @@
 package com.openhtmltopdf.pdfboxout;
 
 /**
- * Callback listener for PDF creation. To use this, call {@link ITextRenderer#setListener(PDFCreationListener)}.
- * Note that with a handle on the ITextRenderer instance (provided in the callback arguments) you can access
- * the {@link com.itextpdf.text.pdf.PdfWriter} instance being used to create the document, using
- * {@link ITextRenderer#getOutputDevice()}, then calling {@link ITextOutputDevice#getWriter()}.
+ * Callback listener for PDF creation. To use this, call {@link PdfBoxRenderer#setListener(PDFCreationListener)}.
  */
 public interface PDFCreationListener {
     /**
-     * Called immediately after the iText Document instance is created but before the call to
-     * {@link com.itextpdf.text.Document#open()} is called. At this point you may still modify certain
-     * properties of the PDF document header via the {@link com.itextpdf.text.pdf.PdfWriter}; once
-     * open() is called, you can't change, e.g. the version. See the iText documentation for what limitations
-     * there are at this phase of processing.
+     * Called immediately after the PDF Document instance is created before the content is written.
      *
-     * @param iTextRenderer the renderer preparing the document
+     * @param pdfBoxRenderer the renderer preparing the document
      */
-    void preOpen(PdfBoxRenderer iTextRenderer);
+    void preOpen(PdfBoxRenderer pdfBoxRenderer);
 
     /**
      * Called immediately before the pages of the PDF file are about to be written out.
      * This is an opportunity to modify any document metadata that will be used to generate
-     * the PDF header fields (the document information dictionary). Document metadata may be accessed
-     * through the {@link ITextOutputDevice} that is returned by {@link ITextRenderer#getOutputDevice()}.
+     * the PDF header fields (the document information dictionary).
      *
-     * @param iTextRenderer the renderer preparing the document
+     * @param pdfBoxRenderer the renderer preparing the document
      * @param pageCount the number of pages that will be written to the PDF document
      */
-    void preWrite(PdfBoxRenderer iTextRenderer, int pageCount);
+    void preWrite(PdfBoxRenderer pdfBoxRenderer, int pageCount);
 
     /**
-     * Called immediately before the iText Document instance is closed, e.g. before
-     * {@link com.itextpdf.text.Document#close()} is called.
+     * Called immediately before the Pdf Document instance is closed
      *
      * @param renderer the iTextRenderer preparing the document
      */

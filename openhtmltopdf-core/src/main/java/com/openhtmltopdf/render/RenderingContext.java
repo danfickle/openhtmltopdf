@@ -36,7 +36,7 @@ import com.openhtmltopdf.layout.SharedContext;
  * @author jmarinacci
  *         November 16, 2004
  */
-public class RenderingContext implements CssContext {
+public class RenderingContext implements CssContext, Cloneable {
     protected final SharedContext sharedContext;
     private OutputDevice outputDevice;
     private FontContext fontContext;
@@ -45,15 +45,16 @@ public class RenderingContext implements CssContext {
     
     private int pageNo;
     private PageBox page;
+    private int shadowPageNumber;
     
     private Layer rootLayer;
     
     private int initialPageNo;
     
     private boolean isFastRenderer = false;
+    private boolean inPageMargins = false;
     
     /**
-     * <p/>
      * needs a new instance every run
      */
     public RenderingContext(SharedContext sharedContext) {
@@ -246,6 +247,34 @@ public class RenderingContext implements CssContext {
 
     public Box getBoxById(String id) {
         return sharedContext.getBoxById(id);
+    }
+    
+    public void setShadowPageNumber(int shadow) {
+        this.shadowPageNumber = shadow;
+    }
+    
+    /**
+     * @return overflow page number or -1 if this is not an overflow page.
+     */
+    public int getShadowPageNumber() {
+        return this.shadowPageNumber;
+    }
+    
+    public void setInPageMargins(boolean inMargin) {
+        this.inPageMargins = inMargin;
+    }
+    
+    public boolean isInPageMargins() {
+        return this.inPageMargins;
+    }
+    
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.openhtmltopdf.render.displaylist;
 
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -8,15 +9,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.newtable.CollapsedBorderValue;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
+import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageInfo;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
 public class DisplayListCollector {
@@ -50,6 +54,26 @@ public class DisplayListCollector {
 			dlPages.getPageInstructions(i).addOp(item);
 		}
 	}
+	
+	protected void addItem(DisplayListOperation item, List<PageInfo> pages, DisplayListContainer dlPages) {
+	    for (PageInfo pg : pages) {
+	        if (pg.shadowPageNumber == PageInfo.BASE_PAGE) {
+	            dlPages.getPageInstructions(pg.pageNumber).addOp(item);
+	        } else {
+	            dlPages.getPageInstructions(pg.pageNumber).getShadowPage(pg.shadowPageNumber).addOp(item);
+	        }
+	    }
+	}
+	
+	protected void addTransformItem(Box master, List<PageInfo> pages, DisplayListContainer dlPages) {
+	    for (PageInfo pg : pages) {
+	        if (pg.shadowPageNumber == PageInfo.BASE_PAGE) {
+                dlPages.getPageInstructions(pg.pageNumber).addOp(new PaintPushTransformLayer(master, -1));
+            } else {
+                dlPages.getPageInstructions(pg.pageNumber).getShadowPage(pg.shadowPageNumber).addOp(new PaintPushTransformLayer(master, pg.shadowPageNumber));
+            }
+	    }
+	}
 
 	/**
 	 * Use this method to collect all boxes recursively into a list of paint instructions
@@ -63,11 +87,10 @@ public class DisplayListCollector {
 		// We propagate any transformation matrixes recursively after layout has finished.
 		rootLayer.propagateCurrentTransformationMatrix(c);
 
-		DisplayListContainer displayList = new DisplayListContainer(0, _pages.size() - 1);
+		DisplayListContainer displayList = new ArrayDisplayListContainer(0, _pages.size() - 1);
 
 		// Recursively collect boxes for root layer and any children layers. Don't include
-		// fixed boxes at this point. They are collected by the <code>SinglePageDisplayListCollector</code>
-		// at the point of painting each page.
+		// fixed boxes at this point. They are collected at the point of painting each page.
 		collect(c, rootLayer, displayList, EnumSet.noneOf(CollectFlags.class));
 
 		return displayList;
@@ -86,26 +109,24 @@ public class DisplayListCollector {
 			return;
 		}
 		
+		List<PageInfo> layerPages = PagedBoxCollector.findLayerPages(c, layer, _pages);
 		int layerPageStart = findStartPage(c, layer);
 		int layerPageEnd = findEndPage(c, layer);
+		boolean pushedClip = false;
 
-	    if (layer.hasLocalTransform()) {
-	        DisplayListOperation dlo = new PaintPushTransformLayer(layer.getMaster());
-	        addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+		Rectangle parentClip = layer.getMaster().getParentClipBox(c, layer.getParent());
+
+        if (parentClip != null) {
+            // There is a clip in effect, so use it.
+		    DisplayListOperation dlo = new PaintPushClipRect(parentClip);
+		    addItem(dlo, layerPages, dlPages);
+		    pushedClip = true;
+		}
+		
+		if (layer.hasLocalTransform()) {
+	        addTransformItem(layer.getMaster(), layerPages, dlPages);
 	    }
 		
-		if (!layer.getMaster().getStyle().isPositioned() &&
-			!layer.getClipBoxes().isEmpty()) {
-			// This layer was triggered by a transform. We have to honor the clip of parent elements.
-			DisplayListOperation  dlo = new PaintPushClipLayer(layer.getClipBoxes());
-			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
-		} else {
-			// This layer was triggered by a positioned element. We should honor the clip of the
-			// containing block (closest ancestor with position other than static) and its containing block and
-			// so on.
-			// TODO
-		}
-
 		if (layer.isRootLayer() && layer.getMaster().hasRootElementBackground(c)) {
 
 			// IMPROVEMENT: If the background image doesn't cover every page,
@@ -149,13 +170,12 @@ public class DisplayListCollector {
 		
 		if (layer.hasLocalTransform()) {
 			DisplayListOperation dlo = new PaintPopTransformLayer(layer.getMaster());
-			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+			addItem(dlo, layerPages, dlPages);
 		}
 		
-		if (!layer.getMaster().getStyle().isPositioned() &&
-			!layer.getClipBoxes().isEmpty()) {
-			DisplayListOperation dlo = new PaintPopClipLayer(layer.getClipBoxes());
-			addItem(dlo, layerPageStart, layerPageEnd, dlPages);
+        if (pushedClip) {
+		    DisplayListOperation dlo = new PaintPopClipRect();
+            addItem(dlo, layerPages, dlPages);
 		}
 	}
 
@@ -224,8 +244,24 @@ public class DisplayListCollector {
 		    /* Nothing for this float on this shadow page. */
 		    return;
 		}
+	    
+	    boolean pushedClip = false;
+
+	    Rectangle clipBox = floater.getParentClipBox(c, floater.getContainingLayer());
+
+	    if (clipBox != null) {
+            // There is a clip in effect, so use it.
+            DisplayListOperation dlo = new PaintPushClipRect(clipBox);
+            pageInstructions.addOp(dlo);
+            pushedClip = true;
+        }
 
 		processPage(c, layer, pageBoxes, pageInstructions, false, pageNumber, shadowPageNumber);
+
+		if (pushedClip) {
+		    DisplayListOperation dlo = new PaintPopClipRect();
+		    pageInstructions.addOp(dlo);
+		}
 	}
 
 	private void collectLayerBackgroundAndBorder(RenderingContext c, Layer layer,
@@ -252,7 +288,7 @@ public class DisplayListCollector {
 	// we're about to draw and returns a map with the last cell in a given table
 	// we'll paint as a key and a sorted list of borders as values. These are
 	// then painted after we've drawn the background for this cell.
-	private Map<TableCellBox, List<CollapsedBorderSide>> collectCollapsedTableBorders(RenderingContext c,
+	public static Map<TableCellBox, List<CollapsedBorderSide>> collectCollapsedTableBorders(RenderingContext c,
 			List<TableCellBox> tcells) {
 		Map<TableBox, List<CollapsedBorderSide>> cellBordersByTable = new HashMap<TableBox, List<CollapsedBorderSide>>();
 		Map<TableBox, TableCellBox> triggerCellsByTable = new HashMap<TableBox, TableCellBox>();
@@ -287,11 +323,20 @@ public class DisplayListCollector {
 		}
 	}
 	
+    public DisplayListPageContainer collectInlineBlock(RenderingContext c, BlockBox bb, EnumSet<CollectFlags> noneOf) {
+        DisplayListPageContainer pgInstructions = new DisplayListPageContainer(null);
+        PagedBoxCollector boxCollector = createBoundedBoxCollector(c.getPageNo(), c.getPageNo());
+        boxCollector.collect(c, bb.getContainingLayer(), bb, c.getPageNo(), c.getPageNo(), PagedBoxCollector.PAGE_BASE_ONLY);
+        
+        PageResult pgResult = boxCollector.getPageResult(c.getPageNo());
+        processPage(c, bb.getContainingLayer(), pgResult, pgInstructions, /* includeFloats: */ false, c.getPageNo(), /* shadow page number: */ -1);
+        
+        return pgInstructions;
+    }
+	
 	public DisplayListContainer collectFixed(RenderingContext c, Layer layer) {
         // This is called from the painter to collect fixed boxes just before paint.
-
-	    // TODO: Make more efficient. We onl;y need one page usually.
-        DisplayListContainer res = new DisplayListContainer(0, _pages.size() - 1);
+        DisplayListContainer res = new MapDisplayListContainer(_pages.size(), 1);
         collect(c, layer, res, EnumSet.of(CollectFlags.INCLUDE_FIXED_BOXES));
         return res;
     }

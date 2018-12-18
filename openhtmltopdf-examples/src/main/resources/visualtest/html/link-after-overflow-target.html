@@ -1,0 +1,27 @@
+<html>
+<head>
+<style>
+@page {
+  size: 100px 100px;
+  margin: 0;
+  margin: 10px;
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: ltr;
+}
+body {
+  margin: 0;
+}
+.outer {
+  border: 1px solid black;
+  background-color: red;
+  min-height: 20px;
+}
+</style>
+</head>
+<body>
+   <a style="display: block; height: 10px;background-color: green;" href="#thirdpage"></a>
+   <div class="outer" style="width: 150%; page-break-after: always;"></div>
+
+   <div id="thirdpage" style="background-color: red; height: 10px;;"></div>
+</body>
+</html>

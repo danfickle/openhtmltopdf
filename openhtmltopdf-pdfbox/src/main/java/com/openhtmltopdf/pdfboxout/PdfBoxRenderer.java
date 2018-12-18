@@ -35,7 +35,7 @@ import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.extend.FSDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
-import com.openhtmltopdf.pdfboxout.PdfBoxOutputDevice.Metadata;
+import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import com.openhtmltopdf.render.BlockBox;
@@ -144,7 +144,7 @@ public class PdfBoxRenderer implements Closeable {
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = state._testMode;
         _useFastMode = state._useFastRenderer;
-        _outputDevice = new PdfBoxOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
+        _outputDevice = state._useFastRenderer ? new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode) : new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
         _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
         
@@ -154,18 +154,6 @@ public class PdfBoxRenderer implements Closeable {
         
         if (state._resolver != null) {
             userAgent.setUriResolver(state._resolver);
-        }
-        
-        if (state._cache != null) {
-            userAgent.setExternalCache(state._cache);
-        }
-        
-        if (state._textCache != null) {
-            userAgent.setExternalTextCache(state._textCache);
-        }
-        
-        if (state._byteCache != null) {
-            userAgent.setExternalByteCache(state._byteCache);
         }
         
         _sharedContext = new SharedContext();
@@ -601,16 +589,23 @@ public class PdfBoxRenderer implements Closeable {
         
         DisplayListCollector dlCollector = new DisplayListCollector(_root.getLayer().getPages());
         DisplayListContainer dlPages = dlCollector.collectRoot(c, _root.getLayer()); 
+
+        int pdfPageIndex = 0;
         
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
+            currentPage.setBasePagePdfPageIndex(pdfPageIndex);
             DisplayListPageContainer pageOperations = dlPages.getPageInstructions(i);
             c.setPage(i, currentPage);
-            System.out.println("NEW PAGE");
+            c.setShadowPageNumber(-1);
             paintPageFast(c, currentPage, pageOperations, 0);
             _outputDevice.finishPage();
+            pdfPageIndex++;
             
             if (!pageOperations.shadowPages().isEmpty()) {
+                currentPage.setShadowPageCount(pageOperations.shadowPages().size());
+                
+                int shadowPageIndex = 0;
                 int pageContentWidth = currentPage.getContentWidth(c);
                 int translateX = pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1);
 
@@ -619,15 +614,14 @@ public class PdfBoxRenderer implements Closeable {
                     PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);
                     doc.addPage(shadowPdPage);
 
-                    _outputDevice.initializePage(shadowCs, shadowPdPage, (float) firstPageSize.getHeight());
-                    System.out.println("shadow now!!!");
-                    System.out.println("!!!!!!!!" + translateX + "#" + firstPageSize.getWidth());
+                    _outputDevice.initializePage(shadowCs, shadowPdPage, (float) currentPage.getHeight(c) / _dotsPerPoint);
+                    c.setShadowPageNumber(shadowPageIndex);
                     paintPageFast(c, currentPage, shadowPage, -translateX);
                     _outputDevice.finishPage();
                     translateX += (pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1));
+                    pdfPageIndex++;
                 }
             }
-            
             
             if (i != pageCount - 1) {
                 PageBox nextPage = pages.get(i + 1);
@@ -660,7 +654,7 @@ public class PdfBoxRenderer implements Closeable {
         setDidValues(doc); // set PDF header fields from meta data
 
         if (_pdfAConformance != PdfAConformance.NONE) {
-            addPdfASchema(doc, _pdfAConformance.getConformanceValue());
+            addPdfASchema(doc, _pdfAConformance.getPart(), _pdfAConformance.getConformanceValue());
         }
 
         for (int i = 0; i < pageCount; i++) {
@@ -684,14 +678,14 @@ public class PdfBoxRenderer implements Closeable {
         _outputDevice.finish(c, _root);
     }
 
-    private void addPdfASchema(PDDocument document, String conformance) {
+    private void addPdfASchema(PDDocument document, int part, String conformance) {
         PDDocumentInformation information = document.getDocumentInformation();
         XMPMetadata metadata = XMPMetadata.createXMPMetadata();
 
         try {
             PDFAIdentificationSchema pdfaid = metadata.createAndAddPFAIdentificationSchema();
             pdfaid.setConformance(conformance);
-            pdfaid.setPart(1);
+            pdfaid.setPart(part);
 
             AdobePDFSchema pdfSchema = metadata.createAndAddAdobePDFSchema();
             pdfSchema.setProducer(information.getProducer());
@@ -773,7 +767,11 @@ public class PdfBoxRenderer implements Closeable {
     
     private void paintPageFast(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations, int additionalTranslateX) {
         page.paintBackground(c, 0, Layer.PAGED_MODE_PRINT);
+        
+        c.setInPageMargins(true);
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
+        c.setInPageMargins(false);
+        
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
         Rectangle content = page.getPrintClippingBounds(c);

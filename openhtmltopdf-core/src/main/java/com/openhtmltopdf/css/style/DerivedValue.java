@@ -19,11 +19,10 @@
  */
 package com.openhtmltopdf.css.style;
 
-import org.w3c.dom.css.CSSPrimitiveValue;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.constants.ValueConstants;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.util.XRRuntimeException;
 

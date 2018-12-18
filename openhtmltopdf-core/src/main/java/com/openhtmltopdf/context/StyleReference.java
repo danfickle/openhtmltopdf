@@ -35,6 +35,7 @@ import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.lib.DOMTreeResolver;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
 import com.openhtmltopdf.css.newmatch.PageInfo;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.Stylesheet;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
@@ -139,10 +140,10 @@ public class StyleReference {
      * @return Map of CSS property names to CSSValue instance assigned to it.
      */
     @Deprecated
-	public java.util.Map<String, org.w3c.dom.css.CSSPrimitiveValue> getCascadedPropertiesMap(Element e) {
+	public java.util.Map<String, CSSPrimitiveValue> getCascadedPropertiesMap(Element e) {
         CascadedStyle cs = _matcher.getCascadedStyle(e, false);
         
-		java.util.Map<String, org.w3c.dom.css.CSSPrimitiveValue> props = new java.util.LinkedHashMap<String, org.w3c.dom.css.CSSPrimitiveValue>();
+		java.util.Map<String, CSSPrimitiveValue> props = new java.util.LinkedHashMap<>();
 		
 		for (PropertyDeclaration pd : cs.getCascadedPropertyDeclarations()) {
             String propName = pd.getPropertyName();

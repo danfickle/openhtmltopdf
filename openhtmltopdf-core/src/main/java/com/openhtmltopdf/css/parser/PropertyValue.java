@@ -22,7 +22,6 @@ package com.openhtmltopdf.css.parser;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.util.ArrayUtil;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.css.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,10 +120,6 @@ public class PropertyValue implements CSSPrimitiveValue {
         _propertyValueType = VALUE_TYPE_FUNCTION;
     }
 
-    public Counter getCounterValue() throws DOMException {
-        throw new UnsupportedOperationException();
-    }
-
     public float getFloatValue(short unitType) throws DOMException {
         return _floatValue;
     }
@@ -135,14 +130,6 @@ public class PropertyValue implements CSSPrimitiveValue {
 
     public short getPrimitiveType() {
         return _type;
-    }
-
-    public RGBColor getRGBColorValue() throws DOMException {
-        throw new UnsupportedOperationException();
-    }
-
-    public Rect getRectValue() throws DOMException {
-        throw new UnsupportedOperationException();
     }
 
     public String getStringValue() throws DOMException {

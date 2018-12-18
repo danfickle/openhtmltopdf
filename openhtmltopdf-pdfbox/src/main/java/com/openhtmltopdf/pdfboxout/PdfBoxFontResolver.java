@@ -87,22 +87,6 @@ public class PdfBoxFontResolver implements FontResolver {
 	 * closed.
 	 */
 	public void close() {
-		for (FontDescription fontDescription : _fontCache.values()) {
-			/*
-			 * If the font is not yet subset, we must subset it, otherwise we may leak a
-			 * file handle because the PDType0Font may still have the font file open.
-			 * 
-			 * FIXME: Remove this as soon as we begin using PDFBOX 2.0.12 as it correctly closes
-			 * all fonts opened with a PDDocument.
-			 */
-			if (fontDescription._font != null && fontDescription._font.willBeSubset()) {
-				try {
-					fontDescription._font.subset();
-				} catch (IOException e) {
-					//e.printStackTrace();
-				}
-			}
-		}
 		_fontCache.clear();
 
 		// Close all still open TrueTypeCollections
@@ -777,7 +761,7 @@ public class PdfBoxFontResolver implements FontResolver {
 
         /**
          * Returns whether the font is available yet.
-         * @see {@link #getFont()}
+         * @see #getFont()
          */
         public boolean isFontAvailable() {
             return _font != null;
@@ -808,7 +792,7 @@ public class PdfBoxFontResolver implements FontResolver {
         
         /**
          * If the metrics are available yet.
-         * @see {@link #getFontMetrics()}
+         * @see #getFontMetrics()
          */
         public boolean isMetricsAvailable() {
             return _metrics != null;
@@ -818,7 +802,7 @@ public class PdfBoxFontResolver implements FontResolver {
          * Downloads and parses the font if required (metrics were not available from cache).
          * Should only be called when the font metrics are definitely needed.
          * @return the font metrics or null if there was a problem.
-         * @see {@link #isMetricsAvailable()}
+         * @see #isMetricsAvailable()
          */
         public PdfBoxRawPDFontMetrics getFontMetrics() {
             if (!isMetricsAvailable()) {

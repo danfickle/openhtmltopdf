@@ -233,7 +233,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	/**
 	 * List of caches available.
 	 */
-	public static enum CacheStore {
+	public enum CacheStore {
 	    
 	    /**
 	     * Caches font metrics, based on a combined key of family name, weight and style.
@@ -247,7 +247,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * Use a specific cache. Cache values should be thread safe, so provided your cache store itself
 	 * is thread safe can be used accross threads.
 	 * @return this for method chaining.
-	 * @see {@link CacheStore}
+	 * @see CacheStore
 	 */
 	public PdfRendererBuilder useCacheStore(CacheStore which, FSCacheEx<String, FSCacheValue> cache) {
 	    state._caches.put(which, cache);
@@ -280,17 +280,25 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * PDF/A-1, PDF/A-2 and PDF/A-3
 	 */
 	public enum PdfAConformance {
-                NONE(""),
-		PDF_A_1("A"), PDF_A_2("B"), PDF_A_3("U");
+		NONE(-1, ""),
+		PDFA_1_A(1, "A"), PDFA_1_B(1, "B"),
+		PDFA_2_A(2, "A"), PDFA_2_B(2, "B"), PDFA_2_U(2, "U"),
+		PDFA_3_A(3, "A"), PDFA_3_B(3, "B"), PDFA_3_U(3, "U");
 
-		PdfAConformance(String value) {
+		PdfAConformance(int part, String value) {
+			this.part = part;
 			this.value = value;
 		}
 
+		private final int part;
 		private final String value;
 		
 		public String getConformanceValue() {
 		    return this.value;
+		}
+
+		public int getPart() {
+			return this.part;
 		}
 	}
 }

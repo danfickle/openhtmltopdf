@@ -22,9 +22,8 @@ package com.openhtmltopdf.css.style;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
-import org.w3c.dom.css.CSSPrimitiveValue;
-
 import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 
 public class FontSizeHelper {

@@ -65,10 +65,6 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
         
         ImageResource resource = _imageCache.get(uriResolved);
         
-        if (resource == null) {
-            resource = (ImageResource) _externalCache.get(new FSCacheKey(uriResolved, PdfBoxImage.class));
-        }
-
         if (resource != null && resource.getImage() instanceof PdfBoxImage) {
             // Make copy of PdfBoxImage so we don't stuff up the cache.
             PdfBoxImage original = (PdfBoxImage) resource.getImage();
@@ -106,7 +102,6 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
                         resource = new ImageResource(uriResolved, fsImage);
                     }
                     _imageCache.put(uriResolved, resource);
-                    _externalCache.put(new FSCacheKey(uriResolved, PdfBoxImage.class), resource);
                 } catch (Exception e) {
                     XRLog.exception(
                             "Can't read image file; unexpected problem for URI '"

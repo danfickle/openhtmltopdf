@@ -23,10 +23,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.constants.ValueConstants;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.layout.SharedContext;
 
 import javax.swing.*;
@@ -346,10 +346,10 @@ class ElementPropertiesPanel extends JPanel {
             } else if (col == 2) {
                 PropertiesTableModel pmodel = (PropertiesTableModel) this.getModel();
                 Map.Entry me = (Map.Entry) pmodel._properties.entrySet().toArray()[row];
-                CSSPrimitiveValue cpv = (CSSPrimitiveValue) me.getValue();
-                if (cpv.getCssText().startsWith("rgb")) {
-                    label.setBackground(com.openhtmltopdf.css.util.ConversionUtil.rgbToColor(cpv.getRGBColorValue()));
-                }
+//                CSSPrimitiveValue cpv = (CSSPrimitiveValue) me.getValue();
+//                if (cpv.getCssText().startsWith("rgb")) {
+//                    label.setBackground(com.openhtmltopdf.css.util.ConversionUtil.rgbToColor(cpv.getRGBColorValue()));
+//                }
             }
             return (TableCellRenderer) label;
         }

@@ -3,11 +3,13 @@ package com.openhtmltopdf.render.displaylist;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.PaintingInfo;
@@ -248,13 +250,6 @@ public class PagedBoxCollector {
 	private final List<PageBox> pages;
 	private final PageFinder finder;
 	private final int startPage;
-	
-	protected PagedBoxCollector() {
-	    this.result = null;
-	    this.pages = null;
-	    this.finder = null;
-	    this.startPage = 0;
-	}
 	
 	/**
 	 * A more efficient paged box collector that can only find boxes on pages minPage to
@@ -619,8 +614,16 @@ public class PagedBoxCollector {
         
         AffineTransform ctm = container.getContainingLayer().getCurrentTransformMatrix();
         Rectangle bounds = container.getBorderBox(c);
-        int maxX = (int) (ctm == null ? bounds.getMaxX() : getMaxXFromTransformedBox(bounds, ctm));
-        int maxShadowPages = basePageBox.getMaxShadowPagesForXPos(c, maxX);
+        FourPoint corners = ctm == null ? null : getCornersFromTransformedBounds(bounds, ctm);
+
+        int maxShadowPages;
+        if (basePageBox.getCutOffPageDirection() == IdentValue.LTR) { 
+            int maxX = (int) (ctm == null ? bounds.getMaxX() : getMaxX(corners));
+            maxShadowPages = Math.min(basePageBox.getMaxInsertedPages(), basePageBox.getMaxShadowPagesForXPos(c, maxX));
+        } else {
+            int minX = (int) (ctm == null ? bounds.getMinX() : getMinX(corners));
+            maxShadowPages = Math.min(basePageBox.getMaxInsertedPages(), basePageBox.getMaxShadowPagesForXPos(c, minX));
+        }
         
         for (int i = 0; i < maxShadowPages; i++) {
             Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(basePageBox, c, i);
@@ -717,12 +720,23 @@ public class PagedBoxCollector {
         Rectangle borderBoxBounds = box.getBorderBox(c);
         
         AffineTransform ctm = box.getContainingLayer().getCurrentTransformMatrix();
-        
-        if (ctm == null) {
+        Area overflowClip = box.getAbsoluteClipBox(c);
+
+        if (ctm == null && overflowClip == null) {
             return clip.intersects(borderBoxBounds);
-        } else {
+        } else if (ctm != null && overflowClip == null) {
             Shape boxShape = ctm.createTransformedShape(borderBoxBounds);
-            return clip.intersects(boxShape.getBounds2D());
+            Area boxArea = new Area(boxShape);
+            Area clipArea = new Area(clip);
+            boxArea.intersect(clipArea);
+
+            return !boxArea.isEmpty();
+        } else { // if (overflowClip != null)
+            Area boxArea = new Area(ctm == null ? borderBoxBounds : ctm.createTransformedShape(borderBoxBounds));
+            boxArea.intersect(overflowClip);
+            boxArea.intersect(new Area(clip));
+            
+            return !boxArea.isEmpty();
         }
     }
     
@@ -826,6 +840,53 @@ public class PagedBoxCollector {
         return maxX;
     }
     
+    public static int findPageForY(CssContext c, double y, List<PageBox> pages) {
+        PageFinder finder = new PageFinder(pages);
+        return finder.findPageAdjusted(c, (int) y);
+    }
+    
+    public static int getShadowPageForBounds(CssContext c, Rectangle bounds, PageBox page) {
+        if (!page.shouldInsertPages()) {
+            return -1;
+        }
+        
+        if (page.getCutOffPageDirection() == IdentValue.LTR) {
+            int minXShadowPage = page.getMaxShadowPagesForXPos(c, (int) bounds.getMinX());
+            return Math.min(minXShadowPage - 1, page.getMaxInsertedPages());
+        } else {
+            int maxXShadowPage = page.getMaxShadowPagesForXPos(c, (int) bounds.getMaxX());
+            return Math.min(maxXShadowPage, page.getMaxInsertedPages());
+        }
+    }
+    
+    /**
+     * Finds the document coordinates border box bounds of a box adjusted for transform and clipped according to overflow hidden.
+     */
+    public static Rectangle findAdjustedBoundsForBorderBox(CssContext c, Box container, List<PageBox> pages) {
+        Rectangle bounds = container.getBorderBox(c);
+        AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
+        Area overflowClip = container.getAbsoluteClipBox(c);
+        
+        transformBounds(bounds, transform);
+        bounds = applyOverflowClip(bounds, overflowClip);
+        
+        return bounds;
+    }
+    
+    /**
+     * Finds the document coordinates content box bounds of a box adjusted for transform and clipped according to overflow hidden.
+     */
+    public static Rectangle findAdjustedBoundsForContentBox(CssContext c, Box container) {
+        Rectangle bounds = container.getContentAreaEdge(container.getAbsX(), container.getAbsY(), c);
+        AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
+        Area overflowClip = container.getAbsoluteClipBox(c);
+        
+        transformBounds(bounds, transform);
+        bounds = applyOverflowClip(bounds, overflowClip);
+        
+        return bounds;
+    }
+    
     protected int findStartPage(CssContext c, Rectangle bounds, AffineTransform transform) {
         double minY = transform == null ? bounds.getMinY() : getMinYFromTransformedBox(bounds, transform);
         return this.finder.findPageAdjusted(c, (int) minY);
@@ -888,7 +949,128 @@ public class PagedBoxCollector {
     protected PageBox getPageBox(int pageNo) {
         return pages.get(pageNo);
     }
-	
+    
+    private static Rectangle getBoxRect(CssContext c, Box container) {
+        PaintingInfo info = container.calcPaintingInfo(c, true);
+        Rectangle bounds = info.getAggregateBounds();
+        return bounds;
+    }
+    
+    public static Rectangle findLayerRect(CssContext c, Layer layer) {
+        Box container = layer.getMaster();
+        Rectangle bounds = getBoxRect(c, container);
+
+        // Floaters may be outside master box.
+        // TODO: If this layer was triggered by a transform (not a positioned element)
+        // then child positioned boxes may also fall otuside master box.
+        for (BlockBox floater : layer.getFloats()) {
+            Rectangle fBounds = getBoxRect(c, floater);
+            bounds.add(fBounds);
+        }
+        
+        return bounds;
+    }
+    
+    private static double getMinY(FourPoint corners) {
+        double minY = Math.min(corners.ul.getY(), corners.ur.getY());
+        minY = Math.min(corners.ll.getY(), minY);
+        minY = Math.min(corners.lr.getY(), minY);
+        return minY;
+    }
+
+    private static double getMinX(FourPoint corners) {
+        double minX = Math.min(corners.ul.getX(), corners.ur.getX());
+        minX = Math.min(corners.ll.getX(), minX);
+        minX = Math.min(corners.lr.getX(), minX);
+        return minX;
+    }
+    
+    private static double getMaxY(FourPoint corners) {
+        double maxY = Math.max(corners.ul.getY(), corners.ur.getY());
+        maxY = Math.max(corners.ll.getY(), maxY);
+        maxY = Math.max(corners.lr.getY(), maxY);
+        return maxY;
+    }
+    
+    private static double getMaxX(FourPoint corners) {
+        double maxX = Math.max(corners.ul.getX(), corners.ur.getX());
+        maxX = Math.max(corners.ll.getX(), maxX);
+        maxX = Math.max(corners.lr.getX(), maxX);
+        return maxX;
+    }
+    
+    public static class PageInfo {
+        private PageInfo(int pgNumber, int shadowPgNumber) {
+            this.pageNumber = pgNumber;
+            this.shadowPageNumber = shadowPgNumber;
+        }
+        
+        public static final int BASE_PAGE = -1;
+        public final int pageNumber;
+        public final int shadowPageNumber;
+    }
+    
+    private static void transformBounds(Rectangle bounds, AffineTransform transform) {
+        if (transform != null) {
+            FourPoint corners = getCornersFromTransformedBounds(bounds, transform);
+
+            double minX = getMinX(corners);
+            double minY = getMinY(corners);
+            double maxX = getMaxX(corners);
+            double maxY = getMaxY(corners);
+            
+            bounds.setBounds((int) minX, (int) minY, (int) (maxX - minX), (int) (maxY - minY));
+        }
+    }
+    
+    private static Rectangle applyOverflowClip(Rectangle bounds, Area overflowClip) {
+        if (overflowClip != null) {
+            Area boxArea = new Area(bounds);
+            boxArea.intersect(overflowClip);
+            return boxArea.getBounds();
+        }
+        return bounds;
+    }
+    
+
+    /**
+     * Returns the pages a layer appears on including inserted overflow pages.
+     * Takes into account any transform and overflow hidden clipping.
+     */
+    public static List<PageInfo> findLayerPages(CssContext c, Layer layer, List<PageBox> pages) {
+        PageFinder finder = new PageFinder(pages);
+        Rectangle bounds = findLayerRect(c, layer);
+        Box container = layer.getMaster();
+        AffineTransform transform = container.getContainingLayer().getCurrentTransformMatrix();
+        Area overflowClip = container.getAbsoluteClipBox(c);
+
+        transformBounds(bounds, transform);
+        bounds = applyOverflowClip(bounds, overflowClip);
+        
+        int firstPage = finder.findPageAdjusted(c, (int) bounds.getMinY());
+        int lastPage = finder.findPageAdjusted(c, (int) bounds.getMaxY());
+        
+        List<PageInfo> result = new ArrayList<PageInfo>();
+        
+        for (int i = firstPage; i <= lastPage; i++) {
+            result.add(new PageInfo(i, PageInfo.BASE_PAGE));
+            
+            if (pages.get(i).shouldInsertPages()) {
+                int maxXShadowPage = pages.get(i).getMaxShadowPagesForXPos(c, (int) bounds.getMaxX());
+                int minXShadowPage = pages.get(i).getMaxShadowPagesForXPos(c, (int) bounds.getMinX()); 
+
+                int shadowPageCount = Math.max(maxXShadowPage, minXShadowPage);
+                shadowPageCount = Math.min(shadowPageCount, pages.get(i).getMaxInsertedPages());
+                
+                for (int j = 0; j < shadowPageCount; j++) {
+                    result.add(new PageInfo(i, j));
+                }
+            }
+        }
+        
+        return result;
+    }
+
     /**
      * @return 0 based page number of start of container paint area (including overflow)
      */

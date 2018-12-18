@@ -32,7 +32,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.BidiTextRun;
@@ -44,6 +43,7 @@ import com.openhtmltopdf.css.constants.PageElementPosition;
 import com.openhtmltopdf.css.extend.ContentFunction;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
 import com.openhtmltopdf.css.newmatch.PageInfo;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.FSFunction;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
@@ -289,10 +289,6 @@ public class BoxBuilder {
                     info));
 
             stripAllWhitespace(children);
-        }
-
-        if (children.size() == 0 && style.isAutoWidth() && ! alwaysCreate) {
-            return null;
         }
 
         resolveChildTableContent(c, result, children, info, IdentValue.TABLE_CELL);

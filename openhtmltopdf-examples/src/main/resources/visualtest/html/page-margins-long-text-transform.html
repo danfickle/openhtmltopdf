@@ -1,0 +1,34 @@
+<html>
+<head>
+<style>
+@font-face {
+  src: url(fonts/Karla-Bold.ttf);
+  font-family: 'TestFont';
+}
+@page {
+  size: 200px 200px;
+  margin: 25px;
+  
+  @left-top {
+    content: " "; /* Spacer cell */
+  }
+  @left-middle {
+    content: " "; /* Spacer cell */
+  }
+  @left-bottom {
+    font-family: 'TestFont';
+    content: "Very long content";
+    font-size: 16px;
+    max-height: 25px;
+    transform: translateY(50px) rotate(-90deg);
+    transform-origin: left top;
+    white-space: nowrap;
+    vertical-align: top;
+  }
+}
+</style>
+</head>
+<body>
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

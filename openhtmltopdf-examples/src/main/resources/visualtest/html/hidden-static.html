@@ -1,0 +1,22 @@
+<html>
+<head>
+<style>
+@page {
+ size: 80px 60px;
+ margin: 10px;
+}
+body {
+  margin: 0;
+}
+div {
+  box-sizing: border-box;
+}
+</style>
+</head>
+<body>
+<!-- The inner blue box should not overflow the red box to left or right. -->
+<div style="background-color: red; position: static; width: 50%; height: 20px; overflow: hidden;left: 10px;">
+  <div style="background-color: blue; position: static; width: 150%; height: 70%; margin-top: 3px; margin-left: -10%;"></div>
+</div>
+</body>
+</html>

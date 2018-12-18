@@ -28,8 +28,6 @@ import com.openhtmltopdf.util.XRRuntimeException;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.io.IOException;
-import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,17 +40,17 @@ import java.util.logging.Level;
  * files, and is useful when there are many schemas, or when schemas are broken
  * into many smaller files. Currently FSCatalog only supports the very simple
  * mapping of public id to local URI using the public element in the catalog XML.
- * <p/>
+ * </p>
  * <p>FSCatalog is not an EntityResolver; it only parses a catalog file. See
  * {@link FSEntityResolver} for entity resolution.
- * <p/>
+ * </p>
  * <p>To use, instantiate the class, and call {@link #parseCatalog(InputSource)}
  * to retrieve a {@link java.util.Map} keyed by public ids. The class uses
  * an XMLReader instance retrieved via {@link XMLResource#newXMLReader()}, so
  * XMLReader configuration (and specification) follows that of the standard XML
  * parsing in Flying Saucer.
- * <p/>
- * <p>This class is not safe for multi-threaded access.
+ * </p>
+ * <p>This class is not safe for multi-threaded access.</p>
  *
  * @author Patrick Wright
  */
@@ -67,24 +65,12 @@ public class FSCatalog {
      * @param catalogURI A String URI to a catalog XML file on the classpath.
      */
     public Map<String, String> parseCatalog(String catalogURI) {
-        URL url;
         Map<String, String> map = null;
-        InputStream s = null;
-        try {
-            url = FSCatalog.class.getClassLoader().getResource(catalogURI);
-            s = new BufferedInputStream(url.openStream());
-            map = parseCatalog(new InputSource(s));
+        try (InputStream in = FSCatalog.class.getResourceAsStream(catalogURI)){
+            map = parseCatalog(new InputSource(new BufferedInputStream(in)));
         } catch (Exception ex) {
             XRLog.xmlEntities(Level.WARNING, "Could not open XML catalog from URI '" + catalogURI + "'", ex);
             map = Collections.emptyMap();
-        } finally {
-            try {
-                if (s != null) {
-                    s.close();
-                }
-            } catch (IOException e) {
-                // ignore..
-            }
         }
         return map;
     }

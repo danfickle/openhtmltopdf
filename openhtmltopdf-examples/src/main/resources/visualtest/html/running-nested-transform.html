@@ -1,0 +1,50 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 30px;
+  @top-center {
+    content: element(hdr);
+  }
+  @bottom-center {
+    content: element(ftr);
+  }
+}
+body {
+  width: 200px;
+  height: 200px;
+}
+.header {
+  height: 30px;
+  position: running(hdr);
+  transform: rotate(45deg);
+  transform-origin: left top;
+}
+.footer {
+  height: 30px;
+  position: running(ftr);
+  transform: rotate(-45deg);
+  transform-origin: left top;
+}
+.header .inner {
+  transform: rotate(-45deg);
+}
+.footer .inner {
+  transform: rotate(45deg);
+}
+.inner {
+  border: 2px solid black;
+  width: 30px;
+  transform-origin: 0 0;
+  height: 15px;
+}
+</style>
+</head>
+<body>
+<div class="header" style="background-color: blue;"><div class="inner"></div></div>
+<div class="footer" style="background-color: red;"><div class="inner"></div></div>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

@@ -40,10 +40,16 @@ public interface OutputDevice {
 	 * This is a cumulative operation. You should popTransform after the box and children are painted.
 	 * @return the list of inverse transforms to undo the effect of this transform
 	 */
+	@Deprecated
 	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms);
+	
+	@Deprecated
 	public void popTransforms(List<AffineTransform> inverse);
 	
+	@Deprecated
 	float getAbsoluteTransformOriginX();
+	
+	@Deprecated
 	float getAbsoluteTransformOriginY();
 	
 	// And the rest.
@@ -86,8 +92,13 @@ public interface OutputDevice {
     public void fillRect(int x, int y, int width, int height);
     public void fillOval(int x, int y, int width, int height);
     
+    @Deprecated
     public void clip(Shape s);
+    
+    @Deprecated
     public Shape getClip();
+    
+    @Deprecated
     public void setClip(Shape s);
     
     public void translate(double tx, double ty);
@@ -98,6 +109,7 @@ public interface OutputDevice {
     public Object getRenderingHint(Key key);
     public void setRenderingHint(Key key, Object value);
     
+    @Deprecated
     public boolean isSupportsSelection();
     
     public boolean isSupportsCMYKColors();

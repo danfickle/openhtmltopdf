@@ -70,16 +70,15 @@ public class LayoutContext implements CssContext {
 
     private LinkedList<BlockFormattingContext> _bfcs;
     private LinkedList<Layer> _layers;
-    private LinkedList<Box> _clippingBoxes;
 
     private FontContext _fontContext;
 
-    private ContentFunctionFactory _contentFunctionFactory = new ContentFunctionFactory();
+    private final ContentFunctionFactory _contentFunctionFactory = new ContentFunctionFactory();
 
     private int _extraSpaceTop;
     private int _extraSpaceBottom;
 
-    private Map _counterContextMap = new HashMap();
+    private final Map<CalculatedStyle, CounterContext> _counterContextMap = new HashMap<CalculatedStyle, CounterContext>();
 
     private String _pendingPageName;
     private String _pageName;
@@ -171,7 +170,6 @@ public class LayoutContext implements CssContext {
         
         _bfcs = new LinkedList<BlockFormattingContext>();
         _layers = new LinkedList<Layer>();
-        _clippingBoxes = new LinkedList<Box>();
 
         _firstLines = new StyleTracker();
         _firstLetters = new StyleTracker();
@@ -187,7 +185,6 @@ public class LayoutContext implements CssContext {
         if (! keepLayers) {
             _rootLayer = null;
             _layers = new LinkedList<Layer>();
-            _clippingBoxes = new LinkedList<Box>();
         }
 
         _extraSpaceTop = 0;
@@ -266,18 +263,6 @@ public class LayoutContext implements CssContext {
         _bfcs.removeLast();
     }
 
-    /**
-     * We need to keep a list of clipping boxes so we can apply to layers triggered by a transform.
-     * MUST be matched with a call to {@link #popClippingBox()}
-     */
-    public void pushClippingBox(Box clipBox) {
-    	_clippingBoxes.add(clipBox);
-    }
-    
-    public void popClippingBox() {
-    	_clippingBoxes.removeLast();
-    }
-
     public void pushLayer(Box master) {
         Layer layer = null;
 
@@ -287,8 +272,7 @@ public class LayoutContext implements CssContext {
         } else {
             Layer parent = getLayer();
 
-            layer = new Layer(parent, master, this, 
-            		_clippingBoxes.isEmpty() ? null : new ArrayList<Box>(_clippingBoxes));
+            layer = new Layer(parent, master, this);
 
             parent.addChild(layer);
         }
@@ -296,7 +280,7 @@ public class LayoutContext implements CssContext {
         pushLayer(layer);
     }
 
-    private void pushLayer(Layer layer) {
+    public void pushLayer(Layer layer) {
         _layers.add(layer);
     }
 
@@ -435,7 +419,7 @@ public class LayoutContext implements CssContext {
     }
 
     public CounterContext getCounterContext(CalculatedStyle style) {
-        return (CounterContext) _counterContextMap.get(style);
+        return _counterContextMap.get(style);
     }
 
     public FSFontMetrics getFSFontMetrics(FSFont font) {
@@ -443,7 +427,7 @@ public class LayoutContext implements CssContext {
     }
 
     public class CounterContext {
-        private Map _counters = new HashMap();
+        private Map<String, Integer> _counters = new HashMap<String, Integer>();
         /**
          * This is different because it needs to work even when the counter- properties cascade
          * and it should also logically be redefined on each level (think list-items within list-items)
@@ -461,7 +445,7 @@ public class LayoutContext implements CssContext {
 			if (startIndex != null) {
 				_counters.put("list-item", startIndex);
 			}
-            _parent = (LayoutContext.CounterContext) _counterContextMap.get(style.getParent());
+            _parent = _counterContextMap.get(style.getParent());
             if (_parent == null) _parent = new CounterContext();//top-level context, above root element
             //first the explicitly named counters
             List resets = style.getCounterReset();

@@ -22,8 +22,7 @@ package com.openhtmltopdf.css.parser.property;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.w3c.dom.css.CSSPrimitiveValue;
-
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 
 public class PageSize {

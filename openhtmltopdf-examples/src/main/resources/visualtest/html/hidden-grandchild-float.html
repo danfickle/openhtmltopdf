@@ -1,0 +1,28 @@
+<html>
+<head>
+<style>
+.container {
+  width: 200px;
+  border: 3px solid green;
+  height: 50px;
+}
+.inside {
+  height: 100%;
+  box-sizing: border-box;
+  border: 3px solid red;
+  width: 300px;
+  background-color: orange;
+}
+.float {
+  float: right;
+  background-color: purple;
+  width: 150px;
+  height: 44px;
+}
+</style>
+</head>
+<body>
+  <!-- inside and float should not overflow container. -->
+  <div class="container" style="overflow:hidden;"><div class="inside"><div class="float"></div></div></div>
+</body>
+</html>

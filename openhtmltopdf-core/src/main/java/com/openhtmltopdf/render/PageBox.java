@@ -27,12 +27,12 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.util.List;
 import org.w3c.dom.Element;
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.constants.MarginBoxName;
 import com.openhtmltopdf.css.newmatch.PageInfo;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.FSFunction;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
@@ -44,6 +44,7 @@ import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.newtable.TableBox;
+import com.openhtmltopdf.render.simplepainter.SimplePainter;
 import com.openhtmltopdf.util.ThreadCtx;
 
 public class PageBox {
@@ -81,6 +82,25 @@ public class PageBox {
     private MarginAreaContainer[] _marginAreas = new MarginAreaContainer[MARGIN_AREA_DEFS.length];
     
     private Element _metadata;
+    
+    private int _basePagePdfPageIndex;
+    private int _shadowPageCount;
+    
+    public void setBasePagePdfPageIndex(int idx) {
+        this._basePagePdfPageIndex = idx;
+    }
+    
+    public void setShadowPageCount(int cnt) {
+        this._shadowPageCount = cnt;
+    }
+    
+    public int getBasePagePdfPageIndex() {
+        return _basePagePdfPageIndex;
+    }
+    
+    public int getShadowPageCount() {
+        return _shadowPageCount;
+    }
     
     public int getWidth(CssContext cssCtx) {
         resolvePageDimensions(cssCtx);
@@ -303,10 +323,10 @@ public class PageBox {
         }
         
         if (dir == IdentValue.LTR) { 
-            return (x > 0 ? ((int) (fx / fw)) : 0);
+            return (int) (x > 0 ? (Math.ceil(fx / fw) - 1) : 0);
         }
         
-        return (x < 0 ? ((int) (Math.abs(fx) / fw)) : 0);
+        return (int) (x < 0 ? (Math.ceil(Math.abs(fx) / fw)) : 0);
     }
     
     /**
@@ -394,14 +414,21 @@ public class PageBox {
     public void paintMarginAreas(RenderingContext c, int additionalClearance, short mode) {
         for (int i = 0; i < MARGIN_AREA_DEFS.length; i++) {
             MarginAreaContainer container = _marginAreas[i];
+      
             if (container != null) {
                 currentMarginAreaContainer = container;
                 TableBox table = _marginAreas[i].getTable();
                 Point p = container.getArea().getPaintingPosition(
                         c, this, additionalClearance, mode);
-                
+
                 c.getOutputDevice().translate(p.x, p.y);
-                table.getLayer().paint(c);
+                if (c.getOutputDevice().isFastRenderer()) {
+                    table.getLayer().propagateCurrentTransformationMatrix(c);
+                    SimplePainter painter = new SimplePainter(p.x, p.y);
+                    painter.paintLayer(c, table.getLayer());
+                } else {
+                    table.getLayer().paint(c);
+                }
                 c.getOutputDevice().translate(-p.x, -p.y);
             }
         }

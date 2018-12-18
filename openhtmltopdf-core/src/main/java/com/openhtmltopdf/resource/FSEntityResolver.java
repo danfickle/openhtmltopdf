@@ -24,7 +24,6 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.openhtmltopdf.util.GeneralUtil;
 import com.openhtmltopdf.util.XRLog;
 
 import java.io.IOException;
@@ -69,7 +68,7 @@ public class FSEntityResolver implements EntityResolver {
     private FSEntityResolver() {
         FSCatalog catalog = new FSCatalog();
         
-        entities.putAll(catalog.parseCatalog("resources/schema/openhtmltopdf/catalog-special.xml"));
+        entities.putAll(catalog.parseCatalog("/resources/schema/openhtmltopdf/catalog-special.xml"));
     }
 
     @Override
@@ -80,7 +79,7 @@ public class FSEntityResolver implements EntityResolver {
         String url = getEntities().get(publicID);
 
         if (url != null) {
-            URL realUrl = GeneralUtil.getURLFromClasspath(this, url);
+            URL realUrl = FSEntityResolver.class.getResource(url);
             InputStream is = null;
             try {
                 is = realUrl.openStream();

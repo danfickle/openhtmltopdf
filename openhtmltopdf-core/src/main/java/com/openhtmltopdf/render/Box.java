@@ -38,6 +38,7 @@ import org.w3c.dom.Node;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     private Box _parent;
 
-    private List _boxes;
+    private List<Box> _boxes;
 
     /**
      * Keeps track of the start of childrens containing block.
@@ -96,17 +97,110 @@ public abstract class Box implements Styleable, DisplayListItem {
     private String _pseudoElementOrClass;
 
     private boolean _anonymous;
-
+    
+    private Area _absoluteClipBox;
+    private boolean _clipBoxCalculated = false;
+    
     protected Box() {
     }
+    
+    /**
+     * Gets the combined clip of this box relative to the containing layer.
+     * The returned clip is in document coordinate space (not transformed in any way).
+     * For example, if we have the following nesting:
+     *
+     * overflow hidden := transformed box := overflow hidden := overflow hidden := overflow visible
+     * 
+     * this function called on the overflow visible box will return the combined clip of its
+     * two immediate ancestors in document coordinate space. It stops at the transformed box because
+     * the transform triggers a layer.
+     * 
+     * Currently this method is used for getting the clip to apply to a float, which are nested in layers
+     * but taken out of the default block list and therefore clip stack.
+     * 
+     * Since it is only used for floats, the result is not cached. Revisit this decision if using for every box.
+     * 
+     * There are several other clip methods available:
+     * + {@link #getChildrenClipEdge(RenderingContext)} - gets the local clip for a single box.
+     * + {@link #getParentClipBox(RenderingContext, Layer)} - gets the layer relative clip for the parent box.
+     * + {@link #getAbsoluteClipBox(RenderingContext)} - gets the absolute clip box in document coordinates
+     */
+    public Rectangle getClipBox(RenderingContext c, Layer layer) {
+        return calcClipBox(c, layer);
+    }
+    
+    private Box getClipParent() {
+        if (getStyle() != null && getStyle().isPositioned()) {
+            return getContainingBlock();
+        } else if (this instanceof BlockBox && 
+                ((BlockBox) this).isFloated()) {
+            return getContainingBlock();
+        } else {
+            return getParent();
+        }
+    }
+    
+    /**
+     * Gets the layer relative clip for the parent box.
+     * @see {@link #getClipBox(RenderingContext, Layer)}
+     */
+    public Rectangle getParentClipBox(RenderingContext c, Layer layer) {
+        Box clipParent = getClipParent();
+        
+        if (clipParent == null || clipParent.getContainingLayer() != layer) {
+            return null;
+        }
+        
+        return clipParent.getClipBox(c, layer);
+    }
+    
+    private Rectangle calcClipBox(RenderingContext c, Layer layer) {
+        if (getContainingLayer() != layer) {
+            return null;
+        } else if (getStyle() != null && getStyle().isIdent(CSSName.OVERFLOW, IdentValue.HIDDEN)) {
+            Rectangle parentClip = getParentClipBox(c, layer);
+            return parentClip != null ? getChildrenClipEdge(c).intersection(parentClip) : getChildrenClipEdge(c);
+        } else {
+            return getParentClipBox(c, layer);
+        }
+    }
+    
+    /**
+     * Returns the absolute (ie transformed if needed) clip area for this box.
+     * Cached as this will be needed on every box to check if the clip area is inside a page. 
+     */
+    public Area getAbsoluteClipBox(CssContext c) {
+        if (!_clipBoxCalculated) {
+            _absoluteClipBox = calcAbsoluteClipBox(c);
+            _clipBoxCalculated = true;
+        }
+        return _absoluteClipBox != null ? (Area) _absoluteClipBox.clone() : null;
+    }
+    
+    private Area calcAbsoluteClipBox(CssContext c) {
+        Rectangle localClip = getStyle() != null && getStyle().isIdent(CSSName.OVERFLOW, IdentValue.HIDDEN) ? getChildrenClipEdge(c) : null;
+        Box parentBox = getClipParent();
+        Area parentClip = parentBox != null ? parentBox.getAbsoluteClipBox(c) : null;
 
+        if (localClip != null) {
+            AffineTransform transform = getContainingLayer().getCurrentTransformMatrix();
+            Area ourClip = new Area(transform != null ? transform.createTransformedShape(localClip) : localClip);
+            if (parentClip != null) {
+                ourClip.intersect(parentClip);
+            }
+            return ourClip;
+        } else {
+            return parentClip;
+        }
+    }
+    
     public abstract String dump(LayoutContext c, String indent, int which);
 
     protected void dumpBoxes(
-            LayoutContext c, String indent, List boxes,
+            LayoutContext c, String indent, List<Box> boxes,
             int which, StringBuilder result) {
-        for (Iterator i = boxes.iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        for (Iterator<Box> i = boxes.iterator(); i.hasNext(); ) {
+            Box b = i.next();
             result.append(b.dump(c, indent + "  ", which));
             if (i.hasNext()) {
                 result.append('\n');
@@ -133,7 +227,7 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     public void addChild(Box child) {
         if (_boxes == null) {
-            _boxes = new ArrayList();
+            _boxes = new ArrayList<Box>();
         }
         if (child == null) {
             throw new NullPointerException("trying to add null child");
@@ -143,9 +237,8 @@ public abstract class Box implements Styleable, DisplayListItem {
         _boxes.add(child);
     }
 
-    public void addAllChildren(List children) {
-        for (Iterator i = children.iterator(); i.hasNext(); ) {
-            Box box = (Box)i.next();
+    public void addAllChildren(List<Box> children) {
+        for (Box box : children) {
             addChild(box);
         }
     }
@@ -159,8 +252,8 @@ public abstract class Box implements Styleable, DisplayListItem {
     public void removeChild(Box target) {
         if (_boxes != null) {
             boolean found = false;
-            for (Iterator i = getChildIterator(); i.hasNext(); ) {
-                Box child = (Box)i.next();
+            for (Iterator<Box> i = getChildIterator(); i.hasNext(); ) {
+                Box child = i.next();
                 if (child.equals(target)) {
                     i.remove();
                     found = true;
@@ -219,12 +312,12 @@ public abstract class Box implements Styleable, DisplayListItem {
         }
     }
 
-    public Iterator getChildIterator() {
-        return _boxes == null ? Collections.EMPTY_LIST.iterator() : _boxes.iterator();
+    public Iterator<Box> getChildIterator() {
+        return (_boxes == null ? Collections.<Box>emptyIterator() : _boxes.iterator());
     }
 
-    public List getChildren() {
-        return _boxes == null ? Collections.EMPTY_LIST : _boxes;
+    public List<Box> getChildren() {
+        return _boxes == null ? Collections.<Box>emptyList() : _boxes;
     }
 
     public static final int NOTHING = 0;
@@ -301,7 +394,7 @@ public abstract class Box implements Styleable, DisplayListItem {
         return getPaintingBorderEdge(cssCtx);
     }
 
-    public Rectangle getChildrenClipEdge(RenderingContext c) {
+    public Rectangle getChildrenClipEdge(CssContext c) {
         return getPaintingPaddingEdge(c);
     }
 
@@ -978,31 +1071,42 @@ public abstract class Box implements Styleable, DisplayListItem {
         return _leftMBP;
     }
 
+    /**
+     * Uh oh! This refers to content height during layout but total height after layout!
+     */
     public void setHeight(int height) {
         _height = height;
     }
 
+    /**
+     * Uh oh! This refers to content height during layout but total height after layout!
+     */
     public int getHeight() {
         return _height;
     }
     
-    public void setBorderBoxHeight(CssContext c, int h) {
+    protected void setBorderBoxHeight(CssContext c, int h) {
         BorderPropertySet border = getBorder(c);
         RectPropertySet padding = getPadding(c);
         setHeight((int) Math.max(0f, h - border.height() - padding.height()));
     }
     
-    public int getBorderBoxHeight(CssContext c) {
+    protected int getBorderBoxHeight(CssContext c) {
         BorderPropertySet border = getBorder(c);
         RectPropertySet padding = getPadding(c);
         return (int) (getHeight() + border.height() + padding.height());
     }
     
+    /**
+     * Only to be called after layout, due to double use of getHeight().
+     */
     public Rectangle getBorderBox(CssContext c) {
+        RectPropertySet margin = getMargin(c);
+
         int w = getBorderBoxWidth(c);
-        int h = getBorderBoxHeight(c);
-        int x = getAbsX();
-        int y = getAbsY();
+        int h = getHeight() - (int) margin.top() - (int) margin.bottom();
+        int x = getAbsX() + (int) margin.left();
+        int y = getAbsY() + (int) margin.top();
         
         return new Rectangle(x, y, w, h);
     }

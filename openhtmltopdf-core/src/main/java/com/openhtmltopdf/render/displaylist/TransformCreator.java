@@ -1,10 +1,11 @@
 package com.openhtmltopdf.render.displaylist;
 
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.util.List;
-import org.w3c.dom.css.CSSPrimitiveValue;
 
 import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
@@ -30,14 +31,55 @@ public class TransformCreator {
 	 * Creates a transform that can be applied to a page, either PDF or Java2D.
 	 * This transform can be applied on top of other tranforms already in effect on the page.
 	 */
-	public static AffineTransform createPageCoordinatesTranform(RenderingContext c, Box box, PageBox page) {
+	public static AffineTransform createPageCoordinatesTranform(RenderingContext c, Box box, PageBox page, int shadowPageNumber) {
 		TransformYOrigin yOrigin = c.getOutputDevice().isPDF() ? TransformYOrigin.PAGE_BOTTOM : TransformYOrigin.PAGE_TOP;
 		
 		AffineTransform start = new AffineTransform();
 		
-		createTransform(c, box, page, start, yOrigin);
+		createTransform(c, box, page, start, yOrigin, shadowPageNumber);
 		
 		return start;
+	}
+	
+	public static AffineTransform createPageMarginCoordinatesTransform(RenderingContext c, Box box, PageBox page, int xTranslate, int yTranslate) {
+        FSDerivedValue transforms = box.getStyle().valueByName(CSSName.TRANSFORM);
+
+        float relOriginX = box.getStyle().getFloatPropertyProportionalWidth(CSSName.FS_TRANSFORM_ORIGIN_X,
+                box.getWidth(), c);
+        float relOriginY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y,
+                box.getHeight(), c);
+
+        float flipFactor = c.getOutputDevice().isPDF() ? -1 : 1;
+
+        float absTranslateX = relOriginX + box.getAbsX();
+        float absTranslateY = relOriginY + box.getAbsY();
+
+        float pageTranslateX;
+        float pageTranslateY;
+
+        if (c.getOutputDevice().isPDF()) {
+            // The transform point is the lower left of the page (PDF coordinate system).
+            pageTranslateX = absTranslateX + xTranslate;
+            float topDownPageTranslateY = (absTranslateY + yTranslate);
+            pageTranslateY = (page.getHeight(c) - topDownPageTranslateY);
+        } else { // PAGE_TOP
+            // The transform point is the upper left of the page.
+            pageTranslateX = absTranslateX + xTranslate;
+            pageTranslateY = (absTranslateY) + yTranslate;
+        }
+
+        AffineTransform translateToOrigin = AffineTransform.getTranslateInstance(pageTranslateX, pageTranslateY);
+        AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-pageTranslateX,
+                -pageTranslateY);
+
+        List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
+
+        AffineTransform result = new AffineTransform();
+        result.concatenate(translateToOrigin);
+        applyTransformFunctions(flipFactor, transformList, result, box, c);
+        result.concatenate(translateBackFromOrigin);
+
+        return result;
 	}
 	
 	/**
@@ -48,15 +90,26 @@ public class TransformCreator {
 	public static AffineTransform createDocumentCoordinatesTransform(Box master, CssContext c, AffineTransform _parentCtm) {
 		AffineTransform ctm = _parentCtm == null ? new AffineTransform() : (AffineTransform) _parentCtm.clone();
 		
-		createTransform(c, master, null, ctm, TransformYOrigin.DOCUMENT_TOP);
+		createTransform(c, master, null, ctm, TransformYOrigin.DOCUMENT_TOP, -1);
 		
 		return ctm;
 	}
 	
+	private static float getPageTranslateX(float absTranslateX, int shadowPageNumber, PageBox page, CssContext c) {
+	    if (shadowPageNumber == -1) {
+	        return absTranslateX + page.getMarginBorderPadding(c, CalculatedStyle.LEFT);    
+	    }
+	    
+	    Rectangle shadow = page.getDocumentCoordinatesContentBoundsForInsertedPage(c, shadowPageNumber);
+	    
+	    return absTranslateX - (float) shadow.getMinX() + (page.getMarginBorderPadding(c, CalculatedStyle.LEFT));
+	}
+	
 	/**
 	 * <code>page</code> may be null in the case that <code>transformYOrigin</code> is <code>DOCUMENT_TOP</code>. Otherwise, every argument is required.
+	 * shadowPageNumber is -1 for the base page.
 	 */
-	private static void createTransform(CssContext c, Box box, PageBox page, AffineTransform result, TransformYOrigin transformYOrigin) {
+	private static void createTransform(CssContext c, Box box, PageBox page, AffineTransform result, TransformYOrigin transformYOrigin, int shadowPageNumber) {
 	
 		FSDerivedValue transforms = box.getStyle().valueByName(CSSName.TRANSFORM);
 
@@ -79,12 +132,12 @@ public class TransformCreator {
 		
 			if (transformYOrigin == TransformYOrigin.PAGE_BOTTOM) {
 				// The transform point is the lower left of the page (PDF coordinate system).
-				pageTranslateX = absTranslateX + page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
+				pageTranslateX = getPageTranslateX(absTranslateX, shadowPageNumber, page, c);
 				float topDownPageTranslateY = (absTranslateY + page.getMarginBorderPadding(c, CalculatedStyle.TOP)) - page.getPaintingTop();
 				pageTranslateY = (page.getHeight(c) - topDownPageTranslateY);
 			} else { // PAGE_TOP
 				// The transform point is the upper left of the page.
-				pageTranslateX = absTranslateX + page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
+				pageTranslateX = getPageTranslateX(absTranslateX, shadowPageNumber, page, c);
 				pageTranslateY = (absTranslateY - page.getPaintingTop()) + page.getMarginBorderPadding(c, CalculatedStyle.TOP); 
 			}
 		

@@ -29,11 +29,11 @@ import com.openhtmltopdf.render.BlockBox;
  * XXX This class can go away
  */
 public class PersistentBFC {
-    private FloatManager _floatManager = new FloatManager();
+    private final FloatManager _floatManager;
     
     public PersistentBFC(BlockBox master, LayoutContext c) {
+        this._floatManager = new FloatManager(master);
         master.setPersistentBFC(this);
-        _floatManager.setMaster(master);
     }
     
     public FloatManager getFloatManager() {

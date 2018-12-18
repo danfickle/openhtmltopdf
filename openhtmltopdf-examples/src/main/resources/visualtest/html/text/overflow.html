@@ -1,0 +1,48 @@
+<html>
+<head>
+<style>
+@page {
+  size: 400px 500px;
+  margin: 10px;
+}
+body {
+  margin: 0;
+}
+body > div {
+  margin-top: 10px;
+}
+.container {
+  width: 200px;
+  border: 1px solid green;
+  height: 50px;
+}
+.inside {
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid red;
+  width: 300px;
+  background-color: orange;
+}
+.grandparent {
+  border: 1px solid blue;
+  width: 250px;
+}
+.float {
+  float: right;
+  background-color: purple;
+  width: 150px;
+  height: 100%;
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; color: black; font-size: 30px;">
+<div class="container" style="overflow:hidden;"><div class="inside">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div></div>
+<div class="container" style="overflow:visible;"><div class="inside">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div></div>
+
+<div class="grandparent"><div class="container" style="overflow:visible;"><div class="inside">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div></div></div>
+<div class="grandparent"><div class="container" style="overflow:hidden;"><div class="inside">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div></div></div>
+
+<div class="container" style="overflow:visible;"><div class="inside"><div class="float">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div></div></div>
+
+</body>
+</html>

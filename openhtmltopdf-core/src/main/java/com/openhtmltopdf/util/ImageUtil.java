@@ -24,12 +24,12 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
-import javax.xml.bind.DatatypeConverter;
 
 /**
  * Static utility methods for working with images. Meant to suggest "best practices" for the most straightforward
@@ -95,7 +95,7 @@ public class ImageUtil {
      * for best performance. In a headless environment, simply creates a new BufferedImage. For non-headless
      * environments, this just sets up and calls
      * {@link java.awt.GraphicsConfiguration#createCompatibleImage(int,int,int)}. The image will not have anything
-     * drawn to it, not even a white background; you must do this yourself. The {@link #clearBackground(BufferedImage)}
+     * drawn to it, not even a white background; you must do this yourself. The {@link #clearImage(BufferedImage)}
      * method will do this for you if you like.
      *
      * @param width  Target width for the image
@@ -147,15 +147,15 @@ public class ImageUtil {
     }
 
     /**
-     * Scales an image to the requested width and height, assuming these are both >= 1; size given in pixels.
-     * If either width or height is <=0, the current image width or height will be used. This method assumes
+     * Scales an image to the requested width and height, assuming these are both &gt;= 1; size given in pixels.
+     * If either width or height is &lt;=0, the current image width or height will be used. This method assumes
      * that, at the moment the method is called, the width and height of the image are available; it won't wait for
      * them. Therefore, the method should be called once the image has completely loaded and not before.
-     * <p/>
+     * <br>
      * Override this method in a subclass to optimize image scaling operations; note that the legacy
      * {@link java.awt.Image#getScaledInstance(int,int,int)} is considered to perform poorly compared to more
      * recent developed techniques.
-     * <p/>
+     * <br>
      * For a discussion of the options from a member of the Java2D team, see
      * http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
      *
@@ -181,15 +181,15 @@ public class ImageUtil {
     }
 
     /**
-     * Scales an image to the requested width and height, assuming these are both >= 1; size given in pixels.
-     * If either width or height is <=0, the current image width or height will be used. This method assumes       y
+     * Scales an image to the requested width and height, assuming these are both &gt;= 1; size given in pixels.
+     * If either width or height is &lt;=0, the current image width or height will be used. This method assumes       y
      * that, at the moment the method is called, the width and height of the image are available; it won't wait for
      * them. Therefore, the method should be called once the image has completely loaded and not before.
-     * <p/>
+     * <br>
      * Override this method in a subclass to optimize image scaling operations; note that the legacy
      * {@link java.awt.Image#getScaledInstance(int,int,int)} is considered to perform poorly compared to more
      * recent developed techniques.
-     * <p/>
+     * <br>
      * For a discussion of the options from a member of the Java2D team, see
      * http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
      *
@@ -212,7 +212,7 @@ public class ImageUtil {
 
     /**
      * Scales one image to multiple dimensions, using the same ScalingOptions for each. The method follows the same
-     * process for scaling as {@link #getScaledInstance(ScalingOptions,java.awt.Image)}.
+     * process for scaling as {@link #getScaledInstance(ScalingOptions,java.awt.image.BufferedImage)}.
      *
      * @param opt		Options to apply to control scaling process.
      * @param img		The original image to scale
@@ -280,6 +280,10 @@ public class ImageUtil {
         return (uri != null && uri.startsWith("data:image/"));
     }
     
+    public static boolean isDataUri(String uri) {
+        return uri != null && uri.startsWith("data:");
+    }
+    
     /**
      * Get the binary content of an embedded base 64 image.
      *
@@ -290,11 +294,15 @@ public class ImageUtil {
         int b64Index = imageDataUri.indexOf("base64,");
         if (b64Index != -1) {
             String b64encoded = imageDataUri.substring(b64Index + "base64,".length());
-            return DatatypeConverter.parseBase64Binary(b64encoded);
+            return Base64.getMimeDecoder().decode(b64encoded);
         } else {
-            XRLog.load(Level.SEVERE, "Embedded XHTML images must be encoded in base 64.");
+            XRLog.load(Level.SEVERE, "Embedded data uris must be encoded in base 64.");
         }
         return null;
+    }
+    
+    public static byte[] getEmbeddedDataUri(String dataUri) {
+        return getEmbeddedBase64Image(dataUri);
     }
     
     /**

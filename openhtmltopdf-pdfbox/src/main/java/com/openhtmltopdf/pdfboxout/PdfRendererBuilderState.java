@@ -16,8 +16,6 @@ import java.util.Map;
 
 /**
  * This class is internal. DO NOT USE! Just ignore it!
- * 
- * @internal
  */
 public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState {
 	/* Internal! */

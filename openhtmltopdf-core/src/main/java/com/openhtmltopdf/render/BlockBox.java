@@ -426,6 +426,7 @@ public class BlockBox extends Box implements InlinePaintable {
         return _replacedElement != null;
     }
 
+    @Override
     public void calcCanvasLocation() {
         if (isFloated()) {
             FloatManager manager = _floatedBoxData.getManager();
@@ -469,6 +470,7 @@ public class BlockBox extends Box implements InlinePaintable {
         setAbsY(manager.getMaster().getAbsY() + getY() - offset.y);
     }
 
+    @Override
     public void calcChildLocations() {
         super.calcChildLocations();
 
@@ -584,6 +586,7 @@ public class BlockBox extends Box implements InlinePaintable {
         _replacedElement = replacedElement;
     }
 
+    @Override
     public void reset(LayoutContext c) {
         super.reset(c);
         setTopMarginCalculated(false);
@@ -827,12 +830,6 @@ public class BlockBox extends Box implements InlinePaintable {
     public void layout(LayoutContext c, int contentStart) {
         CalculatedStyle style = getStyle();
         boolean pushedLayer = false;
-        boolean pushedClipBox = false;
-        
-        if (isNeedsClipOnPaint(c)) {
-        	pushedClipBox = true;
-        	c.pushClippingBox(this);
-        }
 
         if (isRoot()) {
         	pushedLayer = true;
@@ -844,9 +841,12 @@ public class BlockBox extends Box implements InlinePaintable {
             	}
             	c.getRootLayer().addPage(c);
             }
-        } else if (style.requiresLayer()) {
+        } else if (style.requiresLayer() && this.getLayer() == null) {
             pushedLayer = true;
             c.pushLayer(this);
+        } else if (style.requiresLayer()) {
+            pushedLayer = true;
+            c.pushLayer(this.getLayer());
         }
 
         if (style.isFixedBackground()) {
@@ -948,10 +948,6 @@ public class BlockBox extends Box implements InlinePaintable {
         if (pushedLayer) {
             c.popLayer();
         }
-        
-        if (pushedClipBox) {
-        	c.popClippingBox();
-        }
     }
 
     protected boolean isAllowHeightToShrink() {
@@ -962,6 +958,10 @@ public class BlockBox extends Box implements InlinePaintable {
         return 0;
     }
 
+    /**
+     * Oh oh! Up to this method height is used to track content height. After this method it is used
+     * to track total layout height! 
+     */
     protected void calcLayoutHeight(
             LayoutContext c, BorderPropertySet border,
             RectPropertySet margin, RectPropertySet padding) {
@@ -1876,6 +1876,7 @@ public class BlockBox extends Box implements InlinePaintable {
         }
     }
 
+    @Override
     protected void calcChildPaintingInfo(
             final CssContext c, final PaintingInfo result, final boolean useCache) {
         if (getPersistentBFC() != null) {
@@ -2154,6 +2155,7 @@ public class BlockBox extends Box implements InlinePaintable {
         return flowRoot.isRoot();
     }
 
+    @Override
     public Box getDocumentParent() {
         Box staticEquivalent = getStaticEquivalent();
         if (staticEquivalent != null) {

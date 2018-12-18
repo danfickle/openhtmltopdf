@@ -1,0 +1,30 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 60px;
+  @top-center {
+    content: element(hdr);
+  }
+}
+.header {
+  box-sizing: border-box;
+  height: 60px;
+  width: 60px;
+  position: running(hdr);
+  border: 2px solid red;
+  overflow: hidden;
+}
+img {
+  width: 150px;
+  height: 150px;
+}
+</style>
+</head>
+<body>
+<div class="header"><img src="../../demos/images/flyingsaucer.png" alt="image"/></div>
+
+<div style="width: 100%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

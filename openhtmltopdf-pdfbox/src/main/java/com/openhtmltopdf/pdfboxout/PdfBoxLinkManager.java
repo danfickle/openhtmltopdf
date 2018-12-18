@@ -29,6 +29,10 @@ import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 
+/**
+ * @deprecated Use fast link manager instead.
+ */
+@Deprecated
 public class PdfBoxLinkManager {
 
 	private final Map<PDPage, Set<String>> _linkTargetAreas;

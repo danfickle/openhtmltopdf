@@ -1,14 +1,11 @@
 [![Build Status](https://api.travis-ci.org/danfickle/openhtmltopdf.svg?branch=open-dev-v1)](https://travis-ci.org/danfickle/openhtmltopdf)
 
-OPEN HTML TO PDF
----------
+# OPEN HTML TO PDF
 
-CURRENTY SEEKING FEEDBACK
-========
+## CURRENTY SEEKING FEEDBACK
 + [Roadmap for version 1](https://github.com/danfickle/openhtmltopdf/issues/170)
 
-OVERVIEW
-========
+## OVERVIEW
 Open HTML to PDF is a pure-Java library for rendering arbitrary well-formed XML/XHTML (and even HTML5)
 using CSS 2.1 for layout and formatting, outputting to PDF or images.
 
@@ -18,17 +15,15 @@ use it's extended CSS feature like [#31](https://github.com/danfickle/openhtmlto
 [#32](https://github.com/danfickle/openhtmltopdf/pull/32) 
 to get good results. Avoid floats near page breaks and use table layouts.
 
-GETTING STARTED
-========
+## GETTING STARTED
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
 + [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
 + [Documentation wiki](https://github.com/danfickle/openhtmltopdf/wiki)
-+ [Template Author Guide - PDF - WIP](https://openhtmltopdf.com/template-guide.pdf) - Moving info to wiki
-+ [RC11 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
++ [Template Author Guide - PDF - DEPRECATED - Prefer wiki](https://openhtmltopdf.com/template-guide.pdf) - Moving info to wiki
++ [RC16 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
 + [Sample Project - Pretty Resume Generator](https://github.com/danfickle/pretty-resume)
 
-LICENSE
-========
+## LICENSE
 Open HTML to PDF is distributed under the LGPL.  Open HTML to PDF itself is licensed 
 under the GNU Lesser General Public License, version 2.1 or later, available at
 http://www.gnu.org/copyleft/lesser.html. You can use Open HTML to PDF in any
@@ -40,34 +35,45 @@ Open HTML to PDF uses a couple of FOSS packages to get the job done. A list
 of these, along with the license they each have, is listed in the 
 LICENSE file in our distribution.   
 
-CREDITS
-========
+## CREDITS
 Open HTML to PDF is based on [Flying-saucer](https://github.com/flyingsaucerproject/flyingsaucer). Credit goes to the contributors of that project. Code will also be used from [neoFlyingSaucer](https://github.com/danfickle/neoflyingsaucer)
 
-FAQ
-===
-+ OPEN HTML TO PDF is tested with OpenJDK 7, Oracle JDK 8 and Oracle JDK 9.
+## FAQ
++ OPEN HTML TO PDF is tested with OpenJDK 8 and 11, Oracle JDK 8 and 11. As of RC18, it requires at least Java 8 to run.
 + No, you can not use it on Android.
 + You should be able to use it on Google App Engine (Java 8 or greater environment). [Let us know your experience](https://github.com/danfickle/openhtmltopdf/issues/179).
 + <s>Flowing columns are not implemented.</s> Implemented in RC12.
 + No, it's not a web browser.
 
-TEST CASES
-========
+## TEST CASES
 Test cases, failing or working are welcome, please place them
 in ````/openhtmltopdf-examples/src/main/resources/testcases/````
 and run them
 from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/TestcaseRunner.java````.
 
-CHANGELOG
-========
+## CHANGELOG
 
-head - 0.0.1-RC16-SNAPSHOT
-========
+### head - 0.0.1-RC18-SNAPSHOT
+
+### 0.0.1-RC17
++ [#284](https://github.com/danfickle/openhtmltopdf/pull/284) [#288](https://github.com/danfickle/openhtmltopdf/issues/288) IMPORTANT: This release was brought forward due to a CVE in Apache Batik used by the optional SVG module.
+  While this project strongly advises not to use untrusted XML either in SVG or XHTML, you may be using Batik in another part of your project and therefore it is a good idea to update. Thanks a lot @ghenadiibatalski, @chubbard
++ [#286](https://github.com/danfickle/openhtmltopdf/issues/286) [#281](https://github.com/danfickle/openhtmltopdf/issues/281) Fix for text decorations/background incorrect coverage in justified text. Thanks @koritakoa, @allartammik
++ [#280](https://github.com/danfickle/openhtmltopdf/issues/280) This will be the last release compatible with Java 7, from now on Java 8 or above will be required. Thanks for everyone's thoughts on this.
+
+### 0.0.1-RC16
++ [#279](https://github.com/danfickle/openhtmltopdf/pull/279) [#264](https://github.com/danfickle/openhtmltopdf/pull/264)
+IMPORTANT: This release was brought forward so that we link against PDFBOX-2.0.12 as previous versions had another DOS security vulnerability when parsing arbitary PDF files. Also there was a security issue in the old version of JSoup used by the optional jsoup-dom-converter module.
+  While I believe these vulnerabilities should not impact this project directly, having an insecure library on your classpath may be dangerous if you use it for other tasks.
+  Thanks @rototor, @dheid
++ [#279](https://github.com/danfickle/openhtmltopdf/pull/279) Support for testing and running on JDK-11. Extensive work by @rototor. Thanks.
++ [#278](https://github.com/danfickle/openhtmltopdf/pull/278) Support for additional PDF/A conformance levels.  Thanks @TheUnnamedDude
++ [87dc1a9](https://github.com/danfickle/openhtmltopdf/commit/87dc1a98f5821b4b80b6f85db93def53f770ecc5) Fixed nasty bug where positioned elements (absolute, fixed) were being printed twice. By @danfickle
++ [#271](https://github.com/danfickle/openhtmltopdf/pull/271) Support right-to-left list items. Thanks @ieugen for work, @sandre1 for reporting.
++ Much more work on the fast renderer. But not ready for prime time yet!
 
 
-0.0.1-RC15
-========
+### 0.0.1-RC15
 + NOTE: Started moving [project documentation to wiki](https://github.com/danfickle/openhtmltopdf/wiki).
 + [#228](https://github.com/danfickle/openhtmltopdf/issues/228) Support for letter-spacing CSS property. By @danfickle
 + [#143](https://github.com/danfickle/openhtmltopdf/pull/143) Merging of remaining items thanks to @backslash47
@@ -79,8 +85,7 @@ head - 0.0.1-RC16-SNAPSHOT
 + [#254](https://github.com/danfickle/openhtmltopdf/pull/254) Allow use of SVG image in image tag. Thanks @syjer
 
 
-0.0.1-RC14
-========
+### 0.0.1-RC14
 + IMPORTANT: This release was brought forward so that we link against PDFBOX-2.0.11 as previous versions had a security vulnerability when parsing arbitary PDF files.
   While I believe this should not impact this project directly, having an insecure library on your classpath may be dangerous if you use it for other tasks.
   [#241](https://github.com/danfickle/openhtmltopdf/issues/241) [#239](https://github.com/danfickle/openhtmltopdf/pull/239) Thanks @rototor, @cseblog
@@ -94,8 +99,7 @@ head - 0.0.1-RC16-SNAPSHOT
 + [Fix link annotation placement in margin or generated boxes](https://github.com/danfickle/openhtmltopdf/issues/213) Thanks @jesselong, @Kuhlware, @markhowardnz 
 
 
-0.0.1-RC13
-========
+### 0.0.1-RC13
 + [Use common base class for PDF and Java2D builder - SOME IMPORTS MAY CHANGE](https://github.com/danfickle/openhtmltopdf/pull/177) Thanks @rototor
 + Major work on transforms, we're getting there, but still test well before use. Thanks @rototor
 + [Make it possible to set a PDF producer](https://github.com/danfickle/openhtmltopdf/pull/158) Thanks @schmitch
@@ -113,8 +117,7 @@ head - 0.0.1-RC16-SNAPSHOT
 
 Note: Shaped links only work in Acrobat Reader. All other PDF reader seem to ignore them.
 
-0.0.1-RC12
-========
+### 0.0.1-RC12
 + [Upgrade the PDFBox to 2.0.8 and PDFBox-Graphics2D to 0.10 versions again](https://github.com/danfickle/openhtmltopdf/pull/150) Thanks @rototor
 + [Fix incorrect strikethrough offset](https://github.com/danfickle/openhtmltopdf/issues/136) Thanks @alebar, @backslash47, @izhenka
 + Allow percentages for max-width and max-height of images Thanks @backslash47
@@ -127,8 +130,7 @@ Note: Shaped links only work in Acrobat Reader. All other PDF reader seem to ign
 + [Implemented CSS3 flowing text columns](https://github.com/danfickle/openhtmltopdf/issues/60#issuecomment-310959602) Thanks @miminno
 + [FIX: Don't write miter values of zero into the PDF, fixes dotted/dashed lines in Acrobat Reader](https://github.com/danfickle/openhtmltopdf/issues/135)
 
-0.0.1-RC11
-========
+### 0.0.1-RC11
 + [Allow collapsed borders with table pagination](https://github.com/danfickle/openhtmltopdf/issues/97) Thanks @Epimetheus89 
 + [FIX: Dispose of thread local when renderer is cleaned up](https://github.com/danfickle/openhtmltopdf/issues/94) Thanks @rototor
 + [FIX: Link handling when identical link positions on multiple pages](https://github.com/danfickle/openhtmltopdf/pull/95) Thanks @rototor
@@ -138,25 +140,21 @@ Note: Shaped links only work in Acrobat Reader. All other PDF reader seem to ign
 + [Upgrade PDFBox library to 2.05](https://github.com/danfickle/openhtmltopdf/pull/86) Thanks @rototor, PDFBox team
 
 
-0.0.1-RC10
-========
+### 0.0.1-RC10
 + [Support for inline SVG images](https://github.com/danfickle/openhtmltopdf/issues/23) Thanks @rototor
 + [Support for outputting paged or continuous images](https://github.com/danfickle/openhtmltopdf/issues/73#issuecomment-291070264) Thanks @rototor
 
 
-0.0.1-RC9
-========
+### 0.0.1-RC9
 + [Don't output acroform for formless document](https://github.com/danfickle/openhtmltopdf/issues/52) Thanks @aleksandr-m
 + [Upgraded to PDFBox 2.0.4](https://github.com/danfickle/openhtmltopdf/issues/59) Thanks PDFBox team
 + [Fixed memory leak - properly - in image processing on some JREs](https://github.com/danfickle/openhtmltopdf/issues/51) Thanks @skjardenCode and @MartyMcMartface
 
-0.0.1-RC8
-========
+### 0.0.1-RC8
 + [Initial support for CSS transform property](https://github.com/danfickle/openhtmltopdf/issues/38) Thanks @rototor
 + [Add support for max-width and max-height on img elements](https://github.com/danfickle/openhtmltopdf/pull/48) Thanks @achuinard
 
-0.0.1-RC7
-========
+### 0.0.1-RC7
 + SECURITY ISSUE: [Prevent XXE Attacks](https://github.com/danfickle/openhtmltopdf/issues/44) Thanks @lillesand
 + BREAKING CHANGE: [Support for dir attribute and bdi element](https://github.com/danfickle/openhtmltopdf/issues/9#issuecomment-257072765)
 + [Do not download fonts that are not actually used](https://github.com/danfickle/openhtmltopdf/issues/43)
@@ -164,8 +162,7 @@ Note: Shaped links only work in Acrobat Reader. All other PDF reader seem to ign
 + [Added support for hidden controls and submit controls with values](https://github.com/danfickle/openhtmltopdf/issues/24)
 + [Corrected naming scheme for form controls](https://github.com/danfickle/openhtmltopdf/issues/42) Thanks @scoldwell
 
-0.0.1-RC5
-========
+### 0.0.1-RC5
 + [Reimplemented text justification](https://github.com/danfickle/openhtmltopdf/pull/33) Thanks @hiddendog 
 + [Fixed bug in table borders](https://github.com/danfickle/openhtmltopdf/pull/34) Thanks @rototor
 + [Added support for -fs-page-break-min-height CSS property](https://github.com/danfickle/openhtmltopdf/pull/31) Thanks @rototor
@@ -176,8 +173,7 @@ Note: Shaped links only work in Acrobat Reader. All other PDF reader seem to ign
 + [Add method to builder to specify custom text transformers](https://github.com/danfickle/openhtmltopdf/issues/28)
 + [Add method to builder to specify a custom line breaker](https://github.com/danfickle/openhtmltopdf/issues/25) Thanks @Magotchi
 
-0.0.1-RC4
-========
+### 0.0.1-RC4
 + Add method to builder to specify replacement text if no specified font can render a character.
 + [BREAKING CHANGE: Reworked URI resolver, changed FSUriResolver interface and made sure it is used everywhere](https://github.com/danfickle/openhtmltopdf/issues/27) - See example in integration guide.
 + Fixed issue where different size pages in the same document were not being recognized.
@@ -186,8 +182,7 @@ Note: Shaped links only work in Acrobat Reader. All other PDF reader seem to ign
 + [Silently discard control characters, etc at the rendering stage](https://github.com/danfickle/openhtmltopdf/issues/21#issuecomment-227850449) Thanks @scoldwell
 + [Fixed incorrect spacing when characters are replaced](https://github.com/danfickle/openhtmltopdf/issues/26) Thanks @scoldwell
  
-0.0.1-RC3
-========
+### 0.0.1-RC3
 + [Experimental and unstable SVG support - early prototype](https://github.com/danfickle/openhtmltopdf/issues/23)
 + [Replaced non-breaking spaces - and other unusual spaces - with normal space if font does not support them](https://github.com/danfickle/openhtmltopdf/issues/21) Thanks @rototor
 + [Added a method for adding a PDF font using an input stream](https://github.com/danfickle/openhtmltopdf/issues/20) Thanks @aleksandr-m
@@ -196,8 +191,7 @@ Note: Shaped links only work in Acrobat Reader. All other PDF reader seem to ign
 + [Added support for font fallback for Java2D](https://github.com/danfickle/openhtmltopdf/issues/10) Thanks @willamette
 + [Fixed crash issue when document contained CDATA sections](https://github.com/danfickle/openhtmltopdf/issues/16) Thanks @hiddendog
 
-0.0.1-RC2
-========
+### 0.0.1-RC2
 + [Added support for font fallback for PDFs](https://github.com/danfickle/openhtmltopdf/issues/10)
 + [Added fluent builder style API for PDF conversion](https://github.com/danfickle/openhtmltopdf/issues/14)
 + [Added ability to plugin external HTTP/HTTPS implementation](https://github.com/danfickle/openhtmltopdf/issues/13)
