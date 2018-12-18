@@ -179,7 +179,7 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <mainClass>com.openhtmltopdf.cli.Main</mainClass>
+              <mainClass>com.openhtmltopdf.cli.RenderHtml</mainClass>
             </manifest>
           </archive>
         </configuration>

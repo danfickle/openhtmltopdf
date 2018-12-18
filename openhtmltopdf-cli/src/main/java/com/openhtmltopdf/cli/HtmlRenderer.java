@@ -11,13 +11,6 @@ import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
-import com.vladsch.flexmark.ast.Node;
-import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
-import com.vladsch.flexmark.ext.attributes.AttributesExtension;
-import com.vladsch.flexmark.ext.toc.TocExtension;
-import com.vladsch.flexmark.html.HtmlRenderer;
-import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.util.options.MutableDataSet;
 import java.awt.Font;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,11 +20,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pdfbox.util.Charsets;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -39,21 +30,15 @@ import picocli.CommandLine.Option;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Command(
     name = "render",
-    description = "OpenHtmlToPdf - Render markdown document to PDF.",
+    description = "OpenHtmlToPdf - Render html document to PDF.",
     mixinStandardHelpOptions = true,
-    version = "render-markdown - 0.1")
-public class MarkdownRenderer implements Runnable {
+    version = "render-html - 0.1")
+public class HtmlRenderer implements Runnable {
 
   @Option(
       names = {"-d", "--debug"},
       description = "Enable debug mode. Print html files.")
   boolean debug;
-
-  @Option(
-      names = {"-r", "--markdown-header"},
-      paramLabel = "FILE",
-      description = "Html file to be used as header for markdown content.")
-  File header;
 
   @Option(
       names = {"--fonts-dir"},
@@ -65,8 +50,8 @@ public class MarkdownRenderer implements Runnable {
       names = {"-i", "--input"},
       paramLabel = "FILE",
       description =
-          "File to convert to PDF. Can be any supported file format: Markdown. Defaults to README.md")
-  File input = new File("README.md");
+          "File to convert to PDF. Can be any supported file format: HTML. Defaults to index.html")
+  File input = new File("index.html");
 
   @Option(
       names = {"-o", "--out"},
@@ -79,20 +64,11 @@ public class MarkdownRenderer implements Runnable {
     try {
 
       byte[] bytes = Files.readAllBytes(input.toPath());
-      String md = new String(bytes, UTF_8);
-      String html = markdown(md);
-
-      String hdr = getHeader();
+      String html = new String(bytes, UTF_8);
 
       Path dstPath = getDestinationWithFallback(output, input);
 
-      String result = hdr + html + "</body></html>";
-
-      if (debug) {
-        Files.write(Paths.get(input.getName() + ".debug.html"), result.getBytes(UTF_8));
-      }
-
-      renderPDF(result, new FileOutputStream(dstPath.toFile()));
+      renderPDF(html, new FileOutputStream(dstPath.toFile()));
 
     } catch (Exception e) {
       System.err.printf("Exception %s", e);
@@ -104,33 +80,6 @@ public class MarkdownRenderer implements Runnable {
       return destination.toPath();
     }
     return Paths.get(source.getName() + ".pdf");
-  }
-
-  private String getHeader() throws IOException {
-    String hdr;
-    if (header != null) {
-      byte[] hdrBytes = Files.readAllBytes(header.toPath());
-      hdr = new String(hdrBytes, Charsets.UTF_8);
-    } else {
-      hdr = "<html> <head> </head> <body> ";
-    }
-    return hdr;
-  }
-
-  private String markdown(String md) {
-    MutableDataSet options = new MutableDataSet();
-    options.set(
-        Parser.EXTENSIONS,
-        Arrays.asList(
-            TocExtension.create(), AnchorLinkExtension.create(), AttributesExtension.create()));
-
-    options.set(AnchorLinkExtension.ANCHORLINKS_WRAP_TEXT, false);
-
-    Parser parser = Parser.builder(options).build();
-    HtmlRenderer renderer = HtmlRenderer.builder(options).build();
-
-    Node document = parser.parse(md);
-    return renderer.render(document);
   }
 
   private void renderPDF(String html, OutputStream outputStream) throws Exception {
