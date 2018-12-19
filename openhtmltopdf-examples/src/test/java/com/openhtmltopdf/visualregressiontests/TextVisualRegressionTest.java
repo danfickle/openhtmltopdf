@@ -319,4 +319,40 @@ public class TextVisualRegressionTest {
     public void testHiddenInsideTransform() throws IOException {
         assertTrue(run("hidden-inside-transform"));
     }
+    
+    /**
+     * Tests that static inline-blocks expand to fit their text.
+     */
+    @Test
+    public void testInlineBlockExpands() throws IOException {
+        assertTrue(run("inline-block-expands"));
+    }
+
+    /**
+     * Tests that text does not overflow inline-block with overflow set to hidden.
+     */
+    @Test
+    public void testInlineBlockHidden() throws IOException {
+        assertTrue(run("inline-block-hidden"));
+    }
+
+    /**
+     * Tests that static inline-block can contain floating static block text.
+     * @see {@link VisualRegressionTest#testInlineBlockFloat()}
+     */
+    @Ignore // Float is hidden behind the background-color of inline-block.
+            // This is because floats are painted before inline-blocks.
+            // This problem is also present in the old slow renderer.
+    @Test
+    public void testInlineBlockFloat() throws IOException {
+        assertTrue(run("inline-block-float"));
+    }
+    
+    /**
+     * Tests that relative inline-block can contain absolute positioned block with text.
+     */
+    @Test
+    public void testInlineBlockAbsolute() throws IOException {
+        assertTrue(run("inline-block-absolute"));
+    }
 }
