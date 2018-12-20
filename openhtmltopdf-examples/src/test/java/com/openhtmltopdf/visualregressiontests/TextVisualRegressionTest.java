@@ -363,4 +363,21 @@ public class TextVisualRegressionTest {
     public void testTransformWithinTransform() throws IOException {
         assertTrue(run("transform-inside-transform"));
     }
+    
+    /**
+     * With an absolute block, rotate, large page margin, small block margin, small padding, small border.
+     */
+    @Test
+    public void testTransformAbsolute() throws IOException {
+        assertTrue(run("transform-absolute"));
+    }
+
+    /**
+     * With a floated static block, rotate, large page margin, small block margin, small padding, small border.
+     * Also tests transform across multiple vertical pages.
+     */
+    @Test
+    public void testTransformFloat() throws IOException {
+        assertTrue(run("transform-float"));
+    }
 }
