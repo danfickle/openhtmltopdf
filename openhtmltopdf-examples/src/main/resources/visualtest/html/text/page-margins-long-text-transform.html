@@ -1,0 +1,32 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 25px;
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: ltr;
+  
+  @left-top {
+    content: " "; /* Spacer cell */
+  }
+  @left-middle {
+    content: " "; /* Spacer cell */
+  }
+  @left-bottom {
+    font-family: 'TestFont';
+    content: "Very long content";
+    font-size: 16px;
+    max-height: 25px;
+    transform: translateY(50px) rotate(-90deg);
+    transform-origin: left top;
+    white-space: nowrap;
+    vertical-align: top;
+  }
+}
+</style>
+</head>
+<body>
+<div style="width: 150%; height: 20px; background-color: transparent;"></div>
+</body>
+</html>

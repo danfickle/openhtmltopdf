@@ -390,4 +390,13 @@ public class TextVisualRegressionTest {
     public void testTransformFloat() throws IOException {
         assertTrue(run("transform-float"));
     }
+    
+    /**
+     * Tests a long text transform in left-middle on overflow page.
+     * Common case of wanting a strip of vertical text in the left margin.
+     */
+    @Test
+    public void testPageMarginsLongTextTransform() throws IOException {
+        assertTrue(run("page-margins-long-text-transform"));
+    }
 }
