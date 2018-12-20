@@ -355,4 +355,12 @@ public class TextVisualRegressionTest {
     public void testInlineBlockAbsolute() throws IOException {
         assertTrue(run("inline-block-absolute"));
     }
+    
+    /**
+     * With static blocks, rotate then translate, page margin, body margin and padding.
+     */
+    @Test
+    public void testTransformWithinTransform() throws IOException {
+        assertTrue(run("transform-inside-transform"));
+    }
 }
