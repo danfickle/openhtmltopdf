@@ -218,6 +218,16 @@ public class TextVisualRegressionTest {
     }
     
     /**
+     * Tests that rotated text on overflow page entirely clipped out by the page margin
+     * should not generate an overflow page as such page will be visually empty.
+     */
+    @Test
+    @Ignore // Output contains visually empty overflow page.
+    public void testHorizPageOverflowTransform3() throws IOException {
+        assertTrue(run("horiz-page-overflow-transform-3"));
+    }
+    
+    /**
      * Tests that a nowrap span inside a line wraps to a new line if needed. Issue 302.
      */
     @Test
