@@ -440,4 +440,12 @@ public class TextVisualRegressionTest {
     public void testTablePaginated() throws IOException {
         assertTrue(run("table-paginated"));
     }
+    
+    /**
+     * Tests that a text-only table too wide after auto-layout will generate overflow pages.
+     */
+    @Test
+    public void testTableHorizPageOverflow() throws IOException {
+        assertTrue(run("table-horiz-page-overflow"));
+    }
 }
