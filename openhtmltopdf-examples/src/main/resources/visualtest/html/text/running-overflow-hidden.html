@@ -1,0 +1,29 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 60px;
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: ltr;
+  
+  @top-center {
+    content: element(hdr);
+  }
+}
+.header {
+  box-sizing: border-box;
+  height: 60px;
+  width: 60px;
+  position: running(hdr);
+  border: 2px solid red;
+  overflow: hidden;
+}
+</style>
+</head>
+<body>
+<div class="header" style="font-family: 'TestFont'; font-size: 14px;">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div>
+
+<div style="width: 150%; height: 20px; background-color: transparent; page-break-after: always;"></div>
+</body>
+</html>

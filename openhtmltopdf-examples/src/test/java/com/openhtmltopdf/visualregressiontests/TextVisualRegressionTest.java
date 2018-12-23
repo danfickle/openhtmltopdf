@@ -399,4 +399,13 @@ public class TextVisualRegressionTest {
     public void testPageMarginsLongTextTransform() throws IOException {
         assertTrue(run("page-margins-long-text-transform"));
     }
+    
+    /**
+     * Tests a running div with overflow hidden containing a larger replaced text.
+     * On two vertical pages and one overflow page. 
+     */
+    @Test
+    public void testRunningOverflowHidden() throws IOException {
+        assertTrue(run("running-overflow-hidden"));
+    }
 }
