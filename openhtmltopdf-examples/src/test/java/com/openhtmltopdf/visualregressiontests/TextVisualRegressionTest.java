@@ -408,4 +408,12 @@ public class TextVisualRegressionTest {
     public void testRunningOverflowHidden() throws IOException {
         assertTrue(run("running-overflow-hidden"));
     }
+    
+    /**
+     * Tests that an oversized text in a running element does not generate a horizontal overflow page.
+     */
+    @Test
+    public void testRunningOverflowNotGenerated() throws IOException {
+        assertTrue(run("running-overflow-not-generated"));
+    }
 }
