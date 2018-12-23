@@ -432,4 +432,12 @@ public class TextVisualRegressionTest {
     public void testTableNonPaginated() throws IOException {
         assertTrue(run("table-non-paginated"));
     }
+    
+    /**
+     * Tests that a paginated table DOES output table header and footer on every page (but caption only on first page).
+     */
+    @Test
+    public void testTablePaginated() throws IOException {
+        assertTrue(run("table-paginated"));
+    }
 }
