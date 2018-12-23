@@ -416,4 +416,12 @@ public class TextVisualRegressionTest {
     public void testRunningOverflowNotGenerated() throws IOException {
         assertTrue(run("running-overflow-not-generated"));
     }
+    
+    /**
+     * Tests that an oversized text in a fixed element does not generate a horizontal overflow page.
+     */
+    @Test
+    public void testFixedOverflowNotGenerated() throws IOException {
+        assertTrue(run("fixed-overflow-not-generated"));
+    }
 }
