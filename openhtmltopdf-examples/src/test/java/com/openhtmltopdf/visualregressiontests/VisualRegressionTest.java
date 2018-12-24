@@ -632,6 +632,22 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Further tests on collapsed table cell borders. Issue 303.
+     */
+    @Test
+    public void testTableCellBorders() throws IOException {
+        assertTrue(vt.runTest("table-cell-borders"));
+    }
+    
+    /**
+     * Further tests on separated table cell borders.
+     */
+    @Test
+    public void testTableCellBorders2() throws IOException {
+        assertTrue(vt.runTest("table-cell-borders-2"));
+    }
+    
+    /**
      * Tests than an inline block, floated, with border, that the border is visible. Issue 297.
      */
     @Test

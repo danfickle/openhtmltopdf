@@ -1,0 +1,38 @@
+<html>
+<head>
+<style>
+@page {
+  size: 250px 50px;
+  margin: 0;
+}
+body {
+  margin: 0;
+}
+td {
+  min-width: 100px;
+  padding: 0;
+  background-color: blue;
+  min-height: 20px;
+}
+.left {
+  border-right: 10px solid pink;
+}
+.right {
+  border-left: 10px solid orange;
+}
+</style>
+</head>
+<body>
+<!-- Measuring stick -->
+<div style="display: inline-block; width: 100px; background-color: green; min-height: 20px; margin: 0; padding: 0;"></div><div style="display: inline-block; width: 10px; background-color: black; min-height: 20px; margin: 0; padding: 0;"></div><div style="display: inline-block; width: 100px; background-color: gray; min-height: 20px; margin: 0; padding: 0;"></div>
+<br/>
+
+<div style="background-color: red;">
+<table style="border-collapse: collapse;">
+<tr>
+ <td class="left"></td><td class="right"></td>
+</tr>
+</table>
+</div>
+</body>
+</html>

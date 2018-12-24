@@ -309,7 +309,9 @@ public class TableCellBox extends BlockBox {
         
         c.getOutputDevice().paintBackground(c, rowStyle, bounds, imageContainer, border);
         
-        c.getOutputDevice().paintBackground(c, getStyle(), bounds, getPaintingBorderEdge(c), border);
+        BorderPropertySet cellBorder = _collapsedLayoutBorder != null ? _collapsedLayoutBorder : border;
+
+        c.getOutputDevice().paintBackground(c, getStyle(), bounds, getPaintingBorderEdge(c), cellBorder);
     }
     
     public void paintBorder(RenderingContext c) {
@@ -770,6 +772,7 @@ public class TableCellBox extends BlockBox {
     private Rectangle getCollapsedBorderBounds(CssContext c) {
         BorderPropertySet border = getCollapsedPaintingBorder();
         Rectangle bounds = getPaintingBorderEdge(c);
+        
         bounds.x -= (int) border.left() / 2;
         bounds.y -= (int) border.top() / 2;
         bounds.width += (int) border.left() / 2 + ((int) border.right() + 1) / 2;
