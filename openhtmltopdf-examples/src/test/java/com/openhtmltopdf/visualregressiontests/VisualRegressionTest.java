@@ -664,6 +664,10 @@ public class VisualRegressionTest {
     }
     
     // TODO:
+    // + Floats on fixed elements.
+    // + Transforms on fixed elements.
+    // + Inline blocks on fixed elements.
+    // + Overflow hidden on fixed elements.
     // + Running and page margins on overflow pages.
     // + Elements that appear just on generated overflow pages. Especially inline-block.
     // + content property (page counters, etc)

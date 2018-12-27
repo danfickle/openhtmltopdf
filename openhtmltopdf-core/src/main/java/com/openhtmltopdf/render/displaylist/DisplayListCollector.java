@@ -25,12 +25,6 @@ import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
 public class DisplayListCollector {
     protected static enum CollectFlags {
-        /**
-         * Fixed layers appear on each page. To avoid having to clone each box in a fixed layer onto 
-         * each page, we have this flag so we can exclude fixed boxes in the multi page run and just
-         * collect them at the last minute when painting a particular page. 
-         */
-        INCLUDE_FIXED_BOXES;
     }
     
  	private final List<PageBox> _pages;
@@ -100,12 +94,19 @@ public class DisplayListCollector {
 	 * The main method to create a list of paint instruction for each page.
 	 */
 	protected void collect(RenderingContext c, Layer layer, DisplayListContainer dlPages, Set<CollectFlags> flags) {
-		if (layer.getMaster().getStyle().isFixed() && !flags.contains(CollectFlags.INCLUDE_FIXED_BOXES)) {
+		if (layer.getMaster().getStyle().isFixed()) {
 			// We don't collect fixed layers or their children here, because we don't want to have
 			// to clone the entire subtree of the fixed box and all descendents.
 			// So just paint it at the last minute.
-			DisplayListOperation dlo = new PaintFixedLayer(layer);
-			addItem(dlo, 0, _pages.size() - 1, dlPages);
+		    DisplayListOperation dlo = new PaintFixedLayer(layer);
+		    for (int i = dlPages.getMinPage(); i <= dlPages.getMaxPage(); i++) {
+		        DisplayListPageContainer pageInstructions = dlPages.getPageInstructions(i);
+		        pageInstructions.addOp(dlo);
+		        
+		        for (int j = 0; j < pageInstructions.shadowPages().size(); j++) {
+		            pageInstructions.getShadowPage(j).addOp(dlo);
+		        }
+		    }
 			return;
 		}
 		
@@ -332,13 +333,6 @@ public class DisplayListCollector {
         processPage(c, bb.getContainingLayer(), pgResult, pgInstructions, /* includeFloats: */ false, c.getPageNo(), /* shadow page number: */ -1);
         
         return pgInstructions;
-    }
-	
-	public DisplayListContainer collectFixed(RenderingContext c, Layer layer) {
-        // This is called from the painter to collect fixed boxes just before paint.
-        DisplayListContainer res = new MapDisplayListContainer(_pages.size(), 1);
-        collect(c, layer, res, EnumSet.of(CollectFlags.INCLUDE_FIXED_BOXES));
-        return res;
     }
 	
 	protected PagedBoxCollector createBoundedBoxCollector(int pgStart, int pgEnd) {

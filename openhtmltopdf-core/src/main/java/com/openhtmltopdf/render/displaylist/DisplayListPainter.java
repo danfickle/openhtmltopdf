@@ -7,6 +7,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
+import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
@@ -21,6 +22,7 @@ import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.DisplayListCollector.CollectFlags;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
+import com.openhtmltopdf.render.simplepainter.SimplePainter;
 
 public class DisplayListPainter {
     
@@ -176,11 +178,27 @@ public class DisplayListPainter {
     
     private void paintFixed(RenderingContext c, Layer layer) {
     	layer.positionFixedLayer(c);
+    	
+    	
+    	if (c.getShadowPageNumber() == -1) {
+    	    SimplePainter painter = new SimplePainter(
+    	        c.getPage().getMarginBorderPadding(c, CalculatedStyle.LEFT),
+    	        c.getPage().getMarginBorderPadding(c, CalculatedStyle.TOP));
 
-    	List<PageBox> pages = layer.getPages();
-    	DisplayListCollector collector = new DisplayListCollector(pages);
-        DisplayListContainer dlPages = collector.collectFixed(c, layer); 
-        paint(c, dlPages.getPageInstructions(c.getPageNo()));
+    	    painter.paintLayer(c, layer);
+        } else {
+            Rectangle shadowRect = c.getPage().getDocumentCoordinatesContentBoundsForInsertedPage(c, c.getShadowPageNumber());
+            
+            c.getOutputDevice().translate(shadowRect.x, 0);
+
+            SimplePainter painter = new SimplePainter(
+                    shadowRect.x,
+                    c.getPage().getMarginBorderPadding(c, CalculatedStyle.TOP));
+
+            painter.paintLayer(c, layer);
+
+            c.getOutputDevice().translate(-shadowRect.x, 0);
+        }
     }
 
 	public void paint(RenderingContext c, DisplayListPageContainer pageOperations) {
