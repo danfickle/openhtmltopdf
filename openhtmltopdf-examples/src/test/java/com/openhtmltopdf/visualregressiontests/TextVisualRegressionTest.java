@@ -425,6 +425,15 @@ public class TextVisualRegressionTest {
     }
     
     /**
+     * Tests that fixed position elements are appearing on overflow pages.
+     */
+    @Test
+    @Ignore // Fixed element not appearing on overflow page.
+    public void testFixedOnOverflowPages() throws IOException {
+        assertTrue(run("fixed-on-overflow-pages"));
+    }
+    
+    /**
      * Tests that a non-paginated table does not output table header, footer or caption on every page.
      */
     @Test
