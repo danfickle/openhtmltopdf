@@ -317,7 +317,7 @@ public class PagedBoxCollector {
                 PageResult pgRes = getPageResult(i);
                 PageBox pageBox = getPageBox(i);
                 
-                if (intersectsAggregateBounds(pgRes.getContentWindowOnDocument(pageBox, c), floater)) {
+                if (intersectsAggregateBounds(c, pgRes.getContentWindowOnDocument(pageBox, c), floater)) {
                     pgRes.addFloat(floater);
                 }
                 
@@ -491,7 +491,7 @@ public class PagedBoxCollector {
         PageBox pageBox = getPageBox(basePageNumber);
         Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(pageBox, c, shadowPageNumber);
         
-        if (intersectsAggregateBounds(shadowPageClip, container)) {
+        if (intersectsAggregateBounds(c, shadowPageClip, container)) {
             PageResult shadowPageResult = getOrCreateShadowPage(pageResult, shadowPageNumber);
             
             shadowPageResult.addInline(container);
@@ -509,7 +509,7 @@ public class PagedBoxCollector {
         PageBox pageBox = getPageBox(basePageNumber);
         Rectangle pageClip = pageResult.getContentWindowOnDocument(pageBox, c);
 
-        if (intersectsAggregateBounds(pageClip, container)) {
+        if (intersectsAggregateBounds(c, pageClip, container)) {
             pageResult.addInline(container);
 
             // Recursively add all children of the line box to the inlines list.
@@ -629,7 +629,7 @@ public class PagedBoxCollector {
             Rectangle shadowPageClip = pageResult.getShadowWindowOnDocument(basePageBox, c, i);
             
             boolean intersects = addToMethod.boundsBox() == AddToShadowPage.AGGREGATE_BOX ? 
-                    intersectsAggregateBounds(shadowPageClip, container) :
+                    intersectsAggregateBounds(c, shadowPageClip, container) :
                     intersectsBorderBoxBounds(c, shadowPageClip, container);
             
             if (intersects) {
@@ -689,7 +689,7 @@ public class PagedBoxCollector {
         }
     }
 
-    private boolean intersectsAggregateBounds(Shape clip, Box box) {
+    private boolean intersectsAggregateBounds(CssContext c, Shape clip, Box box) {
         if (clip == null) {
             return true;
         }
@@ -702,14 +702,7 @@ public class PagedBoxCollector {
         
         Rectangle bounds = info.getAggregateBounds();
         
-        AffineTransform ctm = box.getContainingLayer().getCurrentTransformMatrix();
-        
-        if (ctm == null) {
-        	return clip.intersects(bounds);
-        } else {
-        	Shape boxShape = ctm.createTransformedShape(bounds);
-        	return clip.intersects(boxShape.getBounds2D());
-        }
+        return boxIntersects(c, clip, box, bounds);
     }
     
     /**
@@ -719,20 +712,24 @@ public class PagedBoxCollector {
     private boolean intersectsBorderBoxBounds(CssContext c, Shape clip, Box box) {
         Rectangle borderBoxBounds = box.getBorderBox(c);
         
+        return boxIntersects(c, clip, box, borderBoxBounds);
+    }
+
+    private boolean boxIntersects(CssContext c, Shape clip, Box box, Rectangle boxBounds) {
         AffineTransform ctm = box.getContainingLayer().getCurrentTransformMatrix();
         Area overflowClip = box.getAbsoluteClipBox(c);
 
         if (ctm == null && overflowClip == null) {
-            return clip.intersects(borderBoxBounds);
+            return clip.intersects(boxBounds);
         } else if (ctm != null && overflowClip == null) {
-            Shape boxShape = ctm.createTransformedShape(borderBoxBounds);
+            Shape boxShape = ctm.createTransformedShape(boxBounds);
             Area boxArea = new Area(boxShape);
             Area clipArea = new Area(clip);
             boxArea.intersect(clipArea);
 
             return !boxArea.isEmpty();
         } else { // if (overflowClip != null)
-            Area boxArea = new Area(ctm == null ? borderBoxBounds : ctm.createTransformedShape(borderBoxBounds));
+            Area boxArea = new Area(ctm == null ? boxBounds : ctm.createTransformedShape(boxBounds));
             boxArea.intersect(overflowClip);
             boxArea.intersect(new Area(clip));
             

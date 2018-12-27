@@ -196,7 +196,6 @@ public class TextVisualRegressionTest {
      * is absolute block and a case where content is a static block. 
      */
     @Test
-    @Ignore // Text is causing overflow pages and text appears on overflow pages in contravention of overflow hidden.
     public void testHorizPageOverflowHidden() throws IOException {
         assertTrue(run("horiz-page-overflow-hidden"));
     }
