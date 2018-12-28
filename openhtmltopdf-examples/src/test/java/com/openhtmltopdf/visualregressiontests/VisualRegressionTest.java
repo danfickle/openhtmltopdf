@@ -663,6 +663,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("data-uri-font"));
     }
     
+    /**
+     * Tests that an img (with percentage max-width) shows up in an auto width table cell. Issue 313.
+     */
+    @Test
+    @Ignore // img max-width inside table-cell is resolving to zero and therefore image is not inserted.
+    public void testReplacedImgInTableCell() throws IOException {
+        assertTrue(vt.runTest("replaced-img-in-table-cell"));
+    }
+    
     // TODO:
     // + Floats on fixed elements.
     // + Transforms on fixed elements.
