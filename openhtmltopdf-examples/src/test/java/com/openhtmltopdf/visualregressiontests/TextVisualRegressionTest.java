@@ -433,6 +433,17 @@ public class TextVisualRegressionTest {
     }
     
     /**
+     * Tests that a nested float in a fixed element renders correctly.
+     */
+    @Test
+    @Ignore // SERIOUS FAILURE - The footer element is not rendering.
+            // Appears to be an ordering issue of the layers as if header and footer swap element order
+            // everything works!
+    public void testFixedNestedFloat() throws IOException {
+        assertTrue(run("fixed-nested-float"));
+    }
+    
+    /**
      * Tests that a non-paginated table does not output table header, footer or caption on every page.
      */
     @Test
