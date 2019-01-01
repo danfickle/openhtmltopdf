@@ -845,8 +845,12 @@ public class BlockBox extends Box implements InlinePaintable {
             pushedLayer = true;
             c.pushLayer(this);
         } else if (style.requiresLayer()) {
+            // FIXME: HACK. Some boxes can be layed out many times (to satisfy page constraints for example).
+            // If this happens we just mark our old layer for deletion and create a new layer.
+            // Not sure this is right, but doesn't break any correct tests.
+            this.getLayer().setForDeletion(true);
             pushedLayer = true;
-            c.pushLayer(this.getLayer());
+            c.pushLayer(this);
         }
 
         if (style.isFixedBackground()) {

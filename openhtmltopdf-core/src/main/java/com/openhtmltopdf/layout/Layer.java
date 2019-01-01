@@ -89,6 +89,8 @@ public class Layer {
     private int _selectionEndX;
     private int _selectionEndY;
     
+    private boolean _forDeletion;
+    
     /**
      * @see {@link #getCurrentTransformMatrix()}
      */
@@ -147,6 +149,14 @@ public class Layer {
     
     public boolean hasLocalTransform() {
     	return _hasLocalTransform;
+    }
+    
+    public void setForDeletion(boolean forDeletion) {
+        this._forDeletion = forDeletion;
+    }
+    
+    public boolean isForDeletion() {
+        return this._forDeletion;
     }
     
     public Layer getParent() {
@@ -259,7 +269,9 @@ public class Layer {
 
         for (Layer child : children) {
             if (! child.isStackingContext()) {
-            	if (which == AUTO && child.isZIndexAuto()) {
+                if (child.isForDeletion()) {
+                    // Do nothing...
+                } else if (which == AUTO && child.isZIndexAuto()) {
             		result.add(child);
             	} else if (which == NEGATIVE && child.getZIndex() < 0) {
             		result.add(child);
@@ -280,7 +292,9 @@ public class Layer {
         List<Layer> children = getChildren();
 
         for (Layer target : children) {
-            if (target.isStackingContext()) {
+            if (target.isForDeletion()) {
+                // Do nothing...
+            } else if (target.isStackingContext()) {
             	if (!target.isZIndexAuto()) {
                     int zIndex = target.getZIndex();
                     if (which == NEGATIVE && zIndex < 0) {
@@ -894,6 +908,7 @@ public class Layer {
         if (getParent() != null) {
             getParent().remove(this);
         }
+        setForDeletion(true);
     }
 
     public boolean isInline() {
