@@ -78,7 +78,7 @@ public class Layer {
     private Set<BlockBox> _pageSequences;
     private List<BlockBox> _sortedPageSequences;
 
-    private Map _runningBlocks;
+    private Map<String, List<BlockBox>> _runningBlocks;
 
     private Box _selectionStart;
     private Box _selectionEnd;
@@ -204,24 +204,28 @@ public class Layer {
         return result;
     }
 
+    /**
+     * FIXME: Only used when we reset a box, so trying to remove at sometime in the future.
+     */
     public void removeFloat(BlockBox floater) {
         if (_floats != null) {
             _floats.remove(floater);
         }
     }
 
+    @Deprecated  // We are moving painting out of Layer to either DisplayListPainter or SimplePainter.
     private void paintFloats(RenderingContext c) {
         if (_floats != null) {
             for (int i = _floats.size() - 1; i >= 0; i--) {
-                BlockBox floater = (BlockBox) _floats.get(i);
+                BlockBox floater = _floats.get(i);
                 paintAsLayer(c, floater);
             }
         }
     }
 
-    private void paintLayers(RenderingContext c, List layers) {
-        for (int i = 0; i < layers.size(); i++) {
-            Layer layer = (Layer) layers.get(i);
+    @Deprecated
+    private void paintLayers(RenderingContext c, List<Layer> layers) {
+        for (Layer layer : layers) {
             layer.paint(c);
         }
     }
@@ -295,20 +299,15 @@ public class Layer {
         return result;
     }
 
-    private static class ZIndexComparator implements Comparator<Layer> {
-        public int compare(Layer l1, Layer l2) {
-            return l1.getZIndex() - l2.getZIndex();
-        }
-    }
-
     public List<Layer> getSortedLayers(int which) {
         List<Layer> result = collectLayers(which);
 
-        Collections.sort(result, new ZIndexComparator());
+        Collections.sort(result, (l1, l2) -> l1.getZIndex() - l2.getZIndex());
 
         return result;
     }
 
+    @Deprecated
     private void paintBackgroundsAndBorders(
             RenderingContext c, List<Box> blocks,
             Map collapsedTableBorders, BoxRangeLists rangeLists) {
@@ -341,6 +340,7 @@ public class Layer {
         helper.popClipRegions(c, blocks.size());
     }
 
+    @Deprecated // We no longer support interactive or selection.
     private void paintSelection(RenderingContext c, List lines) {
         if (c.getOutputDevice().isSupportsSelection()) {
             for (Iterator i = lines.iterator(); i.hasNext();) {
@@ -356,6 +356,7 @@ public class Layer {
         return calcPaintingDimension(c).getOuterMarginCorner();
     }
 
+    @Deprecated
     private void paintInlineContent(RenderingContext c, List lines, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(
                 c.getOutputDevice(), rangeLists.getInline());
@@ -370,10 +371,8 @@ public class Layer {
 
         helper.popClipRegions(c, lines.size());
     }
- 
-	
-	
 
+    @Deprecated
     public void paint(RenderingContext c) {
         if (getMaster().getStyle().isFixed()) {
             positionFixedLayer(c);
@@ -432,6 +431,7 @@ public class Layer {
 
     }
 
+    @Deprecated // Moving to TransformCreator
     private float convertAngleToRadians(PropertyValue param) {
     	if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_DEG) {
     		return (float) Math.toRadians(param.getFloatValue());
@@ -450,6 +450,7 @@ public class Layer {
      * Applies the transforms specified for the box and returns a list of inverse transforms that should be
      * applied once the transformed element has been output.
      */
+    @Deprecated
 	protected List<AffineTransform> applyTranform(RenderingContext c, Box box) {
 		FSDerivedValue transforms = box.getStyle().valueByName(CSSName.TRANSFORM);
 		if (transforms.isIdent() && transforms.asIdentValue() == IdentValue.NONE)
@@ -558,6 +559,7 @@ public class Layer {
 		return c.getOutputDevice().pushTransforms(resultTransforms);
 	}
 
+    @Deprecated
 	private void applyTransformFunctions(float flipFactor, List<PropertyValue> transformList, List<AffineTransform> resultTransforms) {
 		for (PropertyValue transform : transformList) {
 			String fName = transform.getFunction().getName();
@@ -603,6 +605,7 @@ public class Layer {
 		}
 	}
 
+    @Deprecated // Currently not using the find functionality and considering removing.
 	private Box find(CssContext cssCtx, int absX, int absY, List layers, boolean findAnonymous) {
         Box result = null;
         // Work backwards since layers are painted forwards and we're looking
@@ -617,6 +620,7 @@ public class Layer {
         return result;
     }
 
+    @Deprecated
     public Box find(CssContext cssCtx, int absX, int absY, boolean findAnonymous) {
         Box result = null;
         if (isRootLayer() || isStackingContext()) {
@@ -659,6 +663,7 @@ public class Layer {
         return null;
     }
 
+    @Deprecated
     private void paintCollapsedTableBorders(RenderingContext c, List borders) {
         for (Iterator i = borders.iterator(); i.hasNext(); ) {
             CollapsedBorderSide border = (CollapsedBorderSide)i.next();
@@ -672,6 +677,7 @@ public class Layer {
     // we're about to draw and returns a map with the last cell in a given table
     // we'll paint as a key and a sorted list of borders as values.  These are
     // then painted after we've drawn the background for this cell.
+    @Deprecated
     private Map collectCollapsedTableBorders(RenderingContext c, List blocks) {
         Map cellBordersByTable = new HashMap();
         Map triggerCellsByTable = new HashMap();
@@ -709,6 +715,7 @@ public class Layer {
         }
     }
 
+    @Deprecated
     public void paintAsLayer(RenderingContext c, BlockBox startingPoint) {
         BoxRangeLists rangeLists = new BoxRangeLists();
 
@@ -728,6 +735,7 @@ public class Layer {
         paintReplacedElements(c, blocks, rangeLists);
     }
 
+    @Deprecated
     private void paintListMarkers(RenderingContext c, List blocks, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
 
@@ -743,6 +751,7 @@ public class Layer {
         helper.popClipRegions(c, blocks.size());
     }
 
+    @Deprecated
     private void paintReplacedElements(RenderingContext c, List blocks, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
 
@@ -760,6 +769,7 @@ public class Layer {
         helper.popClipRegions(c, blocks.size());
     }
 
+    @Deprecated
     private void paintLayerBackgroundAndBorder(RenderingContext c) {
         if (getMaster() instanceof BlockBox) {
             BlockBox box = (BlockBox) getMaster();
@@ -797,6 +807,7 @@ public class Layer {
         }
     }
     
+    @Deprecated
     private void paintReplacedElement(RenderingContext c, BlockBox replaced) {
         Rectangle contentBounds = replaced.getContentAreaEdge(
                 replaced.getAbsX(), replaced.getAbsY(), c);
@@ -812,9 +823,7 @@ public class Layer {
     }
 
     public void positionChildren(LayoutContext c) {
-        for (Iterator i = getChildren().iterator(); i.hasNext();) {
-            Layer child = (Layer) i.next();
-
+        for (Layer child : getChildren()) {
             child.position(c);
         }
     }
@@ -823,10 +832,7 @@ public class Layer {
         getMaster().calcPaintingInfo(c, true);
         PaintingInfo result = (PaintingInfo)getMaster().getPaintingInfo().copyOf();
 
-        List children = getChildren();
-        for (int i = 0; i < children.size(); i++) {
-            Layer child = (Layer)children.get(i);
-
+        for (Layer child : getChildren()) {
             if (child.getMaster().getStyle().isFixed()) {
                 continue;
             } else if (child.getMaster().getStyle().isAbsolute()) {
@@ -838,10 +844,9 @@ public class Layer {
         return result;
     }
 
+    @Deprecated // Not used.
     private boolean containsFixedLayer() {
-        for (Iterator i = getChildren().iterator(); i.hasNext();) {
-            Layer child = (Layer) i.next();
-
+        for (Layer child : getChildren()) {
             if (child.getMaster().getStyle().isFixed() || child.containsFixedLayer()) {
                 return true;
             }
@@ -849,33 +854,35 @@ public class Layer {
         return false;
     }
 
+    @Deprecated
     public boolean containsFixedContent() {
         return _fixedBackground || containsFixedLayer();
     }
 
+    @Deprecated // We not longer support fixed background.
     public void setFixedBackground(boolean b) {
         _fixedBackground = b;
     }
 
+    /**
+     * The resulting list should not be modified.
+     */
     public List<Layer> getChildren() {
-        return _children == null ? Collections.<Layer>emptyList() : Collections.unmodifiableList(_children);
+        return _children == null ? Collections.<Layer>emptyList() : _children;
     }
 
     private void remove(Layer layer) {
         boolean removed = false;
 
-        // access to _children is synchronized
-        synchronized (this) {
-            if (_children != null) {
-                for (Iterator i = _children.iterator(); i.hasNext(); ) {
-                    Layer child = (Layer)i.next();
+        if (_children != null) {
+                for (Iterator<Layer> i = _children.iterator(); i.hasNext(); ) {
+                    Layer child = i.next();
                     if (child == layer) {
                         removed = true;
                         i.remove();
                         break;
                     }
                 }
-            }
         }
 
         if (! removed) {
@@ -921,30 +928,46 @@ public class Layer {
             positionChildren(c);
         }
     }
-
+    
     private void layoutAbsoluteChildren(LayoutContext c) {
-        List children = getChildren();
+        List<Layer> children = getChildren();
+        
         if (children.size() > 0) {
             LayoutState state = c.captureLayoutState();
+            
             for (int i = 0; i < children.size(); i++) {
-                Layer child = (Layer)children.get(i);
+                Layer child = children.get(i);
+                boolean isFixed = child.getMaster().getStyle().isFixed();
+
                 if (child.isRequiresLayout()) {
                     layoutAbsoluteChild(c, child);
-                    if (child.getMaster().getStyle().isAvoidPageBreakInside() &&
-                            child.getMaster().crossesPageBreak(c)) {
-                        child.getMaster().reset(c);
-                        ((BlockBox)child.getMaster()).setNeedPageClear(true);
+                    
+                    if (!isFixed &&
+                        child.getMaster().getStyle().isAvoidPageBreakInside() &&
+                        child.getMaster().crossesPageBreak(c)) {
+                        
+                        BlockBox master = (BlockBox) child.getMaster();
+                        
+                        master.reset(c);
+                        master.setNeedPageClear(true);
+                        
                         layoutAbsoluteChild(c, child);
-                        if (child.getMaster().crossesPageBreak(c)) {
-                            child.getMaster().reset(c);
+                        
+                        if (master.crossesPageBreak(c)) {
+                            master.reset(c);
                             layoutAbsoluteChild(c, child);
                         }
                     }
+                    
                     child.setRequiresLayout(false);
                     child.finish(c);
-                    c.getRootLayer().ensureHasPage(c, child.getMaster());
+                    
+                    if (!isFixed) {
+                        c.getRootLayer().ensureHasPage(c, child.getMaster());
+                    }
                 }
             }
+            
             c.restoreLayoutState(state);
         }
     }
@@ -980,6 +1003,7 @@ public class Layer {
 
     private void layoutAbsoluteChild(LayoutContext c, Layer child) {
         BlockBox master = (BlockBox)child.getMaster();
+
         if (child.getMaster().getStyle().isBottomAuto()) {
             // Set top, left
             master.positionAbsolute(c, BlockBox.POSITION_BOTH);
@@ -1201,27 +1225,20 @@ public class Layer {
 
     public void addRunningBlock(BlockBox block) {
         if (_runningBlocks == null) {
-            _runningBlocks = new HashMap();
+            _runningBlocks = new HashMap<>();
         }
 
         String identifier = block.getStyle().getRunningName();
 
-        List blocks = (List)_runningBlocks.get(identifier);
+        List<BlockBox> blocks = _runningBlocks.get(identifier);
         if (blocks == null) {
-            blocks = new ArrayList();
+            blocks = new ArrayList<>();
             _runningBlocks.put(identifier, blocks);
         }
 
         blocks.add(block);
 
-        Collections.sort(blocks, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                BlockBox b1 = (BlockBox)o1;
-                BlockBox b2 = (BlockBox)o2;
-
-                return b1.getAbsY() - b2.getAbsY();
-            }
-        });
+        Collections.sort(blocks, (b1, b2) -> b1.getAbsY() - b2.getAbsY());
     }
 
     public void removeRunningBlock(BlockBox block) {
@@ -1231,7 +1248,7 @@ public class Layer {
 
         String identifier = block.getStyle().getRunningName();
 
-        List blocks = (List)_runningBlocks.get(identifier);
+        List<BlockBox> blocks = _runningBlocks.get(identifier);
         if (blocks == null) {
             return;
         }
@@ -1244,15 +1261,15 @@ public class Layer {
             return null;
         }
 
-        List blocks = (List)_runningBlocks.get(identifer);
+        List<BlockBox> blocks = _runningBlocks.get(identifer);
         if (blocks == null) {
             return null;
         }
 
         if (which == PageElementPosition.START) {
             BlockBox prev = null;
-            for (Iterator i = blocks.iterator(); i.hasNext(); ) {
-                BlockBox b = (BlockBox)i.next();
+            for (Iterator<BlockBox> i = blocks.iterator(); i.hasNext(); ) {
+                BlockBox b = i.next();
                 if (b.getStaticEquivalent().getAbsY() >= page.getTop()) {
                     break;
                 }
@@ -1260,8 +1277,8 @@ public class Layer {
             }
             return prev;
         } else if (which == PageElementPosition.FIRST) {
-            for (Iterator i = blocks.iterator(); i.hasNext(); ) {
-                BlockBox b = (BlockBox)i.next();
+            for (Iterator<BlockBox> i = blocks.iterator(); i.hasNext(); ) {
+                BlockBox b = i.next();
                 int absY = b.getStaticEquivalent().getAbsY();
                 if (absY >= page.getTop() && absY < page.getBottom()) {
                     return b;
@@ -1270,8 +1287,8 @@ public class Layer {
             return getRunningBlock(identifer, page, PageElementPosition.START);
         } else if (which == PageElementPosition.LAST) {
             BlockBox prev = null;
-            for (Iterator i = blocks.iterator(); i.hasNext(); ) {
-                BlockBox b = (BlockBox)i.next();
+            for (Iterator<BlockBox> i = blocks.iterator(); i.hasNext(); ) {
+                BlockBox b = i.next();
                 if (b.getStaticEquivalent().getAbsY() > page.getBottom()) {
                     break;
                 }
@@ -1280,8 +1297,8 @@ public class Layer {
             return prev;
         } else if (which == PageElementPosition.LAST_EXCEPT) {
             BlockBox prev = null;
-            for (Iterator i = blocks.iterator(); i.hasNext(); ) {
-                BlockBox b = (BlockBox)i.next();
+            for (Iterator<BlockBox> i = blocks.iterator(); i.hasNext(); ) {
+                BlockBox b = i.next();
                 int absY = b.getStaticEquivalent().getAbsY();
                 if (absY >= page.getTop() && absY < page.getBottom()) {
                     return null;
@@ -1312,7 +1329,7 @@ public class Layer {
         _pageSequences.add(start);
     }
 
-    private List getSortedPageSequences() {
+    private List<BlockBox> getSortedPageSequences() {
         if (_pageSequences == null) {
             return null;
         }
