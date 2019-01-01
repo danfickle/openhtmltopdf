@@ -441,6 +441,14 @@ public class TextVisualRegressionTest {
     }
     
     /**
+     * Tests that a nested inline-block in a fixed element renders correctly.
+     */
+    @Test
+    public void testFixedNestedInlineBlock() throws IOException {
+        assertTrue(run("fixed-nested-inline-block"));
+    }
+    
+    /**
      * Tests that a non-paginated table does not output table header, footer or caption on every page.
      */
     @Test
