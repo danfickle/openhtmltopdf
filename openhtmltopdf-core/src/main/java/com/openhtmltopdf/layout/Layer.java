@@ -90,6 +90,7 @@ public class Layer {
     private int _selectionEndY;
     
     private boolean _forDeletion;
+    private boolean _hasFixedAncester;
     
     /**
      * @see {@link #getCurrentTransformMatrix()}
@@ -117,6 +118,7 @@ public class Layer {
         master.setLayer(this);
         master.setContainingLayer(this);
         _hasLocalTransform = !master.getStyle().isIdent(CSSName.TRANSFORM, IdentValue.NONE);
+        _hasFixedAncester = (parent != null && parent._hasFixedAncester) || master.getStyle().isFixed();
     }
     
     /** 
@@ -157,6 +159,10 @@ public class Layer {
     
     public boolean isForDeletion() {
         return this._forDeletion;
+    }
+    
+    public boolean hasFixedAncester() {
+        return _hasFixedAncester;
     }
     
     public Layer getParent() {

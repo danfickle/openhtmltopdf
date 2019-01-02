@@ -95,8 +95,8 @@ public class TransformCreator {
 		return ctm;
 	}
 	
-	private static float getPageTranslateX(float absTranslateX, int shadowPageNumber, PageBox page, CssContext c) {
-	    if (shadowPageNumber == -1) {
+	private static float getPageTranslateX(float absTranslateX, int shadowPageNumber, PageBox page, CssContext c, Box box) {
+	    if (shadowPageNumber == -1 || box.getContainingLayer().hasFixedAncester()) {
 	        return absTranslateX + page.getMarginBorderPadding(c, CalculatedStyle.LEFT);    
 	    }
 	    
@@ -132,12 +132,12 @@ public class TransformCreator {
 		
 			if (transformYOrigin == TransformYOrigin.PAGE_BOTTOM) {
 				// The transform point is the lower left of the page (PDF coordinate system).
-				pageTranslateX = getPageTranslateX(absTranslateX, shadowPageNumber, page, c);
+				pageTranslateX = getPageTranslateX(absTranslateX, shadowPageNumber, page, c, box);
 				float topDownPageTranslateY = (absTranslateY + page.getMarginBorderPadding(c, CalculatedStyle.TOP)) - page.getPaintingTop();
 				pageTranslateY = (page.getHeight(c) - topDownPageTranslateY);
 			} else { // PAGE_TOP
 				// The transform point is the upper left of the page.
-				pageTranslateX = getPageTranslateX(absTranslateX, shadowPageNumber, page, c);
+				pageTranslateX = getPageTranslateX(absTranslateX, shadowPageNumber, page, c, box);
 				pageTranslateY = (absTranslateY - page.getPaintingTop()) + page.getMarginBorderPadding(c, CalculatedStyle.TOP); 
 			}
 		

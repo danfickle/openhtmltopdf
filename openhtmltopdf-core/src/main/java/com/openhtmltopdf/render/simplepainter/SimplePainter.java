@@ -39,9 +39,12 @@ public class SimplePainter {
         if (parentClip != null) {
             c.getOutputDevice().pushClip(parentClip);
         }
-        
+
         if (layer.hasLocalTransform()) {
-            AffineTransform transform = TransformCreator.createPageMarginCoordinatesTransform(c, master, c.getPage(), xTranslate, yTranslate);
+            AffineTransform transform = c.isInPageMargins() ? 
+                    TransformCreator.createPageMarginCoordinatesTransform(c, master, c.getPage(), xTranslate, yTranslate) :
+                    TransformCreator.createPageCoordinatesTranform(c, master, c.getPage(), c.getShadowPageNumber());
+                    
             c.getOutputDevice().pushTransformLayer(transform);
         }
         
@@ -56,7 +59,7 @@ public class SimplePainter {
                 paintLayerBackgroundAndBorder(c, master);
             }
 
-            if (layer.isRootLayer() || layer.isStackingContext()) {
+            if (layer.isRootLayer() || layer.isStackingContext() || master.getStyle().isFixed()) {
                 paintLayers(c, layer.getSortedLayers(Layer.NEGATIVE));
             }
             
@@ -69,7 +72,7 @@ public class SimplePainter {
             paintInlineContent(c, boxCollector.inlines());
             paintReplacedElements(c, boxCollector.replaceds());
             
-            if (layer.isRootLayer() || layer.isStackingContext()) {
+            if (layer.isRootLayer() || layer.isStackingContext() || master.getStyle().isFixed()) {
                 paintLayers(c, layer.collectLayers(Layer.AUTO));
                 // TODO z-index: 0 layers should be painted atomically
                 paintLayers(c, layer.getSortedLayers(Layer.ZERO));
@@ -213,6 +216,10 @@ public class SimplePainter {
     }
     
     public void paintAsLayer(RenderingContext c, BlockBox startingPoint) {
+        if (startingPoint.getStyle().requiresLayer()) {
+            return;
+        }
+        
         SimpleBoxCollector collector = new SimpleBoxCollector();
         collector.collect(c, startingPoint.getContainingLayer(), startingPoint);
 

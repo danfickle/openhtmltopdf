@@ -108,8 +108,12 @@ public class DisplayListCollector {
 		        }
 		    }
 			return;
+		} else if (layer.hasFixedAncester()) {
+		    // Fixed child layers are handled when the fixed layer is painted by
+		    // the SimplePainter.
+		    return;
 		}
-		
+
 		List<PageInfo> layerPages = PagedBoxCollector.findLayerPages(c, layer, _pages);
 		int layerPageStart = findStartPage(c, layer);
 		int layerPageEnd = findEndPage(c, layer);

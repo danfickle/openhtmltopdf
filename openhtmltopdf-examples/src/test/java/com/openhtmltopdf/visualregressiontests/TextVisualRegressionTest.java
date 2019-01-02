@@ -452,8 +452,6 @@ public class TextVisualRegressionTest {
      * Tests that a nested transform in a fixed element renders correctly.
      */
     @Test
-    @Ignore // Failing due to using the wrong transform offsets.
-            // Also boxes being painted twice.
     public void testFixedNestedTransform() throws IOException {
         assertTrue(run("fixed-nested-transform"));
     }
