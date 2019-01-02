@@ -391,6 +391,14 @@ public class TextVisualRegressionTest {
     }
     
     /**
+     * Tests that transform of inline-block renders correctly.
+     */
+    @Test
+    public void testTransformInlineBlock() throws IOException {
+        assertTrue(run("transform-inline-block"));
+    }
+    
+    /**
      * Tests a long text transform in left-middle on overflow page.
      * Common case of wanting a strip of vertical text in the left margin.
      */
