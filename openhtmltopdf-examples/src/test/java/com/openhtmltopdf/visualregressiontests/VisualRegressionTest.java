@@ -672,10 +672,21 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("replaced-img-in-table-cell"));
     }
     
+    /**
+     * Tests that a fixed position element correctly resizes to the sum of its child boxes
+     * using border-box sizing.
+     */
+    @Test
+    @Ignore // Fixed position element oversized because it is treating child inline-blocks
+            // as using content-box rather than the true border-box sizing.
+    public void testFixedExpandsContent() throws IOException {
+        assertTrue(vt.runTest("fixed-expands-content"));
+    }
+    
+    
+    
     // TODO:
-    // + Overflow hidden on fixed elements.
-    // + Running and page margins on overflow pages.
-    // + Elements that appear just on generated overflow pages. Especially inline-block.
+    // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
     // + Inline layers.
     // + Replaced elements.

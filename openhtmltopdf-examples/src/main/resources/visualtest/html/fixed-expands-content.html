@@ -1,0 +1,29 @@
+<html>
+<head>
+<style>
+@page {
+  size: 150px 100px;
+  margin: 0;
+  
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: ltr;
+}
+body {
+  margin: 0;
+}
+.inner {
+  display: inline-block;
+  width: 50px;
+  min-height: 15px;
+  border: 4px solid red;
+  box-sizing: border-box;
+}
+</style>
+</head>
+<body>
+<div style="position: fixed; background-color: blue; min-height: 30px;">
+  <div class="inner" style="background-color: orange;"></div>
+  <div class="inner" style="background-color: pink;"></div>
+</div>
+</body>
+</html>
