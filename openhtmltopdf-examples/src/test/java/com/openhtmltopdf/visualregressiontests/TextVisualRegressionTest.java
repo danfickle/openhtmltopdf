@@ -465,6 +465,14 @@ public class TextVisualRegressionTest {
     }
     
     /**
+     * Tests that hidden overflow works in fixed position elements.
+     */
+    @Test
+    public void testFixedNestedHidden() throws IOException {
+        assertTrue(run("fixed-nested-hidden"));
+    }
+    
+    /**
      * Tests that a non-paginated table does not output table header, footer or caption on every page.
      */
     @Test

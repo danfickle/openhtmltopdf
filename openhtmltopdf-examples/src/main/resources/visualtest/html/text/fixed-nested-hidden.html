@@ -1,0 +1,58 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 30px;
+  
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: ltr;
+}
+body {
+  margin: 0;
+  width: 140px;
+  height: 140px;
+}
+.header {
+  height: 30px;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+}
+.footer {
+  height: 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+.header .inner {
+  display: inline-block;
+  overflow: hidden;
+}
+.footer .inner {
+  display: inline-block;
+  float: right;
+  overflow: hidden;
+  transform: translateX(19px) rotate(90deg);
+  transform-origin: left top;
+}
+.inner {
+  background-color: orange;
+  border: 2px solid black;
+  width: 50px;
+  height: 15px;
+}
+.float2 {
+  background-color: green;
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; color: black; font-size: 13px;">
+<div class="header" style="background-color: blue;"><div class="inner"></div><div class="inner float2">abcdefghijk</div></div>
+<div class="footer" style="background-color: red;"><div class="inner"></div><div class="inner float2">dcba9876543</div></div>
+
+<div style="margin-top: 40px;">PAGE 1</div>
+<div style="width: 150%; height: 20px; background-color: pink; page-break-after: always;"></div>
+<div style="margin-top: 40px;">PAGE 2</div>
+</body>
+</html>
