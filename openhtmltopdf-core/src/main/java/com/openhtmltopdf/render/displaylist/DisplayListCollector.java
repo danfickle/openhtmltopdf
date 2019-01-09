@@ -328,14 +328,19 @@ public class DisplayListCollector {
 		}
 	}
 	
-    public DisplayListPageContainer collectInlineBlock(RenderingContext c, BlockBox bb, EnumSet<CollectFlags> noneOf) {
+    public DisplayListPageContainer collectInlineBlock(RenderingContext c, BlockBox bb, EnumSet<CollectFlags> noneOf, int shadowPageNo) {
         DisplayListPageContainer pgInstructions = new DisplayListPageContainer(null);
         PagedBoxCollector boxCollector = createBoundedBoxCollector(c.getPageNo(), c.getPageNo());
-        boxCollector.collect(c, bb.getContainingLayer(), bb, c.getPageNo(), c.getPageNo(), PagedBoxCollector.PAGE_BASE_ONLY);
+        boxCollector.collect(c, bb.getContainingLayer(), bb, c.getPageNo(), c.getPageNo(), shadowPageNo);
         
         PageResult pgResult = boxCollector.getPageResult(c.getPageNo());
-        processPage(c, bb.getContainingLayer(), pgResult, pgInstructions, /* includeFloats: */ false, c.getPageNo(), /* shadow page number: */ -1);
         
+        if (shadowPageNo >= 0 && pgResult.hasShadowPage(shadowPageNo)) {
+            processPage(c, bb.getContainingLayer(), pgResult.shadowPages().get(shadowPageNo), pgInstructions, /* includeFloats: */ false, c.getPageNo(), shadowPageNo);
+        } else if (shadowPageNo < 0) {
+            processPage(c, bb.getContainingLayer(), pgResult, pgInstructions, /* includeFloats: */ false, c.getPageNo(), shadowPageNo);
+        }
+
         return pgInstructions;
     }
 	

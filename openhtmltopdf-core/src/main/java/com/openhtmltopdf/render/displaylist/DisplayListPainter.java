@@ -115,7 +115,7 @@ public class DisplayListPainter {
 			    BlockBox bb = (BlockBox) dli;
 			    List<PageBox> pageBoxes = bb.getContainingLayer().getPages();
 			    DisplayListCollector dlCollector = new DisplayListCollector(pageBoxes);
-			    DisplayListPageContainer pageInstructions = dlCollector.collectInlineBlock(c, bb, EnumSet.noneOf(CollectFlags.class));
+			    DisplayListPageContainer pageInstructions = dlCollector.collectInlineBlock(c, bb, EnumSet.noneOf(CollectFlags.class), c.getShadowPageNumber());
 			
 			    paint(c, pageInstructions);
 			} else {

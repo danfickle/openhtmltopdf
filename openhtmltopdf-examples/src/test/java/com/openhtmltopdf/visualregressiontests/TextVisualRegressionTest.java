@@ -186,7 +186,6 @@ public class TextVisualRegressionTest {
      * Tests that a static inline-block sitting entirely on an overflow page appears.
      */
     @Test
-    @Ignore // The inline block and its text does not appear on the overflow page. 
     public void testHorizPageOverflowInlineBlock2() throws IOException {
         assertTrue(run("horiz-page-overflow-inline-block-2"));
     }
