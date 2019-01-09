@@ -683,6 +683,16 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("fixed-expands-content"));
     }
     
+    /**
+     * Tests padding with a percentage value. Issue 145.
+     */
+    @Test
+    @Ignore // Padding with a percentage value is always resolving to zero because it
+            // is resolved against a zero width (too early in layout).
+    public void testPaddingPercentage() throws IOException {
+        assertTrue(vt.runTest("padding-percentage"));
+    }
+    
     
     
     // TODO:
