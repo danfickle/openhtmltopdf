@@ -66,12 +66,14 @@ public class PdfBoxFontResolver implements FontResolver {
     private final List<TrueTypeCollection> _collectionsToClose = new ArrayList<TrueTypeCollection>();
     private final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
     private final PdfAConformance _pdfAConformance;
+    private final boolean _pdfUaConform;
 
-    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, PdfAConformance pdfAConformance) {
+    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, PdfAConformance pdfAConformance, boolean pdfUaConform) {
         _sharedContext = sharedContext;
         _doc = doc;
         _fontMetricsCache = pdfMetricsCache;
         _pdfAConformance = pdfAConformance;
+        _pdfUaConform = pdfUaConform;
  
         // All fonts are required to be embedded in PDF/A documents, so we don't add the built-in fonts, if conformance is required.
         _fontFamilies = (_pdfAConformance == PdfAConformance.NONE) ? createInitialFontMap() : new HashMap<String, FontFamily<FontDescription>>();
@@ -402,7 +404,8 @@ public class PdfBoxFontResolver implements FontResolver {
             }
         }
 
-        if (_pdfAConformance == PdfAConformance.NONE) {
+        if (_pdfAConformance == PdfAConformance.NONE &&
+            !_pdfUaConform) {
             // We don't have a final fallback font for PDF/A documents as serif may not be available
             // unless the user has explicitly embedded it.
             
