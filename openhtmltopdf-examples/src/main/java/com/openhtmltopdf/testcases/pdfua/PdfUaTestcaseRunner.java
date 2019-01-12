@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import org.apache.pdfbox.io.IOUtils;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import com.openhtmltopdf.visualregressiontests.TextVisualRegressionTest;
 
 public class PdfUaTestcaseRunner {
     private static void run(String testCase) throws Exception {
@@ -20,7 +19,7 @@ public class PdfUaTestcaseRunner {
         new File("./target/pdfua-test-cases/").mkdirs();
         
         if (!(new File("target/test/visual-tests/Karla-Bold.ttf")).exists()) {
-            try (InputStream in = TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf");
+            try (InputStream in = PdfUaTestcaseRunner.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf");
                     OutputStream out = new FileOutputStream("target/test/visual-tests/Karla-Bold.ttf")) {
                     IOUtils.copy(in, out);
             }
