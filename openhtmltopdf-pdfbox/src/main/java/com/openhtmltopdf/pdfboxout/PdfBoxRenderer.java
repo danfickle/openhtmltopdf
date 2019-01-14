@@ -150,7 +150,7 @@ public class PdfBoxRenderer implements Closeable {
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = state._testMode;
         _useFastMode = state._useFastRenderer;
-        _outputDevice = state._useFastRenderer ? new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode) : new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
+        _outputDevice = state._useFastRenderer ? new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode, state._pdfUaConform) : new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
         _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
         
@@ -700,6 +700,7 @@ public class PdfBoxRenderer implements Closeable {
             catalog.setLanguage(lang != null ? lang : "English");
             catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
             catalog.getViewerPreferences().setDisplayDocTitle(true);
+            
             PDMarkInfo markInfo = new PDMarkInfo();
             markInfo.setMarked(true);
             catalog.setMarkInfo(markInfo);

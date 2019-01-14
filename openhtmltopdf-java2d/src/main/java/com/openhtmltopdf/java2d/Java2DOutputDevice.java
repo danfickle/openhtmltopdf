@@ -26,6 +26,7 @@ import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.extend.ReplacedElement;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.swing.AWTFSImage;
@@ -304,4 +305,12 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+    @Override
+    public void startStructure(StructureType type, Box box) {
+    }
+
+    @Override
+    public void endStructure(StructureType type, Box box) {
+    }
 }

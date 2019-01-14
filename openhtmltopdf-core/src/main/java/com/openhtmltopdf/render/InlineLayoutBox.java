@@ -26,6 +26,7 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.*;
 import org.w3c.dom.Element;
 
@@ -252,6 +253,9 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             return;
         }
 
+        // TODO: Only call if there is a bg, border or text decorations.
+        c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
+        
         paintBackground(c);
         paintBorder(c);
         
@@ -267,6 +271,9 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
                 }
         }
         
+        c.getOutputDevice().endStructure(StructureType.BACKGROUND, this);
+        c.getOutputDevice().startStructure(StructureType.TEXT, this);
+        
         for (int i = 0; i < getInlineChildCount(); i++) {
             Object child = getInlineChild(i);
             if (child instanceof InlineText) {
@@ -274,12 +281,18 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             }
         }
         
+        c.getOutputDevice().endStructure(StructureType.TEXT, this);
+        // TODO: Only call if there is line through.
+        c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
+        
         for (TextDecoration tD : textDecorations) {
                 IdentValue ident = tD.getIdentValue();
                 if (ident == IdentValue.LINE_THROUGH) {
                     c.getOutputDevice().drawTextDecoration(c, this, tD);    
                 }
         }
+        
+        c.getOutputDevice().endStructure(StructureType.BACKGROUND, this);
     }
     
     @Override

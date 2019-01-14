@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
@@ -66,6 +67,9 @@ public class DisplayListPainter {
 			} else {
 				BlockBox box = (BlockBox) dli;
 				
+				c.getOutputDevice().startStructure(StructureType.BLOCK, box);
+				c.getOutputDevice().startStructure(StructureType.BACKGROUND, box);
+				
 				updateTableHeaderFooterPosition(c, box);
 				debugOnly("painting bg", box);
 				box.paintBackground(c);
@@ -84,6 +88,9 @@ public class DisplayListPainter {
 						}
 					}
 				}
+
+				c.getOutputDevice().endStructure(StructureType.BACKGROUND, box);
+				c.getOutputDevice().endStructure(StructureType.BLOCK, box);
 			}
 		}
 	}
@@ -120,7 +127,9 @@ public class DisplayListPainter {
 			    paint(c, pageInstructions);
 			} else {
                 InlinePaintable paintable = (InlinePaintable) dli;
+                c.getOutputDevice().startStructure(StructureType.INLINE, (Box) dli);
                 paintable.paintInline(c);
+                c.getOutputDevice().endStructure(StructureType.INLINE, (Box) dli);
 			}
 		}
 	}

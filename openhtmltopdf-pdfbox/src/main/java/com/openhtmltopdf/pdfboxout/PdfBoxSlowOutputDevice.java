@@ -31,6 +31,7 @@ import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
@@ -1488,5 +1489,15 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
         _fillColor = null;
         _strokeColor = null;
         _oldStroke = null;
+    }
+
+    @Override
+    public void startStructure(StructureType type, Box box) {
+        // For PDF/UA - Only implemented by the fast output device.       
+    }
+
+    @Override
+    public void endStructure(StructureType type, Box box) {
+        // For PDF/UA - Only implemented by the fast output device.        
     }
 }

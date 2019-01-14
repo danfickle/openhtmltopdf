@@ -27,6 +27,7 @@ public class PdfUaTestcaseRunner {
         
         try (FileOutputStream os = new FileOutputStream("./target/pdfua-test-cases/" + testCase + ".pdf")) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.useFastMode();
             builder.testMode(true);
             builder.usePdfUaAccessbility(true);
             builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "TestFont");
@@ -39,5 +40,6 @@ public class PdfUaTestcaseRunner {
     
     public static void main(String... args) throws Exception {
         run("simple");
+        run("simplest");
     }
 }

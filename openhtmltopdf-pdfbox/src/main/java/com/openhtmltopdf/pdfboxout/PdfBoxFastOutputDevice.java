@@ -31,6 +31,7 @@ import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
@@ -42,10 +43,20 @@ import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
+
+import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSInteger;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
+import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
+import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
@@ -193,9 +204,31 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     // Font Mapping for the Graphics2D output
     private PdfBoxGraphics2DFontTextDrawer _fontTextDrawer;
     
-    public PdfBoxFastOutputDevice(float dotsPerPoint, boolean testMode) {
+    // Whether we are attempting to be PDF/UA compliant (ie tagged pdf).
+    private final boolean _pdfUaConform;
+    
+    private final Deque<StructureItem> _structureStack;
+    
+    private int _nextMcid = 0;
+    
+    private List<StructureItem> _pageContentItems;
+    
+    private int _nextPageIndex;
+    
+    private COSArray _numTree;
+    
+    private final Map<Box, StructureItem> _structureMap;
+    
+
+    
+    public PdfBoxFastOutputDevice(float dotsPerPoint, boolean testMode, boolean pdfUaConform) {
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
+        _pdfUaConform = pdfUaConform;
+        _structureMap = pdfUaConform ? new HashMap<>() : null;
+        _structureStack = pdfUaConform ? new ArrayDeque<>() : null;
+        _numTree = pdfUaConform ? new COSArray() : null;
+        _pageContentItems = pdfUaConform ? new ArrayList<>() : null;
     }
 
     @Override
@@ -231,6 +264,14 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _oldStroke = _stroke;
 
         setStrokeDiff(_stroke, null);
+        
+        if (_pdfUaConform) {
+            page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(0));
+            
+            StructureItem item = new StructureItem(null, null);
+            _structureStack.clear();
+            _structureStack.addLast(item);
+        }
     }
     
     private PageState currentState() {
@@ -249,6 +290,50 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     public void finishPage() {
         _cp.closeContent();
         popState();
+        
+        if (_pdfUaConform) {
+            StructureItem page = _structureStack.removeLast();
+            PDStructureElement item = new PDStructureElement(StandardStructureTypes.DOCUMENT, null);
+            item.setPage(_page);
+            
+            PDStructureTreeRoot root = _writer.getDocumentCatalog().getStructureTreeRoot();
+            if (root == null) {
+                root = new PDStructureTreeRoot();
+                HashMap<String, String> roleMap = new HashMap<>();
+                roleMap.put("Annotation", "Span");
+                roleMap.put("Artifact", "P");
+                roleMap.put("Bibliography", "BibEntry");
+                roleMap.put("Chart", "Figure");
+                roleMap.put("Diagram", "Figure");
+                roleMap.put("DropCap", "Figure");
+                roleMap.put("EndNote", "Note");
+                roleMap.put("FootNote", "Note");
+                roleMap.put("InlineShape", "Figure");
+                roleMap.put("Outline", "Span");
+                roleMap.put("Strikeout", "Span");
+                roleMap.put("Subscript", "Span");
+                roleMap.put("Superscript", "Span");
+                roleMap.put("Underline", "Span");
+                root.setRoleMap(roleMap);
+                _writer.getDocumentCatalog().setStructureTreeRoot(root);
+            }
+            root.appendKid(item);
+            page.elem = item;
+            
+            finishStructure(page);
+            
+            _page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(_nextPageIndex));
+            
+            for (int i = 0; i < _pageContentItems.size(); i++) {
+                System.out.println("NUM TREE: " + i + ", " + _pageContentItems.get(i) + ", " + _pageContentItems.get(i).parent);
+                _numTree.add(COSInteger.get(i));
+                _numTree.add(_pageContentItems.get(i).parent.elem);
+            }
+            
+            _nextPageIndex += _pageContentItems.size();
+            _pageContentItems.clear();
+            _nextMcid = 0;
+        }
     }
 
     public void paintReplacedElement(RenderingContext c, BlockBox box) {
@@ -831,6 +916,10 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _bmManager.writeOutline(c, root);
         processControls();
         _linkManager.processLinks();
+        
+        if (_pdfUaConform) {
+            finishPdfUa();
+        }
     }
     
     @Override
@@ -1239,5 +1328,169 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     
     private void clearPageState() {
         _oldStroke = null;
+    }
+    
+    
+    // -------------
+    // PDF/UA implementation.
+    
+    private void finishPdfUa() {
+        COSDictionary dict = new COSDictionary();
+        dict.setItem(COSName.NUMS, _numTree);
+    
+        PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
+        _writer.getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(_numTree.size());
+        _writer.getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
+    }
+
+    private static class StructureItem {
+        private final StructureType type;
+        private final Box box;
+        
+        private COSDictionary dict;
+        private PDStructureElement elem;
+        private int mcid = -1;
+        
+        private StructureItem parent;
+        private List<StructureItem> children = new ArrayList<>();
+        
+        private StructureItem(StructureType type, Box box) {
+            this.type = type;
+            this.box = box;
+        }
+        
+        @Override
+        public String toString() {
+            return box.toString();
+        }
+    }
+    
+    private void finishStructure(StructureItem item) {
+        for (StructureItem child : item.children) {
+            switch (child.type) {
+            case LAYER:
+            case FLOAT:
+            case BLOCK:
+            case INLINE: {
+                System.out.println("Append strcuture: " + child.toString());
+                
+                child.elem = new PDStructureElement(COSName.P.getName(), item.elem);
+                child.elem.setPage(_page);
+                child.elem.setLanguage("EN-US"); // TODO: Only set lang if different from parent.
+                child.elem.setParent(item.elem);
+                
+                item.elem.appendKid(child.elem);
+                
+                finishStructure(child);
+            }
+            break;
+            case TEXT: {
+                System.out.println("Append text: " + child);
+                item.elem.appendKid(new PDMarkedContent(COSName.P, child.dict));
+                _numTree.add(item.elem.getCOSObject());
+            }
+            break;
+            case BACKGROUND: {
+                item.elem.appendKid(new PDArtifactMarkedContent(child.dict));
+                _numTree.add(item.elem.getCOSObject());
+            }
+            break;
+            }
+        }
+    }
+    
+    private Element getBoxElement(Box box) {
+        if (box.getElement() != null) {
+            return box.getElement();
+        } else if (box.getParent() != null) {
+            return getBoxElement(box.getParent());
+        } else {
+            return null;
+        }
+    }
+    
+    private COSDictionary createMarkedContentDictionary() {
+        COSDictionary dict = new COSDictionary();
+        dict.setInt(COSName.MCID, _nextMcid);
+        _nextMcid++;
+        return dict;
+    }
+    
+    @Override
+    public void startStructure(StructureType type, Box box) {
+        if (_pdfUaConform) {
+            System.out.println("Start: " + type);
+            switch (type) {
+            case LAYER:
+            case FLOAT:
+            case BLOCK:
+            case INLINE: {
+                //if (!_structureMap.containsKey(box)) {
+                    StructureItem item = new StructureItem(type, box);
+                    _structureMap.put(box, item);
+                    
+                    StructureItem parent = _structureStack.getLast();
+                    parent.children.add(item);
+                    
+                    _structureStack.addLast(item);
+                //}
+                break;
+            }
+            case BACKGROUND: {
+                // TODO: Only create if actually has a background or border.
+                StructureItem current = new StructureItem(type, box);
+                StructureItem parent = _structureStack.getLast();
+                
+                current.mcid = _nextMcid;
+                current.dict = createMarkedContentDictionary();
+                current.parent = parent;
+                
+                _pageContentItems.add(current);
+                parent.children.add(current);
+
+                _cp.beginMarkedContent(COSName.ARTIFACT, current.dict);
+                break;
+            }
+            case TEXT: {
+                StructureItem current = new StructureItem(type, box);
+                StructureItem parent = _structureStack.getLast();
+
+                current.mcid = _nextMcid;
+                current.dict = createMarkedContentDictionary();
+                current.parent = parent;
+                
+                _pageContentItems.add(current);
+                parent.children.add(current);
+                
+                _cp.beginMarkedContent(COSName.getPDFName(StandardStructureTypes.SPAN), current.dict);
+                break;
+            }
+            default:
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void endStructure(StructureType type, Box box) {
+        if (_pdfUaConform) {
+            System.out.println("END: " + type);
+            switch (type) {
+            case LAYER:
+            case FLOAT:
+            case BLOCK:
+            case INLINE: {
+                _structureStack.removeLast();
+            }
+            break;
+            case BACKGROUND:
+            case TEXT: {
+                // TODO: Only background if actually has a background or border.
+                _cp.endMarkedContent();
+            }
+            default:
+                break;
+            }
+        }
     }
 }

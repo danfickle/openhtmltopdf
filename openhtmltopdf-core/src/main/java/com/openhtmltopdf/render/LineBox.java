@@ -38,6 +38,7 @@ import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.BoxCollector;
 import com.openhtmltopdf.layout.InlineBoxing;
 import com.openhtmltopdf.layout.InlinePaintable;
@@ -132,7 +133,9 @@ public class LineBox extends Box implements InlinePaintable {
         }
         
         if (_textDecorations != null) {
+            c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
             c.getOutputDevice().drawTextDecoration(c, this);
+            c.getOutputDevice().endStructure(StructureType.BACKGROUND, this);
         }
         
         if (c.debugDrawLineBoxes()) {

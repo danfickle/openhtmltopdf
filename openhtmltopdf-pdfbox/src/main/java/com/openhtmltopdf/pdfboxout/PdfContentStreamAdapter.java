@@ -1,7 +1,11 @@
 package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.util.XRLog;
+
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -337,6 +341,22 @@ public class PdfContentStreamAdapter {
 			cs.restoreGraphicsState();
         } catch (IOException e) {
             logAndThrow("placeXForm", e);
+        }
+    }
+    
+    public void beginMarkedContent(COSName tag, COSDictionary dict) {
+        try {
+            cs.beginMarkedContent(tag, PDPropertyList.create(dict));
+        } catch (IOException e) {
+            logAndThrow("beginMarkedContent", e);
+        }
+    }
+    
+    public void endMarkedContent() {
+        try {
+            cs.endMarkedContent();
+        } catch (IOException e) {
+            logAndThrow("endMarkedContent", e);
         }
     }
 }
