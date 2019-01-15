@@ -662,6 +662,11 @@ public class LineBox extends Box implements InlinePaintable {
     public boolean isLayedOutRTL() {
     	return this.direction == BidiSplitter.RTL;
     }
+
+    @Override
+    public boolean hasNonTextContent(CssContext c) {
+        return _textDecorations != null && _textDecorations.size() > 0;
+    }
 }
 
 /*

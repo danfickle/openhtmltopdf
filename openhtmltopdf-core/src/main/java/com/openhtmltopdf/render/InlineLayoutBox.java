@@ -253,7 +253,6 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             return;
         }
 
-        // TODO: Only call if there is a bg, border or text decorations.
         c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
         
         paintBackground(c);
@@ -293,6 +292,17 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         }
         
         c.getOutputDevice().endStructure(StructureType.BACKGROUND, this);
+    }
+
+    @Override
+    public boolean hasNonTextContent(CssContext c) {
+        if (_textDecorations != null && _textDecorations.size() > 0) {
+            return true;
+        } else if (super.hasNonTextContent(c)) {
+            return true;
+        }
+        
+        return false;
     }
     
     @Override
@@ -951,4 +961,5 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     public int getEffectiveWidth() {
         return getInlineWidth();
     }
+
 }

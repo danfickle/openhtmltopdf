@@ -536,6 +536,22 @@ public abstract class Box implements Styleable, DisplayListItem {
             c.getOutputDevice().paintBackground(c, this);
         }
     }
+    
+    public boolean hasNonTextContent(CssContext c) {
+        if (getStyle().getBackgroundColor() != null && getStyle().getBackgroundColor() != FSRGBColor.TRANSPARENT) {
+            return true;
+        } else if (!getStyle().isIdent(CSSName.BACKGROUND_IMAGE, IdentValue.NONE)) {
+            return true;
+        } else {
+            BorderPropertySet border = this.getBorder(c);
+            
+            if (!border.isAllZeros()) {
+                return true; 
+            }
+        }
+        
+        return false;
+    }
 
     public void paintRootElementBackground(RenderingContext c) {
         PaintingInfo pI = getPaintingInfo();
@@ -1292,6 +1308,7 @@ public abstract class Box implements Styleable, DisplayListItem {
 		
 		return false;
 	}
+
 }
 
 /*

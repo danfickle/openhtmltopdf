@@ -248,7 +248,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         setStrokeDiff(_stroke, null);
         
         if (_pdfUa != null) {
-            _pdfUa.startPage(_page, _cp);
+            _pdfUa.startPage(_page, _cp, _renderingContext);
         }
     }
     
