@@ -101,6 +101,8 @@ public abstract class Box implements Styleable, DisplayListItem {
     private Area _absoluteClipBox;
     private boolean _clipBoxCalculated = false;
     
+    private Object _accessibilityObject;
+    
     protected Box() {
     }
     
@@ -551,6 +553,14 @@ public abstract class Box implements Styleable, DisplayListItem {
         }
         
         return false;
+    }
+    
+    public void setAccessiblityObject(Object object) {
+        this._accessibilityObject = object;
+    }
+    
+    public Object getAccessibilityObject() {
+        return this._accessibilityObject;
     }
 
     public void paintRootElementBackground(RenderingContext c) {

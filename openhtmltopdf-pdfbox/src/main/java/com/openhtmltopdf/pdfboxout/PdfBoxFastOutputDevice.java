@@ -847,7 +847,10 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _bmManager = new PdfBoxBookmarkManager(doc, _writer, _sharedContext, _dotsPerPoint, this);
         _linkManager = new PdfBoxFastLinkManager(_sharedContext, _dotsPerPoint, _root, this);
         loadMetadata(doc);
-        _pdfUa.setDocument(doc);
+        
+        if (_pdfUa != null) {
+            _pdfUa.setDocument(doc);
+        }
     }
 
     public void finish(RenderingContext c, Box root) {
