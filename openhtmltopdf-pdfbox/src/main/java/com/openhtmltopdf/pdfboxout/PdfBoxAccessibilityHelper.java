@@ -1,8 +1,6 @@
 package com.openhtmltopdf.pdfboxout;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +16,9 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.render.Box;
@@ -26,30 +26,19 @@ import com.openhtmltopdf.render.RenderingContext;
 
 public class PdfBoxAccessibilityHelper {
     private final Map<Element, StructureItem> _structureMap = new HashMap<>();
-    private final Deque<StructureItem> _structureStack = new ArrayDeque<>();
-    private final List<StructureItem> _pageContentItems = new ArrayList<>();
-    private final COSArray _numTree = new COSArray();
+    private final List<List<StructureItem>> _pageContentItems = new ArrayList<>();
     private final PdfBoxFastOutputDevice _od;
     
-    private int _nextMcid = 0;
-    private int _nextPageIndex;
-    
-    private PDPage _page;
+    private Document _doc;
+    private StructureItem _root;
+
+    private int _nextMcid;
     private PdfContentStreamAdapter _cs;
     private RenderingContext _ctx;
-    private PDStructureElement _rootElem;
-
+    private PDPage _page;
+    
     public PdfBoxAccessibilityHelper(PdfBoxFastOutputDevice od) {
         this._od = od;
-    }
-
-    public void finishPdfUa() {
-        COSDictionary dict = new COSDictionary();
-        dict.setItem(COSName.NUMS, _numTree);
-    
-        PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
-        _od.getWriter().getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(_nextPageIndex);
-        _od.getWriter().getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
     }
 
     private static class StructureItem {
@@ -61,7 +50,7 @@ public class PdfBoxAccessibilityHelper {
         private PDStructureElement elem;
         private int mcid = -1;
         private StructureItem parent;
-        private String pdfTag;
+        private PDPage page;
         
         private StructureItem(StructureType type, Box box) {
             this.type = type;
@@ -70,29 +59,96 @@ public class PdfBoxAccessibilityHelper {
         
         @Override
         public String toString() {
-            return box.toString();
+            return box != null ? box.toString() : "null";
         }
     }
+ 
+    public void finishPdfUa() {
+        PDStructureTreeRoot root = _od.getWriter().getDocumentCatalog().getStructureTreeRoot();
+        if (root == null) {
+            root = new PDStructureTreeRoot();
+            
+            HashMap<String, String> roleMap = new HashMap<>();
+            roleMap.put("Annotation", "Span");
+            roleMap.put("Artifact", "P");
+            roleMap.put("Bibliography", "BibEntry");
+            roleMap.put("Chart", "Figure");
+            roleMap.put("Diagram", "Figure");
+            roleMap.put("DropCap", "Figure");
+            roleMap.put("EndNote", "Note");
+            roleMap.put("FootNote", "Note");
+            roleMap.put("InlineShape", "Figure");
+            roleMap.put("Outline", "Span");
+            roleMap.put("Strikeout", "Span");
+            roleMap.put("Subscript", "Span");
+            roleMap.put("Superscript", "Span");
+            roleMap.put("Underline", "Span");
+            root.setRoleMap(roleMap);
+
+            PDStructureElement rootElem = new PDStructureElement(StandardStructureTypes.DOCUMENT, null);
+            
+            String lang = _doc.getDocumentElement().getAttribute("lang");
+            rootElem.setLanguage(lang.isEmpty() ? "EN-US" : lang);
+            
+            root.appendKid(rootElem);
+            
+            StructureItem rootStruct = _structureMap.get(_doc.getDocumentElement());
+            rootStruct.elem = rootElem;
+            finishStructure(rootStruct);
+            
+            _od.getWriter().getDocumentCatalog().setStructureTreeRoot(root);
+        }
+        
+        COSArray numTree = new COSArray();
+        
+        for (int i = 0; i < _pageContentItems.size(); i++) {
+            PDPage page = _od.getWriter().getPage(i);
+            List<StructureItem> pageItems = _pageContentItems.get(i);
+            
+            COSArray mcidParentReferences = new COSArray();
+            for (StructureItem item : pageItems) {
+                System.out.println("item = " + item + ", parent = " + item.parent + " ,," + item.parent.elem);
+                mcidParentReferences.add(item.parent.elem);
+            }
+        
+            numTree.add(COSInteger.get(i));
+            numTree.add(mcidParentReferences);
+            
+            page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(i));
+        }
+        
+        COSDictionary dict = new COSDictionary();
+        dict.setItem(COSName.NUMS, numTree);
     
+        PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
+        _od.getWriter().getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(_pageContentItems.size());
+        _od.getWriter().getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
+    }
+        
     private String chooseTag(StructureItem item) {
-        return item.box.getStyle().isInline() ? "SPAN" : "P"; // TODO.
+        return item.box != null && item.box.getStyle().isInline() ? "Span" : "P"; // TODO.
     }
     
     private void finishStructure(StructureItem item) {
+        System.out.println("item = " + item + " ,," + item.mcid);
         for (StructureItem child : item.children) {
             if (child.mcid == -1) {
+                if (child.children.isEmpty()) {
+                    continue;
+                }
+                
                 String pdfTag = chooseTag(child);
                 
                 child.elem = new PDStructureElement(pdfTag, item.elem);
-                child.elem.setPage(_page);
-                child.elem.setLanguage("EN-US"); // TODO: Only set lang if different from parent.
+                System.out.println("child = " + child + "!!!!!!" + child.elem);
                 child.elem.setParent(item.elem);
-                
+                child.elem.setPage(child.page);
+
                 item.elem.appendKid(child.elem);
                 
                 finishStructure(child);
             } else if (child.type == StructureType.TEXT) {
-                item.elem.appendKid(new PDMarkedContent(COSName.getPDFName("SPAN"), child.dict));
+                item.elem.appendKid(new PDMarkedContent(COSName.getPDFName("Span"), child.dict));
             } else if (child.type == StructureType.BACKGROUND) {
                 item.elem.appendKid(new PDArtifactMarkedContent(child.dict));
             }
@@ -105,20 +161,31 @@ public class PdfBoxAccessibilityHelper {
         } else if (box.getParent() != null) {
             return getBoxElement(box.getParent());
         } else {
-            return null;
+            return _doc.getDocumentElement();
         }
     }
     
     private StructureItem findParentStructualElement(Box box) {
         Element elem = getBoxElement(box);
+        Node parent = elem.getParentNode();
+
+        StructureItem item;
         
-        StructureItem item = _structureMap.get(elem);
-        
-        if (item != null) {
-            return item;
+        if (parent == null || parent instanceof Document) {
+            item = _root;
         } else {
-            return _structureMap.get(elem.getParentNode());
+            item = _structureMap.get(elem.getParentNode());
         }
+
+        System.out.println("ch = " + box + " parent = " + item + ", " + elem.getParentNode().getNodeName());
+        
+        return item;
+    }
+    
+    private StructureItem findCurrentStructualElement(Box box) {
+        Element elem = getBoxElement(box);
+        
+        return _structureMap.get(elem);
     }
     
     private COSDictionary createMarkedContentDictionary() {
@@ -129,30 +196,34 @@ public class PdfBoxAccessibilityHelper {
     }
     
     private StructureItem createStructureItem(StructureType type, Box box) {
-        System.out.println("STRUCT: " + box);
-        StructureItem item = new StructureItem(type, box);
-        StructureItem parent = _structureStack.getLast();
-
-        parent.children.add(item);
-        _structureStack.addLast(item);
-        _structureMap.put(box.getElement(), item);
         
+        Element elem = getBoxElement(box);
+        StructureItem item = _structureMap.get(elem);
+        
+        if (item == null) {
+            item = new StructureItem(type, box);
+            _structureMap.put(elem, item);
+
+            item.parent = findParentStructualElement(box);
+            item.parent.children.add(item);
+            
+            item.page = _page;
+        }
+
+        //System.out.println("-------ADD: " + item + " , &&" + item.parent);
         return item;
     }
     
     private StructureItem createMarkedContentStructureItem(StructureType type, Box box) {
-        System.out.println("MARK: " + box);
         StructureItem current = new StructureItem(type, box);
-        StructureItem parent = findParentStructualElement(box);
-        
-        System.out.println("mark = " + current.box + " , parent = " + parent.box);
-        
+        StructureItem parent = findCurrentStructualElement(box);
+        System.out.println("mcid prent = " + parent + " , " + current);
         current.mcid = _nextMcid;
         current.dict = createMarkedContentDictionary();
         current.parent = parent;
+        current.parent.children.add(current);
         
-        _pageContentItems.add(current);
-        parent.children.add(current);
+        _pageContentItems.get(_pageContentItems.size() - 1).add(current);
         
         return current;
     }
@@ -193,15 +264,9 @@ public class PdfBoxAccessibilityHelper {
             case LAYER:
             case FLOAT:
             case BLOCK: {
-                System.out.println("REMV1: " + box);
-                _structureStack.removeLast();
                 break;
             }
             case INLINE: {
-                if (box.hasNonTextContent(_ctx)) {
-                    System.out.println("REMV2: " + box);
-                    _structureStack.removeLast();
-                }
                 break;
             }
             case BACKGROUND: {
@@ -220,69 +285,23 @@ public class PdfBoxAccessibilityHelper {
     }
 
     public void startPage(PDPage page, PdfContentStreamAdapter cs, RenderingContext ctx) {
-        this._page = page;
         this._cs = cs;
         this._ctx = ctx;
-        
-        StructureItem item = new StructureItem(null, null);
-        _structureStack.clear();
-        _structureStack.addLast(item);
-        
-        _structureMap.clear();
+        this._nextMcid = 0;
+        this._page = page;
+        this._pageContentItems.add(new ArrayList<>());
     }
     
     public void endPage() {
         
-        PDStructureTreeRoot root = _od.getWriter().getDocumentCatalog().getStructureTreeRoot();
-        if (root == null) {
-            root = new PDStructureTreeRoot();
-            
-            HashMap<String, String> roleMap = new HashMap<>();
-            roleMap.put("Annotation", "Span");
-            roleMap.put("Artifact", "P");
-            roleMap.put("Bibliography", "BibEntry");
-            roleMap.put("Chart", "Figure");
-            roleMap.put("Diagram", "Figure");
-            roleMap.put("DropCap", "Figure");
-            roleMap.put("EndNote", "Note");
-            roleMap.put("FootNote", "Note");
-            roleMap.put("InlineShape", "Figure");
-            roleMap.put("Outline", "Span");
-            roleMap.put("Strikeout", "Span");
-            roleMap.put("Subscript", "Span");
-            roleMap.put("Superscript", "Span");
-            roleMap.put("Underline", "Span");
-            root.setRoleMap(roleMap);
+    }
 
-            _rootElem = new PDStructureElement(StandardStructureTypes.DOCUMENT, null);
-            _rootElem.setLanguage("EN-US"); // TODO
-            root.appendKid(_rootElem);
-            
-            _od.getWriter().getDocumentCatalog().setStructureTreeRoot(root);
-        }
-
-        StructureItem page = _structureStack.removeLast();
-
-        PDStructureElement pageElem = new PDStructureElement(StandardStructureTypes.NON_STRUCT, _rootElem);
-        pageElem.setPage(_page);
-        page.elem = pageElem;
-        _rootElem.appendKid(pageElem);;
+    public void setDocument(Document doc) {
+        this._doc = doc;
         
-        finishStructure(page);
-        
-        _page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(_nextPageIndex));
-        
-        COSArray mcidParentReferences = new COSArray();
-        for (StructureItem item : _pageContentItems) {
-            mcidParentReferences.add(item.parent.elem);
-        }
-        
-        _numTree.add(COSInteger.get(_nextPageIndex));
-        _numTree.add(mcidParentReferences);
-        
-        _nextPageIndex++;
-        _pageContentItems.clear();
-        _nextMcid = 0;
+        StructureItem rootStruct = new StructureItem(null, null);
+        _structureMap.put(_doc.getDocumentElement(), rootStruct);
+        _root = rootStruct;
     }
     
 }
