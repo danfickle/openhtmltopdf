@@ -130,7 +130,7 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem);
                 BlockBox block = (BlockBox) item.box;
                 
                 if (block.isFloated()) {
-                    return StandardStructureTypes.NOTE;
+                    return StandardStructureTypes.DIV;
                 } else if (block.isInline()) {
                     return StandardStructureTypes.SPAN;
                 } else if (block.getElement() != null && block.getElement().getNodeName().equals("p")) {
@@ -220,7 +220,9 @@ System.out.println("ADDING$$: " + child + " :::: " + child.elem + "-----" + pdfT
             
             ensureAncestorTree(child, box.getParent());
             ensureParent(box, child);
-        } else if (child.box == null) {
+        } 
+        
+        if (child.box == null) {
             child.box = box;
         }
 

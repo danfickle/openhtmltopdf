@@ -39,7 +39,8 @@ public class PdfUaTestcaseRunner {
     }
     
     public static void main(String... args) throws Exception {
-        run("simple");
         run("simplest");
+        run("simple");
+        run("layers-z-index");
     }
 }
