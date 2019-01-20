@@ -1,0 +1,29 @@
+<html>
+<head>
+  <title>Simple PDF/UA Testcase</title>
+  <meta name="description" content="A simple example"/>
+  <style>
+  @page {
+    size: 200px 200px;
+    margin: 0;
+  }
+  body {
+    margin: 0;
+    width: 200px;
+  }
+  </style>
+</head>
+<body style="font-family: 'TestFont'; font-size: 14px;">
+<!-- NOTE: It is important for the test that the text over the two pages appears in one DOM element. -->
+
+<p>
+Paragraph one. Some text that goes over multiple lines. OK, this is getting to the required length.
+
+Paragraph two. Some text that goes over multiple lines. OK, this is getting to the required length.
+
+Paragraph three. Some text that goes over multiple lines. OK, this is getting to the required length.
+
+Paragraph four. Some text that goes over multiple lines. OK, this is getting to the required length.
+</p>
+</body>
+</html>
