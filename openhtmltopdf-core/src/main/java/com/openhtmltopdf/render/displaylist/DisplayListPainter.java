@@ -221,8 +221,15 @@ public class DisplayListPainter {
 			} else if (op instanceof PaintLayerBackgroundAndBorder) {
 
 				PaintLayerBackgroundAndBorder dlo = (PaintLayerBackgroundAndBorder) op;
+				
+				c.getOutputDevice().startStructure(StructureType.LAYER, dlo.getMaster());
+		                c.getOutputDevice().startStructure(StructureType.BACKGROUND, dlo.getMaster());
+				
 				dlo.getMaster().paintBackground(c);
 				dlo.getMaster().paintBorder(c);
+				
+				c.getOutputDevice().endStructure(StructureType.BACKGROUND, dlo.getMaster());
+				c.getOutputDevice().endStructure(StructureType.LAYER, dlo.getMaster());
 
 			} else if (op instanceof PaintReplacedElement) {
 

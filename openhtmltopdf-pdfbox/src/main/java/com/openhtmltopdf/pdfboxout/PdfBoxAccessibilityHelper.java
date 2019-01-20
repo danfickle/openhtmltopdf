@@ -12,6 +12,7 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkedContentReference;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
@@ -102,7 +103,7 @@ public class PdfBoxAccessibilityHelper {
             root.appendKid(rootElem);
             
             _root.elem = rootElem;
-            finishStructure(_root, _root.elem);
+            finishStructure(_root, _root);
             
             _od.getWriter().getDocumentCatalog().setStructureTreeRoot(root);
         }
@@ -159,7 +160,7 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem);
         return StandardStructureTypes.SPAN;
     }
     
-    private void finishStructure(StructureItem item, PDStructureElement parent) {
+    private void finishStructure(StructureItem item, StructureItem parent) {
         for (StructureItem child : item.children) {
             if (child.mcid == -1) {
                 if (child.children.isEmpty()) {
@@ -168,25 +169,38 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem);
                 
                 if (child.box instanceof LineBox &&
                     !child.box.hasNonTextContent(_ctx)) {
+                    // We skip line boxes in the tree.
                     finishStructure(child, parent);
                 } else {
                     String pdfTag = chooseTag(child);
                 
-                    child.parentElem = parent;
-                    child.elem = new PDStructureElement(pdfTag, parent);
-                    child.elem.setParent(parent);
+                    child.parentElem = parent.elem;
+                    child.elem = new PDStructureElement(pdfTag, child.parentElem);
+                    child.elem.setParent(child.parentElem);
                     child.elem.setPage(child.page);
 System.out.println("ADDING$$: " + child + " :::: " + child.elem + "-----" + pdfTag);
-                    parent.appendKid(child.elem);
+                    child.parentElem.appendKid(child.elem);
                     
-                    finishStructure(child, child.elem);
+                    finishStructure(child, child);
                 }
             } else if (child.type == StructureType.TEXT) {
-                child.parentElem = parent;
-                parent.appendKid(new PDMarkedContent(COSName.getPDFName("Span"), child.dict));
-            } else if (child.type == StructureType.BACKGROUND) {
-                child.parentElem = parent;
-                parent.appendKid(new PDArtifactMarkedContent(child.dict));
+                if (child.page == parent.page) { 
+                    // If this is on the same page as its parent structual element
+                    // we can just use the dict with mcid in it only.
+System.out.println("ADDING MCID DIRECT: " + child.mcid + " , " + child.page);
+                    child.parentElem = parent.elem;
+                    child.parentElem.appendKid(new PDMarkedContent(COSName.getPDFName("Span"), child.dict));
+                } else {
+                    // Otherwise we need a more complete dict with the page.
+                    child.parentElem = parent.elem;
+                    child.dict = new COSDictionary();
+                    child.dict.setItem(COSName.TYPE, COSName.getPDFName("MCR"));
+                    child.dict.setItem(COSName.PG, child.page);
+                    child.dict.setInt(COSName.MCID, child.mcid);
+System.out.println("ADDING MCR: " + child.mcid + " , " + child.page);
+                    PDMarkedContentReference ref = new PDMarkedContentReference(child.dict);
+                    child.parentElem.appendKid(ref);
+                }
             }
         }
     }
@@ -262,6 +276,7 @@ System.out.println("-------ADD: " + child + " && " + child.parent);
 
         current.mcid = _nextMcid;
         current.dict = createMarkedContentDictionary();
+        current.page = _page;
         
         _pageContentItems.get(_pageContentItems.size() - 1).add(current);
 
