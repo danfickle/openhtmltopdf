@@ -1,5 +1,7 @@
 package com.openhtmltopdf.pdfboxout;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +11,11 @@ import org.apache.pdfbox.cos.COSInteger;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.w3c.dom.Document;
@@ -25,17 +29,24 @@ import com.openhtmltopdf.render.RenderingContext;
 public class PdfBoxAccessibilityHelper {
     private final List<List<StructureItem>> _pageContentItems = new ArrayList<>();
     private final PdfBoxFastOutputDevice _od;
-    
-    private Document _doc;
-    private StructureItem _root;
+    private final Box _rootBox;
+    private final Document _doc;
+    private final StructureItem _root;
 
     private int _nextMcid;
     private PdfContentStreamAdapter _cs;
     private RenderingContext _ctx;
     private PDPage _page;
+    private float _pageHeight;
+    private AffineTransform _transform;
     
-    public PdfBoxAccessibilityHelper(PdfBoxFastOutputDevice od) {
+    public PdfBoxAccessibilityHelper(PdfBoxFastOutputDevice od, Box root, Document doc) {
         this._od = od;
+        this._rootBox = root;
+        this._doc = doc;
+        
+        StructureItem rootStruct = new StructureItem(null, null);
+        _root = rootStruct;
     }
 
     private static class StructureItem {
@@ -259,6 +270,19 @@ System.out.println("+++++++ADD: " + current + " !! " + current.parent + " !! " +
         return current;
     }
     
+    private COSDictionary createBackgroundArtifact(StructureType type, Box box) {
+        Rectangle2D rect = PdfBoxFastLinkManager.createTargetArea(_ctx, box, _pageHeight, _transform, _rootBox, _od);
+        PDRectangle pdRect = new PDRectangle((float) rect.getMinX(), (float) rect.getMinY(), (float) rect.getWidth(), (float) rect.getHeight());
+        
+        COSDictionary dict = new COSDictionary();
+        dict.setItem(COSName.TYPE, COSName.BACKGROUND);
+        dict.setItem(COSName.BBOX, pdRect);
+        
+System.out.println("CREATING BG ARTIFACT: " + box + " at: " + rect);
+        
+        return dict;
+    }
+    
     public void startStructure(StructureType type, Box box) {
             switch (type) {
             case LAYER:
@@ -275,8 +299,8 @@ System.out.println("+++++++ADD: " + current + " !! " + current.parent + " !! " +
             }
             case BACKGROUND: {
                 if (box.hasNonTextContent(_ctx)) {
-                    StructureItem current = createMarkedContentStructureItem(type, box);
-                    _cs.beginMarkedContent(COSName.ARTIFACT, current.dict);    
+                    COSDictionary current = createBackgroundArtifact(type, box);
+                    _cs.beginMarkedContent(COSName.ARTIFACT, current);
                 }
                 break;
             }
@@ -315,23 +339,17 @@ System.out.println("+++++++ADD: " + current + " !! " + current.parent + " !! " +
             }
     }
 
-    public void startPage(PDPage page, PdfContentStreamAdapter cs, RenderingContext ctx) {
+    public void startPage(PDPage page, PdfContentStreamAdapter cs, RenderingContext ctx, float pageHeight, AffineTransform transform) {
         this._cs = cs;
         this._ctx = ctx;
         this._nextMcid = 0;
         this._page = page;
+        this._pageHeight = pageHeight;
+        this._transform = transform;
         this._pageContentItems.add(new ArrayList<>());
     }
     
     public void endPage() {
         
     }
-
-    public void setDocument(Document doc) {
-        this._doc = doc;
-        
-        StructureItem rootStruct = new StructureItem(null, null);
-        _root = rootStruct;
-    }
-    
 }

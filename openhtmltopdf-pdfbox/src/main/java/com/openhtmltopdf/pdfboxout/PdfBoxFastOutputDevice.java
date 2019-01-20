@@ -44,19 +44,10 @@ import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
 
-import org.apache.pdfbox.cos.COSArray;
-import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSInteger;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
-import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
-import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
-import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
@@ -205,12 +196,13 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private PdfBoxGraphics2DFontTextDrawer _fontTextDrawer;
     
     // If we are attempting to be PDF/UA compliant (ie tagged pdf), a helper, otherwise null.
-    private final PdfBoxAccessibilityHelper _pdfUa;
+    private PdfBoxAccessibilityHelper _pdfUa;
+    private final boolean _pdfUaConform;
     
     public PdfBoxFastOutputDevice(float dotsPerPoint, boolean testMode, boolean pdfUaConform) {
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
-        _pdfUa = pdfUaConform ? new PdfBoxAccessibilityHelper(this) : null;
+        _pdfUaConform = pdfUaConform;
     }
 
     @Override
@@ -248,7 +240,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         setStrokeDiff(_stroke, null);
         
         if (_pdfUa != null) {
-            _pdfUa.startPage(_page, _cp, _renderingContext);
+            _pdfUa.startPage(_page, _cp, _renderingContext, _pageHeight, _transform);
         }
     }
     
@@ -848,8 +840,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _linkManager = new PdfBoxFastLinkManager(_sharedContext, _dotsPerPoint, _root, this);
         loadMetadata(doc);
         
-        if (_pdfUa != null) {
-            _pdfUa.setDocument(doc);
+        if (_pdfUaConform) {
+            _pdfUa = new PdfBoxAccessibilityHelper(this, _root, doc);
         }
     }
 
