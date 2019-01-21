@@ -5,6 +5,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSInteger;
@@ -12,20 +14,22 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDAttributeObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkedContentReference;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.Revisions;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
-import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
-import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.PDArtifactMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.InlineLayoutBox;
 import com.openhtmltopdf.render.LineBox;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxAccessibilityHelper {
     private final List<List<StructureItem>> _pageContentItems = new ArrayList<>();
@@ -61,6 +65,7 @@ public class PdfBoxAccessibilityHelper {
         private int mcid = -1;
         private StructureItem parent;
         private PDPage page;
+        private PDRectangle pdRect;
         
         private StructureItem(StructureType type, Box box) {
             this.type = type;
@@ -116,7 +121,7 @@ public class PdfBoxAccessibilityHelper {
             
             COSArray mcidParentReferences = new COSArray();
             for (StructureItem item : pageItems) {
-System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem);
+System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + ", mcid == " + item.mcid);
                 mcidParentReferences.add(item.parentElem);
             }
         
@@ -162,8 +167,12 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem);
     
     private void finishStructure(StructureItem item, StructureItem parent) {
         for (StructureItem child : item.children) {
-            if (child.mcid == -1) {
+            if (child.mcid == -1 && child.pdRect == null) {
+                // A structual element such as Div, Sect, p, etc
+                // which contains other structual elements or content items (text).
+                
                 if (child.children.isEmpty()) {
+                    // There is no point in outputting empty structual elements.
                     continue;
                 }
                 
@@ -178,18 +187,53 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem);
                     child.elem = new PDStructureElement(pdfTag, child.parentElem);
                     child.elem.setParent(child.parentElem);
                     child.elem.setPage(child.page);
-System.out.println("ADDING$$: " + child + " :::: " + child.elem + "-----" + pdfTag);
+
                     child.parentElem.appendKid(child.elem);
-                    
+
+                    // Recursively, depth first, process the structual tree.
                     finishStructure(child, child);
                 }
-            } else if (child.type == StructureType.TEXT) {
+            } else if (child.mcid == -1) {
+                // We have a bounding box, so must be a figure (image or replaced, etc).
+
+                if (child.children.isEmpty()) {
+                    // There is no point in outputting empty structual elements.
+                    continue;
+                }
+             
+                child.parentElem = parent.elem;
+                child.elem = new PDStructureElement(StandardStructureTypes.Figure, child.parentElem);
+                child.elem.setParent(child.parentElem);
+                child.elem.setPage(child.page);
+                
+                // Add alt text.
+                String alternateText = child.box.getElement() == null ? "" : child.box.getElement().getAttribute("alt");
+                if (alternateText.isEmpty()) {
+                    XRLog.general(Level.WARNING, "No alt attribute provided for image/replaced in PDF/UA document.");
+                }
+                child.elem.setAlternateDescription(alternateText);
+
+                // Add bounding box attribute.
+                COSDictionary attributeDict = new COSDictionary();
+                attributeDict.setItem(COSName.BBOX, child.pdRect);
+                attributeDict.setItem(COSName.O, COSName.getPDFName("Layout"));
+                
+                Revisions<PDAttributeObject> attributes = new Revisions<>();
+                attributes.addObject(PDAttributeObject.create(attributeDict), 0);
+                child.elem.setAttributes(attributes);
+
+                child.parentElem.appendKid(child.elem);
+                
+                finishStructure(child, child);
+            } else if (child.type == StructureType.TEXT ||
+                       child.type == StructureType.REPLACED) {
+                // A content item (text or replaced image), we need to add it to its parent structual item.
+                
                 if (child.page == parent.page) { 
                     // If this is on the same page as its parent structual element
                     // we can just use the dict with mcid in it only.
-System.out.println("ADDING MCID DIRECT: " + child.mcid + " , " + child.page);
                     child.parentElem = parent.elem;
-                    child.parentElem.appendKid(new PDMarkedContent(COSName.getPDFName("Span"), child.dict));
+                    child.parentElem.appendKid(new PDMarkedContent(child.type == StructureType.TEXT ? COSName.getPDFName("Span") : COSName.getPDFName("Figure"), child.dict));
                 } else {
                     // Otherwise we need a more complete dict with the page.
                     child.parentElem = parent.elem;
@@ -197,7 +241,7 @@ System.out.println("ADDING MCID DIRECT: " + child.mcid + " , " + child.page);
                     child.dict.setItem(COSName.TYPE, COSName.getPDFName("MCR"));
                     child.dict.setItem(COSName.PG, child.page);
                     child.dict.setInt(COSName.MCID, child.mcid);
-System.out.println("ADDING MCR: " + child.mcid + " , " + child.page);
+
                     PDMarkedContentReference ref = new PDMarkedContentReference(child.dict);
                     child.parentElem.appendKid(ref);
                 }
@@ -245,13 +289,23 @@ System.out.println("ADDING MCR: " + child.mcid + " , " + child.page);
             
             ensureAncestorTree(child, box.getParent());
             ensureParent(box, child);
-        } 
-        
-        if (child.box == null) {
-            child.box = box;
-        }
 
-System.out.println("-------ADD: " + child + " && " + child.parent);
+            if (child.box instanceof BlockBox) {
+                BlockBox bb = (BlockBox) child.box;
+
+                if (bb.isReplaced()) {
+                    // For replaced elements we will need to create a BBox.
+                    Rectangle2D rect = PdfBoxFastLinkManager.createTargetArea(
+                            _ctx, child.box, _pageHeight, _transform, _rootBox, _od);
+                    child.pdRect = new PDRectangle(
+                            (float) rect.getMinX(),
+                            (float) rect.getMinY(),
+                            (float) rect.getWidth(),
+                            (float) rect.getHeight());
+                }
+            }
+        }
+        
         return child;
     }
 
@@ -280,7 +334,29 @@ System.out.println("-------ADD: " + child + " && " + child.parent);
         
         _pageContentItems.get(_pageContentItems.size() - 1).add(current);
 
-System.out.println("+++++++ADD: " + current + " !! " + current.parent + " !! " + current.mcid);
+        return current;
+    }
+    
+    private StructureItem createFigureContentStructureItem(StructureType type, Box box) {
+        StructureItem parent = (StructureItem) box.getAccessibilityObject();
+        
+        if (parent == null ||
+            parent.children.size() > 0) {
+            return null;
+        }
+                
+        StructureItem current = new StructureItem(type, box);
+        
+        ensureAncestorTree(current, box.getParent());
+        
+        current.parent = parent;
+        current.mcid = _nextMcid;
+        current.dict = createMarkedContentDictionary();
+        current.page = _page;
+
+        current.parent.children.add(current);
+        
+        _pageContentItems.get(_pageContentItems.size() - 1).add(current);
         
         return current;
     }
@@ -293,65 +369,59 @@ System.out.println("+++++++ADD: " + current + " !! " + current.parent + " !! " +
         dict.setItem(COSName.TYPE, COSName.BACKGROUND);
         dict.setItem(COSName.BBOX, pdRect);
         
-System.out.println("CREATING BG ARTIFACT: " + box + " at: " + rect);
-        
         return dict;
     }
     
-    public void startStructure(StructureType type, Box box) {
+    public Object startStructure(StructureType type, Box box) {
             switch (type) {
             case LAYER:
             case FLOAT:
             case BLOCK: {
                 createStructureItem(type, box);
-                break;
+                return Boolean.FALSE;
             }
             case INLINE: {
-                if (box.hasNonTextContent(_ctx)) {
+                if (box.hasNonTextContent(_ctx) || 
+                    box.getChildCount() > 0 ||
+                    (box instanceof InlineLayoutBox && !((InlineLayoutBox) box).isAllTextItems(_ctx))) {
                     createStructureItem(type, box);
                 }
-                break;
+                return Boolean.FALSE;
             }
             case BACKGROUND: {
                 if (box.hasNonTextContent(_ctx)) {
                     COSDictionary current = createBackgroundArtifact(type, box);
                     _cs.beginMarkedContent(COSName.ARTIFACT, current);
+                    return Boolean.TRUE;
                 }
-                break;
+                return Boolean.FALSE;
             }
             case TEXT: {
                 StructureItem current = createMarkedContentStructureItem(type, box);
                 _cs.beginMarkedContent(COSName.getPDFName(StandardStructureTypes.SPAN), current.dict);
-                break;
+                return Boolean.TRUE;
             }
-            default:
-                break;
+            case REPLACED: {
+                createStructureItem(type, box);
+                StructureItem current = createFigureContentStructureItem(type, box);
+                if (current != null) {
+                    _cs.beginMarkedContent(COSName.getPDFName(StandardStructureTypes.Figure), current.dict);
+                    return Boolean.TRUE;
+                }
+                return Boolean.FALSE;
+            }
+            default: {
+                return Boolean.FALSE;
+            }
             }
     }
 
-    public void endStructure(StructureType type, Box box) {
-            switch (type) {
-            case LAYER:
-            case FLOAT:
-            case BLOCK: {
-                break;
-            }
-            case INLINE: {
-                break;
-            }
-            case BACKGROUND: {
-                if (box.hasNonTextContent(_ctx)) {
-                    _cs.endMarkedContent();
-                }
-                break;
-            }
-            case TEXT: {
-                _cs.endMarkedContent();
-                break;
-            }
-            default:
-                break;
-            }
+    public void endStructure(Object token) {
+        Boolean marked = (Boolean) token;
+        
+        if (marked.booleanValue()) {
+            _cs.endMarkedContent();
+        }
     }
 
     public void startPage(PDPage page, PdfContentStreamAdapter cs, RenderingContext ctx, float pageHeight, AffineTransform transform) {

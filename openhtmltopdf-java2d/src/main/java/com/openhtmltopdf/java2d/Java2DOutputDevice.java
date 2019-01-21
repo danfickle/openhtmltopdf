@@ -307,10 +307,11 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 	}
 
     @Override
-    public void startStructure(StructureType type, Box box) {
+    public Object startStructure(StructureType type, Box box) {
+        return null;
     }
 
     @Override
-    public void endStructure(StructureType type, Box box) {
+    public void endStructure(Object token) {
     }
 }

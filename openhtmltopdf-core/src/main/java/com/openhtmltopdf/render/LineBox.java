@@ -133,9 +133,9 @@ public class LineBox extends Box implements InlinePaintable {
         }
         
         if (_textDecorations != null) {
-            c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
+            Object token = c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
             c.getOutputDevice().drawTextDecoration(c, this);
-            c.getOutputDevice().endStructure(StructureType.BACKGROUND, this);
+            c.getOutputDevice().endStructure(token);
         }
         
         if (c.debugDrawLineBoxes()) {

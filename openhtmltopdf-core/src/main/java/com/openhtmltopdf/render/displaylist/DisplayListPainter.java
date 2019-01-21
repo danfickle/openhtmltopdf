@@ -67,8 +67,8 @@ public class DisplayListPainter {
 			} else {
 				BlockBox box = (BlockBox) dli;
 				
-				c.getOutputDevice().startStructure(StructureType.BLOCK, box);
-				c.getOutputDevice().startStructure(StructureType.BACKGROUND, box);
+				Object outerToken = c.getOutputDevice().startStructure(StructureType.BLOCK, box);
+				Object innerToken = c.getOutputDevice().startStructure(StructureType.BACKGROUND, box);
 				
 				updateTableHeaderFooterPosition(c, box);
 				debugOnly("painting bg", box);
@@ -89,8 +89,8 @@ public class DisplayListPainter {
 					}
 				}
 
-				c.getOutputDevice().endStructure(StructureType.BACKGROUND, box);
-				c.getOutputDevice().endStructure(StructureType.BLOCK, box);
+				c.getOutputDevice().endStructure(innerToken);
+				c.getOutputDevice().endStructure(outerToken);
 			}
 		}
 	}
@@ -127,9 +127,9 @@ public class DisplayListPainter {
 			    paint(c, pageInstructions);
 			} else {
                 InlinePaintable paintable = (InlinePaintable) dli;
-                c.getOutputDevice().startStructure(StructureType.INLINE, (Box) dli);
+                Object token = c.getOutputDevice().startStructure(StructureType.INLINE, (Box) dli);
                 paintable.paintInline(c);
-                c.getOutputDevice().endStructure(StructureType.INLINE, (Box) dli);
+                c.getOutputDevice().endStructure(token);
 			}
 		}
 	}
@@ -161,7 +161,9 @@ public class DisplayListPainter {
             replaced.getReplacedElement().setLocation(contentBounds.x, contentBounds.y);
         }
         
+        Object outerToken = c.getOutputDevice().startStructure(StructureType.REPLACED, replaced);
         c.getOutputDevice().paintReplacedElement(c, replaced);
+        c.getOutputDevice().endStructure(outerToken);
     }
     
     private void pushTransform(RenderingContext c, Box master, int shadowPage) {
@@ -222,14 +224,14 @@ public class DisplayListPainter {
 
 				PaintLayerBackgroundAndBorder dlo = (PaintLayerBackgroundAndBorder) op;
 				
-				c.getOutputDevice().startStructure(StructureType.LAYER, dlo.getMaster());
-		                c.getOutputDevice().startStructure(StructureType.BACKGROUND, dlo.getMaster());
+				Object outerToken = c.getOutputDevice().startStructure(StructureType.LAYER, dlo.getMaster());
+		        Object innerToken = c.getOutputDevice().startStructure(StructureType.BACKGROUND, dlo.getMaster());
 				
 				dlo.getMaster().paintBackground(c);
 				dlo.getMaster().paintBorder(c);
 				
-				c.getOutputDevice().endStructure(StructureType.BACKGROUND, dlo.getMaster());
-				c.getOutputDevice().endStructure(StructureType.LAYER, dlo.getMaster());
+				c.getOutputDevice().endStructure(innerToken);
+				c.getOutputDevice().endStructure(outerToken);
 
 			} else if (op instanceof PaintReplacedElement) {
 

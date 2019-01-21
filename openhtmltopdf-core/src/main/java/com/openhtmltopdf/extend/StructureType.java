@@ -6,5 +6,6 @@ public enum StructureType {
     TEXT,
     FLOAT,
     BLOCK,
-    INLINE;
+    INLINE,
+    REPLACED;
 }

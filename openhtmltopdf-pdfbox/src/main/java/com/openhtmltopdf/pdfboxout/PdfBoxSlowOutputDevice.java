@@ -1492,12 +1492,13 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     @Override
-    public void startStructure(StructureType type, Box box) {
-        // For PDF/UA - Only implemented by the fast output device.       
+    public Object startStructure(StructureType type, Box box) {
+        // For PDF/UA - Only implemented by the fast output device.
+        return null;
     }
 
     @Override
-    public void endStructure(StructureType type, Box box) {
-        // For PDF/UA - Only implemented by the fast output device.        
+    public void endStructure(Object token) {
+        // For PDF/UA - Only implemented by the fast output device.
     }
 }

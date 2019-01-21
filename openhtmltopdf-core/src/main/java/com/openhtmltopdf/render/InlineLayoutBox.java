@@ -253,7 +253,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             return;
         }
 
-        c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
+        Object token1 = c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
         
         paintBackground(c);
         paintBorder(c);
@@ -270,8 +270,8 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
                 }
         }
         
-        c.getOutputDevice().endStructure(StructureType.BACKGROUND, this);
-        c.getOutputDevice().startStructure(StructureType.TEXT, this);
+        c.getOutputDevice().endStructure(token1);
+        Object token2 = c.getOutputDevice().startStructure(StructureType.TEXT, this);
         
         for (int i = 0; i < getInlineChildCount(); i++) {
             Object child = getInlineChild(i);
@@ -280,9 +280,8 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             }
         }
         
-        c.getOutputDevice().endStructure(StructureType.TEXT, this);
-        // TODO: Only call if there is line through.
-        c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
+        c.getOutputDevice().endStructure(token2);
+        Object token3 = c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
         
         for (TextDecoration tD : textDecorations) {
                 IdentValue ident = tD.getIdentValue();
@@ -291,7 +290,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
                 }
         }
         
-        c.getOutputDevice().endStructure(StructureType.BACKGROUND, this);
+        c.getOutputDevice().endStructure(token3);
     }
 
     @Override
@@ -303,6 +302,10 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         }
         
         return false;
+    }
+    
+    public boolean isAllTextItems(CssContext c) {
+        return getInlineChildren().stream().allMatch(child -> child instanceof InlineText);
     }
     
     @Override

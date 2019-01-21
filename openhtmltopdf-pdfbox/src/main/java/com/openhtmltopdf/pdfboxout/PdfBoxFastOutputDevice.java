@@ -1265,16 +1265,17 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     @Override
-    public void startStructure(StructureType type, Box box) {
+    public Object startStructure(StructureType type, Box box) {
         if (_pdfUa != null) {
-            _pdfUa.startStructure(type, box);
+            return _pdfUa.startStructure(type, box);
         }
+        return null;
     }
 
     @Override
-    public void endStructure(StructureType type, Box box) {
+    public void endStructure(Object token) {
         if (_pdfUa != null) {
-            _pdfUa.endStructure(type, box);
+            _pdfUa.endStructure(token);
         }
     }
     
