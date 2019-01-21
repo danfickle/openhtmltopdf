@@ -44,5 +44,6 @@ public class PdfUaTestcaseRunner {
         run("layers-z-index");
         run("text-over-two-pages");
         run("image");
+        run("image-over-two-pages");
     }
 }

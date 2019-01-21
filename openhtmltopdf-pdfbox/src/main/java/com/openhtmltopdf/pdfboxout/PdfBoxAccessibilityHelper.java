@@ -407,8 +407,14 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
                 if (current != null) {
                     _cs.beginMarkedContent(COSName.getPDFName(StandardStructureTypes.Figure), current.dict);
                     return Boolean.TRUE;
+                } else {
+                    // For images that continue over more than one page, just mark the portion on the second
+                    // and subsequent pages as an artifact. The spec (PDF 1.7) is not clear on what to do in this
+                    // situation.
+                    COSDictionary bg = createBackgroundArtifact(type, box);
+                    _cs.beginMarkedContent(COSName.ARTIFACT, bg);
+                    return Boolean.TRUE;
                 }
-                return Boolean.FALSE;
             }
             default: {
                 return Boolean.FALSE;
