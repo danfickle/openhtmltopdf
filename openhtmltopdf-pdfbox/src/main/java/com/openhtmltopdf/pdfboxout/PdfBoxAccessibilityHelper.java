@@ -45,6 +45,8 @@ public class PdfBoxAccessibilityHelper {
     private float _pageHeight;
     private AffineTransform _transform;
     
+    private int _runningLevel;
+    
     public PdfBoxAccessibilityHelper(PdfBoxFastOutputDevice od, Box root, Document doc) {
         this._od = od;
         this._rootBox = root;
@@ -372,60 +374,101 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
         return dict;
     }
     
-    public Object startStructure(StructureType type, Box box) {
+    private COSDictionary createPaginationArtifact(StructureType type, Box box) {
+        COSDictionary dict = new COSDictionary();
+        dict.setItem(COSName.TYPE, COSName.getPDFName("Pagination"));
+        return dict;
+    }
+    
+    private static class Token {
+    }
+    
+    private static final Token TRUE_TOKEN = new Token();
+    private static final Token FALSE_TOKEN = new Token();
+    private static final Token INSIDE_RUNNING = new Token();
+    private static final Token STARTING_RUNNING = new Token();
+    private static final Token NESTED_RUNNING = new Token();
+    
+    public Token startStructure(StructureType type, Box box) {
+            // Check for items that appear on every page (fixed, running, page margins).    
+            if (type == StructureType.RUNNING) {
+                // Only mark artifact for first level of running element (we might have
+                // nested fixed elements).
+                if (_runningLevel == 0) {
+                    _runningLevel++;
+                    COSDictionary run = createPaginationArtifact(type, box);
+                    _cs.beginMarkedContent(COSName.ARTIFACT, run);
+                    return STARTING_RUNNING;
+                }
+                
+                _runningLevel++;
+                return NESTED_RUNNING;
+            } else if (_runningLevel > 0) {
+                // We are in a running artifact.
+                return INSIDE_RUNNING;
+            }
+        
             switch (type) {
             case LAYER:
             case FLOAT:
             case BLOCK: {
                 createStructureItem(type, box);
-                return Boolean.FALSE;
+                return FALSE_TOKEN;
             }
             case INLINE: {
-                if (box.hasNonTextContent(_ctx) || 
-                    box.getChildCount() > 0 ||
+                // Only create a structual element holder for this element if it has non text child nodes.
+                if (box.getChildCount() > 0 ||
                     (box instanceof InlineLayoutBox && !((InlineLayoutBox) box).isAllTextItems(_ctx))) {
                     createStructureItem(type, box);
                 }
-                return Boolean.FALSE;
+                return FALSE_TOKEN;
             }
             case BACKGROUND: {
                 if (box.hasNonTextContent(_ctx)) {
                     COSDictionary current = createBackgroundArtifact(type, box);
                     _cs.beginMarkedContent(COSName.ARTIFACT, current);
-                    return Boolean.TRUE;
+                    return TRUE_TOKEN;
                 }
-                return Boolean.FALSE;
+                return FALSE_TOKEN;
             }
             case TEXT: {
                 StructureItem current = createMarkedContentStructureItem(type, box);
                 _cs.beginMarkedContent(COSName.getPDFName(StandardStructureTypes.SPAN), current.dict);
-                return Boolean.TRUE;
+                return TRUE_TOKEN;
             }
             case REPLACED: {
                 createStructureItem(type, box);
                 StructureItem current = createFigureContentStructureItem(type, box);
                 if (current != null) {
                     _cs.beginMarkedContent(COSName.getPDFName(StandardStructureTypes.Figure), current.dict);
-                    return Boolean.TRUE;
+                    return TRUE_TOKEN;
                 } else {
                     // For images that continue over more than one page, just mark the portion on the second
                     // and subsequent pages as an artifact. The spec (PDF 1.7) is not clear on what to do in this
                     // situation.
                     COSDictionary bg = createBackgroundArtifact(type, box);
                     _cs.beginMarkedContent(COSName.ARTIFACT, bg);
-                    return Boolean.TRUE;
+                    return TRUE_TOKEN;
                 }
             }
             default: {
-                return Boolean.FALSE;
+                return FALSE_TOKEN;
             }
             }
     }
 
     public void endStructure(Object token) {
-        Boolean marked = (Boolean) token;
+        Token value = (Token) token;
         
-        if (marked.booleanValue()) {
+        if (value == TRUE_TOKEN) {
+            _cs.endMarkedContent();
+        } else if (value == FALSE_TOKEN ||
+                   value == INSIDE_RUNNING) {
+            // do nothing...
+        } else if (value == NESTED_RUNNING) {
+            _runningLevel--;
+        } else if (value == STARTING_RUNNING) {
+            _runningLevel--;
             _cs.endMarkedContent();
         }
     }

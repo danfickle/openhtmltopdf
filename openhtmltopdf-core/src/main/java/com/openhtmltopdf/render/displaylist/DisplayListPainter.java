@@ -218,7 +218,10 @@ public class DisplayListPainter {
 			if (op instanceof PaintRootElementBackground) {
 
 				PaintRootElementBackground dlo = (PaintRootElementBackground) op;
+				
+				Object token = c.getOutputDevice().startStructure(StructureType.BACKGROUND, dlo.getRoot());
 				dlo.getRoot().paintRootElementBackground(c);
+				c.getOutputDevice().endStructure(token);
 
 			} else if (op instanceof PaintLayerBackgroundAndBorder) {
 
@@ -273,7 +276,9 @@ public class DisplayListPainter {
 			} else if (op instanceof PaintFixedLayer) {
 				
 				PaintFixedLayer dlo = (PaintFixedLayer) op;
+				Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, dlo.getLayer().getMaster());
 				paintFixed(c, dlo.getLayer());
+				c.getOutputDevice().endStructure(token);
 				
 			} else if (op instanceof PaintPushClipRect) {
 			    

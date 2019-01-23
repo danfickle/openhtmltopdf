@@ -1,0 +1,38 @@
+<html lang="EN-US">
+<head>
+  <title>Simple PDF/UA Testcase</title>
+  <meta name="description" content="A simple example"/>
+  <style>
+  @page {
+    size: 200px 200px;
+    margin: 20px 10px 20px 10px;
+    
+    @top-center {
+      font-family: 'TestFont';
+      content: "Running Content";
+    }
+    
+    @bottom-center {
+      font-family: 'TestFont'; 
+      content: element(ftr);
+    }
+  }
+  body {
+    margin: 0;
+    width: 180px;
+  }
+  </style>
+</head>
+<body style="font-family: 'TestFont'; font-size: 14px;">
+  <div style="position: fixed;left: 0; top: 0;">
+    <div><span style="background-color: red;">Hello</span> World!</div>
+  </div>
+  
+  <div style="position: running(ftr);">
+    <div>Goodbye World!</div>
+  </div>
+
+  <p>Paragraph one. Some text that goes over multiple lines. OK, this is getting to the required length.</p>
+  <p>Paragraph two. Some text that goes over multiple lines. OK, this is getting to the required length.</p>
+</body>
+</html>

@@ -697,7 +697,7 @@ public class PdfBoxRenderer implements Closeable {
         {
             PDDocumentCatalog catalog = doc.getDocumentCatalog();
             String lang = _doc.getDocumentElement().getAttribute("lang");
-            catalog.setLanguage(lang != null ? lang : "English");
+            catalog.setLanguage(lang != null ? lang : "EN-US");
             catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
             catalog.getViewerPreferences().setDisplayDocTitle(true);
             
