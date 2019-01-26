@@ -296,14 +296,19 @@ public class PdfBoxTextRenderer implements TextRenderer {
         float result = 0f;
 
         try {
-            // Go through the list of font descriptions
-            for (FontDescription fd : ((PdfBoxFSFont) font).getFontDescription()) {
-               if (fd.getFont() != null) {
-                 result = fd.getFont().getStringWidth(string) / 1000f * font.getSize2D();
-                 break;
-               } else {
-                 XRLog.render(Level.WARNING, "Font is null.");
-               }
+            if (((PdfBoxFSFont) font).getFontDescription() == null 
+                    || ((PdfBoxFSFont) font).getFontDescription().isEmpty()) {
+              XRLog.render(Level.WARNING, "Font list is empty.");
+            } else {
+              // Go through the list of font descriptions
+              for (FontDescription fd : ((PdfBoxFSFont) font).getFontDescription()) {
+                 if (fd.getFont() != null) {
+                   result = fd.getFont().getStringWidth(string) / 1000f * font.getSize2D();
+                   break;
+                 } else {
+                   XRLog.render(Level.WARNING, "Font is null.");
+                 }
+              }
             }
         } catch (IllegalArgumentException e2) {
             // PDFont::getStringWidth throws an IllegalArgumentException if the character doesn't exist in the font.
