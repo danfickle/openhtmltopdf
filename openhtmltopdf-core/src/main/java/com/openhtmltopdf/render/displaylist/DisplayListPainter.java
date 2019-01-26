@@ -104,7 +104,9 @@ public class DisplayListPainter {
 				OperatorSetClip setClip = (OperatorSetClip) dli;
 				setClip(c, setClip);
 			} else {
+			    Object token = c.getOutputDevice().startStructure(StructureType.LIST_MARKER, (Box) dli);
 				((BlockBox) dli).paintListMarker(c);
+				c.getOutputDevice().endStructure(token);
 			}
 		}
 	}

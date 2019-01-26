@@ -46,5 +46,6 @@ public class PdfUaTestcaseRunner {
         run("image");
         run("image-over-two-pages");
         run("running");
+        run("lists");
     }
 }

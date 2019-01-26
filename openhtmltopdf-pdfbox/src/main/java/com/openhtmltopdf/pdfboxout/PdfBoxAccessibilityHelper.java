@@ -23,12 +23,14 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.Revisions;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
+import org.apache.xmpbox.type.AbstractStructuredType;
 import org.w3c.dom.Document;
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.InlineLayoutBox;
 import com.openhtmltopdf.render.LineBox;
+import com.openhtmltopdf.render.MarkerData;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.XRLog;
 
@@ -127,6 +129,14 @@ public class PdfBoxAccessibilityHelper {
         ListLabelStructualElement label;
         ListBodyStructualElement body;
         
+        ListItemStructualElement() {
+            this.body = new ListBodyStructualElement();
+            this.body.parent = this;
+            
+            this.label = new ListLabelStructualElement();
+            this.label.parent = this;
+        }
+        
         @Override
         String getPdfTag() {
             return StandardStructureTypes.LI;
@@ -134,21 +144,14 @@ public class PdfBoxAccessibilityHelper {
 
         @Override
         void addChild(AbstractTreeItem child) {
-            // TODO
+            this.body.addChild(child);
         }
     }
 
-    private static class ListLabelStructualElement extends AbstractStructualElement {
-        GenericContentItem content;
-
+    private static class ListLabelStructualElement extends GenericStructualElement {
         @Override
         String getPdfTag() {
             return StandardStructureTypes.LBL;
-        }
-
-        @Override
-        void addChild(AbstractTreeItem child) {
-            this.content = (GenericContentItem) child;
         }
     }
     
@@ -348,16 +351,38 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             finishTreeItem(child.content, child);
         } else if (item instanceof ListStructualElement) {
             ListStructualElement child = (ListStructualElement) item;
-            // TODO
+            
+            createPdfStrucureElement(parent, child);
+            
+            child.listItems.forEach(itm -> finishTreeItem(itm, child));
+            
         } else if (item instanceof ListItemStructualElement) {
             ListItemStructualElement child = (ListItemStructualElement) item;
-            // TODO
+            
+            createPdfStrucureElement(parent, child);
+
+            finishTreeItem(child.label, child);
+            finishTreeItem(child.body, child);
+            
         } else if (item instanceof ListLabelStructualElement) {
             ListLabelStructualElement child = (ListLabelStructualElement) item;
-            // TODO
+
+            if (child.children.isEmpty()) {
+                // Must be list-style-type: none.
+                return;
+            }
+            
+            createPdfStrucureElement(parent, child);
+
+            child.children.forEach(itm -> finishTreeItem(itm, child));
+
         } else if (item instanceof ListBodyStructualElement) {
             ListBodyStructualElement child = (ListBodyStructualElement) item;
-            // TODO
+            
+            createPdfStrucureElement(parent, child);
+            
+            child.children.forEach(itm -> finishTreeItem(itm, child));
+            
         } else if (item instanceof GenericStructualElement) {
             // A structual element such as Div, Sect, p, etc
             // which contains other structual elements or content items (text).
@@ -373,17 +398,21 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
                 // We skip line boxes in the tree.
                 child.children.forEach(itm -> finishTreeItem(itm, parent));
             } else {
-                child.parentElem = parent.elem;
-                child.elem = new PDStructureElement(child.getPdfTag(), child.parentElem);
-                child.elem.setParent(child.parentElem);
-                child.elem.setPage(child.page);
-
-                child.parentElem.appendKid(child.elem);
+                createPdfStrucureElement(parent, child);
 
                 // Recursively, depth first, process the structual tree.
                 child.children.forEach(itm -> finishTreeItem(itm, child));
             }
         }
+    }
+
+    private void createPdfStrucureElement(AbstractStructualElement parent, AbstractStructualElement child) {
+        child.parentElem = parent.elem;
+        child.elem = new PDStructureElement(child.getPdfTag(), child.parentElem);
+        child.elem.setParent(child.parentElem);
+        child.elem.setPage(child.page);
+
+        child.parentElem.appendKid(child.elem);
     }
     
     private COSDictionary createMarkedContentDictionary() {
@@ -408,9 +437,8 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
     }
     
     private AbstractStructualElement createStructureItem(StructureType type, Box box) {
-        AbstractStructualElement child = (AbstractStructualElement) box.getAccessibilityObject();
+            AbstractStructualElement child = null;
         
-        if (child == null) {
             if (box instanceof BlockBox) {
                 BlockBox bb = (BlockBox) box;
 
@@ -427,9 +455,9 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
                             (float) rect.getHeight());
                     ((FigureStructualElement) child).alternateText = box.getElement() == null ? "" : box.getElement().getAttribute("alt");
                 }
-            }
+            } 
             
-            if (child == null && box.getElement() != null) {
+            if (child == null && box.getElement() != null && !box.isAnonymous()) {
                 String htmlTag = box.getElement().getTagName();
                 Supplier<AbstractStructualElement> supplier = _tagSuppliers.get(htmlTag);
                 
@@ -444,16 +472,18 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             
             child.page = _page;
             child.box = box;
-            box.setAccessiblityObject(child);
-            
-            ensureAncestorTree(child, box.getParent());
-            ensureParent(box, child);
-        }
         
-        return child;
+            return child;
+    }
+    
+    private void setupStructureElement(AbstractStructualElement child, Box box) {
+        box.setAccessiblityObject(child);
+        
+        ensureAncestorTree(child, box.getParent());
+        ensureParent(box, child);
     }
 
-    public void ensureParent(Box box, AbstractTreeItem child) {
+    private void ensureParent(Box box, AbstractTreeItem child) {
         if (child.parent == null) {
             if (box.getParent() != null) {
                 AbstractStructualElement parent = (AbstractStructualElement) box.getParent().getAccessibilityObject();
@@ -480,6 +510,23 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
 
         return current;
     }
+    
+    private GenericContentItem createListItemLabelMarkedContent(StructureType type, Box box) {
+        GenericContentItem current = new GenericContentItem();
+        
+        current.mcid = _nextMcid;
+        current.dict = createMarkedContentDictionary();
+        current.page = _page;
+
+        ListItemStructualElement li = (ListItemStructualElement) box.getAccessibilityObject();
+        li.label.addChild(current);
+        current.parent = li.label;
+        
+        _pageContentItems.get(_pageContentItems.size() - 1).add(current);
+
+        return current;
+    }
+    
     
     private FigureContentItem createFigureContentStructureItem(StructureType type, Box box) {
         FigureStructualElement parent = (FigureStructualElement) box.getAccessibilityObject();
@@ -556,14 +603,23 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             case LAYER:
             case FLOAT:
             case BLOCK: {
-                createStructureItem(type, box);
+                AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
+                if (struct == null) {
+                    struct = createStructureItem(type, box);
+                    setupStructureElement(struct, box);
+                }
                 return FALSE_TOKEN;
             }
             case INLINE: {
                 // Only create a structual element holder for this element if it has non text child nodes.
                 if (box.getChildCount() > 0 ||
                     (box instanceof InlineLayoutBox && !((InlineLayoutBox) box).isAllTextItems(_ctx))) {
-                    createStructureItem(type, box);
+                    
+                    AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
+                    if (struct == null) {
+                        struct = createStructureItem(type, box);
+                        setupStructureElement(struct, box);
+                    }
                 }
                 return FALSE_TOKEN;
             }
@@ -575,13 +631,34 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
                 }
                 return FALSE_TOKEN;
             }
+            case LIST_MARKER: {
+                if (box instanceof BlockBox) {
+                    MarkerData markers = ((BlockBox) box).getMarkerData();
+                    
+                    if (markers == null || 
+                        (markers.getGlyphMarker() == null &&
+                         markers.getTextMarker() == null &&
+                         markers.getImageMarker() == null)) {
+                        return FALSE_TOKEN;    
+                    }
+                }
+
+                GenericContentItem current = createListItemLabelMarkedContent(type, box);
+                _cs.beginMarkedContent(COSName.getPDFName("Span"), current.dict);
+                return TRUE_TOKEN;
+            }
             case TEXT: {
                 GenericContentItem current = createMarkedContentStructureItem(type, box);
                 _cs.beginMarkedContent(COSName.getPDFName(StandardStructureTypes.SPAN), current.dict);
                 return TRUE_TOKEN;
             }
             case REPLACED: {
-                createStructureItem(type, box);
+                AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
+                if (struct == null) {
+                    struct = createStructureItem(type, box);
+                    setupStructureElement(struct, box);
+                }
+                
                 FigureContentItem current = createFigureContentStructureItem(type, box);
                 
                 if (current != null) {
