@@ -1,0 +1,52 @@
+<html>
+<head>
+  <title>Simple PDF/UA Table Testcase</title>
+  <meta name="description" content="A simple table example"/>
+  <style>
+  @page {
+    size: 200px 200px;
+    margin: 0;
+  }
+  body {
+    margin: 0;
+    width: 200px;
+  }
+  </style>
+</head>
+<body style="font-family: 'TestFont'; font-size: 14px;">
+  <h1>A simple table example</h1>
+
+  <h2>Table without header or footer</h2>
+  <table>
+   <tr><td>One</td><td>Two</td></tr>
+   <tr><td>Three</td><td>Four</td></tr>
+  </table>
+
+  <h2>Table with everything</h2>
+  <table>
+   <caption>Simple table example with fake data</caption>
+   
+   <thead>
+     <tr><th>Col One</th><th>Col Two</th></tr>
+   </thead>
+   
+   <tbody>
+     <tr><td>One</td><td>Two</td></tr>
+     <tr><td>Three</td><td>Four</td></tr>
+   </tbody>
+   
+   <tfoot>
+     <tr><td>Footer1</td><td>Footer2</td></tr>
+     <tr><td>Footer3</td><td>Footer4</td></tr>
+   </tfoot> 
+  </table>
+  
+  <h2>Using colspan</h2>
+  
+  <table>
+    <tr><td colspan="2">Two columns</td></tr>
+    <tr><td>One</td><td>Two</td></tr>
+  </table>
+
+</body>
+</html>

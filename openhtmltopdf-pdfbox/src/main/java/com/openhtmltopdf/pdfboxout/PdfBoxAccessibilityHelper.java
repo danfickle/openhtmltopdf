@@ -23,9 +23,12 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.Revisions;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
-import org.apache.xmpbox.type.AbstractStructuredType;
 import org.w3c.dom.Document;
+
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.StructureType;
+import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.InlineLayoutBox;
@@ -63,7 +66,10 @@ public class PdfBoxAccessibilityHelper {
         suppliers.put("ol", ListStructualElement::new);
         suppliers.put("li", ListItemStructualElement::new);
         
-        // TODO: Tables.
+        suppliers.put("table", TableStructualElement::new);
+        suppliers.put("tr", TableRowStructualElement::new);
+        suppliers.put("td", TableCellStructualElement::new);
+        suppliers.put("th", TableHeaderStructualElement::new);
         
         return suppliers;
     }
@@ -126,8 +132,8 @@ public class PdfBoxAccessibilityHelper {
     }
 
     private static class ListItemStructualElement extends AbstractStructualElement {
-        ListLabelStructualElement label;
-        ListBodyStructualElement body;
+        final ListLabelStructualElement label;
+        final ListBodyStructualElement body;
         
         ListItemStructualElement() {
             this.body = new ListBodyStructualElement();
@@ -148,10 +154,17 @@ public class PdfBoxAccessibilityHelper {
         }
     }
 
-    private static class ListLabelStructualElement extends GenericStructualElement {
+    private static class ListLabelStructualElement extends AbstractStructualElement {
+        final List<AbstractTreeItem> children = new ArrayList<>(1);
+        
         @Override
         String getPdfTag() {
             return StandardStructureTypes.LBL;
+        }
+
+        @Override
+        void addChild(AbstractTreeItem child) {
+            this.children.add(child);
         }
     }
     
@@ -159,6 +172,67 @@ public class PdfBoxAccessibilityHelper {
         @Override
         String getPdfTag() {
             return StandardStructureTypes.L_BODY;
+        }
+    }
+    
+    private static class TableStructualElement extends AbstractStructualElement {
+        final TableHeadStructualElement thead = new TableHeadStructualElement();
+        final List<TableBodyStructualElement> tbodies = new ArrayList<>(1);
+        final TableFootStructualElement tfoot = new TableFootStructualElement();
+        
+        @Override
+        void addChild(AbstractTreeItem child) {
+            this.tbodies.add((TableBodyStructualElement) child);
+        }
+
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.TABLE;
+        }
+    }
+    
+    private static class TableHeadStructualElement extends GenericStructualElement {
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.T_HEAD;
+        }
+    }
+    
+    private static class TableBodyStructualElement extends GenericStructualElement {
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.T_BODY;
+        }
+    }
+    
+    private static class TableFootStructualElement extends GenericStructualElement {
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.T_FOOT;
+        }
+    }
+    
+    private static class TableRowStructualElement extends GenericStructualElement {
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.TR;
+        }
+    }
+    
+    private static class TableHeaderStructualElement extends GenericStructualElement {
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.TH;
+        }
+    }
+    
+    private static class TableCellStructualElement extends GenericStructualElement {
+        int rowspan = 1;
+        int colspan = 1;
+        
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.TD;
         }
     }
     
@@ -299,6 +373,10 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
         return StandardStructureTypes.SPAN;
     }
     
+    private void finishTreeItems(List<? extends AbstractTreeItem> children, AbstractStructualElement parent) {
+        children.forEach(itm -> finishTreeItem(itm, parent));
+    }
+    
     private void finishTreeItem(AbstractTreeItem item, AbstractStructualElement parent) {
         if (item instanceof GenericContentItem) {
             // A content item (text or replaced image), we need to add it to its parent structual item.
@@ -354,7 +432,7 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             
             createPdfStrucureElement(parent, child);
             
-            child.listItems.forEach(itm -> finishTreeItem(itm, child));
+            finishTreeItems(child.listItems, child);
             
         } else if (item instanceof ListItemStructualElement) {
             ListItemStructualElement child = (ListItemStructualElement) item;
@@ -374,15 +452,73 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             
             createPdfStrucureElement(parent, child);
 
-            child.children.forEach(itm -> finishTreeItem(itm, child));
+            finishTreeItems(child.children, child);
 
         } else if (item instanceof ListBodyStructualElement) {
             ListBodyStructualElement child = (ListBodyStructualElement) item;
             
             createPdfStrucureElement(parent, child);
             
-            child.children.forEach(itm -> finishTreeItem(itm, child));
+            finishTreeItems(child.children, child);
             
+        } else if (item instanceof TableStructualElement) {
+            TableStructualElement child = (TableStructualElement) item;
+            
+            createPdfStrucureElement(parent, child);
+            
+            finishTreeItem(child.thead, child);
+            finishTreeItems(child.tbodies, child);
+            finishTreeItem(child.tfoot, child);
+        } else if (item instanceof TableHeadStructualElement) {
+            TableHeadStructualElement child = (TableHeadStructualElement) item;
+            createPdfStrucureElement(parent, child);
+            finishTreeItems(child.children, child);
+        } else if (item instanceof TableBodyStructualElement) {
+            TableBodyStructualElement child = (TableBodyStructualElement) item;
+            createPdfStrucureElement(parent, child);
+            finishTreeItems(child.children, child);
+        } else if (item instanceof TableFootStructualElement) {
+            TableFootStructualElement child = (TableFootStructualElement) item;
+            createPdfStrucureElement(parent, child);
+            finishTreeItems(child.children, child);
+        } else if (item instanceof TableRowStructualElement) {
+            TableRowStructualElement child = (TableRowStructualElement) item;
+            createPdfStrucureElement(parent, child);
+            finishTreeItems(child.children, child);
+        } else if (item instanceof TableHeaderStructualElement) {
+            TableHeaderStructualElement child = (TableHeaderStructualElement) item;
+            createPdfStrucureElement(parent, child);
+            finishTreeItems(child.children, child);
+        } else if (item instanceof TableCellStructualElement) {
+            TableCellStructualElement child = (TableCellStructualElement) item;
+            createPdfStrucureElement(parent, child);
+            
+            COSDictionary colspan = null;
+            COSDictionary rowspan = null;
+            
+            if (child.colspan != 1) {
+                colspan = new COSDictionary();
+                colspan.setInt(COSName.getPDFName("ColSpan"), child.colspan);
+                colspan.setItem(COSName.O, COSName.getPDFName("Table"));
+            }
+            if (child.rowspan != 1) {
+                rowspan = new COSDictionary();
+                rowspan.setInt(COSName.getPDFName("RowSpan"), child.rowspan);
+                rowspan.setItem(COSName.O, COSName.getPDFName("Table"));
+            }
+            
+            if (colspan != null || rowspan != null) {
+                Revisions<PDAttributeObject> attributes = new Revisions<>();
+                if (colspan != null) {
+                    attributes.addObject(PDAttributeObject.create(colspan), 0);
+                }
+                if (rowspan != null) {
+                    attributes.addObject(PDAttributeObject.create(rowspan), 0);
+                }
+                child.elem.setAttributes(attributes);
+            }
+            
+            finishTreeItems(child.children, child);
         } else if (item instanceof GenericStructualElement) {
             // A structual element such as Div, Sect, p, etc
             // which contains other structual elements or content items (text).
@@ -396,12 +532,12 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             if (child.box instanceof LineBox &&
                 !child.box.hasNonTextContent(_ctx)) {
                 // We skip line boxes in the tree.
-                child.children.forEach(itm -> finishTreeItem(itm, parent));
+                finishTreeItems(child.children, parent);
             } else {
                 createPdfStrucureElement(parent, child);
 
                 // Recursively, depth first, process the structual tree.
-                child.children.forEach(itm -> finishTreeItem(itm, child));
+                finishTreeItems(child.children, child);
             }
         }
     }
@@ -466,6 +602,22 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
                 }
             }
             
+            if (child == null &&
+                box.getParent() != null &&
+                box.getParent().getAccessibilityObject() instanceof TableStructualElement) {
+                
+                TableStructualElement table = (TableStructualElement) box.getParent().getAccessibilityObject();
+                
+                if (box.getStyle().isIdent(CSSName.DISPLAY, IdentValue.TABLE_HEADER_GROUP)) {
+                    child = table.thead;
+                } else if (box.getStyle().isIdent(CSSName.DISPLAY, IdentValue.TABLE_ROW_GROUP)) {
+                    child = new TableBodyStructualElement();
+                } else if (box.getStyle().isIdent(CSSName.DISPLAY, IdentValue.TABLE_FOOTER_GROUP)) {
+                    child = table.tfoot;
+                }
+            }
+            
+            
             if (child == null) {
                 child = new GenericStructualElement();
             }
@@ -473,6 +625,16 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             child.page = _page;
             child.box = box;
         
+            if (child instanceof TableCellStructualElement &&
+                box instanceof TableCellBox) {
+                
+                TableCellBox cell = (TableCellBox) box;
+
+                ((TableCellStructualElement) child).colspan = cell.getStyle().getColSpan();
+                ((TableCellStructualElement) child).rowspan = cell.getStyle().getRowSpan();
+            }
+            
+            
             return child;
     }
     
@@ -485,7 +647,13 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
 
     private void ensureParent(Box box, AbstractTreeItem child) {
         if (child.parent == null) {
-            if (box.getParent() != null) {
+            if (child instanceof TableHeadStructualElement ||
+                child instanceof TableFootStructualElement) {
+                child.parent = (TableStructualElement) box.getParent().getAccessibilityObject();
+            } else if (child instanceof TableBodyStructualElement) {
+                child.parent = (TableStructualElement) box.getParent().getAccessibilityObject();
+                ((TableStructualElement) child.parent).tbodies.add((TableBodyStructualElement) child);
+            } else if (box.getParent() != null) {
                 AbstractStructualElement parent = (AbstractStructualElement) box.getParent().getAccessibilityObject();
                 parent.addChild(child);
                 child.parent = parent;
