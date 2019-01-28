@@ -846,14 +846,17 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     public void finish(RenderingContext c, Box root) {
-        _bmManager.loadBookmarks();
-        _bmManager.writeOutline(c, root);
         processControls();
         _linkManager.processLinks();
         
         if (_pdfUa != null) {
             _pdfUa.finishPdfUa();
         }
+
+        // Bookmarks must come after PDF/UA structual tree creation
+        // because bookamrks link to structual elements in the tree.
+        _bmManager.loadBookmarks();
+        _bmManager.writeOutline(c, root);
     }
     
     @Override

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitHeightDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
@@ -68,9 +69,10 @@ public class PdfBoxBookmarkManager {
     private void writeBookmark(RenderingContext c, Box root, PDOutlineNode parent, Bookmark bookmark) {
         String href = bookmark.getHRef();
         PDPageXYZDestination target = null;
-
+        Box box = null;
+        
         if (href.length() > 0 && href.charAt(0) == '#') {
-            Box box = _sharedContext.getBoxById(href.substring(1));
+            box = _sharedContext.getBoxById(href.substring(1));
 
             if (box != null) {
                 target = createBoxDestination(c, _writer, _od, _dotsPerPoint, root, box);
@@ -84,6 +86,12 @@ public class PdfBoxBookmarkManager {
         PDOutlineItem outline = new PDOutlineItem();
         outline.setDestination(target == null ? _defaultDestination : target);
         outline.setTitle(bookmark.getName());
+        
+        PDStructureElement se = PdfBoxAccessibilityHelper.getStructualElementForBox(box);
+        if (se != null) {
+            outline.setStructureElement(se);
+        }
+        
         parent.addLast(outline);
         writeBookmarks(c, root, outline, bookmark.getChildren());
     }

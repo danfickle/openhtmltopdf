@@ -267,6 +267,20 @@ public class PdfBoxAccessibilityHelper {
     private static class FigureContentItem extends GenericContentItem {
     }
     
+    /**
+     * Given a box, gets its structual element.
+     */
+    public static PDStructureElement getStructualElementForBox(Box targetBox) {
+        if (targetBox != null &&
+            targetBox.getAccessibilityObject() != null &&
+            targetBox.getAccessibilityObject() instanceof AbstractStructualElement) {
+            
+            return ((AbstractStructualElement) targetBox.getAccessibilityObject()).elem;
+        }
+        
+        return null;
+    }
+    
     public void finishPdfUa() {
         PDStructureTreeRoot root = _od.getWriter().getDocumentCatalog().getStructureTreeRoot();
         if (root == null) {
@@ -524,8 +538,11 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             // which contains other structual elements or content items (text).
             GenericStructualElement child = (GenericStructualElement) item;
             
-            if (child.children.isEmpty()) {
+            if (child.children.isEmpty() &&
+                (child.box.getElement() == null || !child.box.getElement().hasAttribute("id"))) {
                 // There is no point in outputting empty structual elements.
+                // Exception is elements with an id which may be there to
+                // use as a link or bookmark destination.
                 return;
             }
             
