@@ -4,6 +4,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -18,11 +19,14 @@ import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDAttributeObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkedContentReference;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDObjectReference;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.Revisions;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.w3c.dom.Document;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -38,7 +42,9 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxAccessibilityHelper {
-    private final List<List<GenericContentItem>> _pageContentItems = new ArrayList<>();
+    // This maps from page to a list of content items.
+    private final Map<PDPage, List<GenericContentItem>> _pageContentItems = new LinkedHashMap<>();
+    private final Map<PDPage, List<AnnotationWithStructureParent>> _pageAnnotations = new HashMap<>();
     private final PdfBoxFastOutputDevice _od;
     private final Box _rootBox;
     private final Document _doc;
@@ -47,6 +53,9 @@ public class PdfBoxAccessibilityHelper {
     private static final Map<String, Supplier<AbstractStructualElement>> _tagSuppliers;
     
     private int _nextMcid;
+    
+    // These change with every page.
+    private List<GenericContentItem> _contentItems;
     private PdfContentStreamAdapter _cs;
     private RenderingContext _ctx;
     private PDPage _page;
@@ -70,6 +79,8 @@ public class PdfBoxAccessibilityHelper {
         suppliers.put("tr", TableRowStructualElement::new);
         suppliers.put("td", TableCellStructualElement::new);
         suppliers.put("th", TableHeaderStructualElement::new);
+        
+        suppliers.put("a", AnchorStuctualElement::new);
         
         return suppliers;
     }
@@ -113,6 +124,15 @@ public class PdfBoxAccessibilityHelper {
         @Override
         void addChild(AbstractTreeItem child) {
             this.children.add(child);
+        }
+    }
+    
+    private static class AnchorStuctualElement extends GenericStructualElement {
+        String titleText;
+
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.LINK;
         }
     }
     
@@ -315,30 +335,39 @@ public class PdfBoxAccessibilityHelper {
             
             _od.getWriter().getDocumentCatalog().setStructureTreeRoot(root);
         }
-        
+    }
+    
+    public void finishNumberTree() {
         COSArray numTree = new COSArray();
+        int i = 0;
         
-        for (int i = 0; i < _pageContentItems.size(); i++) {
-            PDPage page = _od.getWriter().getPage(i);
-            List<GenericContentItem> pageItems = _pageContentItems.get(i);
-            
+        for (Map.Entry<PDPage, List<GenericContentItem>> entry : _pageContentItems.entrySet()) {
+            List<GenericContentItem> pageItems = entry.getValue();
+            List<AnnotationWithStructureParent> pageAnnotations = _pageAnnotations.get(entry.getKey());
+
             COSArray mcidParentReferences = new COSArray();
-            for (GenericContentItem item : pageItems) {
-System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + ", mcid == " + item.mcid);
-                mcidParentReferences.add(item.parentElem);
-            }
+            pageItems.forEach(itm -> mcidParentReferences.add(itm.parentElem));
         
             numTree.add(COSInteger.get(i));
             numTree.add(mcidParentReferences);
             
-            page.getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(i));
+            entry.getKey().getCOSObject().setItem(COSName.STRUCT_PARENTS, COSInteger.get(i));
+            entry.getKey().getCOSObject().setItem(COSName.getPDFName("Tabs"), COSName.S);
+            i++;
+            
+            for (AnnotationWithStructureParent annot : pageAnnotations) {
+                numTree.add(COSInteger.get(i));
+                numTree.add(annot.structureParent);
+                annot.annotation.setStructParent(i);
+                i++;
+            }
         }
         
         COSDictionary dict = new COSDictionary();
         dict.setItem(COSName.NUMS, numTree);
     
         PDNumberTreeNode numberTreeNode = new PDNumberTreeNode(dict, dict.getClass());
-        _od.getWriter().getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(_pageContentItems.size());
+        _od.getWriter().getDocumentCatalog().getStructureTreeRoot().setParentTreeNextKey(i);
         _od.getWriter().getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
     }
 
@@ -441,6 +470,19 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
             child.parentElem.appendKid(child.elem);
             
             finishTreeItem(child.content, child);
+        } else if (item instanceof AnchorStuctualElement) {
+            AnchorStuctualElement child = (AnchorStuctualElement) item;
+
+            createPdfStrucureElement(parent, child);
+            
+            String alternate = child.titleText;
+            if (alternate.isEmpty()) {
+                XRLog.general("PDF/UA - No title text provided for link.");
+            }
+            child.elem.setAlternateDescription(alternate);
+            
+            finishTreeItems(child.children, child);
+            
         } else if (item instanceof ListStructualElement) {
             ListStructualElement child = (ListStructualElement) item;
             
@@ -649,8 +691,9 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
 
                 ((TableCellStructualElement) child).colspan = cell.getStyle().getColSpan();
                 ((TableCellStructualElement) child).rowspan = cell.getStyle().getRowSpan();
+            } else if (child instanceof AnchorStuctualElement) {
+                ((AnchorStuctualElement) child).titleText = box.getElement() != null ? box.getElement().getAttribute("title") : "";
             }
-            
             
             return child;
     }
@@ -685,13 +728,18 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
         GenericContentItem current = new GenericContentItem();
         
         ensureAncestorTree(current, box.getParent());
-        ensureParent(box, current);
+        //ensureParent(box, current);
 
+        AbstractStructualElement parent = (AbstractStructualElement) box.getAccessibilityObject();
+        parent.addChild(current);
+        current.parent = parent;
+        
+        
         current.mcid = _nextMcid;
         current.dict = createMarkedContentDictionary();
         current.page = _page;
         
-        _pageContentItems.get(_pageContentItems.size() - 1).add(current);
+        _contentItems.add(current);
 
         return current;
     }
@@ -707,7 +755,7 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
         li.label.addChild(current);
         current.parent = li.label;
         
-        _pageContentItems.get(_pageContentItems.size() - 1).add(current);
+        _contentItems.add(current);
 
         return current;
     }
@@ -734,7 +782,7 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
 
         parent.content = current;
         
-        _pageContentItems.get(_pageContentItems.size() - 1).add(current);
+        _contentItems.add(current);
         
         return current;
     }
@@ -796,16 +844,11 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
                 return FALSE_TOKEN;
             }
             case INLINE: {
-                // Only create a structual element holder for this element if it has non text child nodes.
-                if (box.getChildCount() > 0 ||
-                    (box instanceof InlineLayoutBox && !((InlineLayoutBox) box).isAllTextItems(_ctx))) {
-                    
                     AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
                     if (struct == null) {
                         struct = createStructureItem(type, box);
                         setupStructureElement(struct, box);
                     }
-                }
                 return FALSE_TOKEN;
             }
             case BACKGROUND: {
@@ -887,10 +930,35 @@ System.out.println("%%%%%%%item = " + item + ", parent = " + item.parentElem + "
         this._page = page;
         this._pageHeight = pageHeight;
         this._transform = transform;
-        this._pageContentItems.add(new ArrayList<>());
+        this._contentItems = new ArrayList<>();
+        this._pageContentItems.put(page, this._contentItems);
+        this._pageAnnotations.put(page, new ArrayList<>());
     }
     
     public void endPage() {
+        
+    }
+    
+    private static class AnnotationWithStructureParent {
+        PDStructureElement structureParent;
+        PDAnnotation annotation;
+    }
+
+    public void addLink(Box anchor, Box target, PDAnnotationLink annotation, PDPage page) {
+        PDStructureElement struct = getStructualElementForBox(anchor);
+        if (struct != null) {
+            // We have to append the link annotationobject reference as a kid of its associated structure element.
+            PDObjectReference ref = new PDObjectReference();
+            ref.setReferencedObject(annotation);
+            struct.appendKid(ref);  
+            
+            // We also need to save the pair so we can add it to the number tree for reverse lookup.
+            AnnotationWithStructureParent annotStructParentPair = new AnnotationWithStructureParent();
+            annotStructParentPair.annotation = annotation;
+            annotStructParentPair.structureParent = struct;
+            
+            _pageAnnotations.get(page).add(annotStructParentPair);
+        }
         
     }
 }

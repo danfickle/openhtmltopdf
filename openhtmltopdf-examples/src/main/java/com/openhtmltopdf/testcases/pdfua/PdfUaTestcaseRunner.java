@@ -49,5 +49,6 @@ public class PdfUaTestcaseRunner {
         run("lists");
         run("tables");
         run("bookmarks");
+        run("links");
     }
 }

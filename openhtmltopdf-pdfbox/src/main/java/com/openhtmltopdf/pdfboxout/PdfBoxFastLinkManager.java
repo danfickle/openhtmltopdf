@@ -14,6 +14,8 @@ import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDObjectReference;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
@@ -40,6 +42,7 @@ public class PdfBoxFastLinkManager {
 	private final Box _root;
 	private final PdfBoxFastOutputDevice _od;
 	private final List<LinkDetails> _links;
+        private PdfBoxAccessibilityHelper _pdfUa;
 
 	public PdfBoxFastLinkManager(SharedContext ctx, float dotsPerPoint, Box root, PdfBoxFastOutputDevice od) {
 		this._sharedContext = ctx;
@@ -51,6 +54,11 @@ public class PdfBoxFastLinkManager {
 	}
 
 	private Rectangle2D calcTotalLinkArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform) {
+	    if (_pdfUa != null) {
+	        // For PDF/UA we need one link annotation per box.
+	        return createTargetArea(c, box, pageHeight, transform, _root, _od);
+	    }
+	    
 		Box current = box;
 		while (true) {
 			Box prev = current.getPreviousSibling();
@@ -220,7 +228,7 @@ public class PdfBoxFastLinkManager {
 				if (!placeAnnotation(transform, linkShape, targetArea, annot))
 					return;
 
-				addLinkToPage(page, annot);
+				addLinkToPage(page, annot, box, target);
 			} else {
 			    XRLog.general(Level.WARNING, "Could not find valid target for link. Link href = " + uri);
 			}
@@ -237,7 +245,7 @@ public class PdfBoxFastLinkManager {
 			if (!placeAnnotation(transform, linkShape, targetArea, annot))
 				return;
 
-			addLinkToPage(page, annot);
+			addLinkToPage(page, annot, box, null);
 		}
 	}
 
@@ -323,7 +331,7 @@ public class PdfBoxFastLinkManager {
 		return ret;
 	}
 
-	private void addLinkToPage(PDPage page, PDAnnotationLink annot) {
+	private void addLinkToPage(PDPage page, PDAnnotationLink annot, Box anchor, Box target) {
 		PDBorderStyleDictionary styleDict = new PDBorderStyleDictionary();
 		styleDict.setWidth(0);
 		styleDict.setStyle(PDBorderStyleDictionary.STYLE_SOLID);
@@ -338,6 +346,10 @@ public class PdfBoxFastLinkManager {
 			}
 
 			annots.add(annot);
+			
+			if (_pdfUa != null) {
+			    _pdfUa.addLink(anchor, target, annot, page);
+			}
 		} catch (IOException e) {
 			throw new PdfContentStreamAdapter.PdfException("processLink", e);
 		}
@@ -396,7 +408,8 @@ public class PdfBoxFastLinkManager {
 	    }
 	}
 
-	public void processLinks() {
+	public void processLinks(PdfBoxAccessibilityHelper pdfUa) {
+	    this._pdfUa = pdfUa;
 		for (LinkDetails link : _links) {
 			processLink(link.c, link.box, link.page, link.pageHeight, link.transform);
 		}
