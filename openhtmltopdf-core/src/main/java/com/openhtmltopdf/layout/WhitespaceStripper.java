@@ -52,15 +52,13 @@ public class WhitespaceStripper {
      *
      * @param inlineContent the inline content to strip the whitespaces on
      */
-    public static void stripInlineContent(List inlineContent) {
+    public static void stripInlineContent(List<Styleable> inlineContent) {
         boolean collapse = false;
         boolean allWhitespace = true;
 
-        for (Iterator i = inlineContent.iterator(); i.hasNext();) {
-            Styleable node = (Styleable)i.next();
-
+        for (Styleable node : inlineContent) {
             if (node.getStyle().isInline()) {
-                InlineBox iB = (InlineBox)node;
+                InlineBox iB = (InlineBox) node;
                 boolean collapseNext = stripWhitespace(iB, collapse);
                 if (! iB.isRemovableWhitespace()) {
                     allWhitespace = false;
@@ -85,12 +83,11 @@ public class WhitespaceStripper {
         return style.isFloated() || style.isAbsolute() || style.isFixed() || style.isRunning();
     }
 
-    private static void stripTextContent(List stripped) {
+    private static void stripTextContent(List<Styleable> stripped) {
         boolean onlyAnonymous = true;
-        for (Iterator i = stripped.iterator(); i.hasNext(); ) {
-            Styleable node = (Styleable)i.next();
+        for (Styleable node : stripped) {
             if (node.getStyle().isInline()) {
-                InlineBox iB = (InlineBox)node;
+                InlineBox iB = (InlineBox) node;
                 if (iB.getElement() != null) {
                     onlyAnonymous = false;
                 }
@@ -100,8 +97,8 @@ public class WhitespaceStripper {
         }
         
         if (onlyAnonymous) {
-            for (Iterator i = stripped.iterator(); i.hasNext(); ) {
-                Styleable node = (Styleable)i.next();
+            for (Iterator<Styleable> i = stripped.iterator(); i.hasNext(); ) {
+                Styleable node = i.next();
                 if (node.getStyle().isInline()) {
                     i.remove();
                 }

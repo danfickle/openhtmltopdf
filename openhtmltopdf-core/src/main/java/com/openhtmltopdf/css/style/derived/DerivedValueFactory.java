@@ -20,9 +20,6 @@
  */
 package com.openhtmltopdf.css.style.derived;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.CSSValue;
@@ -31,8 +28,6 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 
 public class DerivedValueFactory {
-    private static final Map CACHED_COLORS = new HashMap();
-    
     public static FSDerivedValue newDerivedValue(
             CalculatedStyle style, CSSName cssName, PropertyValue value) {
         if (value.getCssValueType() == CSSValue.CSS_INHERIT) {
@@ -52,14 +47,11 @@ public class DerivedValueFactory {
             case PropertyValue.VALUE_TYPE_NUMBER:
                 return new NumberValue(cssName, value);
             case PropertyValue.VALUE_TYPE_COLOR:
-                FSDerivedValue color = (FSDerivedValue)CACHED_COLORS.get(value.getCssText());
-                if (color == null) {
-                    color = new ColorValue(cssName, value);
-                    CACHED_COLORS.put(value.getCssText(), color);
-                }
-                return color;
+                return new ColorValue(cssName, value);
             case PropertyValue.VALUE_TYPE_LIST:
                 return new ListValue(cssName, value);
+            case PropertyValue.VALUE_TYPE_COUNTERS:
+                return new CountersValue(cssName, value);
             case PropertyValue.VALUE_TYPE_FUNCTION:
                 return new FunctionValue(cssName, value);
             default:

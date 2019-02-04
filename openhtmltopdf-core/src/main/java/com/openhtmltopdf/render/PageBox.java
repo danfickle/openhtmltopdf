@@ -493,9 +493,9 @@ public class PageBox {
                 PropertyDeclaration decl = (PropertyDeclaration)i.next();
                 if (decl.getCSSName() == CSSName.CONTENT) {
                     PropertyValue value = (PropertyValue)decl.getValue();
-                    List values = value.getValues();
+                    List<PropertyValue> values = value.getValues();
                     if (values.size() == 1) {
-                        PropertyValue funcVal = (PropertyValue)values.get(0);
+                        PropertyValue funcVal = values.get(0);
                         if (funcVal.getPropertyValueType() == PropertyValue.VALUE_TYPE_FUNCTION) {
                             FSFunction func = funcVal.getFunction();
                             if (BoxBuilder.isElementFunction(func)) {

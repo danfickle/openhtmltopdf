@@ -34,6 +34,7 @@ public class PropertyValue implements CSSPrimitiveValue {
     public static final short VALUE_TYPE_STRING = 5;
     public static final short VALUE_TYPE_LIST = 6;
     public static final short VALUE_TYPE_FUNCTION = 7;
+    public static final short VALUE_TYPE_COUNTERS = 8;
     
     private short _type;
     private short _cssValueType;
@@ -52,7 +53,8 @@ public class PropertyValue implements CSSPrimitiveValue {
     
     private Token _operator;
     
-    private List<?> _values;
+    private List<PropertyValue> _values;
+    private List<CounterData> _counters;
     private FSFunction _function;
 
     public PropertyValue(short type, float floatValue, String cssText) {
@@ -102,13 +104,22 @@ public class PropertyValue implements CSSPrimitiveValue {
         _identValue = ident;
     }
     
-    public PropertyValue(List<?> values) {
+    public PropertyValue(List<PropertyValue> values) {
         _type = CSSPrimitiveValue.CSS_UNKNOWN; // HACK
         _cssValueType = CSSValue.CSS_CUSTOM;
         _cssText = values.toString(); // HACK
         
         _values = values;
         _propertyValueType = VALUE_TYPE_LIST;
+    }
+    
+    public PropertyValue(List<CounterData> values, boolean unused) {
+        _type = CSSPrimitiveValue.CSS_UNKNOWN; // HACK
+        _cssValueType = CSSValue.CSS_CUSTOM;
+        _cssText = values.toString(); // HACK
+        
+        _counters = values;
+        _propertyValueType = VALUE_TYPE_COUNTERS;
     }
     
     public PropertyValue(FSFunction function) {
@@ -192,8 +203,12 @@ public class PropertyValue implements CSSPrimitiveValue {
         return _cssText;
     }
     
-    public List<Object> getValues() {
-        return new ArrayList<Object>(_values);
+    public List<PropertyValue> getValues() {
+        return new ArrayList<>(_values);
+    }
+    
+    public List<CounterData> getCounters() {
+        return new ArrayList<>(_counters);
     }
     
     public FSFunction getFunction() {

@@ -21,15 +21,15 @@
 package com.openhtmltopdf.css.style;
 
 import java.awt.Cursor;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
+import com.openhtmltopdf.css.parser.CounterData;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSFunction;
 import com.openhtmltopdf.css.parser.FSRGBColor;
@@ -37,6 +37,7 @@ import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
+import com.openhtmltopdf.css.style.derived.CountersValue;
 import com.openhtmltopdf.css.style.derived.DerivedValueFactory;
 import com.openhtmltopdf.css.style.derived.FunctionValue;
 import com.openhtmltopdf.css.style.derived.LengthValue;
@@ -323,14 +324,14 @@ public class CalculatedStyle {
             }
         } else {
             ListValue valueList = (ListValue)value;
-            List values = valueList.getValues();
-            boolean firstAuto = ((PropertyValue)values.get(0)).getIdentValue() == IdentValue.AUTO;
-            boolean secondAuto = ((PropertyValue)values.get(1)).getIdentValue() == IdentValue.AUTO;
+            List<PropertyValue> values = valueList.getValues();
+            boolean firstAuto = values.get(0).getIdentValue() == IdentValue.AUTO;
+            boolean secondAuto = values.get(1).getIdentValue() == IdentValue.AUTO;
 
             if (firstAuto && secondAuto) {
                 return new BackgroundSize(false, false, true);
             } else {
-                return new BackgroundSize((PropertyValue)values.get(0), (PropertyValue)values.get(1));
+                return new BackgroundSize(values.get(0), values.get(1));
             }
         }
 
@@ -339,29 +340,29 @@ public class CalculatedStyle {
 
     public BackgroundPosition getBackgroundPosition() {
         ListValue result = (ListValue) valueByName(CSSName.BACKGROUND_POSITION);
-        List values = result.getValues();
+        List<PropertyValue> values = result.getValues();
 
         return new BackgroundPosition(
-                (PropertyValue) values.get(0), (PropertyValue) values.get(1));
+                values.get(0), values.get(1));
     }
 
-    public List getCounterReset() {
+    public List<CounterData> getCounterReset() {
         FSDerivedValue value = valueByName(CSSName.COUNTER_RESET);
 
         if (value == IdentValue.NONE) {
             return null;
         } else {
-            return ((ListValue) value).getValues();
+            return ((CountersValue) value).getValues();
         }
     }
 
-    public List getCounterIncrement() {
+    public List<CounterData> getCounterIncrement() {
         FSDerivedValue value = valueByName(CSSName.COUNTER_INCREMENT);
 
         if (value == IdentValue.NONE) {
             return null;
         } else {
-            return ((ListValue) value).getValues();
+            return  ((CountersValue) value).getValues();
         }
     }
 
@@ -1218,18 +1219,15 @@ public class CalculatedStyle {
                 isIdent(CSSName.BACKGROUND_IMAGE, IdentValue.NONE));
     }
 
-    public List getTextDecorations() {
+    public List<IdentValue> getTextDecorations() {
         FSDerivedValue value = valueByName(CSSName.TEXT_DECORATION);
         if (value == IdentValue.NONE) {
             return null;
         } else {
-            List idents = ((ListValue) value).getValues();
-            List result = new ArrayList(idents.size());
-            for (Iterator i = idents.iterator(); i.hasNext();) {
-                result.add(DerivedValueFactory.newDerivedValue(
-                        this, CSSName.TEXT_DECORATION, (PropertyValue) i.next()));
-            }
-            return result;
+            List<PropertyValue> idents = ((ListValue) value).getValues();
+            return idents.stream()
+                    .map(val -> (IdentValue) DerivedValueFactory.newDerivedValue(this, CSSName.TEXT_DECORATION, val))
+                    .collect(Collectors.toList());
         }
     }
 

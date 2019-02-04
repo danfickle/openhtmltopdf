@@ -618,7 +618,7 @@ public abstract class Box implements Styleable, DisplayListItem {
             // directly wrapped by an inline relative layer (i.e. block boxes sandwiched
             // between anonymous block boxes)
             if (c.getLayer().isInline()) {
-                List content =
+                List<Box> content =
                     ((InlineLayoutBox)c.getLayer().getMaster()).getElementWithContent();
                 if (content.contains(this)) {
                     setContainingLayer(c.getLayer());
@@ -906,20 +906,6 @@ public abstract class Box implements Styleable, DisplayListItem {
         }
     }
 
-    public void clearSelection(List modified) {
-        for (int i = 0; i < getChildCount(); i++) {
-            Box child = getChild(i);
-            child.clearSelection(modified);
-        }
-    }
-
-    public void selectAll() {
-        for (int i = 0; i < getChildCount(); i++) {
-            Box child = getChild(i);
-            child.selectAll();
-        }
-    }
-
     public PaintingInfo calcPaintingInfo(CssContext c, boolean useCache) {
         PaintingInfo cached = getPaintingInfo();
         if (cached != null && useCache) {
@@ -1192,8 +1178,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public void collectText(RenderingContext c, StringBuilder buffer) {
-        for (Iterator i = getChildIterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        for (Box b : getChildren()) {
             b.collectText(c, buffer);
         }
     }
@@ -1203,10 +1188,11 @@ public abstract class Box implements Styleable, DisplayListItem {
             c.setPage(0, c.getRootLayer().getPages().get(0));
             c.getPage().exportLeadingText(c, writer);
         }
-        for (Iterator i = getChildIterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+
+        for (Box b : getChildren()) {
             b.exportText(c, writer);
         }
+        
         if (c.isPrint() && isRoot()) {
             exportPageBoxText(c, writer);
         }
@@ -1215,9 +1201,9 @@ public abstract class Box implements Styleable, DisplayListItem {
     private void exportPageBoxText(RenderingContext c, Writer writer) throws IOException {
         c.getPage().exportTrailingText(c, writer);
         if (c.getPage() != c.getRootLayer().getLastPage()) {
-            List pages = c.getRootLayer().getPages();
+            List<PageBox> pages = c.getRootLayer().getPages();
             do {
-                PageBox next = (PageBox)pages.get(c.getPageNo()+1);
+                PageBox next = pages.get(c.getPageNo()+1);
                 c.setPage(next.getPageNo(), next);
                 next.exportLeadingText(c, writer);
                 next.exportTrailingText(c, writer);
@@ -1227,13 +1213,13 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     protected void exportPageBoxText(RenderingContext c, Writer writer, int yPos) throws IOException {
         c.getPage().exportTrailingText(c, writer);
-        List pages = c.getRootLayer().getPages();
-        PageBox next = (PageBox)pages.get(c.getPageNo()+1);
+        List<PageBox> pages = c.getRootLayer().getPages();
+        PageBox next = pages.get(c.getPageNo()+1);
         c.setPage(next.getPageNo(), next);
         while (next.getBottom() < yPos) {
             next.exportLeadingText(c, writer);
             next.exportTrailingText(c, writer);
-            next = (PageBox)pages.get(c.getPageNo()+1);
+            next = pages.get(c.getPageNo()+1);
             c.setPage(next.getPageNo(), next);
         }
         next.exportLeadingText(c, writer);
@@ -1255,8 +1241,7 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     public void analyzePageBreaks(LayoutContext c, ContentLimitContainer container) {
         container.updateTop(c, getAbsY());
-        for (Iterator i = getChildIterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        for (Box b : getChildren()) {
             b.analyzePageBreaks(c, container);
         }
         container.updateBottom(c, getAbsY() + getHeight());

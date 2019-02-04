@@ -20,7 +20,6 @@
  */
 package com.openhtmltopdf.render;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -38,20 +37,23 @@ import com.openhtmltopdf.layout.Styleable;
  * true.
  */
 public class AnonymousBlockBox extends BlockBox {
-    private List _openInlineBoxes;
+    private List<InlineBox> _openInlineBoxes;
     
     public AnonymousBlockBox(Element element) {
         setElement(element);
     }
 
+    @Override
     public void layout(LayoutContext c) {
         layoutInlineChildren(c, 0, calcInitialBreakAtLine(c), true);
     }
 
+    @Override
     public int getContentWidth() {
         return getContainingBlock().getContentWidth();
     }
     
+    @Override
     public Box find(CssContext cssCtx, int absX, int absY, boolean findAnonymous) {
         Box result = super.find(cssCtx, absX, absY, findAnonymous);
         if (! findAnonymous && result == this) {
@@ -61,29 +63,26 @@ public class AnonymousBlockBox extends BlockBox {
         }
     }
 
-    public List getOpenInlineBoxes() {
+    public List<InlineBox> getOpenInlineBoxes() {
         return _openInlineBoxes;
     }
 
-    public void setOpenInlineBoxes(List openInlineBoxes) {
+    public void setOpenInlineBoxes(List<InlineBox> openInlineBoxes) {
         _openInlineBoxes = openInlineBoxes;
     }
     
+    private static boolean isOutOfFlow(Styleable s) {
+        CalculatedStyle style = s.getStyle();
+        return (style.isFloated() || style.isAbsolute() || style.isFixed() || style.isRunning());
+    }
+    
+    @Override
     public boolean isSkipWhenCollapsingMargins() {
-        // An anonymous block will already have its children provided to it
-        for (Iterator i = getInlineContent().iterator(); i.hasNext(); ) {
-            Styleable styleable = (Styleable)i.next();
-            CalculatedStyle style = styleable.getStyle();
-            if (! (style.isFloated() || style.isAbsolute() || style.isFixed() || style.isRunning())) {
-                return false;
-            }
-        }
-        return true;
+        return getInlineContent().stream().allMatch(AnonymousBlockBox::isOutOfFlow);
     }
     
     public void provideSiblingMarginToFloats(int margin) {
-        for (Iterator i = getInlineContent().iterator(); i.hasNext(); ) {
-            Styleable styleable = (Styleable)i.next();
+        for (Styleable styleable : getInlineContent()) {
             if (styleable instanceof BlockBox) {
                 BlockBox b = (BlockBox)styleable;
                 if (b.isFloated()) {
@@ -93,14 +92,17 @@ public class AnonymousBlockBox extends BlockBox {
         }
     }
     
+    @Override
     public boolean isMayCollapseMarginsWithChildren() {
         return false;
     }
     
+    @Override
     public void styleText(LayoutContext c) {
         styleText(c, getParent().getStyle());
     } 
     
+    @Override
     public BlockBox copyOf() {
         throw new IllegalArgumentException("cannot be copied");
     }

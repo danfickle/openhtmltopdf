@@ -22,7 +22,6 @@ package com.openhtmltopdf.layout;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -338,7 +337,7 @@ public class LayoutContext implements CssContext {
     }
 
     public UserAgentCallback getUac() {
-        return _sharedContext.getUac();
+        return _sharedContext.getUserAgentCallback();
     }
 
     public boolean isPrint() {
@@ -448,18 +447,18 @@ public class LayoutContext implements CssContext {
             _parent = _counterContextMap.get(style.getParent());
             if (_parent == null) _parent = new CounterContext();//top-level context, above root element
             //first the explicitly named counters
-            List resets = style.getCounterReset();
-            if (resets != null) for (Iterator i = resets.iterator(); i.hasNext();) {
-                CounterData cd = (CounterData) i.next();
-                _parent.resetCounter(cd);
+            List<CounterData> resets = style.getCounterReset();
+            if (resets != null) {
+                resets.forEach(_parent::resetCounter);
             }
 
-            List increments = style.getCounterIncrement();
-            if (increments != null) for (Iterator i = increments.iterator(); i.hasNext();) {
-                CounterData cd = (CounterData) i.next();
-                if (!_parent.incrementCounter(cd)) {
-                    _parent.resetCounter(new CounterData(cd.getName(), 0));
-                    _parent.incrementCounter(cd);
+            List<CounterData> increments = style.getCounterIncrement();
+            if (increments != null) {
+                for (CounterData cd : increments) {
+                    if (!_parent.incrementCounter(cd)) {
+                        _parent.resetCounter(new CounterData(cd.getName(), 0));
+                        _parent.incrementCounter(cd);
+                    }
                 }
             }
 
@@ -522,27 +521,27 @@ public class LayoutContext implements CssContext {
         }
 
         private Integer getCounter(String name) {
-            Integer value = (Integer) _counters.get(name);
+            Integer value = _counters.get(name);
             if (value != null) return value;
             if (_parent == null) return null;
             return _parent.getCounter(name);
         }
 
-        public List getCurrentCounterValues(String name) {
+        public List<Integer> getCurrentCounterValues(String name) {
             //only the counters of the parent are in scope
             //_parent is never null for a publicly accessible CounterContext
-            List values = new ArrayList();
+            List<Integer> values = new ArrayList<>();
             _parent.getCounterValues(name, values);
             if (values.size() == 0) {
                 _parent.resetCounter(new CounterData(name, 0));
-                values.add(new Integer(0));
+                values.add(Integer.valueOf(0));
             }
             return values;
         }
 
-        private void getCounterValues(String name, List values) {
+        private void getCounterValues(String name, List<Integer> values) {
             if (_parent != null) _parent.getCounterValues(name, values);
-            Integer value = (Integer) _counters.get(name);
+            Integer value = _counters.get(name);
             if (value != null) values.add(value);
         }
     }

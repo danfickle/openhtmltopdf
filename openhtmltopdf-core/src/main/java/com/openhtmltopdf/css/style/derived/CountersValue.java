@@ -20,21 +20,22 @@
 package com.openhtmltopdf.css.style.derived;
 
 import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.parser.CounterData;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.DerivedValue;
 
 import java.util.List;
 
-public class ListValue extends DerivedValue {
-    private final List<PropertyValue> _values;
+public class CountersValue extends DerivedValue {
+    private final List<CounterData> _values;
     
-    public ListValue(CSSName name, PropertyValue value) {
+    public CountersValue(CSSName name, PropertyValue value) {
         super(name, value.getPrimitiveType(), value.getCssText(), value.getCssText());
         
-        _values = value.getValues();
+        _values = value.getCounters();
     }
     
-    public List<PropertyValue> getValues() {
+    public List<CounterData> getValues() {
         return _values;
     }
     
@@ -47,7 +48,7 @@ public class ListValue extends DerivedValue {
         String[] arr = new String[_values.size()];
         int i = 0;
 
-        for (PropertyValue _value : _values) {
+        for (CounterData _value : _values) {
             arr[i++] = _value.toString();
         }
         
