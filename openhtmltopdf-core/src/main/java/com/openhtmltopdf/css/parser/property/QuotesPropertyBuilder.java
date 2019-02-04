@@ -53,9 +53,8 @@ public class QuotesPropertyBuilder extends AbstractPropertyBuilder {
                     "Mismatched quotes " + values, -1);
         }
         
-        List resultValues = new ArrayList();
-        for (Iterator i = values.iterator(); i.hasNext(); ) {
-            PropertyValue value = (PropertyValue)i.next();
+        List<PropertyValue> resultValues = new ArrayList<>();
+        for (PropertyValue value : (List<PropertyValue>) values) {
             
             if (value.getOperator() != null) {
                 throw new CSSParseException(
@@ -64,7 +63,7 @@ public class QuotesPropertyBuilder extends AbstractPropertyBuilder {
             
             short type = value.getPrimitiveType();
             if (type == CSSPrimitiveValue.CSS_STRING) {
-                resultValues.add(value.getStringValue());
+                resultValues.add(value);
             } else if (type == CSSPrimitiveValue.CSS_URI) {
                 throw new CSSParseException(
                         "URI is not allowed here", -1);
