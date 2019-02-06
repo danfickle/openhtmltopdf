@@ -8,6 +8,7 @@ public enum StructureType {
     FLOAT,
     BLOCK,
     INLINE,
+    INLINE_CHILD_BOX,
     LIST_MARKER,
     REPLACED;
 }

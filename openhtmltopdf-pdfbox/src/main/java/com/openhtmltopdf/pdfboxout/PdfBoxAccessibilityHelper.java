@@ -371,6 +371,20 @@ public class PdfBoxAccessibilityHelper {
         _od.getWriter().getDocumentCatalog().getStructureTreeRoot().setParentTree(numberTreeNode);
     }
 
+    private static String guessBoxTag(Box box) {
+        if (box instanceof BlockBox) {
+            BlockBox block = (BlockBox) box;
+            
+            if (block.isInline()) {
+                return StandardStructureTypes.SPAN;
+            } else {
+                return StandardStructureTypes.DIV;
+            }
+        } else {
+            return StandardStructureTypes.SPAN;
+        }
+    }
+    
     /**
      * Choose a tag for a {@link GenericStructualElement}.
      */
@@ -378,7 +392,9 @@ public class PdfBoxAccessibilityHelper {
         if (box != null) {
             if (box.getLayer() != null) {
                 return StandardStructureTypes.SECT;
-            } else if (box.getElement() != null) {
+            } else if (box.isAnonymous()) {
+                return guessBoxTag(box);
+            } if (box.getElement() != null) {
                 String htmlTag = box.getElement().getTagName();
                 
                 if (htmlTag.equals("p")) {
@@ -400,17 +416,7 @@ public class PdfBoxAccessibilityHelper {
                 }
             }
             
-            if (box instanceof BlockBox) {
-                BlockBox block = (BlockBox) box;
-                
-                if (block.isInline()) {
-                    return StandardStructureTypes.SPAN;
-                } else {
-                    return StandardStructureTypes.DIV;
-                }
-            } else {
-                return StandardStructureTypes.SPAN;
-            }
+            return guessBoxTag(box);
         }
         
         return StandardStructureTypes.SPAN;
@@ -849,6 +855,14 @@ public class PdfBoxAccessibilityHelper {
                         struct = createStructureItem(type, box);
                         setupStructureElement(struct, box);
                     }
+                return FALSE_TOKEN;
+            }
+            case INLINE_CHILD_BOX: {
+                AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
+                if (struct == null) {
+                    struct = createStructureItem(type, box);
+                    setupStructureElement(struct, box);
+                }
                 return FALSE_TOKEN;
             }
             case BACKGROUND: {
