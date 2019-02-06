@@ -594,9 +594,13 @@ public class PdfBoxAccessibilityHelper {
                 return;
             }
             
-            if (child.box instanceof LineBox &&
-                !child.box.hasNonTextContent(_ctx)) {
-                // We skip line boxes in the tree.
+            if (child.box instanceof LineBox ||
+                (child.box instanceof InlineLayoutBox &&
+                 child.children.size() == 1 &&
+                 child.box.getParent() instanceof LineBox)) {
+                // We skip (don't create structure element) line boxes in the tree.
+                // We also skip the common case of a intermediary InlineLayoutBox between the 
+                // LineBox and a single InlineText.
                 finishTreeItems(child.children, parent);
             } else {
                 createPdfStrucureElement(parent, child);
@@ -841,22 +845,8 @@ public class PdfBoxAccessibilityHelper {
             switch (type) {
             case LAYER:
             case FLOAT:
-            case BLOCK: {
-                AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
-                if (struct == null) {
-                    struct = createStructureItem(type, box);
-                    setupStructureElement(struct, box);
-                }
-                return FALSE_TOKEN;
-            }
-            case INLINE: {
-                    AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
-                    if (struct == null) {
-                        struct = createStructureItem(type, box);
-                        setupStructureElement(struct, box);
-                    }
-                return FALSE_TOKEN;
-            }
+            case BLOCK:
+            case INLINE:
             case INLINE_CHILD_BOX: {
                 AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
                 if (struct == null) {
