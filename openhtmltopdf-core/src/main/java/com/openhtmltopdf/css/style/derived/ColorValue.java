@@ -21,12 +21,14 @@
 package com.openhtmltopdf.css.style.derived;
 
 import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
+import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.DerivedValue;
 
 public class ColorValue extends DerivedValue {
-    private FSColor _color;
+    private final FSColor _color;
 
     public ColorValue(CSSName name, PropertyValue value) {
         super(name, value.getPrimitiveType(), value.getCssText(), value.getCssText());
@@ -37,8 +39,9 @@ public class ColorValue extends DerivedValue {
     /**
      * Returns the value as a Color, if it is a color.
      *
-     * @return The rGBColorValue value
+     * @return The color value - either {@link FSRGBColor} or {@link FSCMYKColor}
      */
+    @Override
     public FSColor asColor() {
         return _color;
     }   

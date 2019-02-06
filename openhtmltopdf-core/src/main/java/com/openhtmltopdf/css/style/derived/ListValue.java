@@ -22,6 +22,7 @@ package com.openhtmltopdf.css.style.derived;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.DerivedValue;
+import com.openhtmltopdf.util.Constants;
 
 import java.util.List;
 
@@ -41,16 +42,9 @@ public class ListValue extends DerivedValue {
     @Override
     public String[] asStringArray() {
         if (_values == null || _values.isEmpty()) {
-            return new String[0];
+            return Constants.EMPTY_STR_ARR;
         }
         
-        String[] arr = new String[_values.size()];
-        int i = 0;
-
-        for (PropertyValue _value : _values) {
-            arr[i++] = _value.toString();
-        }
-        
-        return arr;
+        return _values.stream().map(Object::toString).toArray(String[]::new);
     }
 }

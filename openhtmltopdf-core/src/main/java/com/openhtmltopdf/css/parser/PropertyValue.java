@@ -36,14 +36,14 @@ public class PropertyValue implements CSSPrimitiveValue {
     public static final short VALUE_TYPE_FUNCTION = 7;
     public static final short VALUE_TYPE_COUNTERS = 8;
     
-    private short _type;
-    private short _cssValueType;
+    private final short _type;
+    private final short _cssValueType;
     
     private String _stringValue;
     private float _floatValue;
     private String[] _stringArrayValue;
     
-    private String _cssText;
+    private final String _cssText;
     
     private FSColor _FSColor;
     
@@ -131,6 +131,7 @@ public class PropertyValue implements CSSPrimitiveValue {
         _propertyValueType = VALUE_TYPE_FUNCTION;
     }
 
+    @Override
     public float getFloatValue(short unitType) throws DOMException {
         return _floatValue;
     }
@@ -139,10 +140,12 @@ public class PropertyValue implements CSSPrimitiveValue {
         return _floatValue;
     }
 
+    @Override
     public short getPrimitiveType() {
         return _type;
     }
 
+    @Override
     public String getStringValue() throws DOMException {
         return _stringValue;
     }
@@ -155,10 +158,12 @@ public class PropertyValue implements CSSPrimitiveValue {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public String getCssText() {
         return _cssText;
     }
 
+    @Override
     public short getCssValueType() {
         return _cssValueType;
     }
