@@ -51,5 +51,6 @@ public class PdfUaTestcaseRunner {
         run("bookmarks");
         run("links");
         run("ordering");
+        run("all-in-one");
     }
 }
