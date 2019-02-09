@@ -22,7 +22,6 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkedCo
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDObjectReference;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.Revisions;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
@@ -240,6 +239,8 @@ public class PdfBoxAccessibilityHelper {
     }
     
     private static class TableHeaderStructualElement extends GenericStructualElement {
+        String scope;
+        
         @Override
         String getPdfTag() {
             return StandardStructureTypes.TH;
@@ -468,10 +469,7 @@ public class PdfBoxAccessibilityHelper {
             COSDictionary attributeDict = new COSDictionary();
             attributeDict.setItem(COSName.BBOX, child.boundingBox);
             attributeDict.setItem(COSName.O, COSName.getPDFName("Layout"));
-            
-            Revisions<PDAttributeObject> attributes = new Revisions<>();
-            attributes.addObject(PDAttributeObject.create(attributeDict), 0);
-            child.elem.setAttributes(attributes);
+            child.elem.addAttribute(PDAttributeObject.create(attributeDict));
 
             child.parentElem.appendKid(child.elem);
             
@@ -550,34 +548,34 @@ public class PdfBoxAccessibilityHelper {
         } else if (item instanceof TableHeaderStructualElement) {
             TableHeaderStructualElement child = (TableHeaderStructualElement) item;
             createPdfStrucureElement(parent, child);
+            
+            COSDictionary scopeDict = new COSDictionary();
+            scopeDict.setItem(COSName.O, COSName.getPDFName("Table"));
+            
+            if ("row".equals(child.scope)) {
+                scopeDict.setItem(COSName.getPDFName("Scope"), COSName.getPDFName("Row"));
+            } else {
+                scopeDict.setItem(COSName.getPDFName("Scope"), COSName.getPDFName("Column"));
+            }
+            child.elem.addAttribute(PDAttributeObject.create(scopeDict));
+            
             finishTreeItems(child.children, child);
         } else if (item instanceof TableCellStructualElement) {
             TableCellStructualElement child = (TableCellStructualElement) item;
             createPdfStrucureElement(parent, child);
             
-            COSDictionary colspan = null;
-            COSDictionary rowspan = null;
-            
             if (child.colspan != 1) {
-                colspan = new COSDictionary();
+                COSDictionary colspan = new COSDictionary();
                 colspan.setInt(COSName.getPDFName("ColSpan"), child.colspan);
                 colspan.setItem(COSName.O, COSName.getPDFName("Table"));
-            }
-            if (child.rowspan != 1) {
-                rowspan = new COSDictionary();
-                rowspan.setInt(COSName.getPDFName("RowSpan"), child.rowspan);
-                rowspan.setItem(COSName.O, COSName.getPDFName("Table"));
+                child.elem.addAttribute(PDAttributeObject.create(colspan));
             }
             
-            if (colspan != null || rowspan != null) {
-                Revisions<PDAttributeObject> attributes = new Revisions<>();
-                if (colspan != null) {
-                    attributes.addObject(PDAttributeObject.create(colspan), 0);
-                }
-                if (rowspan != null) {
-                    attributes.addObject(PDAttributeObject.create(rowspan), 0);
-                }
-                child.elem.setAttributes(attributes);
+            if (child.rowspan != 1) {
+                COSDictionary rowspan = new COSDictionary();
+                rowspan.setInt(COSName.getPDFName("RowSpan"), child.rowspan);
+                rowspan.setItem(COSName.O, COSName.getPDFName("Table"));
+                child.elem.addAttribute(PDAttributeObject.create(rowspan));
             }
             
             finishTreeItems(child.children, child);
@@ -701,6 +699,8 @@ public class PdfBoxAccessibilityHelper {
 
                 ((TableCellStructualElement) child).colspan = cell.getStyle().getColSpan();
                 ((TableCellStructualElement) child).rowspan = cell.getStyle().getRowSpan();
+            } else if (child instanceof TableHeaderStructualElement) {
+                ((TableHeaderStructualElement) child).scope = box.getElement() != null ? box.getElement().getAttribute("scope") : "";
             } else if (child instanceof AnchorStuctualElement) {
                 ((AnchorStuctualElement) child).titleText = box.getElement() != null ? box.getElement().getAttribute("title") : "";
             }
