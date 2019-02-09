@@ -83,14 +83,14 @@ public class InlineBox implements Styleable {
     private byte _textDirection;
     
     /**
-     * @param direction either LTR or RTL from BidiSplitter interface.
+     * @param direction either LTR or RTL from {@link BidiSplitter} interface.
      */
     public void setTextDirection(byte direction) {
     	this._textDirection = direction;
     }
     
     /**
-     * @return either LTR or RTL from BidiSplitter interface.
+     * @return either LTR or RTL from {@link BidiSplitter} interface.
      */
     public byte getTextDirection() {
     	return this._textDirection;
@@ -134,18 +134,22 @@ public class InlineBox implements Styleable {
         _startsHere = startsHere;
     }
 
+    @Override
     public CalculatedStyle getStyle() {
         return _style;
     }
 
+    @Override
     public void setStyle(CalculatedStyle style) {
         _style = style;
     }
 
+    @Override
     public Element getElement() {
         return _element;
     }
 
+    @Override
     public void setElement(Element element) {
         _element = element;
     }
@@ -397,6 +401,7 @@ public class InlineBox implements Styleable {
         return _firstLineWidth;
     }
 
+    @Override
     public String getPseudoElementOrClass() {
         return _pseudoElementOrClass;
     }
@@ -405,6 +410,7 @@ public class InlineBox implements Styleable {
         _pseudoElementOrClass = pseudoElementOrClass;
     }
 
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append("InlineBox: ");

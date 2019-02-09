@@ -31,7 +31,7 @@ public class PageRule implements RulesetContainer {
     private Ruleset _ruleset;
     private int _origin;
     
-    private Map<MarginBoxName,List<PropertyDeclaration>> _marginBoxes = new HashMap<MarginBoxName,List<PropertyDeclaration>>();
+    private final Map<MarginBoxName,List<PropertyDeclaration>> _marginBoxes = new HashMap<MarginBoxName,List<PropertyDeclaration>>();
     
     private int _pos;
     
@@ -64,6 +64,7 @@ public class PageRule implements RulesetContainer {
         _ruleset = ruleset;
     }
     
+    @Override
     public void addContent(Ruleset ruleset) {
         if (_ruleset != null) {
             throw new IllegalStateException("Ruleset has already been set");
@@ -71,6 +72,7 @@ public class PageRule implements RulesetContainer {
         _ruleset = ruleset;
     }
 
+    @Override
     public int getOrigin() {
         return _origin;
     }

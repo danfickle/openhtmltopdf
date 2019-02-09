@@ -51,6 +51,8 @@ import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
+
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
@@ -59,10 +61,12 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.encryption.PDEncryption;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.AdobePDFSchema;
 import org.apache.xmpbox.schema.PDFAIdentificationSchema;
 import org.apache.xmpbox.schema.XMPBasicSchema;
+import org.apache.xmpbox.schema.XMPSchema;
 import org.apache.xmpbox.type.BadFieldValueException;
 import org.apache.xmpbox.xml.XmpSerializer;
 import org.w3c.dom.Document;
@@ -107,6 +111,7 @@ public class PdfBoxRenderer implements Closeable {
     private float _pdfVersion;
 
     private PdfAConformance _pdfAConformance;
+    private boolean _pdfUaConformance;
 
     private byte[] _colorProfile;
 
@@ -139,12 +144,13 @@ public class PdfBoxRenderer implements Closeable {
         _mathmlImpl = state._mathmlImpl;
 
         _pdfAConformance = state._pdfAConformance;
+        _pdfUaConformance = state._pdfUaConform;
         _colorProfile = state._colorProfile;
 
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = state._testMode;
         _useFastMode = state._useFastRenderer;
-        _outputDevice = state._useFastRenderer ? new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode) : new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
+        _outputDevice = state._useFastRenderer ? new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode, state._pdfUaConform) : new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
         _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
         
@@ -167,7 +173,7 @@ public class PdfBoxRenderer implements Closeable {
         userAgent.setSharedContext(_sharedContext);
         _outputDevice.setSharedContext(_sharedContext);
 
-        PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, state._caches.get(CacheStore.PDF_FONT_METRICS), state._pdfAConformance);
+        PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, state._caches.get(CacheStore.PDF_FONT_METRICS), state._pdfAConformance, state._pdfUaConform);
         _sharedContext.setFontResolver(fontResolver);
 
         PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, state._svgImpl, state._objectDrawerFactory, state._mathmlImpl);
@@ -587,6 +593,12 @@ public class PdfBoxRenderer implements Closeable {
         firePreWrite(pageCount); // opportunity to adjust meta data
         setDidValues(doc); // set PDF header fields from meta data
         
+        if (_pdfUaConformance) {
+            addPdfUaXMPSchema(doc);
+        } else if (_pdfAConformance != PdfAConformance.NONE) {
+            addPdfASchema(doc, _pdfAConformance.getPart(), _pdfAConformance.getConformanceValue());
+        }
+        
         DisplayListCollector dlCollector = new DisplayListCollector(_root.getLayer().getPages());
         DisplayListContainer dlPages = dlCollector.collectRoot(c, _root.getLayer()); 
 
@@ -676,6 +688,63 @@ public class PdfBoxRenderer implements Closeable {
         }
 
         _outputDevice.finish(c, _root);
+    }
+
+    // Kindly provided by GurpusMaximus at:
+    // https://stackoverflow.com/questions/49682339/how-can-i-create-an-accessible-pdf-with-java-pdfbox-2-0-8-library-that-is-also-v
+    private void addPdfUaXMPSchema(PDDocument doc) {
+        try 
+        {
+            PDDocumentCatalog catalog = doc.getDocumentCatalog();
+            String lang = _doc.getDocumentElement().getAttribute("lang");
+            catalog.setLanguage(!lang.isEmpty() ? lang : "EN-US");
+            catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
+            catalog.getViewerPreferences().setDisplayDocTitle(true);
+            
+            PDMarkInfo markInfo = new PDMarkInfo();
+            markInfo.setMarked(true);
+            catalog.setMarkInfo(markInfo);
+            
+            PDDocumentInformation info = doc.getDocumentInformation();
+            XMPMetadata xmp = XMPMetadata.createXMPMetadata();
+            xmp.createAndAddDublinCoreSchema();
+            xmp.getDublinCoreSchema().setTitle(info.getTitle());
+            String metaDescription = _outputDevice.getMetadataByName("description");
+            xmp.getDublinCoreSchema().setDescription(metaDescription != null ? metaDescription : info.getTitle());
+            xmp.createAndAddPDFAExtensionSchemaWithDefaultNS();
+            xmp.getPDFExtensionSchema().addNamespace(
+                    "http://www.aiim.org/pdfa/ns/schema#", "pdfaSchema");
+            xmp.getPDFExtensionSchema().addNamespace(
+                    "http://www.aiim.org/pdfa/ns/property#", "pdfaProperty");
+            xmp.getPDFExtensionSchema().addNamespace(
+                    "http://www.aiim.org/pdfua/ns/id/", "pdfuaid");
+            XMPSchema uaSchema = new XMPSchema(XMPMetadata.createXMPMetadata(),
+                    "pdfaSchema", "pdfaSchema", "pdfaSchema");
+            uaSchema.setTextPropertyValue("schema",
+                    "PDF/UA Universal Accessibility Schema");
+            uaSchema.setTextPropertyValue("namespaceURI",
+                    "http://www.aiim.org/pdfua/ns/id/");
+            uaSchema.setTextPropertyValue("prefix", "pdfuaid");
+            XMPSchema uaProp = new XMPSchema(XMPMetadata.createXMPMetadata(),
+                    "pdfaProperty", "pdfaProperty", "pdfaProperty");
+            uaProp.setTextPropertyValue("name", "part");
+            uaProp.setTextPropertyValue("valueType", "Integer");
+            uaProp.setTextPropertyValue("category", "internal");
+            uaProp.setTextPropertyValue("description",
+                    "Indicates, which part of ISO 14289 standard is followed");
+            uaSchema.addUnqualifiedSequenceValue("property", uaProp);
+            xmp.getPDFExtensionSchema().addBagValue("schemas", uaSchema);
+            xmp.getPDFExtensionSchema().setPrefix("pdfuaid");
+            xmp.getPDFExtensionSchema().setTextPropertyValue("part", "1");
+            XmpSerializer serializer = new XmpSerializer();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            serializer.serialize(xmp, baos, true);
+            PDMetadata metadata = new PDMetadata(doc);
+            metadata.importXMPMetadata(baos.toByteArray());
+            doc.getDocumentCatalog().setMetadata(metadata);
+        } catch (IOException|TransformerException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void addPdfASchema(PDDocument document, int part, String conformance) {

@@ -1,0 +1,49 @@
+<html>
+<head>
+  <title>Simple PDF/UA List Testcase</title>
+  <meta name="description" content="A simple list example"/>
+  <style>
+  @page {
+    size: 200px 200px;
+    margin: 0;
+  }
+  body {
+    margin: 0;
+    width: 200px;
+  }
+  </style>
+</head>
+<body style="font-family: 'TestFont'; font-size: 14px;">
+  <h1>A simple list example</h1>
+  <h2>Unordered list</h2>
+  
+  <ul>
+    <li>List item 1</li>
+    <li>List item 2</li>
+    <li>
+       List item 3
+       <div style="font-size: 16px;">with additional content</div>
+    </li>
+  </ul>
+
+  <h2>Ordered List</h2>
+  
+  <ol>
+    <li>List item 1</li>
+    <li>List item 2</li>
+    <li>List item 3</li>
+    <li>List item 4</li>
+    <li>List item 5</li>
+  </ol>
+  
+  <h2>No list markers</h2>
+  
+  <ul style="list-style-type: none;">
+    <li>One</li>
+    <li>Two</li>
+    <li>Three</li>
+    <li>Four</li>
+  </ul>
+
+</body>
+</html>

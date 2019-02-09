@@ -1,0 +1,33 @@
+<html>
+<head>
+  <title>Simple PDF/UA Testcase</title>
+  <meta name="description" content="A simple example"/>
+  <style>
+  @page {
+    size: 200px 200px;
+    margin: 0;
+  }
+  body {
+    margin: 0;
+    width: 200px;
+  }
+  .abs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 70px;
+  }
+  </style>
+</head>
+<body style="font-family: 'TestFont'; font-size: 14px;">
+   <div style="position:relative;">
+     <div class="abs" style="z-index: 2; background-color: red; top: 0;">One</div>
+     <div class="abs" style="z-index: 3; background-color: purple; top: 60px;">Two</div>
+     <div class="abs" style="z-index: 1; background-color: blue; top: 120px;">Three</div>
+     <div class="abs" style="z-index: 4; background-color: green; top: 180px;">Four</div>
+     <div class="abs" style="z-index: 3; background-color: orange; top: 240px;">Five</div>
+   </div>
+   <div style="page-break-after: always;">PAGE</div>
+   <div style="min-height: 10px; background-color: pink;">PAGE</div>
+</body>
+</html>

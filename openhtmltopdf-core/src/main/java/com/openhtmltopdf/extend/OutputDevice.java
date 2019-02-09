@@ -23,8 +23,6 @@ import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.render.*;
-import com.openhtmltopdf.render.AbstractOutputDevice.ClipInfo;
-
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
@@ -169,4 +167,11 @@ public interface OutputDevice {
 	 * The new (2018) fast renderer is in use.
 	 */
 	public boolean isFastRenderer();
+	
+	/**
+	 * Propagate the structure heirachy to allow for PDF/UA compliance.
+	 */
+	public Object startStructure(StructureType type, Box box);
+
+	public void endStructure(Object token);
 }

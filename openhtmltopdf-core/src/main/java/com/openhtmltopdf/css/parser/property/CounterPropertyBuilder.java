@@ -56,13 +56,13 @@ public abstract class CounterPropertyBuilder extends AbstractPropertyBuilder {
                     
                     return Collections.singletonList(
                             new PropertyDeclaration(cssName, new PropertyValue(
-                                    Collections.singletonList(data)), important, origin));
+                                    Collections.singletonList(data), true), important, origin));
                 }
             }
             
             throw new CSSParseException("The syntax of the " + cssName + " property is invalid", -1);
         } else {
-            List result = new ArrayList();
+            List<CounterData> result = new ArrayList<>();
             for (int i = 0; i < values.size(); i++) {
                 PropertyValue value = (PropertyValue)values.get(i);
                 
@@ -87,7 +87,7 @@ public abstract class CounterPropertyBuilder extends AbstractPropertyBuilder {
             }
             
             return Collections.singletonList(
-                    new PropertyDeclaration(cssName, new PropertyValue(result), important, origin));
+                    new PropertyDeclaration(cssName, new PropertyValue(result, true), important, origin));
         }
     }
     

@@ -129,6 +129,16 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 		this.state._pdfAConformance = pdfAConformance;
 		return this;
 	}
+	
+	/**
+	 * Whether to conform to PDF/UA or Accessible PDF. False by default.
+	 * @param pdfUaAccessibility
+	 * @return this for method chaining
+	 */
+	public PdfRendererBuilder usePdfUaAccessbility(boolean pdfUaAccessibility) {
+	    this.state._pdfUaConform = pdfUaAccessibility;
+	    return this;
+	}
 
 	/**
 	 * Sets the color profile, needed for PDF/A conformance.

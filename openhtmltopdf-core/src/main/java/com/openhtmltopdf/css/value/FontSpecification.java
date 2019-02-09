@@ -4,13 +4,6 @@ import com.openhtmltopdf.css.constants.IdentValue;
 
 import java.util.Arrays;
 
-/**
- * Created by IntelliJ IDEA.
- * User: tobe
- * Date: 2005-jun-23
- * Time: 00:28:43
- * To change this template use File | Settings | File Templates.
- */
 public class FontSpecification {
     public float size;
     public IdentValue fontWeight;
@@ -18,6 +11,7 @@ public class FontSpecification {
     public IdentValue fontStyle;
     public IdentValue variant;
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Font specification: ");
         sb

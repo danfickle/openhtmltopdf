@@ -26,10 +26,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.BidiSplitter;
@@ -38,6 +35,7 @@ import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.BoxCollector;
 import com.openhtmltopdf.layout.InlineBoxing;
 import com.openhtmltopdf.layout.InlinePaintable;
@@ -60,12 +58,12 @@ public class LineBox extends Box implements InlinePaintable {
     
     private FloatDistances _floatDistances;
     
-    private List _textDecorations;
+    private List<TextDecoration> _textDecorations;
     
     private int _paintingTop;
     private int _paintingHeight;
     
-    private List _nonFlowContent;
+    private List<Box> _nonFlowContent;
     
     private MarkerData _markerData;
     
@@ -132,7 +130,9 @@ public class LineBox extends Box implements InlinePaintable {
         }
         
         if (_textDecorations != null) {
+            Object token = c.getOutputDevice().startStructure(StructureType.BACKGROUND, this);
             c.getOutputDevice().drawTextDecoration(c, this);
+            c.getOutputDevice().endStructure(token);
         }
         
         if (c.debugDrawLineBoxes()) {
@@ -282,8 +282,7 @@ public class LineBox extends Box implements InlinePaintable {
     private CharCounts countJustifiableChars() {
         CharCounts result = new CharCounts();
         
-        for (Iterator i = getChildIterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        for (Box b : getChildren()) {
             if (b instanceof InlineLayoutBox) {
                 ((InlineLayoutBox)b).countJustifiableChars(result);
             }
@@ -355,11 +354,11 @@ public class LineBox extends Box implements InlinePaintable {
         return false;
     }
 
-    public List getTextDecorations() {
+    public List<TextDecoration> getTextDecorations() {
         return _textDecorations;
     }
 
-    public void setTextDecorations(List textDecorations) {
+    public void setTextDecorations(List<TextDecoration> textDecorations) {
         _textDecorations = textDecorations;
     }
 
@@ -379,7 +378,7 @@ public class LineBox extends Box implements InlinePaintable {
         _paintingTop = paintingTop;
     }
     
-    
+    // NOTE: Will be List of DisplayListItem when we delete the old renderer.
     public void addAllChildren(List list, Layer layer) {
         for (int i = 0; i < getChildCount(); i++) {
             Box child = getChild(i);
@@ -392,13 +391,13 @@ public class LineBox extends Box implements InlinePaintable {
         }
     }
     
-    public List getNonFlowContent() {
-        return _nonFlowContent == null ? Collections.EMPTY_LIST : _nonFlowContent;
+    public List<Box> getNonFlowContent() {
+        return _nonFlowContent == null ? Collections.<Box>emptyList() : _nonFlowContent;
     }
     
     public void addNonFlowContent(BlockBox box) {
         if (_nonFlowContent == null) {
-            _nonFlowContent = new ArrayList();
+            _nonFlowContent = new ArrayList<>();
         }
         
         _nonFlowContent.add(box);
@@ -406,7 +405,7 @@ public class LineBox extends Box implements InlinePaintable {
     
     public void reset(LayoutContext c) {
         for (int i = 0; i < getNonFlowContent().size(); i++) {
-            Box content = (Box)getNonFlowContent().get(i);
+            Box content = getNonFlowContent().get(i);
             content.reset(c);
         }
         if (_markerData != null) {
@@ -569,27 +568,8 @@ public class LineBox extends Box implements InlinePaintable {
         return false;
     }
     
-    public void clearSelection(List modified) {
-        for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
-            b.clearSelection(modified);
-        }
-        
-        super.clearSelection(modified);
-    }
-    
-    public void selectAll() {
-        for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
-            BlockBox box = (BlockBox)i.next();
-            box.selectAll();
-        }
-        
-        super.selectAll();
-    }
-    
     public void collectText(RenderingContext c, StringBuilder buffer) {
-        for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        for (Box b : getNonFlowContent()) {
             b.collectText(c, buffer);
         }
         if (isContainsDynamicFunction()) {
@@ -604,8 +584,7 @@ public class LineBox extends Box implements InlinePaintable {
             exportPageBoxText(c, writer, baselinePos);
         }
         
-        for (Iterator i = getNonFlowContent().iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        for (Box b : getNonFlowContent()) {
             b.exportText(c, writer);
         }
         
@@ -658,6 +637,11 @@ public class LineBox extends Box implements InlinePaintable {
     
     public boolean isLayedOutRTL() {
     	return this.direction == BidiSplitter.RTL;
+    }
+
+    @Override
+    public boolean hasNonTextContent(CssContext c) {
+        return _textDecorations != null && _textDecorations.size() > 0;
     }
 }
 

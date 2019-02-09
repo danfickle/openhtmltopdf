@@ -19,8 +19,6 @@
  */
 package com.openhtmltopdf.css.sheet;
 
-import java.util.Iterator;
-
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.EmptyStyle;
@@ -58,37 +56,20 @@ public class FontFaceRule implements RulesetContainer {
 
         return _calculatedStyle;
     }
+    
+    private boolean hasProperty(String property) {
+        return _ruleset.getPropertyDeclarations().stream().anyMatch(decl -> property.equals(decl.getPropertyName()));
+    }
 
     public boolean hasFontFamily() {
-        for (Iterator i = _ruleset.getPropertyDeclarations().iterator(); i.hasNext(); ) {
-            PropertyDeclaration decl = (PropertyDeclaration)i.next();
-            if (decl.getPropertyName().equals("font-family")) {
-                return true;
-            }
-        }
-
-        return false;
+        return hasProperty("font-family");
     }
 
     public boolean hasFontWeight() {
-        for (Iterator i = _ruleset.getPropertyDeclarations().iterator(); i.hasNext(); ) {
-            PropertyDeclaration decl = (PropertyDeclaration)i.next();
-            if (decl.getPropertyName().equals("font-weight")) {
-                return true;
-            }
-        }
-
-        return false;
+        return hasProperty("font-weight");
     }
 
     public boolean hasFontStyle() {
-        for (Iterator i = _ruleset.getPropertyDeclarations().iterator(); i.hasNext(); ) {
-            PropertyDeclaration decl = (PropertyDeclaration)i.next();
-            if (decl.getPropertyName().equals("font-style")) {
-                return true;
-            }
-        }
-
-        return false;
+        return hasProperty("font-style");
     }
 }

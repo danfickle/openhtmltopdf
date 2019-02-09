@@ -31,6 +31,7 @@ import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
@@ -42,6 +43,7 @@ import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
+
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -193,9 +195,14 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     // Font Mapping for the Graphics2D output
     private PdfBoxGraphics2DFontTextDrawer _fontTextDrawer;
     
-    public PdfBoxFastOutputDevice(float dotsPerPoint, boolean testMode) {
+    // If we are attempting to be PDF/UA compliant (ie tagged pdf), a helper, otherwise null.
+    private PdfBoxAccessibilityHelper _pdfUa;
+    private final boolean _pdfUaConform;
+    
+    public PdfBoxFastOutputDevice(float dotsPerPoint, boolean testMode, boolean pdfUaConform) {
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
+        _pdfUaConform = pdfUaConform;
     }
 
     @Override
@@ -231,6 +238,10 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _oldStroke = _stroke;
 
         setStrokeDiff(_stroke, null);
+        
+        if (_pdfUa != null) {
+            _pdfUa.startPage(_page, _cp, _renderingContext, _pageHeight, _transform);
+        }
     }
     
     private PageState currentState() {
@@ -249,6 +260,10 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     public void finishPage() {
         _cp.closeContent();
         popState();
+        
+        if (_pdfUa != null) {
+            _pdfUa.endPage();
+        }
     }
 
     public void paintReplacedElement(RenderingContext c, BlockBox box) {
@@ -824,13 +839,29 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _bmManager = new PdfBoxBookmarkManager(doc, _writer, _sharedContext, _dotsPerPoint, this);
         _linkManager = new PdfBoxFastLinkManager(_sharedContext, _dotsPerPoint, _root, this);
         loadMetadata(doc);
+        
+        if (_pdfUaConform) {
+            _pdfUa = new PdfBoxAccessibilityHelper(this, _root, doc);
+        }
     }
 
     public void finish(RenderingContext c, Box root) {
+        if (_pdfUa != null) {
+            _pdfUa.finishPdfUa();
+        }
+
+        // Bookmarks must come after PDF/UA structual tree creation
+        // because bookmarks link to structual elements in the tree.
         _bmManager.loadBookmarks();
         _bmManager.writeOutline(c, root);
+
+        // Also need access to the structure tree.
         processControls();
-        _linkManager.processLinks();
+        _linkManager.processLinks(_pdfUa);
+        
+        if (_pdfUa != null) {
+            _pdfUa.finishNumberTree();
+        }
     }
     
     @Override
@@ -1240,4 +1271,20 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private void clearPageState() {
         _oldStroke = null;
     }
+
+    @Override
+    public Object startStructure(StructureType type, Box box) {
+        if (_pdfUa != null) {
+            return _pdfUa.startStructure(type, box);
+        }
+        return null;
+    }
+
+    @Override
+    public void endStructure(Object token) {
+        if (_pdfUa != null) {
+            _pdfUa.endStructure(token);
+        }
+    }
+    
 }

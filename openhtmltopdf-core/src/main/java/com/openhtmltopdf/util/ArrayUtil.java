@@ -19,6 +19,9 @@
  */
 package com.openhtmltopdf.util;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class ArrayUtil {
     public static String[] cloneOrEmpty(String[] source){
         return source == null ? Constants.EMPTY_STR_ARR : (String[]) source.clone();
@@ -34,6 +37,7 @@ public class ArrayUtil {
     /**
      * Tests if left is equal to one of the rights. Also returns true if both are null.
      */
+    @SafeVarargs
     public static <T> boolean isOneOf(T left, T... rights) {
         for (T candidate : rights) {
             if (candidate == null && left == null) {
@@ -49,13 +53,6 @@ public class ArrayUtil {
      * Joins a string array, with the given separator.
      */
     public static String join(String[] partials, String separator) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0;i < partials.length; i++) {
-            sb.append(partials[i]);
-            if (i < partials.length - 1) {
-                sb.append(separator);
-            }
-        }
-        return sb.toString();
+        return Arrays.stream(partials).collect(Collectors.joining(separator));
     }
 }

@@ -66,15 +66,17 @@ public class PdfBoxFontResolver implements FontResolver {
     private final List<TrueTypeCollection> _collectionsToClose = new ArrayList<TrueTypeCollection>();
     private final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
     private final PdfAConformance _pdfAConformance;
+    private final boolean _pdfUaConform;
 
-    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, PdfAConformance pdfAConformance) {
+    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, PdfAConformance pdfAConformance, boolean pdfUaConform) {
         _sharedContext = sharedContext;
         _doc = doc;
         _fontMetricsCache = pdfMetricsCache;
         _pdfAConformance = pdfAConformance;
+        _pdfUaConform = pdfUaConform;
  
         // All fonts are required to be embedded in PDF/A documents, so we don't add the built-in fonts, if conformance is required.
-        _fontFamilies = (_pdfAConformance == PdfAConformance.NONE) ? createInitialFontMap() : new HashMap<String, FontFamily<FontDescription>>();
+        _fontFamilies = (_pdfAConformance == PdfAConformance.NONE && !pdfUaConform) ? createInitialFontMap() : new HashMap<String, FontFamily<FontDescription>>();
     }
 
     @Override
@@ -402,7 +404,8 @@ public class PdfBoxFontResolver implements FontResolver {
             }
         }
 
-        if (_pdfAConformance == PdfAConformance.NONE) {
+        if (_pdfAConformance == PdfAConformance.NONE &&
+            !_pdfUaConform) {
             // We don't have a final fallback font for PDF/A documents as serif may not be available
             // unless the user has explicitly embedded it.
             
@@ -718,6 +721,19 @@ public class PdfBoxFontResolver implements FontResolver {
         private void putFontMetricsInCache(String family, int weight, IdentValue style, PdfBoxRawPDFontMetrics metrics) {
             _metricsCache.put(createFontMetricsCacheKey(family, weight, style), metrics);
         }
+        
+        private boolean loadMetrics() {
+            try {
+                PDFontDescriptor descriptor = _font.getFontDescriptor();
+                _metrics = PdfBoxRawPDFontMetrics.fromPdfBox(_font, descriptor);
+                putFontMetricsInCache(_family, _weight, _style, _metrics);
+                return true;
+            } catch (IOException e) {
+                XRLog.exception(
+                        "Couldn't load font. Please check that it is a valid truetype font.");
+                return false;
+            }
+        }
 
         private boolean realizeFont() {
             if (_font == null && _fontSupplier != null) {
@@ -725,6 +741,11 @@ public class PdfBoxFontResolver implements FontResolver {
                 
                 _font = _fontSupplier.supply();
 		_fontSupplier = null;
+		
+                if (!isMetricsAvailable()) {
+                    // If we already have metrics, they must have come from the cache.
+                    return loadMetrics();
+                }
 	    }
             
             if (_font == null && _supplier != null) {
@@ -741,10 +762,7 @@ public class PdfBoxFontResolver implements FontResolver {
                     _font = PDType0Font.load(_doc, is, _isSubset);
                     
                     if (!isMetricsAvailable()) {
-                        // If we already have metrics, they must have come from the cache.
-                        PDFontDescriptor descriptor = _font.getFontDescriptor();
-                        _metrics = PdfBoxRawPDFontMetrics.fromPdfBox(_font, descriptor);
-                        putFontMetricsInCache(_family, _weight, _style, _metrics);
+                        return loadMetrics();
                     }
                 } catch (IOException e) {
                     XRLog.exception("Couldn't load font. Please check that it is a valid truetype font.");

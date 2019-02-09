@@ -21,7 +21,6 @@ package com.openhtmltopdf.css.sheet;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.openhtmltopdf.css.newmatch.Selector;
@@ -32,15 +31,14 @@ import com.openhtmltopdf.css.newmatch.Selector;
  * @author Patrick Wright
  */
 public class Ruleset {
-    private int _origin;
-    private java.util.List<PropertyDeclaration> _props;
-
-    private List<Selector> _fsSelectors;
+    private final int _origin;
+    private final List<PropertyDeclaration> _props;
+    private final List<Selector> _fsSelectors;
 
     public Ruleset(int orig) {
         _origin = orig;
-        _props = new ArrayList<PropertyDeclaration>();
-        _fsSelectors = new ArrayList<Selector>();
+        _props = new ArrayList<>();
+        _fsSelectors = new ArrayList<>();
     }
 
     /**

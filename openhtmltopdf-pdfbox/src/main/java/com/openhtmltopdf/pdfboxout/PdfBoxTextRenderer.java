@@ -76,6 +76,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
                 PdfBoxRawPDFontMetrics metrics = des.getFontMetrics();
 
                 if (metrics == null) {
+                    XRLog.exception("Font metrics not available. Probably a bug.");
                     continue;
                 }
                 

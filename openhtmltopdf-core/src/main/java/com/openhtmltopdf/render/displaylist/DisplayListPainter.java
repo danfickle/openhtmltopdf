@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
@@ -66,6 +67,9 @@ public class DisplayListPainter {
 			} else {
 				BlockBox box = (BlockBox) dli;
 				
+				Object outerToken = c.getOutputDevice().startStructure(StructureType.BLOCK, box);
+				Object innerToken = c.getOutputDevice().startStructure(StructureType.BACKGROUND, box);
+				
 				updateTableHeaderFooterPosition(c, box);
 				debugOnly("painting bg", box);
 				box.paintBackground(c);
@@ -84,6 +88,9 @@ public class DisplayListPainter {
 						}
 					}
 				}
+
+				c.getOutputDevice().endStructure(innerToken);
+				c.getOutputDevice().endStructure(outerToken);
 			}
 		}
 	}
@@ -97,7 +104,9 @@ public class DisplayListPainter {
 				OperatorSetClip setClip = (OperatorSetClip) dli;
 				setClip(c, setClip);
 			} else {
+			    Object token = c.getOutputDevice().startStructure(StructureType.LIST_MARKER, (Box) dli);
 				((BlockBox) dli).paintListMarker(c);
+				c.getOutputDevice().endStructure(token);
 			}
 		}
 	}
@@ -120,7 +129,9 @@ public class DisplayListPainter {
 			    paint(c, pageInstructions);
 			} else {
                 InlinePaintable paintable = (InlinePaintable) dli;
+                Object token = c.getOutputDevice().startStructure(StructureType.INLINE, (Box) dli);
                 paintable.paintInline(c);
+                c.getOutputDevice().endStructure(token);
 			}
 		}
 	}
@@ -152,7 +163,9 @@ public class DisplayListPainter {
             replaced.getReplacedElement().setLocation(contentBounds.x, contentBounds.y);
         }
         
+        Object outerToken = c.getOutputDevice().startStructure(StructureType.REPLACED, replaced);
         c.getOutputDevice().paintReplacedElement(c, replaced);
+        c.getOutputDevice().endStructure(outerToken);
     }
     
     private void pushTransform(RenderingContext c, Box master, int shadowPage) {
@@ -207,13 +220,23 @@ public class DisplayListPainter {
 			if (op instanceof PaintRootElementBackground) {
 
 				PaintRootElementBackground dlo = (PaintRootElementBackground) op;
+				
+				Object token = c.getOutputDevice().startStructure(StructureType.BACKGROUND, dlo.getRoot());
 				dlo.getRoot().paintRootElementBackground(c);
+				c.getOutputDevice().endStructure(token);
 
 			} else if (op instanceof PaintLayerBackgroundAndBorder) {
 
 				PaintLayerBackgroundAndBorder dlo = (PaintLayerBackgroundAndBorder) op;
+				
+				Object outerToken = c.getOutputDevice().startStructure(StructureType.LAYER, dlo.getMaster());
+		        Object innerToken = c.getOutputDevice().startStructure(StructureType.BACKGROUND, dlo.getMaster());
+				
 				dlo.getMaster().paintBackground(c);
 				dlo.getMaster().paintBorder(c);
+				
+				c.getOutputDevice().endStructure(innerToken);
+				c.getOutputDevice().endStructure(outerToken);
 
 			} else if (op instanceof PaintReplacedElement) {
 
@@ -255,7 +278,9 @@ public class DisplayListPainter {
 			} else if (op instanceof PaintFixedLayer) {
 				
 				PaintFixedLayer dlo = (PaintFixedLayer) op;
+				Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, dlo.getLayer().getMaster());
 				paintFixed(c, dlo.getLayer());
+				c.getOutputDevice().endStructure(token);
 				
 			} else if (op instanceof PaintPushClipRect) {
 			    
