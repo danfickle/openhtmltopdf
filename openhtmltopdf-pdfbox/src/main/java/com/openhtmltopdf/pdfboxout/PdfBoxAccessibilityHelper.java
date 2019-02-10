@@ -120,6 +120,18 @@ public class PdfBoxAccessibilityHelper {
             child.parentElem.appendKid(child.elem);
         }
         
+        /**
+         * NOTE: This only allows one attribute dictionary (possibly with multiple attributes) with one owner.
+         */
+        void setAttributeDictionary(COSDictionary attrDict) {
+            // NOTE: We could do this instead:
+            //   this.elem.addAttribute(PDAttributeObject.create(attrDict));
+            // However, PDFBOX adds a revision number.
+            // This is allowed by the spec but causes the PDF Accessiblity Checker (PAC)
+            // to crash.
+            this.elem.getCOSObject().setItem(COSName.A, attrDict);
+        }
+        
         @Override
         public String toString() {
             return String.format("[Structual Element-%s:%s]", super.toString(), box);
@@ -248,6 +260,38 @@ public class PdfBoxAccessibilityHelper {
             ListStructualElement child = this;
             
             createPdfStrucureElement(parent, child);
+
+            IdentValue listStyleType = child.box.getStyle().getIdent(CSSName.LIST_STYLE_TYPE);
+            String listType;
+            
+            if (listStyleType == IdentValue.NONE) {
+                listType = "None";
+            } else if (listStyleType == IdentValue.DISC) {
+                listType = "Disc";
+            } else if (listStyleType == IdentValue.SQUARE) {
+                listType = "Square";
+            } else if (listStyleType == IdentValue.CIRCLE) {
+                listType = "Circle";
+            } else if (listStyleType == IdentValue.DECIMAL ||
+                       listStyleType == IdentValue.DECIMAL_LEADING_ZERO) {
+                listType = "Decimal";
+            } else if (listStyleType == IdentValue.UPPER_ROMAN) {
+                listType = "UpperRoman";
+            } else if (listStyleType == IdentValue.LOWER_ROMAN) {
+                listType = "LowerRoman";
+            } else if (listStyleType == IdentValue.UPPER_ALPHA) {
+                listType = "UpperAlpha";
+            } else if (listStyleType == IdentValue.LOWER_ALPHA) {
+                listType = "LowerAlpha";
+            } else {
+                // Armenian, Georgian, Latin and Greek are not supported by the PDF spec.
+                listType = "Decimal";
+            }
+            
+            COSDictionary listNumbering = new COSDictionary();
+            listNumbering.setItem(COSName.O, COSName.getPDFName("List"));
+            listNumbering.setItem(COSName.getPDFName("ListNumbering"), COSName.getPDFName(listType));
+            setAttributeDictionary(listNumbering);
             
             finishTreeItems(child.listItems, child);
         }
@@ -450,9 +494,10 @@ public class PdfBoxAccessibilityHelper {
     }
     
     private static abstract class TableHeaderOrCellStructualElement extends GenericStructualElement {
-        void addCellAttributes() {
+        boolean addCellAttributes(COSDictionary attrDict) {
             TableHeaderOrCellStructualElement child = this;
             
+            boolean added = false;
             int rowSpanAttr = 1;
             int colSpanAttr = 1;
             
@@ -464,18 +509,16 @@ public class PdfBoxAccessibilityHelper {
             }
             
             if (colSpanAttr != 1) {
-                COSDictionary colspan = new COSDictionary();
-                colspan.setInt(COSName.getPDFName("ColSpan"), colSpanAttr);
-                colspan.setItem(COSName.O, COSName.getPDFName("Table"));
-                child.elem.addAttribute(PDAttributeObject.create(colspan));
+                added = true;
+                attrDict.setInt(COSName.getPDFName("ColSpan"), colSpanAttr);
             }
             
             if (rowSpanAttr != 1) {
-                COSDictionary rowspan = new COSDictionary();
-                rowspan.setInt(COSName.getPDFName("RowSpan"), rowSpanAttr);
-                rowspan.setItem(COSName.O, COSName.getPDFName("Table"));
-                child.elem.addAttribute(PDAttributeObject.create(rowspan));
+                added = true;
+                attrDict.setInt(COSName.getPDFName("RowSpan"), rowSpanAttr);
             }
+            
+            return added;
         }
     }
     
@@ -492,17 +535,17 @@ public class PdfBoxAccessibilityHelper {
             
             String scope = box.getElement() != null ? box.getElement().getAttribute("scope") : "";
             
-            COSDictionary scopeDict = new COSDictionary();
-            scopeDict.setItem(COSName.O, COSName.getPDFName("Table"));
+            COSDictionary attrDict = new COSDictionary();
+            attrDict.setItem(COSName.O, COSName.getPDFName("Table"));
             
             if ("row".equals(scope)) {
-                scopeDict.setItem(COSName.getPDFName("Scope"), COSName.getPDFName("Row"));
+                attrDict.setItem(COSName.getPDFName("Scope"), COSName.getPDFName("Row"));
             } else {
-                scopeDict.setItem(COSName.getPDFName("Scope"), COSName.getPDFName("Column"));
+                attrDict.setItem(COSName.getPDFName("Scope"), COSName.getPDFName("Column"));
             }
-            child.elem.addAttribute(PDAttributeObject.create(scopeDict));
             
-            addCellAttributes();
+            addCellAttributes(attrDict);
+            setAttributeDictionary(attrDict);
             
             finishTreeItems(child.children, child);
         }
@@ -519,7 +562,12 @@ public class PdfBoxAccessibilityHelper {
             TableCellStructualElement child = this;
             createPdfStrucureElement(parent, child);
             
-            addCellAttributes();
+            COSDictionary attrDict = new COSDictionary();
+            attrDict.setItem(COSName.O, COSName.getPDFName("Table"));
+            
+            if (addCellAttributes(attrDict)) {
+                setAttributeDictionary(attrDict);
+            }
             
             finishTreeItems(child.children, child);
         }
@@ -564,7 +612,7 @@ public class PdfBoxAccessibilityHelper {
             COSDictionary attributeDict = new COSDictionary();
             attributeDict.setItem(COSName.BBOX, child.boundingBox);
             attributeDict.setItem(COSName.O, COSName.getPDFName("Layout"));
-            child.elem.addAttribute(PDAttributeObject.create(attributeDict));
+            setAttributeDictionary(attributeDict);
 
             child.parentElem.appendKid(child.elem);
             
