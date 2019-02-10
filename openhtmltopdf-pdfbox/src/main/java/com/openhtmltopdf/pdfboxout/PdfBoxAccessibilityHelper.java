@@ -42,8 +42,7 @@ import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxAccessibilityHelper {
     // This maps from page to a list of content items, we need to process in page order, so a linked map.
-    private final Map<PDPage, List<GenericContentItem>> _pageContentItems = new LinkedHashMap<>();
-    private final Map<PDPage, List<AnnotationWithStructureParent>> _pageAnnotations = new HashMap<>();
+    private final Map<PDPage, PageItems> _pageItemsMap = new LinkedHashMap<>();
     private final PdfBoxFastOutputDevice _od;
     private final Box _rootBox;
     private final Document _doc;
@@ -53,8 +52,9 @@ public class PdfBoxAccessibilityHelper {
     
     private int _nextMcid;
     
-    // These change with every page.
-    private List<GenericContentItem> _contentItems;
+    // These change with every page, most of them are only needed while we paint the page, so we don't add
+    // them to the PageItems class, which is stored for later processing.
+    private PageItems _pageItems;
     private PdfContentStreamAdapter _cs;
     private RenderingContext _ctx;
     private PDPage _page;
@@ -89,6 +89,11 @@ public class PdfBoxAccessibilityHelper {
         root.setAccessiblityObject(this._root);
     }
     
+    private static class PageItems {
+        final List<GenericContentItem> _contentItems = new ArrayList<>();
+        final List<AnnotationWithStructureParent> _pageAnnotations = new ArrayList<>();
+    }
+    
     /**
      * Can be either a structure element or a content item.
      */
@@ -105,6 +110,15 @@ public class PdfBoxAccessibilityHelper {
         
         abstract void addChild(AbstractTreeItem child);
         abstract String getPdfTag();
+        
+        void createPdfStrucureElement(AbstractStructualElement parent, AbstractStructualElement child) {
+            child.parentElem = parent.elem;
+            child.elem = new PDStructureElement(child.getPdfTag(), child.parentElem);
+            child.elem.setParent(child.parentElem);
+            child.elem.setPage(child.page);
+
+            child.parentElem.appendKid(child.elem);
+        }
         
         @Override
         public String toString() {
@@ -123,6 +137,40 @@ public class PdfBoxAccessibilityHelper {
         @Override
         void addChild(AbstractTreeItem child) {
             this.children.add(child);
+        }
+        
+        private String chooseTag(Box box) {
+            if (box != null) {
+                if (box.getLayer() != null) {
+                    return StandardStructureTypes.SECT;
+                } else if (box.isAnonymous()) {
+                    return guessBoxTag(box);
+                } if (box.getElement() != null) {
+                    String htmlTag = box.getElement().getTagName();
+                    
+                    if (htmlTag.equals("p")) {
+                        return StandardStructureTypes.P;
+                    } else if (htmlTag.equals("h1")) {
+                        return StandardStructureTypes.H1;
+                    } else if (htmlTag.equals("h2")) {
+                        return StandardStructureTypes.H2;
+                    } else if (htmlTag.equals("h3")) {
+                        return StandardStructureTypes.H3;
+                    } else if (htmlTag.equals("h4")) {
+                        return StandardStructureTypes.H4;
+                    } else if (htmlTag.equals("h5")) {
+                        return StandardStructureTypes.H5;
+                    } else if (htmlTag.equals("h6")) {
+                        return StandardStructureTypes.H6;
+                    } else if (htmlTag.equals("article")) {
+                        return StandardStructureTypes.ART;
+                    }
+                }
+                
+                return guessBoxTag(box);
+            }
+            
+            return StandardStructureTypes.SPAN;
         }
 
         @Override
@@ -157,8 +205,6 @@ public class PdfBoxAccessibilityHelper {
     }
     
     private static class AnchorStuctualElement extends GenericStructualElement {
-        String titleText;
-
         @Override
         String getPdfTag() {
             return StandardStructureTypes.LINK;
@@ -170,7 +216,7 @@ public class PdfBoxAccessibilityHelper {
 
             createPdfStrucureElement(parent, child);
             
-            String alternate = child.titleText;
+            String alternate = box.getElement() != null ? box.getElement().getAttribute("title") : "";
             if (alternate.isEmpty()) {
                 XRLog.general("PDF/UA - No title text provided for link.");
             }
@@ -404,11 +450,36 @@ public class PdfBoxAccessibilityHelper {
     }
     
     private static abstract class TableHeaderOrCellStructualElement extends GenericStructualElement {
+        void addCellAttributes() {
+            TableHeaderOrCellStructualElement child = this;
+            
+            int rowSpanAttr = 1;
+            int colSpanAttr = 1;
+            
+            if (child.box instanceof TableCellBox) {
+                TableCellBox cell = (TableCellBox) box;
+
+                colSpanAttr = cell.getStyle().getColSpan();
+                rowSpanAttr = cell.getStyle().getRowSpan();
+            }
+            
+            if (colSpanAttr != 1) {
+                COSDictionary colspan = new COSDictionary();
+                colspan.setInt(COSName.getPDFName("ColSpan"), colSpanAttr);
+                colspan.setItem(COSName.O, COSName.getPDFName("Table"));
+                child.elem.addAttribute(PDAttributeObject.create(colspan));
+            }
+            
+            if (rowSpanAttr != 1) {
+                COSDictionary rowspan = new COSDictionary();
+                rowspan.setInt(COSName.getPDFName("RowSpan"), rowSpanAttr);
+                rowspan.setItem(COSName.O, COSName.getPDFName("Table"));
+                child.elem.addAttribute(PDAttributeObject.create(rowspan));
+            }
+        }
     }
     
     private static class TableHeaderStructualElement extends TableHeaderOrCellStructualElement {
-        String scope;
-        
         @Override
         String getPdfTag() {
             return StandardStructureTypes.TH;
@@ -419,24 +490,25 @@ public class PdfBoxAccessibilityHelper {
             TableHeaderStructualElement child = this;
             createPdfStrucureElement(parent, child);
             
+            String scope = box.getElement() != null ? box.getElement().getAttribute("scope") : "";
+            
             COSDictionary scopeDict = new COSDictionary();
             scopeDict.setItem(COSName.O, COSName.getPDFName("Table"));
             
-            if ("row".equals(child.scope)) {
+            if ("row".equals(scope)) {
                 scopeDict.setItem(COSName.getPDFName("Scope"), COSName.getPDFName("Row"));
             } else {
                 scopeDict.setItem(COSName.getPDFName("Scope"), COSName.getPDFName("Column"));
             }
             child.elem.addAttribute(PDAttributeObject.create(scopeDict));
             
+            addCellAttributes();
+            
             finishTreeItems(child.children, child);
         }
     }
     
     private static class TableCellStructualElement extends TableHeaderOrCellStructualElement {
-        int rowspan = 1;
-        int colspan = 1;
-        
         @Override
         String getPdfTag() {
             return StandardStructureTypes.TD;
@@ -447,26 +519,13 @@ public class PdfBoxAccessibilityHelper {
             TableCellStructualElement child = this;
             createPdfStrucureElement(parent, child);
             
-            if (child.colspan != 1) {
-                COSDictionary colspan = new COSDictionary();
-                colspan.setInt(COSName.getPDFName("ColSpan"), child.colspan);
-                colspan.setItem(COSName.O, COSName.getPDFName("Table"));
-                child.elem.addAttribute(PDAttributeObject.create(colspan));
-            }
-            
-            if (child.rowspan != 1) {
-                COSDictionary rowspan = new COSDictionary();
-                rowspan.setInt(COSName.getPDFName("RowSpan"), child.rowspan);
-                rowspan.setItem(COSName.O, COSName.getPDFName("Table"));
-                child.elem.addAttribute(PDAttributeObject.create(rowspan));
-            }
+            addCellAttributes();
             
             finishTreeItems(child.children, child);
         }
     }
     
     private static class FigureStructualElement extends AbstractStructualElement {
-        String alternateText;
         PDRectangle boundingBox;
         FigureContentItem content;
 
@@ -495,7 +554,7 @@ public class PdfBoxAccessibilityHelper {
             child.elem.setPage(child.page);
             
             // Add alt text.
-            String alternateText = child.alternateText;
+            String alternateText = child.box.getElement() == null ? "" : box.getElement().getAttribute("alt");
             if (alternateText.isEmpty()) {
                 XRLog.general(Level.WARNING, "No alt attribute provided for image/replaced in PDF/UA document.");
             }
@@ -616,12 +675,15 @@ public class PdfBoxAccessibilityHelper {
         COSArray numTree = new COSArray();
         int i = 0;
         
-        for (Map.Entry<PDPage, List<GenericContentItem>> entry : _pageContentItems.entrySet()) {
-            List<GenericContentItem> pageItems = entry.getValue();
-            List<AnnotationWithStructureParent> pageAnnotations = _pageAnnotations.get(entry.getKey());
+        for (Map.Entry<PDPage, PageItems> entry : _pageItemsMap.entrySet()) {
+            List<GenericContentItem> pageItems = entry.getValue()._contentItems;
+            List<AnnotationWithStructureParent> pageAnnotations = entry.getValue()._pageAnnotations;
 
             COSArray mcidParentReferences = new COSArray();
-            pageItems.forEach(itm -> mcidParentReferences.add(itm.parentElem));
+            
+            for (GenericContentItem contentItem : pageItems) {
+                mcidParentReferences.add(contentItem.parentElem);
+            }
         
             numTree.add(COSInteger.get(i));
             numTree.add(mcidParentReferences);
@@ -660,43 +722,6 @@ public class PdfBoxAccessibilityHelper {
         }
     }
     
-    /**
-     * Choose a tag for a {@link GenericStructualElement}.
-     */
-    private static String chooseTag(Box box) {
-        if (box != null) {
-            if (box.getLayer() != null) {
-                return StandardStructureTypes.SECT;
-            } else if (box.isAnonymous()) {
-                return guessBoxTag(box);
-            } if (box.getElement() != null) {
-                String htmlTag = box.getElement().getTagName();
-                
-                if (htmlTag.equals("p")) {
-                    return StandardStructureTypes.P;
-                } else if (htmlTag.equals("h1")) {
-                    return StandardStructureTypes.H1;
-                } else if (htmlTag.equals("h2")) {
-                    return StandardStructureTypes.H2;
-                } else if (htmlTag.equals("h3")) {
-                    return StandardStructureTypes.H3;
-                } else if (htmlTag.equals("h4")) {
-                    return StandardStructureTypes.H4;
-                } else if (htmlTag.equals("h5")) {
-                    return StandardStructureTypes.H5;
-                } else if (htmlTag.equals("h6")) {
-                    return StandardStructureTypes.H6;
-                } else if (htmlTag.equals("article")) {
-                    return StandardStructureTypes.ART;
-                }
-            }
-            
-            return guessBoxTag(box);
-        }
-        
-        return StandardStructureTypes.SPAN;
-    }
-    
     private static void finishTreeItems(List<? extends AbstractTreeItem> children, AbstractStructualElement parent) {
         for (AbstractTreeItem child : children) {
             child.finish(parent);
@@ -707,15 +732,6 @@ public class PdfBoxAccessibilityHelper {
         item.finish(parent);
     }
 
-    private static void createPdfStrucureElement(AbstractStructualElement parent, AbstractStructualElement child) {
-        child.parentElem = parent.elem;
-        child.elem = new PDStructureElement(child.getPdfTag(), child.parentElem);
-        child.elem.setParent(child.parentElem);
-        child.elem.setPage(child.page);
-
-        child.parentElem.appendKid(child.elem);
-    }
-    
     private COSDictionary createMarkedContentDictionary() {
         COSDictionary dict = new COSDictionary();
         dict.setInt(COSName.MCID, _nextMcid);
@@ -745,6 +761,7 @@ public class PdfBoxAccessibilityHelper {
 
                 if (bb.isReplaced()) {
                     // For replaced elements we will need to create a BBox.
+                    // This is done here so we don'thave to hang onto the page height, transform, etc.
                     Rectangle2D rect = PdfBoxFastLinkManager.createTargetArea(
                             _ctx, box, _pageHeight, _transform, _rootBox, _od);
                     
@@ -754,7 +771,6 @@ public class PdfBoxAccessibilityHelper {
                             (float) rect.getMinY(),
                             (float) rect.getWidth(),
                             (float) rect.getHeight());
-                    ((FigureStructualElement) child).alternateText = box.getElement() == null ? "" : box.getElement().getAttribute("alt");
                 }
             } 
             
@@ -789,19 +805,6 @@ public class PdfBoxAccessibilityHelper {
             
             child.page = _page;
             child.box = box;
-        
-            if (child instanceof TableCellStructualElement &&
-                box instanceof TableCellBox) {
-                
-                TableCellBox cell = (TableCellBox) box;
-
-                ((TableCellStructualElement) child).colspan = cell.getStyle().getColSpan();
-                ((TableCellStructualElement) child).rowspan = cell.getStyle().getRowSpan();
-            } else if (child instanceof TableHeaderStructualElement) {
-                ((TableHeaderStructualElement) child).scope = box.getElement() != null ? box.getElement().getAttribute("scope") : "";
-            } else if (child instanceof AnchorStuctualElement) {
-                ((AnchorStuctualElement) child).titleText = box.getElement() != null ? box.getElement().getAttribute("title") : "";
-            }
             
             return child;
     }
@@ -845,7 +848,7 @@ public class PdfBoxAccessibilityHelper {
         current.dict = createMarkedContentDictionary();
         current.page = _page;
         
-        _contentItems.add(current);
+        _pageItems._contentItems.add(current);
 
         return current;
     }
@@ -861,7 +864,7 @@ public class PdfBoxAccessibilityHelper {
         li.label.addChild(current);
         current.parent = li.label;
         
-        _contentItems.add(current);
+        _pageItems._contentItems.add(current);
 
         return current;
     }
@@ -887,7 +890,7 @@ public class PdfBoxAccessibilityHelper {
 
         parent.content = current;
         
-        _contentItems.add(current);
+        _pageItems._contentItems.add(current);
         
         return current;
     }
@@ -1029,9 +1032,8 @@ public class PdfBoxAccessibilityHelper {
         this._page = page;
         this._pageHeight = pageHeight;
         this._transform = transform;
-        this._contentItems = new ArrayList<>();
-        this._pageContentItems.put(page, this._contentItems);
-        this._pageAnnotations.put(page, new ArrayList<>());
+        this._pageItems = new PageItems();
+        this._pageItemsMap.put(page, this._pageItems);
     }
     
     public void endPage() {
@@ -1056,7 +1058,7 @@ public class PdfBoxAccessibilityHelper {
             annotStructParentPair.annotation = annotation;
             annotStructParentPair.structureParent = struct;
             
-            _pageAnnotations.get(page).add(annotStructParentPair);
+            _pageItems._pageAnnotations.add(annotStructParentPair);
         }
     }
 }
