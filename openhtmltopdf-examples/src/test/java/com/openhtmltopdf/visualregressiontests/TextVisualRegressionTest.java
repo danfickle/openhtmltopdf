@@ -1,14 +1,12 @@
 package com.openhtmltopdf.visualregressiontests;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.Files;
 
 import static org.junit.Assert.assertTrue;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -53,30 +51,26 @@ public class TextVisualRegressionTest {
      */
     @BeforeClass
     public static void makeFontFile() throws IOException {
-        File overrideDirectory = new File("target/test/visual-tests/user-override/");
         File outputDirectory = new File("target/test/visual-tests/test-output/");
         
-        overrideDirectory.mkdirs();
         outputDirectory.mkdirs();
         
         File fontFile = new File("target/test/visual-tests/Karla-Bold.ttf");
         
         if (!fontFile.exists()) {
-            try (InputStream in = TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf");
-                 OutputStream out = new FileOutputStream("target/test/visual-tests/Karla-Bold.ttf")) {
-                 IOUtils.copy(in, out);
+            try (InputStream in = TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf")) {
+                Files.copy(in, fontFile.toPath());
             }
         }
     }
     
     @Before
     public void configureTester() {
-        File overrideDirectory = new File("target/test/visual-tests/user-override/");
         File outputDirectory = new File("target/test/visual-tests/test-output/");
         
-        vtester = new VisualTester("/visualtest/html/text/", /* Resource path. */
-                new File("src/main/resources/visualtest/expected/text/"), /* Expected directory */
-                overrideDirectory,
+        vtester = new VisualTester(
+                "/visualtest/html/text/", /* Resource path. */
+                "/visualtest/expected/text/", /* Expected resource path */
                 outputDirectory
                 );
     }

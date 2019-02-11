@@ -18,15 +18,13 @@ public class VisualRegressionTest {
     
     @Before
     public void configureTester() {
-        File overrideDirectory = new File("target/test/visual-tests/user-override/");
         File outputDirectory = new File("target/test/visual-tests/test-output/");
         
-        overrideDirectory.mkdirs();
         outputDirectory.mkdirs();
         
-        vt = new VisualTester("/visualtest/html/", /* Resource path. */
-                new File("src/main/resources/visualtest/expected/"), /* Expected directory */
-                overrideDirectory,
+        vt = new VisualTester(
+                "/visualtest/html/", /* Resource path. */
+                "/visualtest/expected/", /* Expected resource path */
                 outputDirectory
                 );
     }
