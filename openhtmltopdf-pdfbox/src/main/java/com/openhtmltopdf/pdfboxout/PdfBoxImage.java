@@ -29,11 +29,12 @@ public class PdfBoxImage implements FSImage {
         _bytes = image;
         _uri = uri;
 
-        ImageInputStream in = ImageIO
-                .createImageInputStream(new ByteArrayInputStream(_bytes));
+        ImageInputStream in = null;
         ImageReader reader = null;
         
         try {
+            in = ImageIO
+                    .createImageInputStream(new ByteArrayInputStream(_bytes));
             Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
 
             if (readers.hasNext()) {
