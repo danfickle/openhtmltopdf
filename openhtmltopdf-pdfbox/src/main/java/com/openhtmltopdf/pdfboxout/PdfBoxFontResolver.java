@@ -310,7 +310,8 @@ public class PdfBoxFontResolver implements FontResolver {
 			try {
 				return PDType0Font.load(_doc, _fontFile);
 			} catch (IOException e) {
-				return null;
+			    XRLog.exception("Couldn't load font (" + _fontFile.getAbsolutePath() + "). Please check that it is a valid truetype font.", e);                                                        
+			    return null;
 			}
 		}
 	}
