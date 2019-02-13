@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.openhtmltopdf</groupId>
+    <artifactId>openhtmltopdf-parent</artifactId>
+    <version>0.0.1-RC18-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>openhtmltopdf-pdfa-testing</artifactId>
+
+  <packaging>jar</packaging>
+
+  <name>Openhtmltopdf PDF/A Testing</name>
+  <description>Code to test against the PDF/A standard. It is not deployed with a release and unlike the rest of the project, is licensed under the GPL.</description>
+
+  <licenses>
+    <license>
+      <name>GNU General public license GPLv3+</name>
+      <url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+    </license>
+  </licenses>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.openhtmltopdf</groupId>
+      <artifactId>openhtmltopdf-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.openhtmltopdf</groupId>
+      <artifactId>openhtmltopdf-pdfbox</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    
+    <dependency>
+      <!-- NOTE: VeraPDF is licensed under the GPL or MPL. -->
+      <groupId>org.verapdf</groupId>
+      <artifactId>validation-model</artifactId>
+      <version>1.12.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <use>false</use>
+        </configuration>
+      </plugin>
+    </plugins>
+    
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>../</directory>
+        <targetPath>${project.build.outputDirectory}/META-INF</targetPath>
+        <includes>
+          <include>LICENSE*</include>
+        </includes>
+      </resource>
+	</resources>
+  </build>
+</project>

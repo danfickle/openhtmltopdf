@@ -1,0 +1,100 @@
+<html lang="EN-US">
+<head>
+  <title>All-in-one PDF/UA Testcase</title>
+  <meta name="subject" content="PDF/UA all-in-one"/>
+  <meta name="author" content="openhtmltopdf.com team"/>
+  <meta name="description" content="An example containing everything for easy testing"/>
+  
+  <bookmarks>
+   <bookmark name="Simple Paragraphs" href="#para"/>
+   <bookmark name="Lists" href="#lists">
+     <bookmark name="Ordered" href="#ordered"/>
+     <bookmark name="Unordered" href="#unordered"/>
+   </bookmark>
+   <bookmark name="Images" href="#images"/>
+   <bookmark name="Links" href="#links"/>
+   <bookmark name="Tables" href="#tables"/>
+   <bookmark name="Backgrounds" href="#backgrounds"/>
+   <bookmark name="Conclusion" href="#conclusion"/>
+  </bookmarks>
+    
+  <style>
+  @page {
+    margin: 30px 20px;
+    
+    @top-center {
+       font-family: 'TestFont'; /* Font provided with builder. */
+       font-size: 16px;
+       color: blue;
+       content: "This is PDF/UA page " counter(page) " of " counter(pages) ".";
+    }
+  }
+  body {
+    margin: 0;
+    font-family: 'TestFont'; /* Font provided with builder. */
+    font-size: 15px;
+  }
+  </style>
+</head>
+<body style="">
+ <h1 id="title">All-in-one accessible (PDF/UA, Section 508, WCAG) PDF example</h1>
+
+ <h2 id="para">Simple paragraphs</h2>
+
+ <p>Paragraph one. Some text that goes over multiple lines. OK, this is getting to the required length. Need another sentence to get there in the end.</p>
+ <p>Paragraph two. Some text that goes over multiple lines. OK, this is getting to the required length. Need another sentence to get there in the end.</p>
+ <p>Paragraph three. Some text that goes over multiple lines. OK, this is getting to the required length. Need another sentence to get there in the end.</p>
+
+ <h2 id="lists">Lists</h2>
+
+ <h3 id="ordered">Ordered</h3>
+ <ol>
+   <li>One</li>
+   <li>Two</li>
+   <li>Three</li>
+ </ol>
+
+ <h3 id="unordered">Unordered</h3>
+ <ul>
+   <li>Bullet item one</li>
+   <li>And two</li>
+   <li>And three</li>
+ </ul>
+ 
+ <h2 id="images">Images</h2>
+ <img src="../images/flyingsaucer.png" alt="The FlyingSaucer logo. We should get our own!"/>
+
+ <h2 id="links">Links</h2>
+ <p>This is an external link to the project <a title="The openhtmltopdf.com homepage" href="https://openhtmltopdf.com">homepage</a>.</p>
+ <p>This is an internal link to the <a title="Go to top" href="#title">top</a> of the document.</p>
+ 
+ <h2 id="tables">Tables</h2>
+  <table>
+   <caption>Simple table example with fake data</caption>
+   
+   <thead>
+     <tr><th>Col One</th><th>Col Two</th></tr>
+   </thead>
+   
+   <tbody>
+     <tr><td>One</td><td>Two</td></tr>
+     <tr><td>Three</td><td>Four</td></tr>
+     <tr><td>Five</td><td>Six</td></tr>
+   </tbody>
+   
+   <tfoot>
+     <tr><td>Footer1</td><td>Footer2</td></tr>
+     <tr><td>Footer3</td><td>Footer4</td></tr>
+   </tfoot> 
+  </table>
+
+ <h2 id="backgrounds">Backgrounds</h2>
+  <div style="background-color: red; height: 40px; border-radius: 10px; border: 1px solid gray;">
+    <p>Some text on a background. Remember to use a good contrast if using background colors.</p>
+  </div>
+
+ <h2 id="conclusion">Conclusion</h2>
+ <p>Remember to keep it simple for PDF/UA compliance.</p>
+ 
+</body>
+</html>

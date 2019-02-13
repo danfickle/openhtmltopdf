@@ -506,11 +506,7 @@ public class PdfBoxRenderer implements Closeable {
     }
     
     /**
-     * Completely experimental for now. Buggy as heck!
-     * TODO:
-     *   - inline-blocks
-     *   - auto margin centered absolutes
-     *   - debugging everything
+     * Go fast!
      */
     private void createPdfFast(boolean finish) throws IOException {
         boolean success = false;
