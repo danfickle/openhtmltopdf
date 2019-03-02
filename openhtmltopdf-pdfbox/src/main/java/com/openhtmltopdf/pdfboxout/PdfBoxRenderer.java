@@ -702,11 +702,17 @@ public class PdfBoxRenderer implements Closeable {
             catalog.setMarkInfo(markInfo);
             
             PDDocumentInformation info = doc.getDocumentInformation();
+            String title = info.getTitle() != null ? info.getTitle() : "";
+            
+            if (title.isEmpty()) {
+                XRLog.general(Level.WARNING, "No document title provided. Document will not be PDF/UA compliant.");
+            }
+            
             XMPMetadata xmp = XMPMetadata.createXMPMetadata();
             xmp.createAndAddDublinCoreSchema();
-            xmp.getDublinCoreSchema().setTitle(info.getTitle());
+            xmp.getDublinCoreSchema().setTitle(title);
             String metaDescription = _outputDevice.getMetadataByName("description");
-            xmp.getDublinCoreSchema().setDescription(metaDescription != null ? metaDescription : info.getTitle());
+            xmp.getDublinCoreSchema().setDescription(metaDescription != null ? metaDescription : title);
             xmp.createAndAddPDFAExtensionSchemaWithDefaultNS();
             xmp.getPDFExtensionSchema().addNamespace(
                     "http://www.aiim.org/pdfa/ns/schema#", "pdfaSchema");
