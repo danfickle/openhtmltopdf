@@ -118,10 +118,10 @@ public class BoxBuilder {
     }
 
     public static void createChildren(LayoutContext c, BlockBox parent) {
-
-    	if (parent.shouldBeReplaced()) {
-    		return;
-    	}
+        if (parent.shouldBeReplaced()) {
+            parent.setChildrenContentType(BlockBox.CONTENT_INLINE);
+            return;
+        }
 
         List<Styleable> children = new ArrayList<>();
 
