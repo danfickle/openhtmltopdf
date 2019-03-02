@@ -691,7 +691,14 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("padding-percentage"));
     }
     
-    
+    /**
+     * Tests that a SVG in a wrapper with no other content and on a named
+     * page will not crash. Issue 328.
+     */
+    @Test
+    public void testSvgInWrapperWithNamedPage() throws IOException {
+        assertTrue(vt.runTest("svg-in-wrapper-with-named-page", WITH_SVG));
+    }
     
     // TODO:
     // + Elements that appear just on generated overflow pages.
