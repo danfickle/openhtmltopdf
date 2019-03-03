@@ -109,8 +109,8 @@ public class PdfATester {
         assertTrue(run("all-in-one-no-alpha", PDFAFlavour.PDFA_1_B, PdfAConformance.PDFA_1_B));
     }
 
-    @Ignore // Failing because we haven't set up structure tagging for PDF/A1a standard.
-    @Test
+    @Ignore // Failing because TFoot, Tbody and THead strcuture types were only introduced with PDF 1.5. 
+    @Test   // We have to factor them out when using PDF/A1a.
     public void testAllInOnePdfA1a() throws Exception {
         assertTrue(run("all-in-one-no-alpha", PDFAFlavour.PDFA_1_A, PdfAConformance.PDFA_1_A));
     }
@@ -120,7 +120,6 @@ public class PdfATester {
         assertTrue(run("all-in-one", PDFAFlavour.PDFA_2_B, PdfAConformance.PDFA_2_B));
     }
 
-    @Ignore // Failing because we haven't set up structure tagging for PDF/A2a standard.
     @Test
     public void testAllInOnePdfA2a() throws Exception {
         assertTrue(run("all-in-one", PDFAFlavour.PDFA_2_A, PdfAConformance.PDFA_2_A));

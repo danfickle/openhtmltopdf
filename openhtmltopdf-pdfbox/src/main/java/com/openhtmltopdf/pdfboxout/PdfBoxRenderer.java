@@ -151,7 +151,9 @@ public class PdfBoxRenderer implements Closeable {
         _testMode = state._testMode;
         _useFastMode = state._useFastRenderer;
         _outputDevice = state._useFastRenderer ? 
-                new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode, state._pdfUaConform, state._pdfAConformance != PdfAConformance.NONE) : 
+                new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode,
+                        state._pdfUaConform || state._pdfAConformance.getConformanceValue().equals("A"),
+                        state._pdfAConformance != PdfAConformance.NONE) : 
                 new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
         _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
