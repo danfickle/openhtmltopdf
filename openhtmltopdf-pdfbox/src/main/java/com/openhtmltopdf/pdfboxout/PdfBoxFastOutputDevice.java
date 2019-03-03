@@ -199,10 +199,13 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private PdfBoxAccessibilityHelper _pdfUa;
     private final boolean _pdfUaConform;
     
-    public PdfBoxFastOutputDevice(float dotsPerPoint, boolean testMode, boolean pdfUaConform) {
+    private final boolean _pdfAConform;
+    
+    public PdfBoxFastOutputDevice(float dotsPerPoint, boolean testMode, boolean pdfUaConform, boolean pdfAConform) {
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
         _pdfUaConform = pdfUaConform;
+        _pdfAConform = pdfAConform;
     }
 
     @Override
@@ -796,7 +799,10 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
         PDImageXObject xobject = img.getXObject();
 		if (interpolate) {
+		    // PDF/A does not support setting the interpolate flag to true.
+		    if (!_pdfAConform) {
 			xobject.setInterpolate(true);
+		    }
 		} else {
 			/*
 			 * Specialcase for not interpolating an image, default is to always interpolate.

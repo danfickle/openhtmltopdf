@@ -254,6 +254,11 @@ public class PdfBoxFastLinkManager {
 			PDAnnotationLink annot) {
 		annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 				(float) targetArea.getWidth(), (float) targetArea.getHeight()));
+		
+		// PDF/A standard requires the print flag to be set and there shouldn't
+		// be any harm in setting it for other documents.
+		annot.setPrinted(true);
+		
 		if (linkShape != null) {
 			float[] quadPoints = mapShapeToQuadPoints(transform, linkShape, targetArea);
 			/*

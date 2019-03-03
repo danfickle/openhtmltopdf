@@ -17,8 +17,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.pdfbox.io.IOUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -31,7 +29,6 @@ import org.verapdf.pdfa.results.TestAssertion.Status;
 import org.verapdf.pdfa.results.TestAssertion;
 import org.verapdf.pdfa.results.ValidationResult;
 
-import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 
@@ -62,32 +59,22 @@ public class PdfATester {
         
         byte[] pdfBytes;
         
-        try (PDDocument doc = new PDDocument()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
-            builder.usePDDocument(doc);
             builder.useFastMode();
-            //builder.testMode(true);
+            builder.testMode(true);
             builder.usePdfAConformance(conform);
             builder.useFont(new File("target/test/artefacts/Karla-Bold.ttf"), "TestFont");
             builder.withHtmlContent(html, PdfATester.class.getResource("/html/").toString());
     
-            try (PdfBoxRenderer renderer = builder.buildPdfRenderer()) {
-                renderer.createPDFWithoutClosing();
-            }
-    
             try (InputStream colorProfile = PdfATester.class.getResourceAsStream("/colorspaces/sRGB.icc")) {
-                PDOutputIntent oi = new PDOutputIntent(doc, colorProfile); 
-                oi.setInfo("sRGB IEC61966-2.1"); 
-                oi.setOutputCondition("sRGB IEC61966-2.1"); 
-                oi.setOutputConditionIdentifier("sRGB IEC61966-2.1"); 
-                oi.setRegistryName("http://www.color.org"); 
-                doc.getDocumentCatalog().addOutputIntent(oi);
+                byte[] colorProfileBytes = IOUtils.toByteArray(colorProfile);
+                builder.useColorProfile(colorProfileBytes);
             }
         
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            doc.save(baos);
+            builder.toStream(baos);
+            builder.run();
             pdfBytes = baos.toByteArray();
-        }
         
         Files.createDirectories(Paths.get("target/test/pdf/"));
         Files.write(Paths.get("target/test/pdf/" + resource + "--" + flavour + ".pdf"), pdfBytes);
@@ -113,31 +100,32 @@ public class PdfATester {
         }
     }
     
-    @Ignore // Failing, multiple. See issue number 326.
+    /**
+     * PDF/A conformance. Issue 326.
+     * NOTE: PDF/A1 standards do not support alpha in images.
+     */
     @Test
     public void testAllInOnePdfA1b() throws Exception {
-        assertTrue(run("all-in-one", PDFAFlavour.PDFA_1_B, PdfAConformance.PDFA_1_B));
+        assertTrue(run("all-in-one-no-alpha", PDFAFlavour.PDFA_1_B, PdfAConformance.PDFA_1_B));
     }
 
-    @Ignore
+    @Ignore // Failing because we haven't set up structure tagging for PDF/A1a standard.
     @Test
     public void testAllInOnePdfA1a() throws Exception {
-        assertTrue(run("all-in-one", PDFAFlavour.PDFA_1_A, PdfAConformance.PDFA_1_A));
+        assertTrue(run("all-in-one-no-alpha", PDFAFlavour.PDFA_1_A, PdfAConformance.PDFA_1_A));
     }
     
-    @Ignore
     @Test
     public void testAllInOnePdfA2b() throws Exception {
         assertTrue(run("all-in-one", PDFAFlavour.PDFA_2_B, PdfAConformance.PDFA_2_B));
     }
 
-    @Ignore
+    @Ignore // Failing because we haven't set up structure tagging for PDF/A2a standard.
     @Test
     public void testAllInOnePdfA2a() throws Exception {
         assertTrue(run("all-in-one", PDFAFlavour.PDFA_2_A, PdfAConformance.PDFA_2_A));
     }
     
-    @Ignore
     @Test
     public void testAllInOnePdfA2u() throws Exception {
         assertTrue(run("all-in-one", PDFAFlavour.PDFA_2_U, PdfAConformance.PDFA_2_U));

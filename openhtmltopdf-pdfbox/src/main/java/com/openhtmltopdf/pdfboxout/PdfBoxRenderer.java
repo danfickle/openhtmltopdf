@@ -58,12 +58,12 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.encryption.PDEncryption;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
 import org.apache.xmpbox.schema.AdobePDFSchema;
+import org.apache.xmpbox.schema.DublinCoreSchema;
 import org.apache.xmpbox.schema.PDFAIdentificationSchema;
 import org.apache.xmpbox.schema.XMPBasicSchema;
 import org.apache.xmpbox.schema.XMPSchema;
@@ -150,7 +150,9 @@ public class PdfBoxRenderer implements Closeable {
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = state._testMode;
         _useFastMode = state._useFastRenderer;
-        _outputDevice = state._useFastRenderer ? new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode, state._pdfUaConform) : new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
+        _outputDevice = state._useFastRenderer ? 
+                new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode, state._pdfUaConform, state._pdfAConformance != PdfAConformance.NONE) : 
+                new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
         _outputDevice.setWriter(_pdfDoc);
         _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
         
@@ -754,16 +756,41 @@ public class PdfBoxRenderer implements Closeable {
         XMPMetadata metadata = XMPMetadata.createXMPMetadata();
 
         try {
+            String title = information.getTitle();
+            String author = information.getAuthor();
+            String subject = information.getSubject();
+            String keywords = information.getKeywords();
+            String producer = information.getProducer();
+            
+            // NOTE: The XMP metadata MUST match up with the document information dictionary
+            // to be a valid PDF/A document.
+            
             PDFAIdentificationSchema pdfaid = metadata.createAndAddPFAIdentificationSchema();
             pdfaid.setConformance(conformance);
             pdfaid.setPart(part);
 
             AdobePDFSchema pdfSchema = metadata.createAndAddAdobePDFSchema();
-            pdfSchema.setProducer(information.getProducer());
-
+            if (keywords != null) {
+                pdfSchema.setKeywords(keywords);
+            }
+            if (producer != null) {
+                pdfSchema.setProducer(producer);
+            }
+            
             XMPBasicSchema xmpBasicSchema = metadata.createAndAddXMPBasicSchema();
             xmpBasicSchema.setCreateDate(information.getCreationDate());
-
+            
+            DublinCoreSchema dc = metadata.createAndAddDublinCoreSchema();
+            if (author != null) {
+                dc.addCreator(author);
+            }
+            if (title != null) {
+                dc.setTitle(title);
+            }
+            if (subject != null) {
+                dc.setDescription(subject);
+            }
+            
             PDMetadata metadataStream = new PDMetadata(document);
             PDMarkInfo markInfo = new PDMarkInfo();
             markInfo.setMarked(true);
@@ -771,18 +798,12 @@ public class PdfBoxRenderer implements Closeable {
             // add to catalog
             PDDocumentCatalog catalog = document.getDocumentCatalog();
             catalog.setMetadata(metadataStream);
-            // for pdf/a-1 compliance, add the StructTreeRoot that https://www.pdf-online.com/osa/validate.aspx was
-            // complaining. Based on https://stackoverflow.com/a/46806392
-            catalog.setStructureTreeRoot(new PDStructureTreeRoot());
-            //
-
             catalog.setMarkInfo(markInfo);
 
             XmpSerializer serializer = new XmpSerializer();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             serializer.serialize(metadata, baos, true);
             metadataStream.importXMPMetadata( baos.toByteArray() );
-
 
             if (_colorProfile != null) {
                 ByteArrayInputStream colorProfile = new ByteArrayInputStream(_colorProfile);
