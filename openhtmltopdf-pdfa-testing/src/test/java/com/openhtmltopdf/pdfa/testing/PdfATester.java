@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.verapdf.pdfa.Foundries;
 import org.verapdf.pdfa.PDFAParser;
@@ -61,7 +60,8 @@ public class PdfATester {
         
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
-            builder.testMode(true);
+            //builder.testMode(true);
+            builder.usePdfVersion(conform.getPart() == 1 ? 1.4f : 1.5f);
             builder.usePdfAConformance(conform);
             builder.useFont(new File("target/test/artefacts/Karla-Bold.ttf"), "TestFont");
             builder.withHtmlContent(html, PdfATester.class.getResource("/html/").toString());
@@ -109,8 +109,7 @@ public class PdfATester {
         assertTrue(run("all-in-one-no-alpha", PDFAFlavour.PDFA_1_B, PdfAConformance.PDFA_1_B));
     }
 
-    @Ignore // Failing because TFoot, Tbody and THead strcuture types were only introduced with PDF 1.5. 
-    @Test   // We have to factor them out when using PDF/A1a.
+    @Test
     public void testAllInOnePdfA1a() throws Exception {
         assertTrue(run("all-in-one-no-alpha", PDFAFlavour.PDFA_1_A, PdfAConformance.PDFA_1_A));
     }

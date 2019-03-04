@@ -377,6 +377,7 @@ public class PdfBoxAccessibilityHelper {
         final TableHeadStructualElement thead = new TableHeadStructualElement();
         final List<TableBodyStructualElement> tbodies = new ArrayList<>(1);
         final TableFootStructualElement tfoot = new TableFootStructualElement();
+        float pdfVersion = 1.5f;
         
         @Override
         void addChild(AbstractTreeItem child) {
@@ -387,6 +388,10 @@ public class PdfBoxAccessibilityHelper {
             }
         }
 
+        void setPdfVersion(float version) {
+            this.pdfVersion = version;
+        }
+        
         @Override
         String getPdfTag() {
             return StandardStructureTypes.TABLE;
@@ -398,9 +403,17 @@ public class PdfBoxAccessibilityHelper {
             
             createPdfStrucureElement(parent, child);
             
-            finishTreeItem(child.thead, child);
-            finishTreeItems(child.tbodies, child);
-            finishTreeItem(child.tfoot, child);
+            if (pdfVersion < 1.5f) {
+                // THead, TBody and TFoot were introduced in PDF 1.5 so if we can not use
+                // them then we process their rows directly and add them to the table.
+                finishTreeItems(child.thead.children, child);
+                child.tbodies.forEach(tbody -> finishTreeItems(tbody.children, child));
+                finishTreeItems(child.tfoot.children, child);
+            } else {
+                finishTreeItem(child.thead, child);
+                finishTreeItems(child.tbodies, child);
+                finishTreeItem(child.tfoot, child);
+            }
         }
     }
     
@@ -659,7 +672,6 @@ public class PdfBoxAccessibilityHelper {
     }
     
     private static void logIncompatibleChild(AbstractTreeItem parent, AbstractTreeItem child, Class<?> expected) {
-        System.out.println("OH OH");
         XRLog.general(Level.WARNING,
                 "Trying to add incompatible child to parent item: " +
                 " child type=" + child.getClass().getSimpleName() + 
@@ -835,6 +847,8 @@ public class PdfBoxAccessibilityHelper {
                 box.getParent().getAccessibilityObject() instanceof TableStructualElement) {
                 
                 TableStructualElement table = (TableStructualElement) box.getParent().getAccessibilityObject();
+                
+                table.setPdfVersion(_od.getWriter().getVersion());
                 
                 if (box.getStyle().isIdent(CSSName.DISPLAY, IdentValue.TABLE_HEADER_GROUP)) {
                     child = table.thead;
