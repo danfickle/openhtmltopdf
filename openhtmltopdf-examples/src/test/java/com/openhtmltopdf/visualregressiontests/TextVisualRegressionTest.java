@@ -496,4 +496,13 @@ public class TextVisualRegressionTest {
     public void testContentPageNumbers() throws IOException {
         assertTrue(run("content-page-numbers"));
     }
+    
+    /**
+     * Tests a typical table-of-contents setup with leader function, attr function and target-counter function.
+     * With overflow page in the middle.
+     */
+    @Test
+    public void testContentTableOfContentsExample() throws IOException {
+        assertTrue(run("content-toc-example"));
+    }
 }

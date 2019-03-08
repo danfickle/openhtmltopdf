@@ -1,0 +1,59 @@
+<html>
+<head>
+<style>
+@page {
+  size: 180px 100px;
+  margin: 18px;
+  -fs-max-overflow-pages: 10;
+  -fs-overflow-pages-direction: ltr;
+  
+  @top-left {
+    content: "Page " counter(page) -fs-if-cut-off(" (continued)") " of " counter(pages);
+    font-family: 'TestFont';
+    font-size: 12px;
+  }
+}
+body {
+  margin: 0;
+}
+div {
+  box-sizing: border-box;
+  margin: 0;
+}
+.outer {
+  border: 1px solid black;
+  background-color: red;
+  min-height: 20px;
+}
+.inner {
+  border: 1px solid blue;
+  background-color: orange;
+  min-height: 15px;
+}
+#toc a {
+  display: block;
+}
+#toc a:before {
+  content: attr(title) leader(dotted);  
+}
+#toc a:after {
+  content: target-counter(attr(href), page);
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; color: black; font-size: 12px;">
+
+ <div id="toc">
+  <a title="Table of Contents" href="#toc"></a>
+  <a title="More content" href="#more-content"></a>
+  <a title="The end" href="#the-end"></a>
+ </div>
+
+ <div id="more-content" style="page-break-before: always;">More content (with overflow)</div>
+ <div class="outer" style="width: 150%;">
+  <div class="inner" style="width: 100%;">ABCDEFGHIJKLMNOPQRSTUVWXYZ</div>
+ </div>
+ 
+ <div id="the-end" style="page-break-before: always;">The end</div>
+</body>
+</html>
