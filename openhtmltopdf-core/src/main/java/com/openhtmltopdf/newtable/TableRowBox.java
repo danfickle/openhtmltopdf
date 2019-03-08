@@ -591,4 +591,9 @@ public class TableRowBox extends BlockBox {
         }
         return currentDelta;
     }
+    
+    @Override
+    protected BlockBox getNextCollapsableSibling(MarginCollapseResult collapsedMargin) {
+        return null;
+    }
 }

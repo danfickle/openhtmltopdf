@@ -1234,7 +1234,7 @@ public class BlockBox extends Box implements InlinePaintable {
         }
     }
 
-    private BlockBox getNextCollapsableSibling(MarginCollapseResult collapsedMargin) {
+    protected BlockBox getNextCollapsableSibling(MarginCollapseResult collapsedMargin) {
         BlockBox next = (BlockBox) getNextSibling();
         while (next != null) {
             if (next instanceof AnonymousBlockBox) {
@@ -2236,7 +2236,7 @@ public class BlockBox extends Box implements InlinePaintable {
         }
     }
 
-    private static class MarginCollapseResult {
+    public static class MarginCollapseResult {
         private int maxPositive;
         private int maxNegative;
 

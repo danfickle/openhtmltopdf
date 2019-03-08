@@ -417,7 +417,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             return;
 
         ensureFillColor();
-        AffineTransform at = (AffineTransform) getTransform().clone();
+        AffineTransform at = new AffineTransform(getTransform());
         at.translate(x, y);
         AffineTransform inverse = normalizeMatrix(at);
         AffineTransform flipper = AffineTransform.getScaleInstance(1, -1);
