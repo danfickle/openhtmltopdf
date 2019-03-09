@@ -54,7 +54,39 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 ## CHANGELOG
 
 ### head - 0.0.1-RC18-SNAPSHOT
++ [#180](https://github.com/danfickle/openhtmltopdf/issues/180) Fast renderer is finally ready for production. The fast renderer comes with:
+  + Nearly 150 automated end-to-end regression tests. This is about 150 more than the old renderer.
+  + Improved performance. This renderer scales linearly with the number of pages, compared to the old renderer which scaled with the page count squared.
+  + Far better support for transforms, including nested transforms, multiple transforms and transforms interacting with hidden overflow, etc.
+  + Better support for hidden overflow, with boxes now not escaping except with accordance to the standard.
+  + Support for inserted cut off overflow pages. See [Cut-off page support](https://github.com/danfickle/openhtmltopdf/wiki/Cut-off-page-support) on the wiki.
+  + Link areas and their hash link targets now repect transforms.
+  + Bookmark targets now respect transforms.
+  + Improved page placement for boxes. Now respects overflow and tranform properties.
+  + Greater understanding which should make fixes and feature improvements easier.
++ Visual testing API is now available to use in the PDFBOX module. Please see [testing your PDF](https://github.com/danfickle/openhtmltopdf/wiki/Testing-Your-PDF-Document-Output) on the wiki. Thanks @red6.
 + [#333](https://github.com/danfickle/openhtmltopdf/pull/333) Upgraded PDFBox to 2.0.14 and PDFBox-Graphics2D to 0.21.
++ [#315](https://github.com/danfickle/openhtmltopdf/pull/315), [#79](https://github.com/danfickle/openhtmltopdf/issues/79) Accessible and tagged PDF support. See [PDF Accessibility (PDF UA, WCAG, Section 508) Support](https://github.com/danfickle/openhtmltopdf/wiki/PDF-Accessibility-(PDF-UA,-WCAG,-Section-508)-Support) on the wiki.
++ [#326](https://github.com/danfickle/openhtmltopdf/issues/326) Proper support for PDF/A standards with automatic regression testing. See [PDF/A Standards Compliance](https://github.com/danfickle/openhtmltopdf/wiki/PDF-A-Standards-Compliance) on the wiki.
++ [#328](https://github.com/danfickle/openhtmltopdf/issues/328) SVG with `page` rule was crashing in certain circumstances.
++ [#324](https://github.com/danfickle/openhtmltopdf/issues/324) Better logging with invalid or missing fonts.
++ [#320](https://github.com/danfickle/openhtmltopdf/pull/320) NPE prevention in case of incorrect font configuration.
++ [a145329](https://github.com/danfickle/openhtmltopdf/commit/a145329aa03bab62725a883b3a5c05ffd49996c8) Were using incorrect font-metrics in certain situations.
++ [#303](https://github.com/danfickle/openhtmltopdf/issues/303) Fixed: Table borders are partly transparent.
++ [#297](https://github.com/danfickle/openhtmltopdf/issues/297) Fixed: Border not printed with "overflow: hidden".
++ [#304](https://github.com/danfickle/openhtmltopdf/pull/304) Fix warnings for icon font without space inside PDF/A, add tests.
++ [#301](https://github.com/danfickle/openhtmltopdf/pull/301) Make loading resources from classpath work when openhtmltopdf is a named module.
++ [#232](https://github.com/danfickle/openhtmltopdf/issues/232) Were using JRE internal APIs.
++ [#289](https://github.com/danfickle/openhtmltopdf/issues/289) System.out.println("Getting image") in NaiveUserAgent.
+
+Thanks to these people for pull-requests:
++ @rototor
++ @brundipub
++ @zimmi
++ @dnguyenminh
+
+Finally, a big thanks to all issue reporters and extra thanks to those who help out in issues.
+
 
 ### 0.0.1-RC17
 + [#284](https://github.com/danfickle/openhtmltopdf/pull/284) [#288](https://github.com/danfickle/openhtmltopdf/issues/288) IMPORTANT: This release was brought forward due to a CVE in Apache Batik used by the optional SVG module.
