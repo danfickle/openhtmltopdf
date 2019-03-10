@@ -31,9 +31,11 @@ way and for any purpose you want as long as you respect the terms of the
 license. A copy of the LGPL license is included as license-lgpl-2.1.txt or license-lgpl-3.txt
 in our distributions and in our source tree.
 
+An exception to this is the pdf-a testing module, which is licensed under the GPL. This module is not distributed to Maven Central
+and is for testing only.
+
 Open HTML to PDF uses a couple of FOSS packages to get the job done. A list
-of these, along with the license they each have, is listed in the 
-LICENSE file in our distribution.   
+of these can be found in the [dependency graph](https://github.com/danfickle/openhtmltopdf/network/dependencies).
 
 ## CREDITS
 Open HTML to PDF is based on [Flying-saucer](https://github.com/flyingsaucerproject/flyingsaucer). Credit goes to the contributors of that project. Code will also be used from [neoFlyingSaucer](https://github.com/danfickle/neoflyingsaucer)
