@@ -123,9 +123,9 @@ public abstract class Box implements Styleable, DisplayListItem {
      * Since it is only used for floats, the result is not cached. Revisit this decision if using for every box.
      * 
      * There are several other clip methods available:
-     * + {@link #getChildrenClipEdge(RenderingContext)} - gets the local clip for a single box.
+     * + {@link #getChildrenClipEdge(CssContext)} - gets the local clip for a single box.
      * + {@link #getParentClipBox(RenderingContext, Layer)} - gets the layer relative clip for the parent box.
-     * + {@link #getAbsoluteClipBox(RenderingContext)} - gets the absolute clip box in document coordinates
+     * + {@link #getAbsoluteClipBox(CssContext)} - gets the absolute clip box in document coordinates
      */
     public Rectangle getClipBox(RenderingContext c, Layer layer) {
         return calcClipBox(c, layer);
