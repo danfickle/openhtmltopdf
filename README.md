@@ -17,7 +17,7 @@ to get good results. Avoid floats near page breaks and use table layouts.
 
 ## GETTING STARTED
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
-+ [Integration guide](docs/integration-guide.md) - get maven artifacts and code to get started.
++ [Integration guide](https://github.com/danfickle/openhtmltopdf/wiki/Integration-Guide) - get maven artifacts and code to get started.
 + [Documentation wiki](https://github.com/danfickle/openhtmltopdf/wiki)
 + [Template Author Guide - PDF - DEPRECATED - Prefer wiki](https://openhtmltopdf.com/template-guide.pdf) - Moving info to wiki
 + [RC16 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
