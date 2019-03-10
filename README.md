@@ -23,6 +23,20 @@ to get good results. Avoid floats near page breaks and use table layouts.
 + [RC16 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
 + [Sample Project - Pretty Resume Generator](https://github.com/danfickle/pretty-resume)
 
+## DIFFERENCES WITH FLYING SAUCER
++ Uses the well-maintained and open-source (LGPL compatible) PDFBOX as PDF library, rather than iText.
++ Proper support for generating accessible PDFs (Section 508, PDF/UA, WCAG 2.0).
++ Proper support for generating PDF/A standards compliant PDFs.
++ New, faster renderer means this project can be several times faster for very large documents.
++ Better support for CSS3 transforms.
++ Automatic visual regression testing of PDFs, with many end-to-end tests.
++ Ability to insert pages for cut-off content.
++ Built-in plugins for SVG and MathML.
++ Font fallback support.
++ Limited support for RTL and bi-directional documents.
++ On the negative side, no support for OpenType fonts.
++ Much more. See changelog below.
+
 ## LICENSE
 Open HTML to PDF is distributed under the LGPL.  Open HTML to PDF itself is licensed 
 under the GNU Lesser General Public License, version 2.1 or later, available at
