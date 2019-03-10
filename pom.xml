@@ -5,7 +5,7 @@
 
   <groupId>com.openhtmltopdf</groupId>
   <artifactId>openhtmltopdf-parent</artifactId>
-  <version>0.0.1-RC18-SNAPSHOT</version>
+  <version>0.0.1-RC18</version>
 
   <packaging>pom</packaging>
 
@@ -41,7 +41,7 @@
     <connection>scm:git:git://github.com/danfickle/openhtmltopdf.git</connection>
     <developerConnection>scm:git:https://github.com/danfickle/openhtmltopdf.git</developerConnection>
     <url>git://github.com/danfickle/openhtmltopdf.git</url>
-    <tag>HEAD</tag>
+    <tag>openhtmltopdf-parent-0.0.1-RC18</tag>
   </scm>
 
   <distributionManagement>
