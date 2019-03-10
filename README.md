@@ -69,7 +69,9 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 
 ## CHANGELOG
 
-### head - 0.0.1-RC18-SNAPSHOT
+### head - 0.0.1-RC19-SNAPSHOT
+
+### 0.0.1-RC18 (2019-March-10)
 + Please start using the fast renderer (`builder.useFastMode()`) as the old renderer will be removed in a future version.
 + [#180](https://github.com/danfickle/openhtmltopdf/issues/180) Fast renderer is finally ready for production. The fast renderer comes with:
   + Nearly 150 automated end-to-end regression tests. This is about 150 more than the old renderer.
