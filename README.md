@@ -20,7 +20,7 @@ to get good results. Avoid floats near page breaks and use table layouts.
 + [Integration guide](https://github.com/danfickle/openhtmltopdf/wiki/Integration-Guide) - get maven artifacts and code to get started.
 + [Documentation wiki](https://github.com/danfickle/openhtmltopdf/wiki)
 + [Template Author Guide - PDF - DEPRECATED - Prefer wiki](https://openhtmltopdf.com/template-guide.pdf) - Moving info to wiki
-+ [RC16 Online Sandbox](https://sandbox.openhtmltopdf.com/) - Please do not abuse.
++ [RC18 Online Sandbox](https://sandbox.openhtmltopdf.com/) - With more samples!
 + [Sample Project - Pretty Resume Generator](https://github.com/danfickle/pretty-resume)
 
 ## DIFFERENCES WITH FLYING SAUCER
