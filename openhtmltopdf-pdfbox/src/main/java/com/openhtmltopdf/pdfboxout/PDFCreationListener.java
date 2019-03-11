@@ -53,24 +53,4 @@ public interface PDFCreationListener {
      */
     void onClose(PdfBoxRenderer renderer);
     
-    /**
-     * Called when a new {@link PDPage} is to be created.
-     * 
-     * @param doc {@link PDDocument} page belongs to
-     * @param pageWidth width of page
-     * @param pageHeight height of page
-     * @return page
-     */
-    PDPage onCreatePage(PDDocument doc, float pageWidth, float pageHeight);
-    
-    /**
-     * Called when a new {@link PDPage} is to be created.
-     * 
-     * @param doc {@link PDDocument Document} page belongs to
-     * @param pageSize Size of page as {@link Rectangle2D}
-     * @return page
-     */
-    default PDPage onCreatePage(PDDocument doc, Rectangle2D pageSize) {
-    	return onCreatePage(doc, (float) pageSize.getWidth(), (float) pageSize.getHeight());
-    }
 }
