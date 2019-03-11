@@ -16,38 +16,3 @@ order to build and run. All currently used libraries are thought to have license
 However, there are several jars under the obsolete-archive folder that are no longer used 
 and their licenses are out of the scope of this document. Please check the license before
 using any of those jars.
-
-Java projects that are used for building and running openhtmltopdf are:
-
-Apache PDF-BOX
-  License: Apache v2
-
-Jsoup
-  License: MIT
-
-log4j
-  License: Apache v2
-
-icu4j
-  License: Unicode (http://www.unicode.org/copyright.html#License)
-
-slf4j
-  License: MIT
-
-batik
-  License: Apache v2
-
-JUnit (for testing)
-  http://junit.org
-  License: Eclipse
-
-DocBook CSS (DocBook XML Rendering with CSS)
-  MozBook CSS (public domain, released by David Horton)
-  WSIWYGDocBook 1.01 -- see demos\docbook\wysiwygdocbook1.01, and COPYING therein
-  docbook-css-0.4 -- see demos\docbook\docbook-css-0.4, and COPYING therein
-
-W3C CSS Test Suite
-  Distributed with our source bundle for the convenience of our developers.
-  License is W3C Document License, see LICENSE_W3C_TEST.
-  Source is http://www.w3.org/Style/CSS/Test/, for the most current version
-  please see that URL.
