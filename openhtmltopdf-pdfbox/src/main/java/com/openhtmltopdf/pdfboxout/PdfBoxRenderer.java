@@ -577,13 +577,28 @@ public class PdfBoxRenderer implements Closeable {
         }
     }
     
+    private PDPage fireOnCreate(PDDocument doc, float pageWidth, float pageHeight) {
+    	// delegate to listener if possible
+    	if (_listener != null) {
+    		return _listener.onCreatePage(doc, pageWidth, pageHeight);
+    	}
+    	
+    	// default: create page and add to the document
+    	PDPage page = new PDPage(new PDRectangle(pageWidth, pageHeight));
+        doc.addPage(page);
+        return page;
+    }
+    
+    private PDPage fireOnCreate(PDDocument doc, Rectangle2D pageSize) {
+    	return fireOnCreate(doc, (float) pageSize.getWidth(), (float) pageSize.getHeight());
+    }
+    
     private void writePDFFast(List<PageBox> pages, RenderingContext c, Rectangle2D firstPageSize, PDDocument doc) throws IOException {
         _outputDevice.setRoot(_root);
         _outputDevice.start(_doc);
         
-        PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
+        PDPage page = fireOnCreate(doc, firstPageSize);
         PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, !_testMode);
-        doc.addPage(page);
         
         _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
         _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
@@ -622,9 +637,8 @@ public class PdfBoxRenderer implements Closeable {
                 int translateX = pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1);
 
                 for (DisplayListPageContainer shadowPage : pageOperations.shadowPages()) {
-                    PDPage shadowPdPage = new PDPage(new PDRectangle((float) currentPage.getWidth(c) / _dotsPerPoint, (float) currentPage.getHeight(c) / _dotsPerPoint));
+                    PDPage shadowPdPage = fireOnCreate(doc, (float) currentPage.getWidth(c) / _dotsPerPoint, (float) currentPage.getHeight(c) / _dotsPerPoint);
                     PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);
-                    doc.addPage(shadowPdPage);
 
                     _outputDevice.initializePage(shadowCs, shadowPdPage, (float) currentPage.getHeight(c) / _dotsPerPoint);
                     c.setShadowPageNumber(shadowPageIndex);
@@ -639,9 +653,8 @@ public class PdfBoxRenderer implements Closeable {
                 PageBox nextPage = pages.get(i + 1);
                 Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
                         nextPage.getHeight(c) / _dotsPerPoint);
-                PDPage pageNext = new PDPage(new PDRectangle((float) nextPageSize.getWidth(), (float) nextPageSize.getHeight()));
+                PDPage pageNext = fireOnCreate(doc, nextPageSize);
                 PDPageContentStream csNext = new PDPageContentStream(doc, pageNext, AppendMode.APPEND, !_testMode);
-                doc.addPage(pageNext);
                 _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
             }
         }
@@ -653,9 +666,8 @@ public class PdfBoxRenderer implements Closeable {
         _outputDevice.setRoot(_root);
         _outputDevice.start(_doc);
         
-        PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
+        PDPage page = fireOnCreate(doc, firstPageSize);
         PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, !_testMode);
-        doc.addPage(page);
         
         _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
         _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
@@ -680,9 +692,8 @@ public class PdfBoxRenderer implements Closeable {
                 PageBox nextPage = pages.get(i + 1);
                 Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
                         nextPage.getHeight(c) / _dotsPerPoint);
-                PDPage pageNext = new PDPage(new PDRectangle((float) nextPageSize.getWidth(), (float) nextPageSize.getHeight()));
+                PDPage pageNext = fireOnCreate(doc, nextPageSize);
                 PDPageContentStream csNext = new PDPageContentStream(doc, pageNext, AppendMode.APPEND, !_testMode);
-                doc.addPage(pageNext);
                 _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
             }
         }

@@ -19,6 +19,12 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
+import java.awt.geom.Rectangle2D;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+
 /**
  * Callback listener for PDF creation. To use this, call {@link PdfBoxRenderer#setListener(PDFCreationListener)}.
  */
@@ -46,4 +52,25 @@ public interface PDFCreationListener {
      * @param renderer the iTextRenderer preparing the document
      */
     void onClose(PdfBoxRenderer renderer);
+    
+    /**
+     * Called when a new {@link PDPage} is to be created.
+     * 
+     * @param doc {@link PDDocument} page belongs to
+     * @param pageWidth width of page
+     * @param pageHeight height of page
+     * @return page
+     */
+    PDPage onCreatePage(PDDocument doc, float pageWidth, float pageHeight);
+    
+    /**
+     * Called when a new {@link PDPage} is to be created.
+     * 
+     * @param doc {@link PDDocument Document} page belongs to
+     * @param pageSize Size of page as {@link Rectangle2D}
+     * @return page
+     */
+    default PDPage onCreatePage(PDDocument doc, Rectangle2D pageSize) {
+    	return onCreatePage(doc, (float) pageSize.getWidth(), (float) pageSize.getHeight());
+    }
 }
