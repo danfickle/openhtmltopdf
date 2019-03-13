@@ -585,7 +585,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         _outputDevice.setRoot(_root);
         _outputDevice.start(_doc);
         
-        PDPage page = _pageSupplier.requestPage(doc, (float) firstPageSize.getWidth(), (float) firstPageSize.getHeight(), 1, -1);
+        PDPage page = _pageSupplier.requestPage(doc, (float) firstPageSize.getWidth(), (float) firstPageSize.getHeight(), 0, -1);
         PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, !_testMode);
         
         _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
@@ -616,7 +616,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             paintPageFast(c, currentPage, pageOperations, 0);
             _outputDevice.finishPage();
             pdfPageIndex++;
-            
+                        
             if (!pageOperations.shadowPages().isEmpty()) {
                 currentPage.setShadowPageCount(pageOperations.shadowPages().size());
                 
@@ -626,7 +626,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
                 for (DisplayListPageContainer shadowPage : pageOperations.shadowPages()) {
                     PDPage shadowPdPage = 
-                    		_pageSupplier.requestPage(doc, (float) currentPage.getWidth(c) / _dotsPerPoint, (float) currentPage.getHeight(c) / _dotsPerPoint, pdfPageIndex, shadowPageIndex);
+                    		_pageSupplier.requestPage(doc, (float) currentPage.getWidth(c) / _dotsPerPoint, (float) currentPage.getHeight(c) / _dotsPerPoint, i, shadowPageIndex);
                     PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);
 
                     _outputDevice.initializePage(shadowCs, shadowPdPage, (float) currentPage.getHeight(c) / _dotsPerPoint);

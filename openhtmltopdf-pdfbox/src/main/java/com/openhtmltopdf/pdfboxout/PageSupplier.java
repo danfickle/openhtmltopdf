@@ -5,7 +5,10 @@ import org.apache.pdfbox.pdmodel.PDPage;
 
 /**
  * The PageSupplier is called whenever a (new) page (or shadow-page) is needed.<br>
- * With this you can control page-creation (or maybe you want to supply already existing pages).
+ * With this you can control page-creation (or maybe you want to supply already existing pages).<p>
+ * Quick note on shadow-pages (<b>optional feature</b>):<br>
+ * Shadow-pages would contain overflow content which would otherwise be silently discared, 
+ * see the <a href="https://github.com/danfickle/openhtmltopdf/wiki/Cut-off-page-support">OpenHtmlToPdf wiki</a>.
  */
 @FunctionalInterface
 public interface PageSupplier {
