@@ -31,4 +31,5 @@ public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBui
 	public PdfAConformance _pdfAConformance = PdfAConformance.NONE;
 	public boolean _pdfUaConform = false;
 	public byte[] _colorProfile;
+	public PageSupplier _pageSupplier;
 }

@@ -25,6 +25,7 @@ import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.Page;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.BoxBuilder;
@@ -86,7 +87,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-public class PdfBoxRenderer implements Closeable {
+public class PdfBoxRenderer implements Closeable, PageSupplier {
     // See discussion of units at top of PdfBoxOutputDevice.
     private static final float DEFAULT_DOTS_PER_POINT = 20f * 4f / 3f;
     private static final int DEFAULT_DOTS_PER_PIXEL = 20;
@@ -128,6 +129,8 @@ public class PdfBoxRenderer implements Closeable {
     private BidiReorderer _reorderer;
     private final boolean _useFastMode;
 
+    private PageSupplier _pageSupplier;
+    
     /**
      * This method is constantly changing as options are added to the builder.
      */
@@ -139,6 +142,7 @@ public class PdfBoxRenderer implements Closeable {
 
         _producer = state._producer;
 
+        _pageSupplier = state._pageSupplier != null ? state._pageSupplier : this;
 
         _svgImpl = state._svgImpl;
         _mathmlImpl = state._mathmlImpl;
@@ -581,9 +585,8 @@ public class PdfBoxRenderer implements Closeable {
         _outputDevice.setRoot(_root);
         _outputDevice.start(_doc);
         
-        PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
+        PDPage page = _pageSupplier.requestPage(doc, (float) firstPageSize.getWidth(), (float) firstPageSize.getHeight(), 0, -1);
         PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, !_testMode);
-        doc.addPage(page);
         
         _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
         _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
@@ -613,7 +616,7 @@ public class PdfBoxRenderer implements Closeable {
             paintPageFast(c, currentPage, pageOperations, 0);
             _outputDevice.finishPage();
             pdfPageIndex++;
-            
+                        
             if (!pageOperations.shadowPages().isEmpty()) {
                 currentPage.setShadowPageCount(pageOperations.shadowPages().size());
                 
@@ -622,9 +625,9 @@ public class PdfBoxRenderer implements Closeable {
                 int translateX = pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1);
 
                 for (DisplayListPageContainer shadowPage : pageOperations.shadowPages()) {
-                    PDPage shadowPdPage = new PDPage(new PDRectangle((float) currentPage.getWidth(c) / _dotsPerPoint, (float) currentPage.getHeight(c) / _dotsPerPoint));
+                    PDPage shadowPdPage = 
+                    		_pageSupplier.requestPage(doc, (float) currentPage.getWidth(c) / _dotsPerPoint, (float) currentPage.getHeight(c) / _dotsPerPoint, i, shadowPageIndex);
                     PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);
-                    doc.addPage(shadowPdPage);
 
                     _outputDevice.initializePage(shadowCs, shadowPdPage, (float) currentPage.getHeight(c) / _dotsPerPoint);
                     c.setShadowPageNumber(shadowPageIndex);
@@ -639,9 +642,9 @@ public class PdfBoxRenderer implements Closeable {
                 PageBox nextPage = pages.get(i + 1);
                 Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
                         nextPage.getHeight(c) / _dotsPerPoint);
-                PDPage pageNext = new PDPage(new PDRectangle((float) nextPageSize.getWidth(), (float) nextPageSize.getHeight()));
+                PDPage pageNext = 
+                		_pageSupplier.requestPage(doc, (float) nextPageSize.getWidth(), (float) nextPageSize.getHeight(), pdfPageIndex, -1);
                 PDPageContentStream csNext = new PDPageContentStream(doc, pageNext, AppendMode.APPEND, !_testMode);
-                doc.addPage(pageNext);
                 _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
             }
         }
@@ -653,9 +656,8 @@ public class PdfBoxRenderer implements Closeable {
         _outputDevice.setRoot(_root);
         _outputDevice.start(_doc);
         
-        PDPage page = new PDPage(new PDRectangle((float) firstPageSize.getWidth(), (float) firstPageSize.getHeight()));
+        PDPage page = _pageSupplier.requestPage(doc, (float) firstPageSize.getWidth(), (float) firstPageSize.getHeight(), 1, -1);
         PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, !_testMode);
-        doc.addPage(page);
         
         _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
         _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
@@ -680,9 +682,9 @@ public class PdfBoxRenderer implements Closeable {
                 PageBox nextPage = pages.get(i + 1);
                 Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
                         nextPage.getHeight(c) / _dotsPerPoint);
-                PDPage pageNext = new PDPage(new PDRectangle((float) nextPageSize.getWidth(), (float) nextPageSize.getHeight()));
+                PDPage pageNext = 
+                		_pageSupplier.requestPage(doc, (float) nextPageSize.getWidth(), (float) nextPageSize.getHeight(), i + 1, -1);
                 PDPageContentStream csNext = new PDPageContentStream(doc, pageNext, AppendMode.APPEND, !_testMode);
-                doc.addPage(pageNext);
                 _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
             }
         }
@@ -1057,5 +1059,12 @@ public class PdfBoxRenderer implements Closeable {
     @Override
     public void close() {
         this.cleanup();
+    }
+    
+    @Override
+    public PDPage requestPage(PDDocument doc, float pageWidth, float pageHeight, int pageNumber, int shadowPageNumber) {
+    	PDPage page = new PDPage(new PDRectangle(pageWidth, pageHeight));
+    	doc.addPage(page);
+    	return page;
     }
 }

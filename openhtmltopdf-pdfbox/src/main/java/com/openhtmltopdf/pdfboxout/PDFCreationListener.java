@@ -19,6 +19,12 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
+import java.awt.geom.Rectangle2D;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+
 /**
  * Callback listener for PDF creation. To use this, call {@link PdfBoxRenderer#setListener(PDFCreationListener)}.
  */
@@ -46,4 +52,5 @@ public interface PDFCreationListener {
      * @param renderer the iTextRenderer preparing the document
      */
     void onClose(PdfBoxRenderer renderer);
+    
 }

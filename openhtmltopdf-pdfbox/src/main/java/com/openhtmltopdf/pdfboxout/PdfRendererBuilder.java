@@ -264,6 +264,17 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	    return this;
 	}
 
+	/**
+	 * Set a PageSupplier that is called whenever a new page is needed.
+	 * 
+	 * @param pageSupplier 
+	 *            {@link PageSupplier} to use
+	 * @return this for method chaining.
+	 */
+	public PdfRendererBuilder usePageSupplier(PageSupplier pageSupplier) {
+		state._pageSupplier = pageSupplier;
+		return this;
+	}
 
 	static class AddedFont {
 		private final FSSupplier<InputStream> supplier;
