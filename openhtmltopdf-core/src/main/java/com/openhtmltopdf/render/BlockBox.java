@@ -2186,8 +2186,9 @@ public class BlockBox extends Box implements InlinePaintable {
     public boolean checkPageContext(LayoutContext c) {
         if (! getStyle().isIdent(CSSName.PAGE, IdentValue.AUTO)) {
             String pageName = getStyle().getStringProperty(CSSName.PAGE);
-            if ( (! pageName.equals(c.getPageName())) && isInDocumentFlow() &&
-                    isContainsInlineContent(c)) {
+            if (!pageName.equals(c.getPageName()) && 
+                isInDocumentFlow() &&
+                (shouldBeReplaced() || isContainsInlineContent(c))) {
                 c.setPendingPageName(pageName);
                 return true;
             }

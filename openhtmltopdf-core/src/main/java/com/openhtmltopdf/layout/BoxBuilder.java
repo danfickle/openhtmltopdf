@@ -119,7 +119,7 @@ public class BoxBuilder {
 
     public static void createChildren(LayoutContext c, BlockBox parent) {
         if (parent.shouldBeReplaced()) {
-            parent.setChildrenContentType(BlockBox.CONTENT_INLINE);
+            parent.setChildrenContentType(BlockBox.CONTENT_EMPTY);
             return;
         }
 

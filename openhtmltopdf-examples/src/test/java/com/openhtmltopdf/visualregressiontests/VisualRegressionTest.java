@@ -705,7 +705,6 @@ public class VisualRegressionTest {
      * than crashing with a NPE. See issue 336.
      */
     @Test
-    @Ignore
     public void testBrokenImgInTableCell() throws IOException {
         assertTrue(vt.runTest("broken-img-in-table-cell"));
     }
@@ -715,7 +714,6 @@ public class VisualRegressionTest {
      * does not crash. See issue 336.
      */
     @Test
-    @Ignore
     public void testBrokenImgInInlineBlock() throws IOException {
         assertTrue(vt.runTest("broken-img-in-inline-block"));
     }
