@@ -700,6 +700,34 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("svg-in-wrapper-with-named-page", WITH_SVG));
     }
     
+    /**
+     * Tests that a broken image inside a table cell renders with a zero sized image rather
+     * than crashing with a NPE. See issue 336.
+     */
+    @Test
+    @Ignore
+    public void testBrokenImgInTableCell() throws IOException {
+        assertTrue(vt.runTest("broken-img-in-table-cell"));
+    }
+    
+    /**
+     * Tests that a broken image inside an inline block does not show and
+     * does not crash. See issue 336.
+     */
+    @Test
+    @Ignore
+    public void testBrokenImgInInlineBlock() throws IOException {
+        assertTrue(vt.runTest("broken-img-in-inline-block"));
+    }
+    
+    /**
+     * Tests that an image can have display: block and break over two pages.
+     */
+    @Test
+    public void testReplacedImgDisplayBlock() throws IOException {
+        assertTrue(vt.runTest("replaced-img-display-block"));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
