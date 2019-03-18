@@ -1,6 +1,10 @@
 ## CHANGELOG
 
-### head - 0.0.1-RC18-SNAPSHOT
+### 0.0.1-RC19 (2019-March-18)
++ [#336](https://github.com/danfickle/openhtmltopdf/issues/336) Fix for broken image links causing an NPE. Thanks @svenfrauen.
++ [#334](https://github.com/danfickle/openhtmltopdf/pull/334) Allow the user to supply `PDPage` objects via page supplier. Thanks @DSW-PS.
+
+### 0.0.1-RC18 (2019-March-10)
 + Please start using the fast renderer (`builder.useFastMode()`) as the old renderer will be removed in a future version.
 + [#180](https://github.com/danfickle/openhtmltopdf/issues/180) Fast renderer is finally ready for production. The fast renderer comes with:
   + Nearly 150 automated end-to-end regression tests. This is about 150 more than the old renderer.
