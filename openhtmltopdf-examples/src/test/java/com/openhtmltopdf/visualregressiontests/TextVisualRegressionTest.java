@@ -505,4 +505,14 @@ public class TextVisualRegressionTest {
     public void testContentTableOfContentsExample() throws IOException {
         assertTrue(run("content-toc-example"));
     }
+    
+    /**
+     * Tests that the table caption position is correct in the case when the table is not 100% width.
+     * Issue 340.
+     */
+    @Test
+    @Ignore // Failing because the caption box is set as 100% the width of its container, regardless of the table width.
+    public void testTableCaptionPosition() throws IOException {
+        assertTrue(run("table-caption-position"));
+    }
 }
