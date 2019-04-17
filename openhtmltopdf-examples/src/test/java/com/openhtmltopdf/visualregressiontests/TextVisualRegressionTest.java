@@ -50,6 +50,11 @@ public class TextVisualRegressionTest {
         builder.useUnicodeLineBreaker(new SimpleTextBreaker());
     };
     
+    private static final BuilderConfig WITH_EXTRA_FONT = (builder) -> {
+        WITH_FONT.configure(builder);
+        builder.useFont(new File("target/test/visual-tests/SourceSansPro-Regular.ttf"), "ExtraFont");
+    };
+    
     private static final BuilderConfig WITH_ARABIC = (builder) -> {
         WITH_FONT.configure(builder);
         builder.useFont(new File("target/test/visual-tests/NotoNaskhArabic-Regular.ttf"), "arabic");
@@ -81,6 +86,7 @@ public class TextVisualRegressionTest {
     public static void makeFontFiles() throws IOException {
         makeFontFile("Karla-Bold.ttf");
         makeFontFile("NotoNaskhArabic-Regular.ttf");
+        makeFontFile("SourceSansPro-Regular.ttf");
     }
     
     @Before
@@ -542,4 +548,25 @@ public class TextVisualRegressionTest {
     public void testArabicBiDi() throws IOException {
         assertTrue(vtester.runTest("arabic-bidi", WITH_ARABIC));
     }
+    
+    /**
+     * Tests that letter-spacing property works correctly with bi-directional text.
+     * Semi-related to issue 342.
+     */
+    @Test
+    @Ignore // It is a mess.
+    public void testLetterSpacingBidi() throws IOException {
+        assertTrue(vtester.runTest("letter-spacing-bidi", WITH_ARABIC));   
+    }
+    
+    /**
+     * Tests that letter spacing property works correctly with mutliple fallback fonts.
+     * Issue 342.
+     */
+    @Test
+    @Ignore // Characters too close in mixed font text and some overlapping.
+    public void testLetterSpacingFallbackFonts() throws IOException {
+        assertTrue(vtester.runTest("letter-spacing-fallback-fonts", WITH_EXTRA_FONT));
+    }
+    
 }
