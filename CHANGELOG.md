@@ -1,6 +1,7 @@
 ## CHANGELOG
 
 ### head - 0.0.1-RC20-SNAPSHOT
++ [#347](https://github.com/danfickle/openhtmltopdf/issues/347) Add document language and title preference for PDF/A documents to satisfy Acrobat Pro validator. Thanks @mattstjean.
 + [#339](https://github.com/danfickle/openhtmltopdf/issues/339) Mark Jsoup DOM converter module as deprecated (for removal). Please see integration guide for replacement. This module may also pull in an insecure version of Guava so please migrate now.
 
 ### 0.0.1-RC19 (2019-March-18)

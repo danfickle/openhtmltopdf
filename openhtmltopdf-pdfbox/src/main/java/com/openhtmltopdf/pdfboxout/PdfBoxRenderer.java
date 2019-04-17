@@ -812,6 +812,11 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             PDDocumentCatalog catalog = document.getDocumentCatalog();
             catalog.setMetadata(metadataStream);
             catalog.setMarkInfo(markInfo);
+            
+            String lang = _doc.getDocumentElement().getAttribute("lang");
+            catalog.setLanguage(!lang.isEmpty() ? lang : "EN-US");
+            catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
+            catalog.getViewerPreferences().setDisplayDocTitle(true);
 
             XmpSerializer serializer = new XmpSerializer();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
