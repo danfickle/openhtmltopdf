@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Locale;
 
 import static org.junit.Assert.assertTrue;
 
@@ -12,7 +13,11 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
+import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.bidi.support.ICUBreakers;
 import com.openhtmltopdf.extend.FSTextBreaker;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.TextDirection;
 import com.openhtmltopdf.visualtest.VisualTester;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
@@ -45,23 +50,37 @@ public class TextVisualRegressionTest {
         builder.useUnicodeLineBreaker(new SimpleTextBreaker());
     };
     
+    private static final BuilderConfig WITH_ARABIC = (builder) -> {
+        WITH_FONT.configure(builder);
+        builder.useFont(new File("target/test/visual-tests/NotoNaskhArabic-Regular.ttf"), "arabic");
+        builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+        builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
+        builder.useUnicodeLineBreaker(new ICUBreakers.ICULineBreaker(Locale.US)); // Overrides WITH_FONT
+        builder.defaultTextDirection(TextDirection.LTR);
+    };
+    
     /**
      * Output the font file as a regular file so we don't have to use streams.
      * @throws IOException
      */
-    @BeforeClass
-    public static void makeFontFile() throws IOException {
+    private static void makeFontFile(String resource) throws IOException {
         File outputDirectory = new File("target/test/visual-tests/test-output/");
         
         outputDirectory.mkdirs();
         
-        File fontFile = new File("target/test/visual-tests/Karla-Bold.ttf");
+        File fontFile = new File("target/test/visual-tests/" + resource);
         
         if (!fontFile.exists()) {
-            try (InputStream in = TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf")) {
+            try (InputStream in = TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/" + resource)) {
                 Files.copy(in, fontFile.toPath());
             }
         }
+    }
+    
+    @BeforeClass
+    public static void makeFontFiles() throws IOException {
+        makeFontFile("Karla-Bold.ttf");
+        makeFontFile("NotoNaskhArabic-Regular.ttf");
     }
     
     @Before
@@ -514,5 +533,13 @@ public class TextVisualRegressionTest {
     @Ignore // Failing because the caption box is set as 100% the width of its container, regardless of the table width.
     public void testTableCaptionPosition() throws IOException {
         assertTrue(run("table-caption-position"));
+    }
+    
+    /**
+     * Tests that bi-directional Arabic renders correctly (at least as far as I can compare with browser).
+     */
+    @Test
+    public void testArabicBiDi() throws IOException {
+        assertTrue(vtester.runTest("arabic-bidi", WITH_ARABIC));
     }
 }
