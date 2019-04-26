@@ -65,7 +65,7 @@
 	  <dependency>
 		  <groupId>de.rototor.pdfbox</groupId>
 		  <artifactId>graphics2d</artifactId>
-		  <version>0.21</version>
+		  <version>0.22</version>
 	  </dependency>
   </dependencies>
 
@@ -82,7 +82,7 @@
   </build>
 
   <properties>
-    <pdfbox.version>2.0.14</pdfbox.version>
+    <pdfbox.version>2.0.15</pdfbox.version>
   </properties>
 
 </project>
