@@ -405,7 +405,13 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         for (FontRun run : fontRuns) {
             drawStringFast(run.str, x + xOffset, y, info, run.des, _font.getSize2D());
             try {
-                xOffset += (run.des.getFont().getStringWidth(run.str) / 1000f) * _font.getSize2D();
+                if (info == null) {
+                    xOffset += ((run.des.getFont().getStringWidth(run.str) / 1000f) * _font.getSize2D());
+                } else {
+                    xOffset += ((run.des.getFont().getStringWidth(run.str) / 1000f) * _font.getSize2D()) +
+                               (run.spaceCharacterCount * info.getSpaceAdjust()) +
+                               (run.otherCharacterCount * info.getNonSpaceAdjust());
+                }
             } catch (Exception e) {
                 XRLog.render(Level.WARNING, "BUG. Font didn't contain expected character.", e);
             }

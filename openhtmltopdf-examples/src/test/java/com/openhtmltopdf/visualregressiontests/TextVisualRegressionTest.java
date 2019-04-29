@@ -584,7 +584,6 @@ public class TextVisualRegressionTest {
      * Semi-related to issue 342.
      */
     @Test
-    @Ignore // It is a mess.
     public void testLetterSpacingBidi() throws IOException {
         assertTrue(vtester.runTest("letter-spacing-bidi", WITH_ARABIC));   
     }
@@ -594,9 +593,16 @@ public class TextVisualRegressionTest {
      * Issue 342.
      */
     @Test
-    @Ignore // Characters too close in mixed font text and some overlapping.
     public void testLetterSpacingFallbackFonts() throws IOException {
         assertTrue(vtester.runTest("letter-spacing-fallback-fonts", WITH_EXTRA_FONT));
+    }
+    
+    /**
+     * Tests that text-justification works when fallback fonts are being used.
+     */
+    @Test
+    public void testJustificationFallbackFonts() throws IOException {
+        assertTrue(vtester.runTest("text-justify-fallback-fonts", WITH_EXTRA_FONT));
     }
     
     /**

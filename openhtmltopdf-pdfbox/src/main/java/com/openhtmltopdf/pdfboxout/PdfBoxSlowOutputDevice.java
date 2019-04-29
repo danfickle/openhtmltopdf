@@ -463,6 +463,8 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     public static class FontRun {
         String str;
         FontDescription des;
+        int spaceCharacterCount;
+        int otherCharacterCount;
     }
     
     private Object[] makeJustificationArray(String s, JustificationInfo info) {

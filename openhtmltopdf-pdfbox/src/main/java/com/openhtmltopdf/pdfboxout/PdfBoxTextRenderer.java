@@ -133,6 +133,10 @@ public class PdfBoxTextRenderer implements TextRenderer {
         FontDescription fontDescription;
     }
     
+    public static boolean isJustificationSpace(int c) {
+        return c == ' ' || c == '\u00a0' || c == '\u3000';
+    }
+    
     private static ReplacementChar getReplacementChar(FSFont font) {
         String replaceStr = ThreadCtx.get().sharedContext().getReplacementText();
         List<FontDescription> descriptions = ((PdfBoxFSFont) font).getFontDescription();
@@ -208,6 +212,12 @@ public class PdfBoxTextRenderer implements TextRenderer {
                         sb = new StringBuilder();
                     }
 
+                    if (isJustificationSpace(unicode)) {
+                        current.spaceCharacterCount++;
+                    } else {
+                        current.otherCharacterCount++;
+                    }
+                    
                     sb.append(ch);
                     gotChar = true;
                     break;
@@ -231,6 +241,13 @@ public class PdfBoxTextRenderer implements TextRenderer {
                                 current.des = des;
                                 sb = new StringBuilder();
                             }
+                            
+                            if (isJustificationSpace(unicode)) {
+                                current.spaceCharacterCount++;
+                            } else {
+                                current.otherCharacterCount++;
+                            }
+                            
                             sb.append(deshaped);
                             gotChar = true;
                             break FONT_LOOP;
@@ -258,12 +275,14 @@ public class PdfBoxTextRenderer implements TextRenderer {
                 }
                 
                 if (Character.isSpaceChar(unicode) || Character.isWhitespace(unicode)) {
+                    current.spaceCharacterCount++;
                     sb.append(' ');
                 }
                 else if (!OpenUtil.isCodePointPrintable(unicode)) {
                     // Do nothing
                 }
                 else {
+                    current.otherCharacterCount++;
                     sb.append(replace.replacement);
                 }
             }
