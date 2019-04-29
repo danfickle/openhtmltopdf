@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertTrue;
 
@@ -45,6 +47,29 @@ public class TextVisualRegressionTest {
         }
     }
     
+    /**
+     * A simple line breaker that produces similar results to the JRE standard line breaker.
+     * So we can test line breaking/justification with conditions more like real world.
+     */
+    private static class CollapsedSpaceTextBreaker implements FSTextBreaker {
+        private final static Pattern SPACES = Pattern.compile("\\s");
+        private Matcher matcher;
+        
+        @Override
+        public int next() {
+            if (!matcher.find()) {
+                return -1;
+            }
+        
+            return matcher.end();
+        }
+
+        @Override
+        public void setText(String newText) {
+            this.matcher = SPACES.matcher(newText);
+        }
+    }
+    
     private static final BuilderConfig WITH_FONT = (builder) -> {
         builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "TestFont");
         builder.useUnicodeLineBreaker(new SimpleTextBreaker());
@@ -62,6 +87,11 @@ public class TextVisualRegressionTest {
         builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
         builder.useUnicodeLineBreaker(new ICUBreakers.ICULineBreaker(Locale.US)); // Overrides WITH_FONT
         builder.defaultTextDirection(TextDirection.LTR);
+    };
+    
+    private static final BuilderConfig WITH_COLLAPSED_LINE_BREAKER = (builder) -> {
+        WITH_FONT.configure(builder);
+        builder.useUnicodeLineBreaker(new CollapsedSpaceTextBreaker());
     };
     
     /**
@@ -567,6 +597,15 @@ public class TextVisualRegressionTest {
     @Ignore // Characters too close in mixed font text and some overlapping.
     public void testLetterSpacingFallbackFonts() throws IOException {
         assertTrue(vtester.runTest("letter-spacing-fallback-fonts", WITH_EXTRA_FONT));
+    }
+    
+    /**
+     * Tests that justified text doesn't have space at the end of some lines.
+     * Issue 351.
+     */
+    @Test
+    public void testJustifySpaceAtEnd() throws IOException {
+        assertTrue(vtester.runTest("text-justify-space-at-end", WITH_COLLAPSED_LINE_BREAKER));
     }
     
 }

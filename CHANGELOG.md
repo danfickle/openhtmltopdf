@@ -1,6 +1,8 @@
 ## CHANGELOG
 
 ### head - 0.0.1-RC21-SNAPSHOT
++ [#351](https://github.com/danfickle/openhtmltopdf/issues/351) Improved text-justification by removing spaces at ends of lines. Thanks @halcsi.
+
 
 ### 0.0.1-RC20 (2019-April-26)
 **IMPORTANT:** This release was brought forward due to a CVE in PDFBOX. While not directly affecting this project (it affects parsing of untrusted PDFs), it is better not to have a vulnerable library on your classpath.

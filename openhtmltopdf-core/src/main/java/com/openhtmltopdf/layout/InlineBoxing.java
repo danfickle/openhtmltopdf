@@ -248,6 +248,10 @@ public class InlineBoxing {
                     }
 
                     if (lbContext.isNeedsNewLine()) {
+                        if (iB.getStyle().isTextJustify()) {
+                            currentLine.trimTrailingSpace(c);
+                        }
+                        
                         saveLine(currentLine, c, box, minimumLineHeight,
                                 maxAvailableWidth, pendingFloats,
                                 hasFirstLinePEs, pendingInlineLayers, markerData,
