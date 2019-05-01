@@ -671,6 +671,15 @@ public class VisualRegressionTest {
     }
     
     /**
+     * 1. Tests that an img (with percentage max-width) shows up in an absolute width table cell.
+     * 2. Tests that an img (with absolute max-width) shows up correctly sized in an auto width table cell.
+     */
+    @Test
+    public void testReplacedImgInTableCell2() throws IOException {
+        assertTrue(vt.runTest("replaced-img-in-table-cell-2"));
+    }
+    
+    /**
      * Tests that a fixed position element correctly resizes to the sum of its child boxes
      * using border-box sizing.
      */
@@ -724,6 +733,15 @@ public class VisualRegressionTest {
     @Test
     public void testReplacedImgDisplayBlock() throws IOException {
         assertTrue(vt.runTest("replaced-img-display-block"));
+    }
+    
+    /**
+     * Tests various sizing properties for replaced images including box-sizing,
+     * min/max, etc.
+     */
+    @Test
+    public void testReplacedSizingImg() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-img"));
     }
     
     // TODO:
