@@ -14,6 +14,7 @@ import org.w3c.dom.Node;
 
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.PDFTranscoder.OpenHtmlFontResolver;
 import com.openhtmltopdf.util.XRLog;
@@ -27,12 +28,12 @@ public class BatikSVGImage implements SVGImage {
 
     private PDFTranscoder pdfTranscoder;
 
-    public BatikSVGImage(Element svgElement, double cssWidth, double cssHeight,
+    public BatikSVGImage(Element svgElement, Box box, double cssWidth, double cssHeight,
             double cssMaxWidth, double cssMaxHeight, double dotsPerPixel) {
         this.svgElement = svgElement;
         this.dotsPerPixel = dotsPerPixel;
 
-        this.pdfTranscoder = new PDFTranscoder(cssWidth, cssHeight);
+        this.pdfTranscoder = new PDFTranscoder(box, dotsPerPixel, cssWidth, cssHeight);
         if (cssWidth >= 0) {
             this.pdfTranscoder.addTranscodingHint(
                     SVGAbstractTranscoder.KEY_WIDTH,

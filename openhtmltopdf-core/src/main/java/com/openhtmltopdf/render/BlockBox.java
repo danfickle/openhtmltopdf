@@ -737,15 +737,24 @@ public class BlockBox extends Box implements InlinePaintable {
         int intrinsicWidth = re.getIntrinsicWidth();
         int intrinsicHeight = re.getIntrinsicHeight();
         
-        cssWidth = !getStyle().isMaxWidthNone() && intrinsicWidth > getCSSMaxWidth(c) ? 
+        cssWidth = !getStyle().isMaxWidthNone() && 
+                (intrinsicWidth > getCSSMaxWidth(c) || cssWidth > getCSSMaxWidth(c)) ? 
                           getCSSMaxWidth(c) : cssWidth;
         cssWidth = getCSSMinWidth(c) > 0 && cssWidth < getCSSMinWidth(c) ?
                           getCSSMinWidth(c) : cssWidth;
         
-        cssHeight = !getStyle().isMaxHeightNone() && intrinsicHeight > getCSSMaxHeight(c) ?
+        cssHeight = !getStyle().isMaxHeightNone() &&
+                (intrinsicHeight > getCSSMaxHeight(c) || cssHeight > getCSSMaxHeight(c)) ?
                           getCSSMaxHeight(c) : cssHeight;
         cssHeight = getCSSMinHeight(c) > 0 && cssHeight < getCSSMinHeight(c) ?
                           getCSSMinHeight(c) : cssHeight;
+                          
+        if (getStyle().isBorderBox()) {
+            BorderPropertySet border = getBorder(c);
+            RectPropertySet padding = getPadding(c);
+            cssWidth = (int) Math.max(0, cssWidth - border.width() - padding.width());
+            cssHeight = (int) Math.max(0, cssHeight - border.height() - padding.height());
+        }
                           
         int nw;
         int nh;
@@ -798,13 +807,8 @@ public class BlockBox extends Box implements InlinePaintable {
             nh = intrinsicHeight;
         }
         
-        if (getStyle().isBorderBox()) {
-            setBorderBoxWidth(c, nw);
-            setBorderBoxHeight(c, nh);
-        } else {
-            setContentWidth(nw);
-            setHeight(nh);
-        }
+        setContentWidth(nw);
+        setHeight(nh);
     }
     
     public void calcDimensions(LayoutContext c) {

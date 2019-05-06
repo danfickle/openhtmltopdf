@@ -1,0 +1,69 @@
+<html>
+<head>
+<style>
+@page {
+  size: 500px 1500px;
+  margin: 0;
+}
+body {
+  margin: 0;
+}
+svg {
+  display: block;
+  border: 2px solid red;
+  margin: 2px;
+}
+</style>
+</head>
+<body>
+<!-- width only -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 100px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- height only -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="height: 100px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- min-width -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 100px; min-width: 200px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- min-height -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="height: 100px; min-height: 150px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- max-width -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 400px; max-width: 70px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- max-height -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="height: 400px; max-height: 80px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- border-box -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="padding: 50px; width: 220px; box-sizing: border-box;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- content-box -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="padding: 50px; width: 200px; box-sizing: content-box;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- width and height -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 100px; height: 100px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- border-box with different padding values -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="padding: 0 10px 20px 40px; width: 220px; box-sizing: border-box;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+</body>
+</html>

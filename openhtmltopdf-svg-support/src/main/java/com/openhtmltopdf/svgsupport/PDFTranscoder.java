@@ -8,6 +8,7 @@ import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.XRLog;
 import org.apache.batik.bridge.FontFace;
@@ -21,6 +22,8 @@ import org.w3c.dom.Document;
 
 import java.awt.*;
 import java.awt.font.TextAttribute;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -31,17 +34,22 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	private OutputDevice outputDevice;
 	private double x;
 	private double y;
+	private final Box box;
+	private RenderingContext ctx;
+	private final double dotsPerPixel;
 
-	public PDFTranscoder(double width, double height ) {
+	public PDFTranscoder(Box box, double dotsPerPixel, double width, double height) {
+	    this.box = box;
 		this.width = (float)width;
 		this.height = (float)height;
+		this.dotsPerPixel = dotsPerPixel;
 	}
 	
 	public void setRenderingParameters(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver) {
 	    this.x = x;
             this.y = y;
             this.outputDevice = od;
-
+            this.ctx = ctx;
             this.fontResolver = fontResolver;
 	}
 
@@ -199,14 +207,71 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		// is called before our constructor is called in the super constructor.
 		this.userAgent = new OpenHtmlUserAgent(this.fontResolver);
 		super.transcode(svg, uri, out);
-
-		outputDevice.drawWithGraphics((float)x, (float)y, width, height, new OutputDeviceGraphicsDrawer() {
+		
+        int intrinsicWidth = (int) width;
+        int intrinsicHeight = (int) height;
+        
+        Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), ctx);
+        
+        int desiredWidth = (int) (contentBounds.width / this.dotsPerPixel);
+        int desiredHeight = (int) (contentBounds.height / this.dotsPerPixel);
+        
+        boolean transformed = false;
+        AffineTransform scale = null;
+        
+        if (width == 0 || height == 0) {
+            // Do nothing...
+        }
+        else if (desiredWidth > intrinsicWidth &&
+            desiredHeight > intrinsicHeight) {
+           
+            double rw = (double) desiredWidth / width;
+            double rh = (double) desiredHeight / height;
+            
+            double factor = Math.min(rw, rh);
+            scale = AffineTransform.getScaleInstance(factor, factor);
+            transformed = true;
+        } else if (desiredWidth < intrinsicWidth &&
+                   desiredHeight < intrinsicHeight) {
+            double rw = (double) desiredWidth / width;
+            double rh = (double) desiredHeight / height;
+            
+            double factor = Math.max(rw, rh);
+            scale = AffineTransform.getScaleInstance(factor, factor);
+            transformed = true;
+        }
+        
+        AffineTransform inverseScale = null;
+        try {
+            if (transformed) {
+                inverseScale = scale.createInverse();
+            }
+        } catch (NoninvertibleTransformException e) {
+            transformed = false;
+        }
+        final AffineTransform scale2 = scale;
+        final AffineTransform inverse2 = inverseScale;
+        final boolean transformed2 = transformed; 
+        
+		outputDevice.drawWithGraphics(
+		        (float) x,
+		        (float) y,
+		        (float) (contentBounds.width / this.dotsPerPixel), 
+		        (float) (contentBounds.height / this.dotsPerPixel),
+		        new OutputDeviceGraphicsDrawer() {
 			@Override
 			public void render(Graphics2D graphics2D) {
+			    if (transformed2) {
+			        graphics2D.transform(scale2);
+			    }
 				/*
 				 * Do the real paint
 				 */
 				PDFTranscoder.this.root.paint(graphics2D);
+				
+				if (transformed2) {
+				    graphics2D.transform(inverse2);
+				}
 			}
 		});
 	}

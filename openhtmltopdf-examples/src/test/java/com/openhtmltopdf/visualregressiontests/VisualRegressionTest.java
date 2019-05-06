@@ -744,6 +744,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("replaced-sizing-img"));
     }
     
+    /**
+     * Tests various sizing properties for replaced SVG images including box-sizing,
+     * min/max, etc.
+     */
+    @Test
+    public void testReplacedSizingSvg() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-svg", WITH_SVG));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
