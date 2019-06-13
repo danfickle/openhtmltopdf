@@ -1,0 +1,54 @@
+<html>
+<head>
+<style>
+@page {
+  size: 500px 1500px;
+  margin: 0;
+}
+body {
+  margin: 0;
+}
+svg {
+  display: block;
+  border: 2px solid red;
+  margin: 2px;
+}
+</style>
+</head>
+<body>
+<!-- width and height attributes -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" width="100" height="100">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- width and height with units -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" width="4cm" height="4cm">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- fallback to viewBox width and height -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- with no width/height or viewBox fall back to default of 400px square -->
+<svg xmlns="http://www.w3.org/2000/svg">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- unless a css width/height is provided  -->
+<svg xmlns="http://www.w3.org/2000/svg" style="width: 200px; height: 250px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- just a css height -->
+<svg xmlns="http://www.w3.org/2000/svg" style="height: 50px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- css properties should take precedence over width/height attributes -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" width="40" height="40" style="width: 100px; min-width: 200px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+</body>
+</html>

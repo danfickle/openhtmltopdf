@@ -753,6 +753,16 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("replaced-sizing-svg", WITH_SVG));
     }
     
+    /**
+     * Tests that non-css sizing for SVG works. For example width/height
+     * attributes or if not present the last two values of viewBox attribute.
+     * Finally, if neither is present, it should default to 400px x 400px.
+     */
+    @Test
+    public void testReplacedSizingSvgNonCss() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-svg-non-css", WITH_SVG));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

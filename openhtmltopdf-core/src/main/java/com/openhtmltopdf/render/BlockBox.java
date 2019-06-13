@@ -712,6 +712,21 @@ public class BlockBox extends Box implements InlinePaintable {
             int cssWidth = getCSSWidth(c);
             int cssHeight = getCSSHeight(c);
             
+            // Since the interface doesn't allow us to pass min-width/height
+            // we implement it here.
+            int minWidth = getCSSMinWidth(c);
+            int minHeight = getCSSMinHeight(c);
+            
+            if (minWidth > cssWidth &&
+                minWidth > 0) {
+                cssWidth = minWidth;
+            }
+            
+            if (minHeight > cssHeight &&
+                minHeight > 0) {
+                cssHeight = minHeight;
+            }
+            
             re = c.getReplacedElementFactory().createReplacedElement(
                     c, this, c.getUac(), cssWidth, cssHeight);
             
