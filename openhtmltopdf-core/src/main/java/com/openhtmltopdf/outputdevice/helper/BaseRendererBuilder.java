@@ -283,7 +283,11 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 
 	/**
 	 * Uses the specified SVG drawer implementation.
-	 *
+	 * 
+	 * NOTE: This implementation is used for both inline SVG markup and SVG markup in external
+	 * files included via the <code>img</code> tag. Please be very careful if using an insecure 
+	 * <code>SVGDrawer</code> that all SVG images are trusted.
+	 *  
 	 * @param svgImpl
 	 *            the SVG implementation
 	 * @return this for method chaining
