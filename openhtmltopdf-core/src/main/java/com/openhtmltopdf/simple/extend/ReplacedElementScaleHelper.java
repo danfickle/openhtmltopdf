@@ -1,0 +1,58 @@
+package com.openhtmltopdf.simple.extend;
+
+import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+
+public class ReplacedElementScaleHelper {
+    /**
+     * Creates a scale <code>AffineTransform</code> to scale a given replaced element to the desired size.
+     * @param dotsPerPixel
+     * @param contentBounds the desired size
+     * @param width the intrinsic width
+     * @param height the intrinsic height
+     * @return AffineTransform or null if not available.
+     */
+    public static AffineTransform createScaleTransform(double dotsPerPixel, Rectangle contentBounds, float width, float height) {
+        int intrinsicWidth = (int) width;
+        int intrinsicHeight = (int) height;
+        
+        int desiredWidth = (int) (contentBounds.width / dotsPerPixel);
+        int desiredHeight = (int) (contentBounds.height / dotsPerPixel);
+        
+        AffineTransform scale = null;
+        
+        if (width == 0 || height == 0) {
+            // Do nothing...
+        }
+        else if (desiredWidth > intrinsicWidth &&
+                 desiredHeight > intrinsicHeight) {
+           
+            double rw = (double) desiredWidth / width;
+            double rh = (double) desiredHeight / height;
+            
+            double factor = Math.min(rw, rh);
+            scale = AffineTransform.getScaleInstance(factor, factor);
+        } else if (desiredWidth < intrinsicWidth &&
+                   desiredHeight < intrinsicHeight) {
+            double rw = (double) desiredWidth / width;
+            double rh = (double) desiredHeight / height;
+            
+            double factor = Math.max(rw, rh);
+            scale = AffineTransform.getScaleInstance(factor, factor);
+        }
+
+        return scale;
+    }
+    
+    public static AffineTransform inverseOrNull(AffineTransform in) {
+        if (in == null) {
+            return null;
+        }
+        try {
+            return in.createInverse();
+        } catch (NoninvertibleTransformException e) {
+            return null;
+        }
+    }
+}

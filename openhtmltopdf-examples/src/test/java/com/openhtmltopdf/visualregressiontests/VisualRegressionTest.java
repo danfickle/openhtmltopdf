@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.visualtest.VisualTester;
@@ -761,6 +762,16 @@ public class VisualRegressionTest {
     @Test
     public void testReplacedSizingSvgNonCss() throws IOException {
         assertTrue(vt.runTest("replaced-sizing-svg-non-css", WITH_SVG));
+    }
+    
+    /**
+     * Tests all the CSS sizing properties for MathML elements.
+     */
+    @Test
+    public void testReplacedSizingMathMl() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-mathml", (builder) -> {
+          builder.useMathMLDrawer(new MathMLDrawer());
+        }));
     }
     
     // TODO:

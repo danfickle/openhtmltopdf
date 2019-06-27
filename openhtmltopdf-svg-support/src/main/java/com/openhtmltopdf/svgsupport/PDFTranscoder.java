@@ -10,6 +10,7 @@ import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.XRLog;
 import org.apache.batik.bridge.FontFace;
 import org.apache.batik.bridge.FontFamilyResolver;
@@ -23,7 +24,6 @@ import org.w3c.dom.Document;
 import java.awt.*;
 import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -168,7 +168,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		            continue;
 		         }
 
-		         byte[] font1 = ctx.getUac().getBinaryResource(src.asString());
+		         byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src.asString());
 		         if (font1 == null) {
 		             XRLog.exception("Could not load font " + src.asString());
 		             continue;
@@ -208,50 +208,11 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		this.userAgent = new OpenHtmlUserAgent(this.fontResolver);
 		super.transcode(svg, uri, out);
 		
-        int intrinsicWidth = (int) width;
-        int intrinsicHeight = (int) height;
-        
         Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), ctx);
-        
-        int desiredWidth = (int) (contentBounds.width / this.dotsPerPixel);
-        int desiredHeight = (int) (contentBounds.height / this.dotsPerPixel);
-        
-        boolean transformed = false;
-        AffineTransform scale = null;
-        
-        if (width == 0 || height == 0) {
-            // Do nothing...
-        }
-        else if (desiredWidth > intrinsicWidth &&
-            desiredHeight > intrinsicHeight) {
-           
-            double rw = (double) desiredWidth / width;
-            double rh = (double) desiredHeight / height;
-            
-            double factor = Math.min(rw, rh);
-            scale = AffineTransform.getScaleInstance(factor, factor);
-            transformed = true;
-        } else if (desiredWidth < intrinsicWidth &&
-                   desiredHeight < intrinsicHeight) {
-            double rw = (double) desiredWidth / width;
-            double rh = (double) desiredHeight / height;
-            
-            double factor = Math.max(rw, rh);
-            scale = AffineTransform.getScaleInstance(factor, factor);
-            transformed = true;
-        }
-        
-        AffineTransform inverseScale = null;
-        try {
-            if (transformed) {
-                inverseScale = scale.createInverse();
-            }
-        } catch (NoninvertibleTransformException e) {
-            transformed = false;
-        }
-        final AffineTransform scale2 = scale;
-        final AffineTransform inverse2 = inverseScale;
-        final boolean transformed2 = transformed; 
+
+        final AffineTransform scale2 = ReplacedElementScaleHelper.createScaleTransform(this.dotsPerPixel, contentBounds, width, height);
+        final AffineTransform inverse2 = ReplacedElementScaleHelper.inverseOrNull(scale2);
+        final boolean transformed2 = scale2 != null && inverse2 != null;
         
 		outputDevice.drawWithGraphics(
 		        (float) x,

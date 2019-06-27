@@ -117,7 +117,7 @@ public class MathMLDrawer implements SVGDrawer {
 		double cssMaxHeight = CalculatedStyle.getCSSMaxHeight(c, box);
 		List<String> fontList = Arrays.asList(fonts);
 		
-		MathMLImage img = new MathMLImage(mathMlElement, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, dotsPerPixel, fontList);
+		MathMLImage img = new MathMLImage(mathMlElement, box, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, dotsPerPixel, fontList);
 
 		return img;
 	}
