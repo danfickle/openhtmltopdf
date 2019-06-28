@@ -55,7 +55,7 @@ of these can be found in the [dependency graph](https://github.com/danfickle/ope
 Open HTML to PDF is based on [Flying-saucer](https://github.com/flyingsaucerproject/flyingsaucer). Credit goes to the contributors of that project. Code will also be used from [neoFlyingSaucer](https://github.com/danfickle/neoflyingsaucer)
 
 ## FAQ
-+ OPEN HTML TO PDF is tested with OpenJDK 8 and 11, Oracle JDK 8 and 11. As of RC18, it requires at least Java 8 to run.
++ OPEN HTML TO PDF is tested with OpenJDK 8 and 11. We are [not currently testing with Oracle JDKs](https://github.com/travis-ci/travis-ci/issues/10290). As of RC18, it requires at least Java 8 to run.
 + No, you can not use it on Android.
 + You should be able to use it on Google App Engine (Java 8 or greater environment). [Let us know your experience](https://github.com/danfickle/openhtmltopdf/issues/179).
 + <s>Flowing columns are not implemented.</s> Implemented in RC12.
