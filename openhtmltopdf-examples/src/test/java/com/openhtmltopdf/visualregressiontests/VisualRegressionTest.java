@@ -769,6 +769,8 @@ public class VisualRegressionTest {
      * Tests all the CSS sizing properties for MathML elements.
      */
     @Test
+    @Ignore // MathML renderer produces slightly different results on JDK11 vs JDK8
+            // so can only be run manually.
     public void testReplacedSizingMathMl() throws IOException {
         assertTrue(vt.runTest("replaced-sizing-mathml", (builder) -> {
           builder.useMathMLDrawer(new MathMLDrawer());
@@ -780,10 +782,24 @@ public class VisualRegressionTest {
      * the MathML plugin.
      */
     @Test
+    @Ignore // MathML renderer produces slightly different results on JDK11 vs JDK8
+            // so can only be run manually.
+    public void testReplacedPluginLatexWithMath() throws IOException {
+        assertTrue(vt.runTest("replaced-plugin-latex-with-math", (builder) -> {
+            builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+            builder.useMathMLDrawer(new MathMLDrawer());
+        }));
+    }
+    
+    /**
+     * Tests Latex rendering without math. Separate test because we can not test 
+     * Latex with math automatically because of the MathML rendering issue on
+     * different JDKs (see above).
+     */
+    @Test
     public void testReplacedPluginLatex() throws IOException {
         assertTrue(vt.runTest("replaced-plugin-latex", (builder) -> {
             builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
-            builder.useMathMLDrawer(new MathMLDrawer());
         }));
     }
     
@@ -791,7 +807,6 @@ public class VisualRegressionTest {
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
     // + Inline layers.
-    // + Replaced elements.
     // + vertical page overflow, page-break-inside, etc.
     // + CSS columns.
 }
