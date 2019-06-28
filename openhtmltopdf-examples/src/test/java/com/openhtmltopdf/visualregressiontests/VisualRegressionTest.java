@@ -751,6 +751,16 @@ public class VisualRegressionTest {
         }));
     }
     
+    /**
+     * Tests that a SVG image referenced from a <code>img</code> tag
+     * successfully renders. Also make sure a missing SVG resource
+     * does not shutdown rendering altogether. Issue 353.
+     */
+    @Test
+    public void testSvgLinkedFromImgTag() throws IOException {
+        assertTrue(vt.runTest("svg-linked-from-img-tag", WITH_SVG));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
