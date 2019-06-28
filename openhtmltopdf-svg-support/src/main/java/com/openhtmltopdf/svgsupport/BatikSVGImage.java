@@ -27,8 +27,7 @@ public class BatikSVGImage implements SVGImage {
     private final Element svgElement;
     private final double dotsPerPixel;
     private OpenHtmlFontResolver fontResolver;
-
-    private PDFTranscoder pdfTranscoder;
+    private final PDFTranscoder pdfTranscoder;
 
     public BatikSVGImage(Element svgElement, Box box, double cssWidth, double cssHeight,
             double cssMaxWidth, double cssMaxHeight, double dotsPerPixel) {
@@ -56,7 +55,7 @@ public class BatikSVGImage implements SVGImage {
                     SVGAbstractTranscoder.KEY_MAX_HEIGHT,
                     (float) (cssMaxHeight / dotsPerPixel));
         }
-
+        
         Point dimensions = parseDimensions(svgElement);
         double w;
         double h;
@@ -97,6 +96,11 @@ public class BatikSVGImage implements SVGImage {
 
     public void setFontResolver(OpenHtmlFontResolver fontResolver) {
         this.fontResolver = fontResolver;
+    }
+    
+    public void setSecurityOptions(boolean allowScripts, boolean allowExternalResources) {
+        this.pdfTranscoder.setSecurityOptions(allowScripts, allowExternalResources);
+        this.pdfTranscoder.addTranscodingHint(SVGAbstractTranscoder.KEY_EXECUTE_ONLOAD, allowScripts);
     }
 
     public Point parseDimensions(Element e) {

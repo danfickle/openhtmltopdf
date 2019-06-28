@@ -39,17 +39,17 @@
     <dependency>
 	    <groupId>org.apache.xmlgraphics</groupId>
 	    <artifactId>batik-transcoder</artifactId>
-	    <version>1.10</version>
+	    <version>${open.batik.version}</version>
     </dependency>
     <dependency>
         <groupId>org.apache.xmlgraphics</groupId>
         <artifactId>batik-codec</artifactId>
-        <version>1.10</version>
+        <version>${open.batik.version}</version>
     </dependency>
     <dependency>
         <groupId>org.apache.xmlgraphics</groupId>
         <artifactId>batik-ext</artifactId>
-        <version>1.10</version>
+        <version>${open.batik.version}</version>
     </dependency>
     <dependency>
 	    <groupId>org.apache.xmlgraphics</groupId>

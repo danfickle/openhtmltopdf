@@ -12,6 +12,8 @@ import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgExternalResourceMode;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgScriptMode;
 import com.openhtmltopdf.visualtest.VisualTester;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
@@ -776,6 +778,29 @@ public class VisualRegressionTest {
           builder.useMathMLDrawer(new MathMLDrawer());
         }));
     }
+
+    /**
+     * Tests that in the default secure mode, SVG images will not run script or allow
+     * fetching of external resources.
+     */
+    @Test
+    public void testMaliciousSvgSecureMode() throws IOException {
+        assertTrue(vt.runTest("malicious-svg-secure-mode", WITH_SVG));
+    }
+
+    /**
+     * Tests that in insecure mode, the svg renderer will allow scripts and external resource
+     * requests.
+     * 
+     * NOTE: This tests downloads <code>https://openhtmltopdf.com/flyingsaucer.png</code> and so will be slower
+     * than other tests.
+     */
+    @Test
+    public void testMaliciousSvgInsecureMode() throws IOException {
+        assertTrue(vt.runTest("malicious-svg-insecure-mode", builder -> {
+            builder.useSVGDrawer(new BatikSVGDrawer(SvgScriptMode.INSECURE_ALLOW_SCRIPTS, SvgExternalResourceMode.INSECURE_ALLOW_EXTERNAL_RESOURCE_REQUESTS));
+        }));
+    }
     
     /**
      * Tests the Latex support plugin including maths which are interpreted with
@@ -801,6 +826,17 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("replaced-plugin-latex", (builder) -> {
             builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
         }));
+    }
+
+    /**
+     * Tests that a SVG image referenced from a <code>img</code> tag
+     * successfully renders. Also make sure a missing SVG resource
+     * does not shutdown rendering altogether. Issue 353.
+     */
+    @Test
+    @Ignore // Sizing is now all wrong for linked SVGs.
+    public void testSvgLinkedFromImgTag() throws IOException {
+        assertTrue(vt.runTest("svg-linked-from-img-tag", WITH_SVG));
     }
     
     // TODO:

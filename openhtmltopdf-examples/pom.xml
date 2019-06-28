@@ -45,6 +45,16 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <!-- Rhino is included here just to make sure SVG
+           scripts are NOT executed when there is a script engine available.
+           Rhino is only an optional dependency for Batik so we have
+           to include it explicitly.
+      -->
+      <groupId>org.mozilla</groupId>
+      <artifactId>rhino</artifactId>
+      <version>1.7.7</version>
+    </dependency>
+    <dependency>
       <groupId>com.openhtmltopdf</groupId>
       <artifactId>openhtmltopdf-mathml-support</artifactId>
       <version>${project.version}</version>

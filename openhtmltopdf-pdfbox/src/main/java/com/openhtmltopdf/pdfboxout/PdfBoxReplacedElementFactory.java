@@ -22,16 +22,16 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.resource.XMLResource;
+
 import org.w3c.dom.Element;
 
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
-    private final PdfBoxOutputDevice _outputDevice;
     private final SVGDrawer _svgImpl;
     private final SVGDrawer _mathmlImpl;
     private final FSObjectDrawerFactory _objectDrawerFactory;
 
     public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice, SVGDrawer svgImpl, FSObjectDrawerFactory objectDrawerFactory, SVGDrawer mathmlImpl) {
-        _outputDevice = outputDevice;
         _svgImpl = svgImpl;
         _objectDrawerFactory = objectDrawerFactory;
         _mathmlImpl = mathmlImpl;
@@ -57,7 +57,13 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
 
                 //handle the case of linked svg from img tag
                 if (srcAttr.endsWith(".svg") && _svgImpl != null) {
-                    return new PdfBoxSVGReplacedElement(uac.getXMLResource(srcAttr).getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, c, c.getSharedContext());
+                    XMLResource xml = uac.getXMLResource(srcAttr);
+                    
+                    if (xml != null) {
+                        return new PdfBoxSVGReplacedElement(xml.getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, c, c.getSharedContext());    
+                    }
+                    
+                    return null;
                 }
 
                 FSImage fsImage = uac.getImageResource(srcAttr).getImage();

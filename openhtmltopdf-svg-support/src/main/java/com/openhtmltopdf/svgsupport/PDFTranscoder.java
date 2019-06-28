@@ -37,6 +37,8 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	private final Box box;
 	private RenderingContext ctx;
 	private final double dotsPerPixel;
+    private boolean allowScripts = false;
+    private boolean allowExternalResources = false;
 
 	public PDFTranscoder(Box box, double dotsPerPixel, double width, double height) {
 	    this.box = box;
@@ -200,12 +202,17 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		 }
 	}
 	
+    public void setSecurityOptions(boolean allowScripts, boolean allowExternalResources) {
+        this.allowScripts = allowScripts;
+        this.allowExternalResources = allowExternalResources;
+    }
+    
 	@Override
 	protected void transcode(Document svg, String uri, TranscoderOutput out) throws TranscoderException {
 		
 		// Note: We have to initialize user agent here and not in ::createUserAgent() as method
 		// is called before our constructor is called in the super constructor.
-		this.userAgent = new OpenHtmlUserAgent(this.fontResolver);
+		this.userAgent = new OpenHtmlUserAgent(this.fontResolver, this.allowScripts, this.allowExternalResources);
 		super.transcode(svg, uri, out);
 		
         Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), ctx);

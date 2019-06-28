@@ -20,14 +20,12 @@
 package com.openhtmltopdf.swing;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -328,22 +326,13 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     		return null;
     	}
     	
-        Reader inputReader = openReader(resolved);
-        XMLResource xmlResource;
-
-        try {
-            xmlResource = XMLResource.load(inputReader);
-        } finally {
-            if (inputReader != null) {
-                try {
-                    inputReader.close();
-                } catch (IOException e) {
-                    // swallow
-                }
-            }
+        try (Reader inputReader = openReader(resolved)) {
+            return inputReader == null ? null :
+                        XMLResource.load(inputReader);
+        } catch (IOException e) {
+            // On auto close, swallow.
+            return null;
         }
-
-        return xmlResource;
     }
 
     @Override

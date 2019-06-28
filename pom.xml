@@ -148,6 +148,7 @@
 
   <properties>
     <open.deploy.plugin.version>3.0.0-M1</open.deploy.plugin.version>
+    <open.batik.version>1.10</open.batik.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
