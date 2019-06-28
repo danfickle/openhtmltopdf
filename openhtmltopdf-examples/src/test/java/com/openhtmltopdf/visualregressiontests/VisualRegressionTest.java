@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -771,6 +772,18 @@ public class VisualRegressionTest {
     public void testReplacedSizingMathMl() throws IOException {
         assertTrue(vt.runTest("replaced-sizing-mathml", (builder) -> {
           builder.useMathMLDrawer(new MathMLDrawer());
+        }));
+    }
+    
+    /**
+     * Tests the Latex support plugin including maths which are interpreted with
+     * the MathML plugin.
+     */
+    @Test
+    public void testReplacedPluginLatex() throws IOException {
+        assertTrue(vt.runTest("replaced-plugin-latex", (builder) -> {
+            builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+            builder.useMathMLDrawer(new MathMLDrawer());
         }));
     }
     
