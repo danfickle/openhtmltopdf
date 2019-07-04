@@ -30,8 +30,10 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
     private final SVGDrawer _svgImpl;
     private final SVGDrawer _mathmlImpl;
     private final FSObjectDrawerFactory _objectDrawerFactory;
+    private final PdfBoxOutputDevice _outputDevice;
 
     public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice, SVGDrawer svgImpl, FSObjectDrawerFactory objectDrawerFactory, SVGDrawer mathmlImpl) {
+        _outputDevice = outputDevice;
         _svgImpl = svgImpl;
         _objectDrawerFactory = objectDrawerFactory;
         _mathmlImpl = mathmlImpl;
@@ -61,6 +63,14 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                     
                     if (xml != null) {
                         return new PdfBoxSVGReplacedElement(xml.getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, c, c.getSharedContext());    
+                    }
+                    
+                    return null;
+                } else if (srcAttr.endsWith(".pdf")) {
+                    byte[] pdfBytes = uac.getBinaryResource(srcAttr);
+                    
+                    if (pdfBytes != null) {
+                        return PdfBoxPDFReplacedElement.create(_outputDevice.getWriter(), pdfBytes, e, box, c, c.getSharedContext());
                     }
                     
                     return null;

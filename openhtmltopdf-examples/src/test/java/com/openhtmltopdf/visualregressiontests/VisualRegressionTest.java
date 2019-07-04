@@ -838,6 +838,12 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("svg-linked-from-img-tag", WITH_SVG));
     }
     
+    @Test
+    @Ignore // Still a couple of pixels off with width (noticeable when there is a border).
+    public void testPdfLinkedFromImgTag() throws IOException {
+        assertTrue(vt.runTest("pdf-linked-from-img-tag"));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

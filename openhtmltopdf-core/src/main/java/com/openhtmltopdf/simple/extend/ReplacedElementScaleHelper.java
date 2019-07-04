@@ -17,15 +17,15 @@ public class ReplacedElementScaleHelper {
         int intrinsicWidth = (int) width;
         int intrinsicHeight = (int) height;
         
-        int desiredWidth = (int) (contentBounds.width / dotsPerPixel);
-        int desiredHeight = (int) (contentBounds.height / dotsPerPixel);
+        int desiredWidth = (int) (contentBounds.getWidth() / dotsPerPixel);
+        int desiredHeight = (int) (contentBounds.getHeight() / dotsPerPixel);
         
         AffineTransform scale = null;
-        
+
         if (width == 0 || height == 0) {
             // Do nothing...
         }
-        else if (desiredWidth > intrinsicWidth &&
+        else if (desiredWidth > intrinsicWidth ||
                  desiredHeight > intrinsicHeight) {
            
             double rw = (double) desiredWidth / width;

@@ -39,6 +39,7 @@ import com.openhtmltopdf.pdfboxout.PdfBoxPerDocumentFormState;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.FontRun;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
@@ -841,6 +842,34 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
         _cp.drawImage(xobject, (float) mx[4], (float) mx[5], (float) mx[0],
                 (float) mx[3]);
+    }
+    
+    @Override
+    public void drawPdfAsImage(PDFormXObject _srcObject, Rectangle contentBounds, float intrinsicWidth, float intrinsicHeight) {
+        // We start with the page margins...
+        AffineTransform af = AffineTransform.getTranslateInstance(
+                getTransform().getTranslateX(),
+                (_pageHeight) - getTransform().getTranslateY());
+        
+        // Then the x and y of this object...
+        af.translate(contentBounds.getX() / _dotsPerPoint, -(contentBounds.getY() / _dotsPerPoint));
+
+        float conversion = 96f / 72f;
+
+        // Scale to the desired height and width...
+        AffineTransform scale = ReplacedElementScaleHelper.createScaleTransform(_dotsPerPoint, contentBounds, intrinsicWidth / _dotsPerPoint * conversion, intrinsicHeight / _dotsPerPoint * conversion);
+        if (scale != null) {
+            af.concatenate(scale);
+        }
+        
+        // And take into account the height of the drawn feature...
+        // And yes these transforms were all determined by trial and error!
+        af.translate(0, -((intrinsicHeight / _dotsPerPoint) * conversion));
+            
+        _cp.saveGraphics();
+        _cp.applyPdfMatrix(af);
+        _cp.drawXForm(_srcObject);
+        _cp.restoreGraphics();
     }
 
     public float getDotsPerPoint() {

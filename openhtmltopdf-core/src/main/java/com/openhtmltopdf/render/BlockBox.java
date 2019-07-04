@@ -755,22 +755,22 @@ public class BlockBox extends Box implements InlinePaintable {
         cssWidth = !getStyle().isMaxWidthNone() && 
                 (intrinsicWidth > getCSSMaxWidth(c) || cssWidth > getCSSMaxWidth(c)) ? 
                           getCSSMaxWidth(c) : cssWidth;
-        cssWidth = getCSSMinWidth(c) > 0 && cssWidth < getCSSMinWidth(c) ?
+        cssWidth = cssWidth >= 0 && getCSSMinWidth(c) > 0 && cssWidth < getCSSMinWidth(c) ?
                           getCSSMinWidth(c) : cssWidth;
         
         cssHeight = !getStyle().isMaxHeightNone() &&
                 (intrinsicHeight > getCSSMaxHeight(c) || cssHeight > getCSSMaxHeight(c)) ?
                           getCSSMaxHeight(c) : cssHeight;
-        cssHeight = getCSSMinHeight(c) > 0 && cssHeight < getCSSMinHeight(c) ?
+        cssHeight = cssHeight >= 0 && getCSSMinHeight(c) > 0 && cssHeight < getCSSMinHeight(c) ?
                           getCSSMinHeight(c) : cssHeight;
                           
         if (getStyle().isBorderBox()) {
             BorderPropertySet border = getBorder(c);
             RectPropertySet padding = getPadding(c);
-            cssWidth = (int) Math.max(0, cssWidth - border.width() - padding.width());
-            cssHeight = (int) Math.max(0, cssHeight - border.height() - padding.height());
+            cssWidth = cssWidth < 0 ? cssWidth : (int) Math.max(0, cssWidth - border.width() - padding.width());
+            cssHeight = cssHeight < 0 ? cssHeight : (int) Math.max(0, cssHeight - border.height() - padding.height());
         }
-                          
+
         int nw;
         int nh;
         

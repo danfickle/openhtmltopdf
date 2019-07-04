@@ -1,6 +1,7 @@
 package com.openhtmltopdf.pdfboxout;
 
 import java.awt.Paint;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.RenderingHints.Key;
@@ -11,6 +12,7 @@ import java.util.regex.Pattern;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.w3c.dom.Document;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
@@ -213,5 +215,7 @@ public interface PdfBoxOutputDevice extends OutputDevice {
     int getPageRefY(Box box);
     
     List<Metadata> getMetadata();
+
+    void drawPdfAsImage(PDFormXObject _src, Rectangle contentBounds, float intrinsicWidth, float intrinsicHeight);
 
 }
