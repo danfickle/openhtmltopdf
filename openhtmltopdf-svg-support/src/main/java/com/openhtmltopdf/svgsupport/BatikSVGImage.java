@@ -102,12 +102,40 @@ public class BatikSVGImage implements SVGImage {
         this.pdfTranscoder.setSecurityOptions(allowScripts, allowExternalResources);
         this.pdfTranscoder.addTranscodingHint(SVGAbstractTranscoder.KEY_EXECUTE_ONLOAD, allowScripts);
     }
+    
+    public Integer parseLength(String attrValue) {
+        // TODO read length with units and convert to dots.
+        // length ::= number (~"em" | ~"ex" | ~"px" | ~"in" | ~"cm" | ~"mm" |
+        // ~"pt" | ~"pc")?
+        try {
+            return Integer.valueOf(attrValue);
+        } catch (NumberFormatException e) {
+            XRLog.general(Level.WARNING,
+                    "Invalid integer passed as dimension for SVG: "
+                            + attrValue);
+            return null;
+        }
+    }
+    
+    public Point parseWidthHeightAttributes(Element e) {
+        String widthAttr = e.getAttribute("width");
+        Integer width = widthAttr.isEmpty() ? null : parseLength(widthAttr);
+
+        String heightAttr = e.getAttribute("height");
+        Integer height = heightAttr.isEmpty() ? null : parseLength(heightAttr);
+
+        if (width != null && height != null) {
+            return new Point(width, height);
+        }
+        
+        return DEFAULT_DIMENSIONS;
+    }
 
     public Point parseDimensions(Element e) {
         String viewBoxAttr = e.getAttribute("viewBox");
         String[] splitViewBox = viewBoxAttr.split("\\s+");
         if (splitViewBox.length != 4) {
-            return DEFAULT_DIMENSIONS;
+            return parseWidthHeightAttributes(e);
         }
         try {
             int viewBoxWidth = Integer.parseInt(splitViewBox[2]);
@@ -115,7 +143,7 @@ public class BatikSVGImage implements SVGImage {
 
             return new Point(viewBoxWidth, viewBoxHeight);
         } catch (NumberFormatException ex) {
-            return DEFAULT_DIMENSIONS;
+            return parseWidthHeightAttributes(e);
         }
     }
 

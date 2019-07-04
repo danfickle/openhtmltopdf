@@ -834,7 +834,6 @@ public class VisualRegressionTest {
      * does not shutdown rendering altogether. Issue 353.
      */
     @Test
-    @Ignore // Sizing is now all wrong for linked SVGs.
     public void testSvgLinkedFromImgTag() throws IOException {
         assertTrue(vt.runTest("svg-linked-from-img-tag", WITH_SVG));
     }
