@@ -14,11 +14,11 @@ public class ReplacedElementScaleHelper {
      * @return AffineTransform or null if not available.
      */
     public static AffineTransform createScaleTransform(double dotsPerPixel, Rectangle contentBounds, float width, float height) {
-        int intrinsicWidth = (int) width;
-        int intrinsicHeight = (int) height;
+        double intrinsicWidth = width;
+        double intrinsicHeight = height;
         
-        int desiredWidth = (int) (contentBounds.getWidth() / dotsPerPixel);
-        int desiredHeight = (int) (contentBounds.getHeight() / dotsPerPixel);
+        double desiredWidth = (contentBounds.getWidth() / dotsPerPixel);
+        double desiredHeight = (contentBounds.getHeight() / dotsPerPixel);
         
         AffineTransform scale = null;
 
@@ -28,15 +28,15 @@ public class ReplacedElementScaleHelper {
         else if (desiredWidth > intrinsicWidth ||
                  desiredHeight > intrinsicHeight) {
            
-            double rw = (double) desiredWidth / width;
-            double rh = (double) desiredHeight / height;
+            double rw = desiredWidth / width;
+            double rh = desiredHeight / height;
             
             double factor = Math.min(rw, rh);
             scale = AffineTransform.getScaleInstance(factor, factor);
         } else if (desiredWidth < intrinsicWidth &&
                    desiredHeight < intrinsicHeight) {
-            double rw = (double) desiredWidth / width;
-            double rh = (double) desiredHeight / height;
+            double rw = desiredWidth / width;
+            double rh = desiredHeight / height;
             
             double factor = Math.max(rw, rh);
             scale = AffineTransform.getScaleInstance(factor, factor);

@@ -854,17 +854,16 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         // Then the x and y of this object...
         af.translate(contentBounds.getX() / _dotsPerPoint, -(contentBounds.getY() / _dotsPerPoint));
 
-        float conversion = 96f / 72f;
-
         // Scale to the desired height and width...
-        AffineTransform scale = ReplacedElementScaleHelper.createScaleTransform(_dotsPerPoint, contentBounds, intrinsicWidth / _dotsPerPoint * conversion, intrinsicHeight / _dotsPerPoint * conversion);
+        AffineTransform scale = ReplacedElementScaleHelper.createScaleTransform(_dotsPerPoint, contentBounds, intrinsicWidth / _dotsPerPoint, intrinsicHeight / _dotsPerPoint);
+
         if (scale != null) {
             af.concatenate(scale);
         }
         
         // And take into account the height of the drawn feature...
         // And yes these transforms were all determined by trial and error!
-        af.translate(0, -((intrinsicHeight / _dotsPerPoint) * conversion));
+        af.translate(0, -((intrinsicHeight / _dotsPerPoint)));
             
         _cp.saveGraphics();
         _cp.applyPdfMatrix(af);

@@ -838,8 +838,11 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("svg-linked-from-img-tag", WITH_SVG));
     }
     
+    /**
+     * Tests that we correctly render PDF pages in the img tag at 
+     * the correct CSS specified sizing. Issue 344.
+     */
     @Test
-    @Ignore // Still a couple of pixels off with width (noticeable when there is a border).
     public void testPdfLinkedFromImgTag() throws IOException {
         assertTrue(vt.runTest("pdf-linked-from-img-tag"));
     }

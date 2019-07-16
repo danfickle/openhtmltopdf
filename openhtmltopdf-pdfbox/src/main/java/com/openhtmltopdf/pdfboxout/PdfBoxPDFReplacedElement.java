@@ -80,8 +80,9 @@ public class PdfBoxPDFReplacedElement implements PdfBoxReplacedElement, IPdfBoxE
             }
             
             PDPage page = srcDocument.getPage(pageNo);
-            float width = page.getMediaBox().getWidth() * shared.getDotsPerPixel();
-            float height = page.getMediaBox().getHeight() * shared.getDotsPerPixel();
+            float conversion = 96f / 72f;
+            float width = page.getMediaBox().getWidth() * shared.getDotsPerPixel() * conversion;
+            float height = page.getMediaBox().getHeight() * shared.getDotsPerPixel() * conversion;
             
             LayerUtility util = new LayerUtility(target);
             PDFormXObject formXObject = util.importPageAsForm(srcDocument, page);
