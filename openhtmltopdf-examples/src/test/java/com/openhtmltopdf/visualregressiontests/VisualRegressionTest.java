@@ -10,7 +10,10 @@ import org.junit.Test;
 
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
+import com.openhtmltopdf.objects.jfreechart.JFreeChartBarDiagramObjectDrawer;
+import com.openhtmltopdf.objects.jfreechart.JFreeChartPieDiagramObjectDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgExternalResourceMode;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgScriptMode;
@@ -847,6 +850,21 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("pdf-linked-from-img-tag"));
     }
     
+    /**
+     * Tests the JFreeChart object drawers respect CSS width and height
+     * properties. Other sizing properties are not supported for JFreeChart
+     * plugins.
+     */
+    @Test
+    @Ignore // Unlikely to be stable across JDK versions.
+    public void testReplacedSizingJFreeChartPie() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-jfreechart-pie", builder -> {
+            DefaultObjectDrawerFactory factory = new DefaultObjectDrawerFactory();
+            factory.registerDrawer("jfreechart/pie", new JFreeChartPieDiagramObjectDrawer());
+            factory.registerDrawer("jfreechart/bar", new JFreeChartBarDiagramObjectDrawer());
+            builder.useObjectDrawerFactory(factory);
+        }));
+    }
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
