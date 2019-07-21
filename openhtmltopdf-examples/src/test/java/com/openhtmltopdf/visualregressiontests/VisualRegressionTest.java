@@ -865,6 +865,15 @@ public class VisualRegressionTest {
             builder.useObjectDrawerFactory(factory);
         }));
     }
+    
+    /**
+     * Tests that a div element with clear: both set actually does clear both.
+     */
+    @Test
+    public void testFloatClearBoth() throws IOException {
+        assertTrue(vt.runTest("float-clear-both"));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
