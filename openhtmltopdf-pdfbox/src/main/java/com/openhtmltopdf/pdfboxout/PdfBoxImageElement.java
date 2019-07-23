@@ -78,12 +78,15 @@ public class PdfBoxImageElement implements PdfBoxReplacedElement, IPdfBoxElement
         return false;
     }
 
-    public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice,
-            BlockBox box) {
-        Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(),
-                box.getAbsY(), c);
+    @Override
+    public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice, BlockBox box) {
+        Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), c);
         ReplacedElement element = box.getReplacedElement();
-        outputDevice.drawImage(((PdfBoxImageElement) element).getImage(),
+        
+        FSImage img = ((PdfBoxImageElement) element).getImage();
+        img.scale(contentBounds.width, contentBounds.height);
+        
+        outputDevice.drawImage(img,
                 contentBounds.x, contentBounds.y, interpolate);
     }
 

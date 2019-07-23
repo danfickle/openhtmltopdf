@@ -66,7 +66,7 @@ public class BatikSVGDrawer implements SVGDrawer {
     	double cssMaxWidth = CalculatedStyle.getCSSMaxWidth(c, box);
     	double cssMaxHeight = CalculatedStyle.getCSSMaxHeight(c, box);
     	
-        BatikSVGImage img = new BatikSVGImage(svgElement, cssWidth, cssHeight,
+        BatikSVGImage img = new BatikSVGImage(svgElement, box, cssWidth, cssHeight,
                 cssMaxWidth, cssMaxHeight, dotsPerPixel);
         img.setFontResolver(fontResolver);
         img.setSecurityOptions(allowScripts, allowExternalResources);

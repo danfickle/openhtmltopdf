@@ -45,12 +45,15 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 			if (srcAttr != null && srcAttr.endsWith(".svg")) {
 				return new Java2DSVGReplacedElement(uac.getXMLResource(srcAttr).getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, context);
 			}
-		}
+		}else if (context.getNamespaceHandler().isImageElement(e)) {
+            return replaceImage(uac, context, e, cssWidth, cssHeight);
+        }
 
+		return null; // We no longer handle form controls.
 		/*
 		 * Default: Just let the base class handle everything
 		 */
-		return super.createReplacedElement(context, box, uac, cssWidth, cssHeight);
+		//return super.createReplacedElement(context, box, uac, cssWidth, cssHeight);
 	}
 
     @Override

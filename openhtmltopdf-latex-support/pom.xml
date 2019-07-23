@@ -14,7 +14,7 @@
   <packaging>jar</packaging>
 
   <name>Openhtmltopdf Latex Math Support</name>
-  <description>Open HTML to PDF is a CSS 2.1 renderer written in Java.  This artifact supports drawing MathML graphics on to PDFs using JEuclid.</description>
+  <description>Open HTML to PDF is a CSS 2.1 renderer written in Java.  This artifact supports rendering Latex markup (including math) on to PDFs using SnuggleTex.</description>
 
   <licenses>
     <license>

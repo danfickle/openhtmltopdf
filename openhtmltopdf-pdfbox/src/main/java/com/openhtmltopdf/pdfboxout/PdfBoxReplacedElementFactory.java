@@ -19,8 +19,6 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import com.openhtmltopdf.css.constants.CSSName;
-import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
@@ -32,8 +30,10 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
     private final SVGDrawer _svgImpl;
     private final SVGDrawer _mathmlImpl;
     private final FSObjectDrawerFactory _objectDrawerFactory;
+    private final PdfBoxOutputDevice _outputDevice;
 
     public PdfBoxReplacedElementFactory(PdfBoxOutputDevice outputDevice, SVGDrawer svgImpl, FSObjectDrawerFactory objectDrawerFactory, SVGDrawer mathmlImpl) {
+        _outputDevice = outputDevice;
         _svgImpl = svgImpl;
         _objectDrawerFactory = objectDrawerFactory;
         _mathmlImpl = mathmlImpl;
@@ -66,52 +66,18 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                     }
                     
                     return null;
+                } else if (srcAttr.endsWith(".pdf")) {
+                    byte[] pdfBytes = uac.getBinaryResource(srcAttr);
+                    
+                    if (pdfBytes != null) {
+                        return PdfBoxPDFReplacedElement.create(_outputDevice.getWriter(), pdfBytes, e, box, c, c.getSharedContext());
+                    }
+                    
+                    return null;
                 }
 
                 FSImage fsImage = uac.getImageResource(srcAttr).getImage();
                 if (fsImage != null) {
-                    boolean hasMaxHeight = !box.getStyle().isMaxHeightNone();
-                    boolean hasMaxWidth = !box.getStyle().isMaxWidthNone();
-                    boolean hasMaxProperty = hasMaxWidth || hasMaxHeight;
-                    if (cssWidth == -1 && cssHeight == -1) {
-                        if (hasMaxProperty) {
-                            long maxWidth = CalculatedStyle.getCSSMaxWidth(c, box);
-                            long maxHeight = CalculatedStyle.getCSSMaxHeight(c, box);
-                            int intrinsicHeight = fsImage.getHeight();
-                            int intrinsicWidth = fsImage.getWidth();
-
-                            if (hasMaxWidth && hasMaxHeight) {
-                                if (intrinsicWidth > maxWidth || intrinsicHeight > maxHeight) {
-                                    double rw = (double) intrinsicWidth / (double) maxWidth;
-                                    double rh = (double) intrinsicHeight / (double) maxHeight;
-
-                                    if (rw > rh) {
-                                        fsImage.scale((int) maxWidth, -1);
-                                    } else {
-                                        fsImage.scale(-1, (int) maxHeight);
-                                    }
-                                }
-                            } else if (hasMaxWidth && intrinsicWidth > maxWidth) {
-                                fsImage.scale((int) maxWidth, -1);
-                            } else if (hasMaxHeight && intrinsicHeight > maxHeight) {
-                                fsImage.scale(-1, (int) maxHeight);
-                            }
-                        }
-                    } else {
-                        if (hasMaxProperty) {
-                            long maxWidth = box.getStyle().asLength(c, CSSName.MAX_WIDTH).value();
-                            long maxHeight = box.getStyle().asLength(c, CSSName.MAX_HEIGHT).value();
-                            if (cssHeight > maxHeight && cssHeight >= cssWidth) {
-                                fsImage.scale(-1, (int) maxHeight);
-                            } else if (cssWidth > maxWidth) {
-                                fsImage.scale((int) maxWidth, -1);
-                            } else {
-                                fsImage.scale(cssWidth, cssHeight);
-                            }
-                        } else {
-                            fsImage.scale(cssWidth, cssHeight);
-                        }
-                    }
                     return new PdfBoxImageElement(e,fsImage,c.getSharedContext(), box.getStyle().isImageRenderingInterpolate());
                 }
             }

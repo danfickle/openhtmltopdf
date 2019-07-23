@@ -14,24 +14,27 @@ import org.w3c.dom.Node;
 
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.PDFTranscoder.OpenHtmlFontResolver;
 import com.openhtmltopdf.util.XRLog;
 
 public class BatikSVGImage implements SVGImage {
-    private final static Point DEFAULT_DIMENSIONS = new Point(400, 400);
+    private final static int DEFAULT_SVG_WIDTH = 400;
+    private final static int DEFAULT_SVG_HEIGHT = 400;
+    private final static Point DEFAULT_DIMENSIONS = new Point(DEFAULT_SVG_WIDTH, DEFAULT_SVG_HEIGHT);
 
     private final Element svgElement;
     private final double dotsPerPixel;
     private OpenHtmlFontResolver fontResolver;
     private final PDFTranscoder pdfTranscoder;
-    
-    public BatikSVGImage(Element svgElement, double cssWidth, double cssHeight,
+
+    public BatikSVGImage(Element svgElement, Box box, double cssWidth, double cssHeight,
             double cssMaxWidth, double cssMaxHeight, double dotsPerPixel) {
         this.svgElement = svgElement;
         this.dotsPerPixel = dotsPerPixel;
 
-        this.pdfTranscoder = new PDFTranscoder(cssWidth, cssHeight);
+        this.pdfTranscoder = new PDFTranscoder(box, dotsPerPixel, cssWidth, cssHeight);
         if (cssWidth >= 0) {
             this.pdfTranscoder.addTranscodingHint(
                     SVGAbstractTranscoder.KEY_WIDTH,
@@ -54,18 +57,31 @@ public class BatikSVGImage implements SVGImage {
         }
         
         Point dimensions = parseDimensions(svgElement);
+        double w;
+        double h;
         
-        if (dimensions == DEFAULT_DIMENSIONS && 
-        	cssWidth >= 0 && cssHeight >= 0) {
-        	svgElement.setAttribute("width", Integer.toString((int) (cssWidth / dotsPerPixel)));
-        	svgElement.setAttribute("height", Integer.toString((int) (cssHeight / dotsPerPixel)));
-        	this.pdfTranscoder.setImageSize((float) (cssWidth / dotsPerPixel), (float) (cssHeight / dotsPerPixel));
+        if (dimensions == DEFAULT_DIMENSIONS) {
+            if (cssWidth >= 0 && cssHeight >= 0) {
+                w = (cssWidth / dotsPerPixel);
+                h = (cssHeight / dotsPerPixel);
+            } else if (cssWidth >= 0) {
+                w = (cssWidth / dotsPerPixel);
+                h = DEFAULT_SVG_HEIGHT;
+            } else if (cssHeight >= 0) {
+                w = DEFAULT_SVG_WIDTH;
+                h = (cssHeight / dotsPerPixel);
+            } else {
+                w = DEFAULT_SVG_WIDTH;
+                h = DEFAULT_SVG_HEIGHT;
+            }
         } else {
-        	svgElement.setAttribute("width", Integer.toString(dimensions.x));
-        	svgElement.setAttribute("height", Integer.toString(dimensions.y));
-        	this.pdfTranscoder.setImageSize((float) dimensions.x,
-        			(float) dimensions.y);
+            w = dimensions.x;
+            h = dimensions.y;
         }
+        
+        svgElement.setAttribute("width", Integer.toString((int) w));
+        svgElement.setAttribute("height", Integer.toString((int) h));
+        this.pdfTranscoder.setImageSize((float) w, (float) h);
     }
 
     @Override
@@ -86,7 +102,7 @@ public class BatikSVGImage implements SVGImage {
         this.pdfTranscoder.setSecurityOptions(allowScripts, allowExternalResources);
         this.pdfTranscoder.addTranscodingHint(SVGAbstractTranscoder.KEY_EXECUTE_ONLOAD, allowScripts);
     }
-
+    
     public Integer parseLength(String attrValue) {
         // TODO read length with units and convert to dots.
         // length ::= number (~"em" | ~"ex" | ~"px" | ~"in" | ~"cm" | ~"mm" |
@@ -100,8 +116,8 @@ public class BatikSVGImage implements SVGImage {
             return null;
         }
     }
-
-    public Point parseDimensions(Element e) {
+    
+    public Point parseWidthHeightAttributes(Element e) {
         String widthAttr = e.getAttribute("width");
         Integer width = widthAttr.isEmpty() ? null : parseLength(widthAttr);
 
@@ -111,29 +127,23 @@ public class BatikSVGImage implements SVGImage {
         if (width != null && height != null) {
             return new Point(width, height);
         }
+        
+        return DEFAULT_DIMENSIONS;
+    }
 
+    public Point parseDimensions(Element e) {
         String viewBoxAttr = e.getAttribute("viewBox");
         String[] splitViewBox = viewBoxAttr.split("\\s+");
         if (splitViewBox.length != 4) {
-            return DEFAULT_DIMENSIONS;
+            return parseWidthHeightAttributes(e);
         }
         try {
             int viewBoxWidth = Integer.parseInt(splitViewBox[2]);
             int viewBoxHeight = Integer.parseInt(splitViewBox[3]);
 
-            if (width == null && height == null) {
-                width = viewBoxWidth;
-                height = viewBoxHeight;
-            } else if (width == null) {
-                width = (int) Math.round(((double) height)
-                        * ((double) viewBoxWidth) / ((double) viewBoxHeight));
-            } else if (height == null) {
-                height = (int) Math.round(((double) width)
-                        * ((double) viewBoxHeight) / ((double) viewBoxWidth));
-            }
-            return new Point(width, height);
+            return new Point(viewBoxWidth, viewBoxHeight);
         } catch (NumberFormatException ex) {
-            return DEFAULT_DIMENSIONS;
+            return parseWidthHeightAttributes(e);
         }
     }
 

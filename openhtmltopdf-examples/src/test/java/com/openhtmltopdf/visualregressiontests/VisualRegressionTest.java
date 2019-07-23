@@ -8,7 +8,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
+import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
+import com.openhtmltopdf.objects.jfreechart.JFreeChartBarDiagramObjectDrawer;
+import com.openhtmltopdf.objects.jfreechart.JFreeChartPieDiagramObjectDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgExternalResourceMode;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgScriptMode;
@@ -673,6 +678,15 @@ public class VisualRegressionTest {
     }
     
     /**
+     * 1. Tests that an img (with percentage max-width) shows up in an absolute width table cell.
+     * 2. Tests that an img (with absolute max-width) shows up correctly sized in an auto width table cell.
+     */
+    @Test
+    public void testReplacedImgInTableCell2() throws IOException {
+        assertTrue(vt.runTest("replaced-img-in-table-cell-2"));
+    }
+    
+    /**
      * Tests that a fixed position element correctly resizes to the sum of its child boxes
      * using border-box sizing.
      */
@@ -729,6 +743,46 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests various sizing properties for replaced images including box-sizing,
+     * min/max, etc.
+     */
+    @Test
+    public void testReplacedSizingImg() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-img"));
+    }
+    
+    /**
+     * Tests various sizing properties for replaced SVG images including box-sizing,
+     * min/max, etc.
+     */
+    @Test
+    public void testReplacedSizingSvg() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-svg", WITH_SVG));
+    }
+    
+    /**
+     * Tests that non-css sizing for SVG works. For example width/height
+     * attributes or if not present the last two values of viewBox attribute.
+     * Finally, if neither is present, it should default to 400px x 400px.
+     */
+    @Test
+    public void testReplacedSizingSvgNonCss() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-svg-non-css", WITH_SVG));
+    }
+    
+    /**
+     * Tests all the CSS sizing properties for MathML elements.
+     */
+    @Test
+    @Ignore // MathML renderer produces slightly different results on JDK11 vs JDK8
+            // so can only be run manually.
+    public void testReplacedSizingMathMl() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-mathml", (builder) -> {
+          builder.useMathMLDrawer(new MathMLDrawer());
+        }));
+    }
+
+    /**
      * Tests that in the default secure mode, SVG images will not run script or allow
      * fetching of external resources.
      */
@@ -752,6 +806,32 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests the Latex support plugin including maths which are interpreted with
+     * the MathML plugin.
+     */
+    @Test
+    @Ignore // MathML renderer produces slightly different results on JDK11 vs JDK8
+            // so can only be run manually.
+    public void testReplacedPluginLatexWithMath() throws IOException {
+        assertTrue(vt.runTest("replaced-plugin-latex-with-math", (builder) -> {
+            builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+            builder.useMathMLDrawer(new MathMLDrawer());
+        }));
+    }
+    
+    /**
+     * Tests Latex rendering without math. Separate test because we can not test 
+     * Latex with math automatically because of the MathML rendering issue on
+     * different JDKs (see above).
+     */
+    @Test
+    public void testReplacedPluginLatex() throws IOException {
+        assertTrue(vt.runTest("replaced-plugin-latex", (builder) -> {
+            builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+        }));
+    }
+
+    /**
      * Tests that a SVG image referenced from a <code>img</code> tag
      * successfully renders. Also make sure a missing SVG resource
      * does not shutdown rendering altogether. Issue 353.
@@ -761,11 +841,43 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("svg-linked-from-img-tag", WITH_SVG));
     }
     
+    /**
+     * Tests that we correctly render PDF pages in the img tag at 
+     * the correct CSS specified sizing. Issue 344.
+     */
+    @Test
+    public void testPdfLinkedFromImgTag() throws IOException {
+        assertTrue(vt.runTest("pdf-linked-from-img-tag"));
+    }
+    
+    /**
+     * Tests the JFreeChart object drawers respect CSS width and height
+     * properties. Other sizing properties are not supported for JFreeChart
+     * plugins.
+     */
+    @Test
+    @Ignore // Unlikely to be stable across JDK versions.
+    public void testReplacedSizingJFreeChartPie() throws IOException {
+        assertTrue(vt.runTest("replaced-sizing-jfreechart-pie", builder -> {
+            DefaultObjectDrawerFactory factory = new DefaultObjectDrawerFactory();
+            factory.registerDrawer("jfreechart/pie", new JFreeChartPieDiagramObjectDrawer());
+            factory.registerDrawer("jfreechart/bar", new JFreeChartBarDiagramObjectDrawer());
+            builder.useObjectDrawerFactory(factory);
+        }));
+    }
+    
+    /**
+     * Tests that a div element with clear: both set actually does clear both.
+     */
+    @Test
+    public void testFloatClearBoth() throws IOException {
+        assertTrue(vt.runTest("float-clear-both"));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
     // + Inline layers.
-    // + Replaced elements.
     // + vertical page overflow, page-break-inside, etc.
     // + CSS columns.
 }
