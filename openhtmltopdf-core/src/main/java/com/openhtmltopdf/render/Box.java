@@ -321,6 +321,48 @@ public abstract class Box implements Styleable, DisplayListItem {
     public List<Box> getChildren() {
         return _boxes == null ? Collections.<Box>emptyList() : _boxes;
     }
+    
+    public static class ChildIteratorOfType<T> implements Iterator<T>  {
+        private final Iterator<Box> iter;
+        private final Class<T> type;
+        
+        private ChildIteratorOfType(Iterator<Box> parent, Class<T> clazz) {
+            this.iter = parent;
+            this.type = clazz;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            return this.iter.hasNext();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T next() {
+            Box box = this.iter.next();
+            
+            if (this.type.isAssignableFrom(box.getClass())) {
+                return (T) box;
+            }
+            
+            XRLog.general(Level.SEVERE, "Expecting box children to be of type (" +
+                                        this.type.getCanonicalName() + ") but got (" +
+                                        box.getClass().getCanonicalName() + ").");
+            return null;
+        }
+    }
+    
+    /**
+     * Returns an iterator of boxes cast to type.
+     * If a box is not of type, an error will be logged and 
+     * null will be returned for that box.
+     * Therefore, this method should only be used when it is certain
+     * all children are of a particular type.
+     * Eg: TableBox has children only of type TableSectionBox.
+     */
+    public <T> Iterator<T> getChildIteratorOfType(Class<T> type) {
+        return new ChildIteratorOfType<>(getChildIterator(), type);
+    }
 
     public static final int NOTHING = 0;
     public static final int FLUX = 1;

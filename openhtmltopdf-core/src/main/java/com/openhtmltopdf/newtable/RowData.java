@@ -32,9 +32,9 @@ import java.util.List;
  * position in the grid.
  */
 public class RowData {
-    private List _row = new ArrayList();
+    private final List<TableCellBox> _row = new ArrayList<>();
     
-    public List getRow() {
+    public List<TableCellBox> getRow() {
         return _row;
     }
     
@@ -45,7 +45,7 @@ public class RowData {
     }
     
     public void splitColumn(int pos) {
-        TableCellBox current = (TableCellBox)_row.get(pos);
+        TableCellBox current = _row.get(pos);
         _row.add(pos+1, current == null ? null : TableCellBox.SPANNING_CELL);
     }
 }
