@@ -614,4 +614,31 @@ public class TextVisualRegressionTest {
         assertTrue(vtester.runTest("text-justify-space-at-end", WITH_COLLAPSED_LINE_BREAKER));
     }
     
+    /**
+     * Tests that flowing columns containing only text in unbalanced mode
+     * are correctly laid out.
+     */
+    @Test
+    public void testColumnsSimpleUnbalanced() throws IOException {
+        assertTrue(run("columns-simple-unbalanced"));
+    }
+
+    /**
+     * Tests columns with nested content such as paragraphs, lists and span.
+     */
+    @Test
+    @Ignore // Broken because it doesn't treat grandchildren as break opportunities.
+    public void testColumnsNestedUnbalanced() throws IOException {
+        assertTrue(run("columns-nested-unbalanced"));
+    }
+    
+    /**
+     * Tests columns containing floated and clear elements.
+     */
+    @Test
+    @Ignore // Crashed with NPE in LayoutUtil::layoutFloated method.
+    public void testColumnsFloatsUnbalanced() throws IOException {
+        assertTrue(run("columns-floats-unbalanced"));
+    }
+    
 }
