@@ -32,6 +32,7 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.Styleable;
+import com.openhtmltopdf.render.FlowingColumnContainerBox.ColumnBreakStore;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 public abstract class Box implements Styleable, DisplayListItem {
@@ -1336,15 +1338,66 @@ public abstract class Box implements Styleable, DisplayListItem {
         return false;
     }
 
-	public boolean isFlowingColumnBox() {
-		while (getParent() != null) {
-			if (getParent().isFlowingColumnBox()) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
+    /**
+     * Is this box the first child of its parent?
+     */
+    public boolean isFirstChild() {
+        return getParent() != null &&
+               getParent().getChildCount() > 0 &&
+               getParent().getChild(0) == this;
+    }
+    
+    /**
+     * Is this box unbreakable in regards to column break opportunities?
+     */
+    public boolean isTerminalColumnBreak() {
+        return getChildCount() == 0;
+    }
+    
+    /**
+     * Creates a list of ancestors by walking up the chain of parent,
+     * grandparent, etc. Stops when the provided predicate returns false
+     * or the root box otherwise.
+     */
+    public List<Box> ancestorsUntil(Predicate<Box> predicate) {
+        List<Box> ancestors = new ArrayList<>(4);
+        Box parent = this.getParent();
+        
+        while (parent != null && predicate.test(parent)) {
+            ancestors.add(parent);
+            parent = parent.getParent();
+        }
+        
+        return ancestors;
+    }
+    
+    /**
+     * Get all ancestors, up until the root box.
+     */
+    public List<Box> ancestors() {
+        return ancestorsUntil(unused -> Boolean.TRUE);
+    }
+
+    /**
+     * Recursive method to find column break opportunities.
+     * @param store - use to report break opportunities.
+     */
+    public void findColumnBreakOpportunities(ColumnBreakStore store) {
+        if (this.isTerminalColumnBreak() && this.isFirstChild()) {
+            // We report unprocessed ancestor container boxes so that they
+            // can be moved with the first child.
+            List<Box> ancestors = this.ancestorsUntil(store::checkContainerShouldProcess);
+            store.addBreak(this, ancestors);
+        } else if (this.isTerminalColumnBreak()) {
+            store.addBreak(this, null);
+        } else {
+            // This must be a container box so don't add it as a break opportunity.
+            // Recursively query children for their break opportunities.
+            for (Box child : getChildren()) {
+                child.findColumnBreakOpportunities(store);
+            }
+        }
+    }
 
 }
 

@@ -9,11 +9,6 @@ public class FlowingColumnBox extends BlockBox {
     }
 
     @Override
-    public boolean isFlowingColumnBox() {
-        return true;
-    }
-
-    @Override
     public int getWidth() {
         return this._colWidth;
     }

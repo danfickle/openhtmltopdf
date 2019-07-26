@@ -6,19 +6,26 @@
   margin: 10px;
 }
 body {
-  max-width: 580px;
-  margin: 0;
+  max-width: 540px;
+  margin: 0 20px;
   padding: 0;
 }
-div {
+div.cols {
   text-align: justify;
   column-count: 3;
   column-fill: auto; /* As opposed to balance */
 }
+div.cols p:first-child {
+  margin-top: 0;
+}
+ul {
+  padding: 2px 0 2px 25px;
+}
 </style>
 </head>
 <body style="font-family: 'TestFont'; font-size: 14px;">
-<div>
+<div style="height: 123px; background-color: gray;"></div>
+<div class="cols">
 <p>
 Lorem ipsum dolor sit amet, <span style="color: red;">consectetur adipiscing</span> elit. Suspendisse volutpat feugiat massa vitae congue.
 Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed non blandit nisl, 
@@ -29,7 +36,7 @@ Pellentesque sagittis maximus elit et eleifend. Mauris vitae eros quis eros bibe
 Cras sed massa lectus. Suspendisse mollis mi id tortor commodo, in semper eros gravida. Integer pulvinar nulla urna,
 vel sagittis leo maximus id. Nam sit amet arcu non justo molestie interdum. Phasellus gravida nisi ut bibendum feugiat.
 </p>
-<ul style="border: 2px solid blue;">
+<ul>
 <li>One</li>
 <li>Two</li>
 <li>Three</li>
@@ -38,6 +45,7 @@ vel sagittis leo maximus id. Nam sit amet arcu non justo molestie interdum. Phas
 <li>Vivamus rhoncus cursus lectus vel commodo. Nunc vulputate commodo porta. Nunc eget augue nec nisl hendrerit tincidunt sit
 amet sed urna.</li>
 </ul>
+<img src="../../../demos/images/flyingsaucer.png" alt="Flyingsaucer"/>
 <p>
 In vitae nulla nec sapien imperdiet interdum eget et sem.
 </p>

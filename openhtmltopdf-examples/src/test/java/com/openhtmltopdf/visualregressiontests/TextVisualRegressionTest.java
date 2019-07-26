@@ -627,7 +627,6 @@ public class TextVisualRegressionTest {
      * Tests columns with nested content such as paragraphs, lists and span.
      */
     @Test
-    @Ignore // Broken because it doesn't treat grandchildren as break opportunities.
     public void testColumnsNestedUnbalanced() throws IOException {
         assertTrue(run("columns-nested-unbalanced"));
     }

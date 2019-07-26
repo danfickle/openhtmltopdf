@@ -42,6 +42,7 @@ import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
+import com.openhtmltopdf.render.FlowingColumnContainerBox.ColumnBreakStore;
 import com.openhtmltopdf.util.XRRuntimeException;
 
 /**
@@ -642,6 +643,12 @@ public class LineBox extends Box implements InlinePaintable {
     @Override
     public boolean hasNonTextContent(CssContext c) {
         return _textDecorations != null && _textDecorations.size() > 0;
+    }
+    
+    @Override
+    public boolean isTerminalColumnBreak() {
+        // A line box can not be further broken for the purpose of column breaks.
+        return true;
     }
 }
 
