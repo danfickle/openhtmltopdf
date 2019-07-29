@@ -153,8 +153,7 @@ public class LineBox extends Box implements InlinePaintable {
     }
     
     public boolean isFirstLine() {
-        Box parent = getParent();
-        return parent != null && parent.getChildCount() > 0 && parent.getChild(0) == this;
+        return super.isFirstChild();
     }
     
     public void prunePendingInlineBoxes() {

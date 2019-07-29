@@ -33,6 +33,7 @@ import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.Styleable;
 import com.openhtmltopdf.render.FlowingColumnContainerBox.ColumnBreakStore;
+import com.openhtmltopdf.util.LambdaUtil;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1270,16 +1271,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public boolean isInDocumentFlow() {
-        Box flowRoot = this;
-        while (true) {
-            Box parent = flowRoot.getParent();
-            if (parent == null) {
-                break;
-            } else {
-                flowRoot = parent;
-            }
-        }
-
+        Box flowRoot = rootBox();
         return flowRoot.isRoot();
     }
 
@@ -1317,17 +1309,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public boolean isContainedInMarginBox() {
-        Box current = this;
-        while (true) {
-            Box parent = current.getParent();
-            if (parent == null) {
-                break;
-            } else {
-                current = parent;
-            }
-        }
-
-        return current.isMarginAreaRoot();
+        return rootBox().isMarginAreaRoot();
     }
 
     public int getEffectiveWidth() {
@@ -1359,7 +1341,7 @@ public abstract class Box implements Styleable, DisplayListItem {
      * grandparent, etc. Stops when the provided predicate returns false
      * or the root box otherwise.
      */
-    public List<Box> ancestorsUntil(Predicate<Box> predicate) {
+    public List<Box> ancestorsWhile(Predicate<Box> predicate) {
         List<Box> ancestors = new ArrayList<>(4);
         Box parent = this.getParent();
         
@@ -1375,7 +1357,30 @@ public abstract class Box implements Styleable, DisplayListItem {
      * Get all ancestors, up until the root box.
      */
     public List<Box> ancestors() {
-        return ancestorsUntil(unused -> Boolean.TRUE);
+        return ancestorsWhile(LambdaUtil.alwaysTrue());
+    }
+    
+    /**
+     * Walks up the ancestor tree to the root testing ancestors agains
+     * the predicate.
+     * NOTE: Does not test against the current box (this).
+     * @return the box for which predicate returned true or null if none found.
+     */
+    public Box findAncestor(Predicate<Box> predicate) {
+        Box parent = getParent();
+        
+        while (parent != null && !predicate.test(parent)) {
+            parent = parent.getParent();
+        }
+        
+        return parent;
+    }
+    
+    /**
+     * Returns the highest ancestor box. May be current box (this).
+     */
+    public Box rootBox() {
+        return this.getParent() != null ? findAncestor(bx -> bx.getParent() == null) : this;
     }
 
     /**
@@ -1386,7 +1391,7 @@ public abstract class Box implements Styleable, DisplayListItem {
         if (this.isTerminalColumnBreak() && this.isFirstChild()) {
             // We report unprocessed ancestor container boxes so that they
             // can be moved with the first child.
-            List<Box> ancestors = this.ancestorsUntil(store::checkContainerShouldProcess);
+            List<Box> ancestors = this.ancestorsWhile(store::checkContainerShouldProcess);
             store.addBreak(this, ancestors);
         } else if (this.isTerminalColumnBreak()) {
             store.addBreak(this, null);

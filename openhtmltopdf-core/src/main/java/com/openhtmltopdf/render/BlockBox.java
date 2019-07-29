@@ -289,11 +289,7 @@ public class BlockBox extends Box implements InlinePaintable {
         if (! isInline()) {
             return null;
         } else {
-            Box b = getParent();
-            while (! (b instanceof LineBox)) {
-                b = b.getParent();
-            }
-            return (LineBox) b;
+            return (LineBox) findAncestor(bx -> bx instanceof LineBox);
         }
     }
 
@@ -2263,11 +2259,7 @@ public class BlockBox extends Box implements InlinePaintable {
     }
 
     public boolean isInMainFlow() {
-        Box flowRoot = this;
-        while (flowRoot.getParent() != null) {
-            flowRoot = flowRoot.getParent();
-        }
-
+        Box flowRoot = rootBox();
         return flowRoot.isRoot();
     }
 
