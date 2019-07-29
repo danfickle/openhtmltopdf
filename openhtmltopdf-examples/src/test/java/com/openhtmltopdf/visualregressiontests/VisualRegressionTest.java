@@ -685,7 +685,15 @@ public class VisualRegressionTest {
     public void testReplacedImgInTableCell2() throws IOException {
         assertTrue(vt.runTest("replaced-img-in-table-cell-2"));
     }
-    
+
+    /**
+     * Tests that an img with max-width and max-height shows up correctly in the table cell
+     */
+    @Test
+    public void testReplacedImgInTableCell3() throws IOException {
+        assertTrue(vt.runTest("replaced-img-in-table-cell-3"));
+    }
+
     /**
      * Tests that a fixed position element correctly resizes to the sum of its child boxes
      * using border-box sizing.

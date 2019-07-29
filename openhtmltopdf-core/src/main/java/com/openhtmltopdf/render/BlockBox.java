@@ -786,9 +786,9 @@ public class BlockBox extends Box implements InlinePaintable {
 
                 if (rw > rh) {
                     nw = cssWidth;
-                    nh = intrinsicHeight;
-                } else {
-                    nw = intrinsicWidth;
+					nh = (int) (intrinsicHeight / rw);
+				} else {
+					nw = (int) (intrinsicWidth / rh);
                     nh = cssHeight;
                 }
             } else {
