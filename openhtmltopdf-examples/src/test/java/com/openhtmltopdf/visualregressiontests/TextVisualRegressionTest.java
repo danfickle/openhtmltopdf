@@ -635,7 +635,7 @@ public class TextVisualRegressionTest {
      * Tests columns containing floated and clear elements.
      */
     @Test
-    @Ignore // Crashed with NPE in LayoutUtil::layoutFloated method.
+    @Ignore // Basics done but needs more work about breaking on appropriate locations in floats.
     public void testColumnsFloatsUnbalanced() throws IOException {
         assertTrue(run("columns-floats-unbalanced"));
     }

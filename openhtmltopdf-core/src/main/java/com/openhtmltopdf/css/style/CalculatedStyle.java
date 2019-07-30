@@ -943,6 +943,10 @@ public class CalculatedStyle {
     }
 
     public boolean establishesBFC() {
+        if (hasColumns()) {
+            return true;
+        }
+        
         FSDerivedValue value = valueByName(CSSName.POSITION);
 
         if (value instanceof FunctionValue) {  // running(header)
@@ -1031,7 +1035,7 @@ public class CalculatedStyle {
     }
     
     public boolean hasColumns() {
-    	return !isIdent(CSSName.COLUMN_COUNT, IdentValue.AUTO) && asFloat(CSSName.COLUMN_COUNT) > 1;
+        return !isIdent(CSSName.COLUMN_COUNT, IdentValue.AUTO) && asFloat(CSSName.COLUMN_COUNT) > 1;
     }
     
     public int columnCount() {

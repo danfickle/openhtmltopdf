@@ -926,7 +926,7 @@ public class BlockBox extends Box implements InlinePaintable {
         }
     }
 
-    private void addBoxID(LayoutContext c) {
+    protected void addBoxID(LayoutContext c) {
         if (! isAnonymous()) {
             String name = c.getNamespaceHandler().getAnchorName(getElement());
             if (name != null) {
@@ -1304,7 +1304,7 @@ public class BlockBox extends Box implements InlinePaintable {
     // This will require a rethink if we ever truly layout incrementally
     // Should only ever collapse top margin and pick up collapsable
     // bottom margins by looking back up the tree.
-    private void collapseMargins(LayoutContext c) {
+    protected void collapseMargins(LayoutContext c) {
         if (! isTopMarginCalculated() || ! isBottomMarginCalculated()) {
             recalcMargin(c);
             RectPropertySet margin = getMargin(c);

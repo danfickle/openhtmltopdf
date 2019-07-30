@@ -10,7 +10,7 @@ body {
   margin: 0;
   padding: 0;
 }
-div {
+div.cols {
   text-align: justify;
   column-count: 3;
   column-fill: auto; /* As opposed to balance */
@@ -18,17 +18,24 @@ div {
 </style>
 </head>
 <body style="font-family: 'TestFont'; font-size: 14px;">
-<div>
+<div style="background-color: pink; height: 33px;"></div>
+<div class="cols">
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse volutpat feugiat massa vitae congue.
 
-<div style="float:right; border: 2px solid blue; width: 40%;column-count: auto; margin: 3px; padding: 1px;">
+<div style="float:right; border: 2px solid blue; width: 40%;column-count: auto; margin: 3px; padding: 4px;">
+<p>
 Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed non blandit nisl, 
 id scelerisque sem.
+</p>
+<ol>
+<li>One</li>
+<li>Two</li>
+</ol>
 </div>
 Pellentesque sagittis maximus elit et eleifend. Mauris vitae eros quis eros bibendum bibendum.
 Cras sed massa lectus. Suspendisse mollis mi id tortor commodo, in semper eros gravida. Integer pulvinar nulla urna,
 vel sagittis leo maximus id. Nam sit amet arcu non justo molestie interdum. Phasellus gravida nisi ut bibendum feugiat.
-<div style="float: left; border: 2px solid red; width: 40%;column-count: auto; margin: 3px; padding: 1px;">
+<div style="float: left; border: 2px solid red; width: 40%;column-count: auto; margin: 3px; padding: 4px;">
 In vitae nulla nec sapien imperdiet interdum eget et sem. Aenean ultricies augue vitae quam viverra, et
 maximus tortor eleifend.
 </div>
