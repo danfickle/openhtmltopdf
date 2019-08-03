@@ -111,7 +111,6 @@ public class FlowingColumnContainerBox extends BlockBox {
     private void layoutFloats(TreeMap<Integer, ColumnPosition> columns, List<BoxOffset> floats, int columnCount, int colWidth, int colGap) {
         for (BoxOffset bo : floats) {
             BlockBox floater = bo.getBox();
-            System.out.println("floater = " + floater);
             
             ColumnBreakStore store = new ColumnBreakStore();
             floater.findColumnBreakOpportunities(store);
@@ -210,7 +209,7 @@ public class FlowingColumnContainerBox extends BlockBox {
          
         // FIXME: Don't sort if we have in order - common case.
         Collections.sort(store.breaks, 
-                Comparator.comparingInt(brk -> brk.box.getAbsY() + brk.box.getHeight()));
+                Comparator.comparingInt(brk -> brk.box.getAbsY() + brk.box.getBorderBoxHeight(c)));
         
         for (int i = 0; i < store.breaks.size(); i++) {
             ColumnBreakOpportunity br = store.breaks.get(i);
@@ -223,7 +222,7 @@ public class FlowingColumnContainerBox extends BlockBox {
 
             // We need the max height of the column which is the bottom of the current box
             // minus the top of the column.
-            finalHeight = Math.max((yProposedFinal + ch.getHeight()) - current.pasteY, finalHeight);
+            finalHeight = Math.max((yProposedFinal + ch.getBorderBoxHeight(c)) - startY, finalHeight);
 
             // x position should be easy.
             int xAdjust = ((colIdx % columnCount) * colWidth) + ((colIdx % columnCount) * colGap);
@@ -246,10 +245,12 @@ public class FlowingColumnContainerBox extends BlockBox {
  
             if (nextBr != null) {
                 Box next = nextBr.box;
-                int nextYHeight = next.getAbsY() + yAdjust + next.getHeight() - current.pasteY;
+                int nextYHeight = next.getAbsY() + yAdjust + next.getBorderBoxHeight(c) - current.pasteY;
                 
-                if (nextYHeight > current.maxColHeight) {
-                    // We have moved past the bottom of the current column.
+                if (nextYHeight > current.maxColHeight ||
+                    ch.getStyle().isColumnBreakAfter() ||
+                    next.getStyle().isColumnBreakBefore()) {
+                    // We have moved past the bottom of the current column (or explicit break).
                     // Time for a new column.
                     // FIXME: What if box doesn't fit in new column either?
                     int newColIdx = colIdx + 1;
@@ -279,7 +280,7 @@ public class FlowingColumnContainerBox extends BlockBox {
         if (haveFloats) {
             layoutFloats(columnMap, this.getPersistentBFC(), columnCount, colWidth, colGap);
         }
-        
+
         return finalHeight;
     }
 
@@ -315,7 +316,6 @@ public class FlowingColumnContainerBox extends BlockBox {
         int height = adjustUnbalanced(c, _child, (int) colGap, colWidth, colCount, this.getLeftMBP() + this.getX());
         _child.setHeight(0);
         this.setHeight(height);
-        
         c.popBFC();
     }
 

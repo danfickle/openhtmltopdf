@@ -1095,6 +1095,14 @@ public class CalculatedStyle {
         return val == IdentValue.ALWAYS || val == IdentValue.LEFT
                 || val == IdentValue.RIGHT;
     }
+    
+    public boolean isColumnBreakBefore() {
+        return isIdent(CSSName.BREAK_BEFORE, IdentValue.COLUMN);
+    }
+    
+    public boolean isColumnBreakAfter() {
+        return isIdent(CSSName.BREAK_AFTER, IdentValue.COLUMN);
+    }
 
     public boolean isAvoidPageBreakInside() {
         return isIdent(CSSName.PAGE_BREAK_INSIDE, IdentValue.AVOID);

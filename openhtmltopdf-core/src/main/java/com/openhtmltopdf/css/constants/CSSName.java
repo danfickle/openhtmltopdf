@@ -20,10 +20,10 @@
  */
 package com.openhtmltopdf.css.constants;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
-
+import java.util.Objects;
 import com.openhtmltopdf.css.parser.CSSErrorHandler;
 import com.openhtmltopdf.css.parser.CSSParser;
 import com.openhtmltopdf.css.parser.PropertyValue;
@@ -55,7 +55,7 @@ import com.openhtmltopdf.util.XRLog;
  *
  * @author Patrick Wright
  */
-public final class CSSName implements Comparable {
+public final class CSSName implements Comparable<CSSName> {
     /**
      * marker var, used for initialization
      */
@@ -115,12 +115,12 @@ public final class CSSName implements Comparable {
     /**
      * Map of all CSS properties
      */
-    private static final Map ALL_PROPERTY_NAMES = new TreeMap();
+    private static final Map<String, CSSName> ALL_PROPERTY_NAMES = new HashMap<>();
 
     /**
      * Map of all non-shorthand CSS properties
      */
-    private static final Map ALL_PRIMITIVE_PROPERTY_NAMES = new TreeMap();
+    private static final Map<String, CSSName> ALL_PRIMITIVE_PROPERTY_NAMES = new HashMap<>();
 
     /**
      * Unique CSSName instance for CSS2 property.
@@ -914,6 +914,24 @@ public final class CSSName implements Comparable {
                     "auto",
                     INHERITS,
                     new PrimitivePropertyBuilders.PageBreakInside()
+            );
+    
+    public final static CSSName BREAK_AFTER =
+            addProperty(
+                    "break-after",
+                    PRIMITIVE,
+                    "auto",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.BreakAfter()
+            );
+    
+    public final static CSSName BREAK_BEFORE =
+            addProperty(
+                    "break-before",
+                    PRIMITIVE,
+                    "auto",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.BreakBefore()
             );
 
     /**
@@ -1816,24 +1834,6 @@ public final class CSSName implements Comparable {
     }
 
     /**
-     * Iterator of ALL CSS 2 visual property names.
-     *
-     * @return Returns
-     */
-    public static Iterator allCSS2PropertyNames() {
-        return ALL_PROPERTY_NAMES.keySet().iterator();
-    }
-
-    /**
-     * Iterator of ALL primitive (non-shorthand) CSS 2 visual property names.
-     *
-     * @return Returns
-     */
-    public static Iterator allCSS2PrimitivePropertyNames() {
-        return ALL_PRIMITIVE_PROPERTY_NAMES.keySet().iterator();
-    }
-
-    /**
      * Returns true if the named property inherits by default, according to the
      * CSS2 spec.
      *
@@ -1877,8 +1877,7 @@ public final class CSSName implements Comparable {
      * @return The byPropertyName value
      */
     public static CSSName getByPropertyName(String propName) {
-
-        return (CSSName) ALL_PROPERTY_NAMES.get(propName);
+        return ALL_PROPERTY_NAMES.get(propName);
     }
 
     public static CSSName getByID(int id) {
@@ -1927,10 +1926,10 @@ public final class CSSName implements Comparable {
     }
 
     static {
-        Iterator iter = ALL_PROPERTY_NAMES.values().iterator();
+        Iterator<CSSName> iter = ALL_PROPERTY_NAMES.values().iterator();
         ALL_PROPERTIES = new CSSName[ALL_PROPERTY_NAMES.size()];
         while (iter.hasNext()) {
-            CSSName name = (CSSName) iter.next();
+            CSSName name = iter.next();
             ALL_PROPERTIES[name.FS_ID] = name;
         }
     }
@@ -1941,8 +1940,8 @@ public final class CSSName implements Comparable {
                 XRLog.cssParse("(" + uri + ") " + message);
             }
         });
-        for (Iterator i = ALL_PRIMITIVE_PROPERTY_NAMES.values().iterator(); i.hasNext(); ) {
-            CSSName cssName = (CSSName)i.next();
+        for (Iterator<CSSName> i = ALL_PRIMITIVE_PROPERTY_NAMES.values().iterator(); i.hasNext(); ) {
+            CSSName cssName = i.next();
             if (cssName.initialValue.charAt(0) != '=' && cssName.implemented) {
                 PropertyValue value = parser.parsePropertyValue(
                         cssName, StylesheetInfo.USER_AGENT, cssName.initialValue);
@@ -1959,14 +1958,14 @@ public final class CSSName implements Comparable {
         }
     }
 
-    //Assumed to be consistent with equals because CSSName is in essence an enum
-    public int compareTo(Object object) {
-        if (object == null) throw new NullPointerException();//required by Comparable
-        return FS_ID - ((CSSName) object).FS_ID;//will throw ClassCastException according to Comparable if not a CSSName
+    // Assumed to be consistent with equals because CSSName is in essence an enum
+    @Override
+    public int compareTo(CSSName object) {
+        Objects.requireNonNull(object);
+        return this.FS_ID - object.FS_ID;
     }
 
-    // FIXME equals, hashcode
-
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof CSSName)) return false;
@@ -1976,6 +1975,7 @@ public final class CSSName implements Comparable {
         return FS_ID == cssName.FS_ID;
     }
 
+    @Override
     public int hashCode() {
         return FS_ID;
     }

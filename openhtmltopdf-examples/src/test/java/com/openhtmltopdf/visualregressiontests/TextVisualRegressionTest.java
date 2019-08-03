@@ -633,9 +633,9 @@ public class TextVisualRegressionTest {
     
     /**
      * Tests columns containing floated and clear elements.
+     * Also tests explicit column breaks.
      */
     @Test
-    @Ignore // Basics done but needs more work about breaking on appropriate locations in floats.
     public void testColumnsFloatsUnbalanced() throws IOException {
         assertTrue(run("columns-floats-unbalanced"));
     }
