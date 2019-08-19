@@ -366,16 +366,8 @@ public class TableBox extends BlockBox {
     }
 
     private boolean isNeedAnalyzePageBreaks() {
-        Box b = getParent();
-        while (b != null) {
-            if (b.getStyle().isTable() && b.getStyle().isPaginateTable()) {
-                return false;
-            }
-
-            b = b.getParent();
-        }
-
-        return true;
+        Box b = findAncestor(bx -> bx.getStyle().isTable() && bx.getStyle().isPaginateTable());
+        return b == null;
     }
 
     private void analyzePageBreaks(LayoutContext c) {

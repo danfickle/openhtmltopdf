@@ -1154,7 +1154,7 @@ public class BoxBuilder {
                         child.setElement(element);
                         
                         if (style.hasColumns() && c.isPrint()) {
-                        	FlowingColumnContainerBox cont = (FlowingColumnContainerBox) child;
+                            FlowingColumnContainerBox cont = (FlowingColumnContainerBox) child;
                             cont.setOnlyChild(c, new FlowingColumnBox(cont));
                             cont.getChild().setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
                             cont.getChild().setElement(element);

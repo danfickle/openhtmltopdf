@@ -1,0 +1,73 @@
+<html>
+<head>
+<style>
+@page {
+  size: 600px 220px;
+  margin: 10px;
+}
+body {
+  max-width: 580px;
+  margin: 0;
+  padding: 0;
+}
+div.cols {
+  text-align: justify;
+  column-count: 3;
+  column-fill: auto; /* As opposed to balance */
+}
+div.cols h2 {
+  margin-top: 4px;
+  border-top: 5px solid orange;
+  font-weight: normal;
+}
+h1 {
+  margin: 0;
+  padding: 2px;
+  font-size: 20px;
+  font-weight: normal;
+  text-align: center;
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; font-size: 14px;">
+<div style="background-color: pink; min-height: 33px;"><h1>Column Support</h1></div>
+<div class="cols">
+<h2>Chapter 1</h2>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse volutpat feugiat massa vitae congue.
+Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed non blandit nisl, 
+id scelerisque sem.
+<div style="break-before: column;"></div>
+<h2>Chapter 2</h2>
+<div style="float:right; border: 2px solid blue; width: 40%;column-count: auto; margin: 3px; padding: 6px; background-color: aqua;">
+<ol>
+<li>One</li>
+<li>Two</li>
+</ol>
+</div>
+Pellentesque sagittis maximus elit et eleifend. Mauris vitae eros quis eros bibendum bibendum.
+Cras sed massa lectus. Suspendisse mollis mi id tortor commodo, in semper eros gravida. Integer pulvinar nulla urna,
+vel sagittis leo maximus id. Nam sit amet arcu non justo molestie interdum. Phasellus gravida nisi ut bibendum feugiat.
+<div style="break-before: column;"></div>
+<h2>Chapter 3</h2>
+<div style="float: left; border: 2px solid red; width: 40%;column-count: auto; margin: 3px; padding: 6px; background-color: pink;">
+This is a left float.
+</div>
+Aenean ultricies augue vitae quam viverra, et maximus tortor eleifend.
+Duis quis venenatis turpis, eu sollicitudin magna. Proin ullamcorper sem vitae sem facilisis
+luctus. Mauris sed lectus ac nulla placerat pellentesque ut vel diam. Sed vulputate ornare sem vel placerat.
+<div style="float: left; width: 20%; height: 20px; background-color: pink; margin: 2px;"></div>
+<div style="float: right; width: 20%; height: 30px; background-color: orange; margin: 2px;"></div>
+<div style="clear: both; background-color: purple;"></div>
+Nam auctor libero ante, et volutpat arcu dictum ac.
+Class aptent taciti sociosqu ad litora torquent per conubia nostra,
+per inceptos himenaeos. Nullam non sodales augue, in efficitur turpis. Duis maximus a orci in consequat.
+<div style="break-before: column;"></div>
+<h2>Chapter 4</h2>
+<img src="../../../demos/images/flyingsaucer.png" alt="Flyingsaucer" style="float: right; width: 50%;"/>
+Mauris luctus nec ex et volutpat. Nullam mollis luctus ultrices. Sed malesuada porttitor dui et blandit.
+Fusce ultrices metus sem, sed vehicula sem hendrerit vel. Phasellus sed turpis eget urna luctus sagittis in eget mauris.
+Vivamus rhoncus cursus lectus vel commodo. Nunc vulputate commodo porta. Nunc eget augue nec nisl hendrerit tincidunt sit
+amet sed urna.
+</div>
+</body>
+</html>

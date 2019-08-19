@@ -289,11 +289,7 @@ public class BlockBox extends Box implements InlinePaintable {
         if (! isInline()) {
             return null;
         } else {
-            Box b = getParent();
-            while (! (b instanceof LineBox)) {
-                b = b.getParent();
-            }
-            return (LineBox) b;
+            return (LineBox) findAncestor(bx -> bx instanceof LineBox);
         }
     }
 
@@ -930,7 +926,7 @@ public class BlockBox extends Box implements InlinePaintable {
         }
     }
 
-    private void addBoxID(LayoutContext c) {
+    protected void addBoxID(LayoutContext c) {
         if (! isAnonymous()) {
             String name = c.getNamespaceHandler().getAnchorName(getElement());
             if (name != null) {
@@ -1308,7 +1304,7 @@ public class BlockBox extends Box implements InlinePaintable {
     // This will require a rethink if we ever truly layout incrementally
     // Should only ever collapse top margin and pick up collapsable
     // bottom margins by looking back up the tree.
-    private void collapseMargins(LayoutContext c) {
+    protected void collapseMargins(LayoutContext c) {
         if (! isTopMarginCalculated() || ! isBottomMarginCalculated()) {
             recalcMargin(c);
             RectPropertySet margin = getMargin(c);
@@ -2263,11 +2259,7 @@ public class BlockBox extends Box implements InlinePaintable {
     }
 
     public boolean isInMainFlow() {
-        Box flowRoot = this;
-        while (flowRoot.getParent() != null) {
-            flowRoot = flowRoot.getParent();
-        }
-
+        Box flowRoot = rootBox();
         return flowRoot.isRoot();
     }
 

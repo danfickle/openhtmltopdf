@@ -54,12 +54,9 @@ import com.openhtmltopdf.util.XRRuntimeException;
  */
 public class IdentValue implements FSDerivedValue {
     private static int maxAssigned = 0;
+    private static final Map<String, IdentValue> ALL_IDENT_VALUES = new HashMap<>();
 
-    /**
-     * Description of the Field
-     */
     private final String ident;
-
     public final int FS_ID;
 
     public final static IdentValue ABSOLUTE = addValue("absolute");
@@ -254,11 +251,10 @@ public class IdentValue implements FSDerivedValue {
     public static final IdentValue BORDER_BOX = addValue("border-box");
     public static final IdentValue CONTENT_BOX = addValue("content-box");
 
-
-    /**
-     * Description of the Field
+    /*
+     * Column break. 
      */
-    private static Map<String, IdentValue> ALL_IDENT_VALUES;
+    public static final IdentValue COLUMN = addValue("column");
 
     /**
      * Constructor for the IdentValue object
@@ -276,6 +272,7 @@ public class IdentValue implements FSDerivedValue {
      *
      * @return a string representation of the object.
      */
+    @Override
     public String toString() {
         return ident;
     }
@@ -290,22 +287,19 @@ public class IdentValue implements FSDerivedValue {
      * @return see desc.
      */
     public static IdentValue getByIdentString(String ident) {
-        IdentValue val = (IdentValue) ALL_IDENT_VALUES.get(ident);
+        IdentValue val = ALL_IDENT_VALUES.get(ident);
         if (val == null) {
             throw new XRRuntimeException("Ident named " + ident + " has no IdentValue instance assigned to it.");
         }
         return val;
     }
 
-    /**
-     * TODO: doc
-     */
     public static boolean looksLikeIdent(String ident) {
-        return (IdentValue) ALL_IDENT_VALUES.get(ident) != null;
+        return ALL_IDENT_VALUES.get(ident) != null;
     }
 
     public static IdentValue valueOf(String ident) {
-        return (IdentValue)ALL_IDENT_VALUES.get(ident);
+        return ALL_IDENT_VALUES.get(ident);
     }
 
     public static int getIdentCount() {
@@ -318,10 +312,7 @@ public class IdentValue implements FSDerivedValue {
      * @param ident The feature to be added to the Value attribute
      * @return Returns
      */
-    private final static synchronized IdentValue addValue(String ident) {
-        if (ALL_IDENT_VALUES == null) {
-            ALL_IDENT_VALUES = new HashMap<String, IdentValue>();
-        }
+    private final static IdentValue addValue(String ident) {
         IdentValue val = new IdentValue(ident);
         ALL_IDENT_VALUES.put(ident, val);
         return val;
