@@ -687,6 +687,15 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests that large images with smaller max-width and/or max-height are correctly resized.
+     * PR number 373.
+     */
+    @Test
+    public void testReplacedImgInTableCell3() throws IOException {
+        assertTrue(vt.runTest("replaced-img-in-table-cell-3"));
+    }
+    
+    /**
      * Tests that a fixed position element correctly resizes to the sum of its child boxes
      * using border-box sizing.
      */
