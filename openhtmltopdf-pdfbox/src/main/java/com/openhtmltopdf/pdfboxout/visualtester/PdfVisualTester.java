@@ -274,7 +274,7 @@ public class PdfVisualTester {
         return true;
     }
     
-    private static BufferedImage createDiffImage(BufferedImage img1, BufferedImage img2) {
+    public static BufferedImage createDiffImage(BufferedImage img1, BufferedImage img2) {
         int maxW = Math.max(img1.getWidth(), img2.getWidth());
         int maxH = Math.max(img1.getHeight(), img2.getHeight());
         
