@@ -217,6 +217,7 @@ public class TestcaseRunner {
 		BufferedImagePageProcessor bufferedImagePageProcessor = new BufferedImagePageProcessor(
 				BufferedImage.TYPE_INT_RGB, 2.0);
 		builder.useDefaultPageSize(210, 297, Java2DRendererBuilder.PageSizeUnits.MM);
+        builder.useEnvironmentFonts(true);
 
 		/*
 		 * Render Single Page Image
