@@ -35,16 +35,16 @@ public class Java2DVisualTest {
     
     private void runAllTests() throws IOException {
         run("simple-blocks");
+        run("simple-text");
+        
         
         // If you add a test here, please remember to also
         // add it to runOneTest (commented out).
-        
-        System.out.println("The failed tests were:");
-        System.out.println(failed);
     }
     
     private void runOneTest() throws IOException {
         // run("simple-blocks");
+        // run("simple-text");
         
         // If you add a test here, please remember to also add
         // it to runAllTests.
@@ -57,5 +57,8 @@ public class Java2DVisualTest {
         
         test.runOneTest();
         test.runAllTests();
+
+        System.out.println("The failed tests were:");
+        System.out.println(test.failed);
     }
 }

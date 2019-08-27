@@ -18,6 +18,7 @@ import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.TextDirection;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.util.XRLogger;
+import com.openhtmltopdf.visualtest.Java2DVisualTester.Java2DBuilderConfig;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
 public class TestSupport {
@@ -125,6 +126,11 @@ public class TestSupport {
     }
     
     public static final BuilderConfig WITH_FONT = (builder) -> {
+        builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "TestFont");
+        builder.useUnicodeLineBreaker(new SimpleTextBreaker());
+    };
+    
+    public static final Java2DBuilderConfig J2D_WITH_FONT = (builder) -> {
         builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "TestFont");
         builder.useUnicodeLineBreaker(new SimpleTextBreaker());
     };

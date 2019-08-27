@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.List;
-
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilderState;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -14,6 +13,7 @@ import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.java2d.api.FSPage;
@@ -22,10 +22,12 @@ import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.AddedFont;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.NullUserInterface;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -95,8 +97,30 @@ public class Java2DRenderer implements Closeable {
 //        uac.setSharedContext(_sharedContext);
 //        _outputDevice.setSharedContext(_sharedContext);
 
-        Java2DFontResolver fontResolver = new Java2DFontResolver(_sharedContext);
+        Java2DFontResolver fontResolver = new Java2DFontResolver(_sharedContext, state._useEnvironmentFonts);
         _sharedContext.setFontResolver(fontResolver);
+        
+        /*
+         * Register all Fonts
+         */
+        for (AddedFont font : state._fonts) {
+            IdentValue fontStyle = null;
+
+            if (font.style == FontStyle.NORMAL) {
+                fontStyle = IdentValue.NORMAL;
+            } else if (font.style == FontStyle.ITALIC) {
+                fontStyle = IdentValue.ITALIC;
+            } else if (font.style == FontStyle.OBLIQUE) {
+                fontStyle = IdentValue.OBLIQUE;
+            }
+
+            if (font.supplier != null) {
+                fontResolver.addInputStreamFont(font.supplier, font.family, font.weight, fontStyle);
+            } else {
+                fontResolver.addFontFile(font.fontFile, font.family, font.weight, fontStyle);
+            }
+        }
+        
         
 		Java2DReplacedElementFactory replacedFactory = new Java2DReplacedElementFactory(this._svgImpl,
 				_objectDrawerFactory, this._mathMLImpl);

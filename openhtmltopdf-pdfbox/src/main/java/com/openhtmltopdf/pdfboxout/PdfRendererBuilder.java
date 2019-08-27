@@ -3,6 +3,7 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.extend.impl.FSNoOpCacheStore;
+import com.openhtmltopdf.outputdevice.helper.AddedFont;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
@@ -10,8 +11,6 @@ import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import java.io.File;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
 
@@ -166,66 +165,6 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	    return this;
 	}
 
-	/**
-	 * Add a font programmatically. If the font is NOT subset, it will be downloaded
-	 * when the renderer is run, otherwise the font will only be downloaded if
-	 * needed. Therefore, the user could add many fonts, confidant that only those
-	 * that are used will be downloaded and processed.
-	 *
-	 * The InputStream returned by the supplier will be closed by the caller. Fonts
-	 * should generally be subset, except when used in form controls. FSSupplier is
-	 * a lambda compatible interface.
-	 *
-	 * Fonts can also be added using a font-face at-rule in the CSS.
-	 *
-	 * @param supplier
-	 * @param fontFamily
-	 * @param fontWeight
-	 * @param fontStyle
-	 * @param subset
-	 * @return
-	 */
-	public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
-			FontStyle fontStyle, boolean subset) {
-		state._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle));
-		return this;
-	}
-
-	/**
-	 * Simpler overload for
-	 * {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}
-	 *
-	 * @param supplier
-	 * @param fontFamily
-	 * @return
-	 */
-	public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily) {
-		return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
-	}
-
-	/**
-	 * Like {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}, but
-	 * allows to supply a font file. If the font file is a .ttc file it is handled
-	 * as TrueTypeCollection. If you have the font in file form you should use this
-	 * API.
-	 */
-	public PdfRendererBuilder useFont(File fontFile, String fontFamily, Integer fontWeight, FontStyle fontStyle,
-			boolean subset) {
-		state._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle));
-		return this;
-	}
-
-	/**
-	 * Simpler overload for
-	 * {@link #useFont(File, String, Integer, FontStyle, boolean)}
-	 *
-	 * @param fontFile
-	 * @param fontFamily
-	 * @return
-	 */
-	public PdfRendererBuilder useFont(File fontFile, String fontFamily) {
-		return this.useFont(fontFile, fontFamily, 400, FontStyle.NORMAL, true);
-	}
 
 
 	/**
@@ -274,25 +213,6 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	public PdfRendererBuilder usePageSupplier(PageSupplier pageSupplier) {
 		state._pageSupplier = pageSupplier;
 		return this;
-	}
-
-	static class AddedFont {
-		private final FSSupplier<InputStream> supplier;
-		private final File fontFile;
-		private final Integer weight;
-		private final String family;
-		private final boolean subset;
-		private final FontStyle style;
-
-		private AddedFont(FSSupplier<InputStream> supplier, File fontFile, Integer weight, String family,
-				boolean subset, FontStyle style) {
-			this.supplier = supplier;
-			this.fontFile = fontFile;
-			this.weight = weight;
-			this.family = family;
-			this.subset = subset;
-			this.style = style;
-		}
 	}
 
 	/**

@@ -38,6 +38,7 @@ import com.openhtmltopdf.util.XRLog;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -51,62 +52,95 @@ import java.util.logging.Level;
  * @author Joshua Marinacci
  */
 public class Java2DFontResolver implements FontResolver {
-	
-	private static class FontDescription implements MinimalFontDescription {
-		private FSSupplier<InputStream> _supplier;
-		private final int _weight;
-		private final IdentValue _style;
-		private Font _font;
-		
-		private FontDescription(FSSupplier<InputStream> supplier, int weight, IdentValue style) {
-			this._supplier = supplier;
-			this._weight = weight;
-			this._style = style;
-		}
-		
-		@Override
-		public int getWeight() {
-			return _weight;
-		}
 
-		@Override
-		public IdentValue getStyle() {
-			return _style;
-		}
-		
-		private Font getBaseFont() {
-			return _font;
-		}
-		
-		private boolean realizeFont() {
+    private static abstract class FontDescription implements MinimalFontDescription {
+        protected static final String FAIL_MSG = "Couldn't load font. Please check that it is a valid truetype font.";
+        protected final int _weight;
+        protected final IdentValue _style;
+        protected Font _font;
+
+        private FontDescription(int weight, IdentValue style) {
+            this._weight = weight;
+            this._style = style;
+        }
+
+        @Override
+        public int getWeight() {
+            return _weight;
+        }
+
+        @Override
+        public IdentValue getStyle() {
+            return _style;
+        }
+
+        private Font getBaseFont() {
+            return _font;
+        }
+
+        protected abstract boolean realizeFont();
+    }
+
+    private static class InputStreamFontDescription extends FontDescription {
+        private FSSupplier<InputStream> _supplier;
+
+        private InputStreamFontDescription(FSSupplier<InputStream> supplier, int weight, IdentValue style) {
+            super(weight, style);
+            this._supplier = supplier;
+        }
+        
+        @Override
+        protected boolean realizeFont() {
             if (_font == null && _supplier != null) {
                 InputStream is = _supplier.supply();
                 _supplier = null; // We only try once.
-                
+
                 if (is == null) {
                     return false;
                 }
-                
+
                 try {
                     _font = Font.createFont(Font.TRUETYPE_FONT, is);
-                } catch (IOException e) {
-                    XRLog.exception("Couldn't load font. Please check that it is a valid truetype font.");
+                } catch (IOException|FontFormatException e) {
+                    XRLog.exception(FAIL_MSG, e);
                     return false;
-                } catch (FontFormatException e) {
-                	XRLog.exception("Couldn't load font. Please check that it is a valid truetype font.");
-                    return false;
-				} finally {
+                } finally {
                     try {
                         is.close();
-                    } catch (IOException e) { }
+                    } catch (IOException e) {
+                    }
                 }
             }
-            
+
             return _font != null;
         }
-	}
+    }
+    
+    private static class FileFontDescription extends FontDescription {
+        private File _fontFile;
 
-	/**
+        private FileFontDescription(File fontFile, int weight, IdentValue style) {
+            super(weight, style);
+            this._fontFile = fontFile;
+        }
+        
+        @Override
+        protected boolean realizeFont() {
+            if (_font == null && _fontFile != null) {
+                try {
+                    _font = Font.createFont(Font.TRUETYPE_FONT, _fontFile);
+                    _fontFile = null;
+                } catch (IOException|FontFormatException e) {
+                    XRLog.exception(FAIL_MSG, e);
+                    return false;
+                }
+            }
+
+            return _font != null;
+        }
+    }
+
+    /**
      * Map of concrete instances of fonts including size, weight, etc.
      */
     private final HashMap<String, Font> instanceHash = new HashMap<String, Font>();
@@ -119,11 +153,13 @@ public class Java2DFontResolver implements FontResolver {
     
     private final SharedContext _sharedContext;
 
-	private final HashMap<String, FontFamily<FontDescription>> _fontFamilies = new HashMap<String, FontFamily<FontDescription>>();
+    private final HashMap<String, FontFamily<FontDescription>> _fontFamilies = new HashMap<String, FontFamily<FontDescription>>();
     
-    public Java2DFontResolver(SharedContext sharedCtx) {
+    public Java2DFontResolver(SharedContext sharedCtx, boolean useEnvironmentFonts) {
         _sharedContext = sharedCtx;
-    	init();
+        if (useEnvironmentFonts) {
+            init();
+        }
     }
     
     private void init() {
@@ -144,10 +180,12 @@ public class Java2DFontResolver implements FontResolver {
         availableFontsHash.put("Monospaced", new Font("Monospaced", Font.PLAIN, 1));
     }
     
+    @Deprecated
+    @Override
     public void flushCache() {
-    	instanceHash.clear();
-    	availableFontsHash.clear();
-    	_fontFamilies.clear();
+        instanceHash.clear();
+        availableFontsHash.clear();
+        _fontFamilies.clear();
         init();
     }
     
@@ -183,16 +221,43 @@ public class Java2DFontResolver implements FontResolver {
         }
     }
     
+    public void addInputStreamFont(FSSupplier<InputStream> fontSupplier, String fontFamilyNameOverride,
+            Integer fontWeightOverride, IdentValue fontStyleOverride) {
+        
+        FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
+        
+        FontDescription descr = new InputStreamFontDescription(
+                fontSupplier,
+                fontWeightOverride != null ? fontWeightOverride : 400,
+                fontStyleOverride != null ? fontStyleOverride : IdentValue.NORMAL); 
+
+       fontFamily.addFontDescription(descr);
+    }
+    
     private void addFontFaceFont(
             String fontFamilyNameOverride, IdentValue fontWeightOverride, IdentValue fontStyleOverride,
             String uri) {
         
         FSSupplier<InputStream> fontSupplier = new FontFaceFontSupplier(_sharedContext, uri);
+        addInputStreamFont(
+                fontSupplier,
+                fontFamilyNameOverride,
+                fontWeightOverride != null ? FontResolverHelper.convertWeightToInt(fontWeightOverride) : 400, 
+                fontStyleOverride);
+    }
+    
+    /**
+     * Add a font using a existing file. Does not handle true type collections.
+     */
+    public void addFontFile(File fontFile, String fontFamilyNameOverride, Integer fontWeightOverride,
+            final IdentValue fontStyleOverride) {
+        
         FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
-        FontDescription descr = new FontDescription(
-                 fontSupplier,
-                 fontWeightOverride != null ? FontResolverHelper.convertWeightToInt(fontWeightOverride) : 400,
-                 fontStyleOverride != null ? fontStyleOverride : IdentValue.NORMAL); 
+        
+        FontDescription descr = new FileFontDescription(
+                fontFile,
+                fontWeightOverride != null ? fontWeightOverride : 400,
+                fontStyleOverride != null ? fontStyleOverride : IdentValue.NORMAL); 
 
         fontFamily.addFontDescription(descr);
     }
@@ -253,42 +318,45 @@ public class Java2DFontResolver implements FontResolver {
      * 2. Font face fonts.
      * 3. System fonts.
      */
-    public FSFont resolveFont(SharedContext ctx, String[] families, float size, IdentValue weight, IdentValue style, IdentValue variant) {
-    	List<Font> fonts = new ArrayList<Font>(3);
+    public FSFont resolveFont(SharedContext ctx, String[] families, float size, IdentValue weight, IdentValue style,
+            IdentValue variant) {
+        List<Font> fonts = new ArrayList<Font>(3);
 
         if (families != null) {
-        	for (int i = 0; i < families.length; i++) {
-        		String normal = normalizeFontFamily(families[i]);
-        		
-        		String fontInstanceName = getFontInstanceHashName(ctx, normal, size, weight, style, variant);
-        		
-        		// check if the font instance exists in the hash table
+            for (int i = 0; i < families.length; i++) {
+                String normal = normalizeFontFamily(families[i]);
+
+                String fontInstanceName = getFontInstanceHashName(ctx, normal, size, weight, style, variant);
+
+                // check if the font instance exists in the hash table
                 if (instanceHash.containsKey(fontInstanceName)) {
                     // if so then add it and continue to next family.
                     fonts.add(instanceHash.get(fontInstanceName));
                     continue;
                 }
-        		
+
                 // Next we search the list of font-face rule fonts.
-        		Font baseFont = resolveFontFaceBaseFont(normal, size, weight, style);
+                Font baseFont = resolveFontFaceBaseFont(normal, size, weight, style);
 
-        		if (baseFont != null) {
-        			// scale vs font scale value too
-        	        size *= ctx.getTextRenderer().getFontScale();
+                if (baseFont != null) {
+                    // scale vs font scale value too
+                    size *= ctx.getTextRenderer().getFontScale();
 
-        	        // We always use Font.PLAIN here as the provided font is already in the specifed weight and style.
-        	        Font derivedFont = baseFont.deriveFont(Font.PLAIN, size);
-        			
-        	        // add the font to the hash so we don't have to do this again
+                    // We always use Font.PLAIN here as the provided font is already in the specifed
+                    // weight and style.
+                    Font derivedFont = baseFont.deriveFont(Font.PLAIN, size);
+
+                    // add the font to the hash so we don't have to do this again
                     instanceHash.put(fontInstanceName, derivedFont);
 
-                    // add it to the list of concrete fonts to be returned and continue with the next family.
-        			fonts.add(derivedFont);
-        			continue;
-        		}
-        		
-        		// Finally we search the system fonts.
-        		if (availableFontsHash.containsKey(normal)) {
+                    // add it to the list of concrete fonts to be returned and continue with the
+                    // next family.
+                    fonts.add(derivedFont);
+                    continue;
+                }
+
+                // Finally we search the system fonts.
+                if (availableFontsHash.containsKey(normal)) {
                     Font possiblyNullFont = availableFontsHash.get(normal);
                     // have we actually allocated the root font object yet?
                     Font rootFont = null;
@@ -304,17 +372,19 @@ public class Java2DFontResolver implements FontResolver {
 
                     // add the font to the hash so we don't have to do this again
                     instanceHash.put(fontInstanceName, fnt);
-                    
+
                     fonts.add(fnt);
                     continue;
                 }
-        	}
+            }
         }
 
-        // We add the default serif as last fallback font.
-        Font fnt = createFont(ctx, availableFontsHash.get("Serif"), size, weight, style, variant);
-        instanceHash.put(getFontInstanceHashName(ctx, "Serif", size, weight, style, variant), fnt);
-        fonts.add(fnt);
+        if (availableFontsHash.containsKey("Serif")) {
+            // We add the default serif as last fallback font.
+            Font fnt = createFont(ctx, availableFontsHash.get("Serif"), size, weight, style, variant);
+            instanceHash.put(getFontInstanceHashName(ctx, "Serif", size, weight, style, variant), fnt);
+            fonts.add(fnt);
+        }
 
         return new Java2DFont(fonts, size);
     }
@@ -369,6 +439,7 @@ public class Java2DFontResolver implements FontResolver {
         return name + "-" + (size * ctx.getTextRenderer().getFontScale()) + "-" + weight + "-" + style + "-" + variant;
     }
 
+    @Override
     public FSFont resolveFont(SharedContext renderingContext, FontSpecification spec) {
         return resolveFont(renderingContext, spec.families, spec.size, spec.fontWeight, spec.fontStyle, spec.variant);
     }

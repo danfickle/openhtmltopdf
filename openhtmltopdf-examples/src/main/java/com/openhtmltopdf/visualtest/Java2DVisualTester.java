@@ -58,7 +58,10 @@ public class Java2DVisualTester {
                 BufferedImage.TYPE_INT_RGB, 1.0);
         builder.toPageProcessor(bufferedImagePageProcessor);
         
+        TestSupport.J2D_WITH_FONT.configure(builder);
+
         config.configure(builder);
+        
         try {
             builder.runPaged();
         } catch (Exception e) {
