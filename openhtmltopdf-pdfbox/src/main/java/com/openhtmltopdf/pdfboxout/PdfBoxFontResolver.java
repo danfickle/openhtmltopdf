@@ -316,7 +316,6 @@ public class PdfBoxFontResolver implements FontResolver {
 		}
 	}
 
-
 	/**
 	 * Add a font using a InputStream. The given file must be a TrueType Font
 	 * (.ttf). If you know the underlying stream is a .ttc file you should use
@@ -331,6 +330,32 @@ public class PdfBoxFontResolver implements FontResolver {
 		        supplier,
 		        normalizeFontWeight(fontWeightOverride),
 		        normalizeFontStyle(fontStyleOverride),
+		        fontFamilyNameOverride,
+		        false, // isFromFontFace
+		        subset,
+		        _fontMetricsCache);
+
+		if (!subset) {
+			if (descr.realizeFont()) {
+				fontFamily.addFontDescription(descr);
+			}
+		} else {
+			fontFamily.addFontDescription(descr);
+		}
+	}
+	
+	/**
+	 * Add a font using a {@link FSSupplier}. The font may be already loaded or can be loaded in the suppliers {@link FSSupplier#supply()} method.
+	 */
+	public void addFontWithSupplier(FSSupplier<PDFont> supplier, String fontFamilyNameOverride, Integer fontWeightOverride,
+			IdentValue fontStyleOverride, boolean subset) {
+		FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
+
+		FontDescription descr = new FontDescription(
+		        _doc,
+		        supplier,
+		        normalizeFontStyle(fontStyleOverride),
+		        normalizeFontWeight(fontWeightOverride),
 		        fontFamilyNameOverride,
 		        false, // isFromFontFace
 		        subset,
