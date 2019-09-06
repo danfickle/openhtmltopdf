@@ -81,6 +81,7 @@ public class TableCellBox extends BlockBox {
     public TableCellBox() {
     }
     
+    @Override
     public BlockBox copyOf() {
         TableCellBox result = new TableCellBox();
         result.setStyle(getStyle());
@@ -89,6 +90,7 @@ public class TableCellBox extends BlockBox {
         return result;
     }
     
+    @Override
     public BorderPropertySet getBorder(CssContext cssCtx) {
         if (getTable().getStyle().isCollapseBorders()) {
             // Should always be non-null, but might not be if layout code crashed
@@ -137,6 +139,7 @@ public class TableCellBox extends BlockBox {
         _row = row;
     }
     
+    @Override
     public void layout(LayoutContext c) {
         super.layout(c);
     }
@@ -193,10 +196,12 @@ public class TableCellBox extends BlockBox {
         setContentWidth(width - getLeftMBP() - getRightMBP());
     }
     
+    @Override
     public boolean isAutoHeight() {
         return getStyle().isAutoHeight() || ! getStyle().hasAbsoluteUnit(CSSName.HEIGHT);
     }
     
+    @Override
     public int calcBaseline(LayoutContext c) {
         int result = super.calcBaseline(c);
         if (result != NO_BASELINE) {
@@ -259,6 +264,7 @@ public class TableCellBox extends BlockBox {
                     
     }
     
+    @Override
     public void paintBackground(RenderingContext c) {
         if (isPaintBackgroundsAndBorders() && getStyle().isVisible(c, this)) {
             Rectangle bounds;
@@ -314,6 +320,7 @@ public class TableCellBox extends BlockBox {
         c.getOutputDevice().paintBackground(c, getStyle(), bounds, getPaintingBorderEdge(c), cellBorder);
     }
     
+    @Override
     public void paintBorder(RenderingContext c) {
         if (isPaintBackgroundsAndBorders() && ! hasCollapsedPaintingBorder()) {
             // Collapsed table borders are painted separately
@@ -388,10 +395,12 @@ public class TableCellBox extends BlockBox {
         return super.getChildrenClipEdge(c);
     }
     
+    @Override
     protected boolean isFixedWidthAdvisoryOnly() {
         return getTable().getStyle().isIdent(CSSName.TABLE_LAYOUT, IdentValue.AUTO);
     }
     
+    @Override
     protected boolean isSkipWhenCollapsingMargins() {
         return true;
     } 
@@ -839,6 +848,7 @@ public class TableCellBox extends BlockBox {
     // box-sizing: border-box in CSS3).  There doesn't seem to be any
     // justification in the spec for this, but everybody does it 
     // (in standards mode) so I guess we will too
+    @Override
     protected int getCSSHeight(CssContext c) {
         if (getStyle().isAutoHeight()) {
             return -1;
@@ -856,6 +866,7 @@ public class TableCellBox extends BlockBox {
         }
     }
     
+    @Override
     protected boolean isAllowHeightToShrink() {
         return false;
     } 

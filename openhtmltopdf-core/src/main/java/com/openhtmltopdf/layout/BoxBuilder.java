@@ -119,7 +119,7 @@ public class BoxBuilder {
 
     public static void createChildren(LayoutContext c, BlockBox parent) {
         if (parent.shouldBeReplaced()) {
-            parent.setChildrenContentType(BlockBox.CONTENT_INLINE);
+            parent.setChildrenContentType(BlockBox.CONTENT_EMPTY);
             return;
         }
 
@@ -1154,7 +1154,7 @@ public class BoxBuilder {
                         child.setElement(element);
                         
                         if (style.hasColumns() && c.isPrint()) {
-                        	FlowingColumnContainerBox cont = (FlowingColumnContainerBox) child;
+                            FlowingColumnContainerBox cont = (FlowingColumnContainerBox) child;
                             cont.setOnlyChild(c, new FlowingColumnBox(cont));
                             cont.getChild().setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
                             cont.getChild().setElement(element);

@@ -1,0 +1,42 @@
+<html>
+<head>
+<style>
+@page {
+  margin: 0;
+}
+body {
+  margin: 0 10px;
+}
+object {
+  margin-top: 8px;
+  border: 2px solid blue;
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<object type="jfreechart/pie" style="width:400px;height:400px;" title="Fruit Pie Chart 1">
+    <data name="Apple" value="23.2" url="https://www.google.de?q=apple-pie"/>
+    <data name="Pear" value="43.2" url="https://www.google.de?q=pear-pie"/>
+    <data name="Orange" value="53.2" url="https://www.google.de?q=orange-pie"/>
+</object>
+
+<object type="jfreechart/pie" style="width:400px;height:200px;" title="Fruit Pie Chart 3">
+    <data name="Apple" value="23.2" url="https://www.google.de?q=apple-pie"/>
+    <data name="Pear" value="43.2" url="https://www.google.de?q=pear-pie"/>
+    <data name="Orange" value="53.2" url="https://www.google.de?q=orange-pie"/>
+</object>
+
+<object type="jfreechart/bar" style="width:400px;height:400px;" title="Fruit Bar Chart"
+        categories-title="Category" series-title="Series">
+    <data series="Value" category="Apple" value="23.2" url="https://www.google.de?q=apple"/>
+    <data series="Value" category="Pear" value="43.2" url="https://www.google.de?q=pear"/>
+    <data series="Value" category="Orange" value="33.2" url="https://www.google.de?q=orange"/>
+    <data series="Price/kg" category="Apple" value="2.2" url="https://www.google.de?q=apple-price"/>
+    <data series="Price/kg" category="Pear" value="4.2" url="https://www.google.de?q=pear-price"/>
+    <data series="Price/kg" category="Orange" value="5.2" url="https://www.google.de?q=orange-price"/>
+</object>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<html>
+<head>
+<style>
+@page {
+  size: 500px 1500px;
+  margin: 0;
+}
+body {
+  margin: 0;
+}
+img {
+  display: block;
+  border: 2px solid red;
+}
+</style>
+</head>
+<body>
+<!-- width only -->
+<img style="width: 200px;" src="../../demos/images/flyingsaucer.png" />
+
+<!-- height only -->
+<img style="height: 200px;" src="../../demos/images/flyingsaucer.png" />
+
+<!-- min-width -->
+<img style="width: 50px; min-width: 200px;" src="../../demos/images/flyingsaucer.png" />
+
+<!-- min-height -->
+<img style="height: 40px; min-height: 250px;" src="../../demos/images/flyingsaucer.png" />
+
+<!-- max-width -->
+<img style="width: 1000px; max-width: 70px;" src="../../demos/images/flyingsaucer.png" />
+
+<!-- max-height -->
+<img style="height: 1000px; max-height: 40px;" src="../../demos/images/flyingsaucer.png" />
+
+<!-- border-box -->
+<img style="padding: 50px; border: 10px solid red; box-sizing: border-box; width: 200px;" src="../../demos/images/flyingsaucer.png" />
+
+<!-- content-box -->
+<img style="padding: 50px; border: 10px solid red; box-sizing: content-box; width: 200px;" src="../../demos/images/flyingsaucer.png" />
+
+</body>
+</html>

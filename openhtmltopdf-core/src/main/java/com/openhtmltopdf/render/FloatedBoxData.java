@@ -56,4 +56,9 @@ public class FloatedBoxData {
     public void setMarginFromSibling(int marginFromSibling) {
         _marginFromSibling = marginFromSibling;
     }
+    
+    @Override
+    public String toString() {
+        return String.format("[manager='%s', drawing-layer='%s', margin-from-sibling='%d']", getManager(), getDrawingLayer(), getMarginFromSibling());
+    }
 }

@@ -32,6 +32,8 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.Styleable;
+import com.openhtmltopdf.render.FlowingColumnContainerBox.ColumnBreakStore;
+import com.openhtmltopdf.util.LambdaUtil;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 public abstract class Box implements Styleable, DisplayListItem {
@@ -320,6 +323,48 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     public List<Box> getChildren() {
         return _boxes == null ? Collections.<Box>emptyList() : _boxes;
+    }
+    
+    public static class ChildIteratorOfType<T> implements Iterator<T>  {
+        private final Iterator<Box> iter;
+        private final Class<T> type;
+        
+        private ChildIteratorOfType(Iterator<Box> parent, Class<T> clazz) {
+            this.iter = parent;
+            this.type = clazz;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            return this.iter.hasNext();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T next() {
+            Box box = this.iter.next();
+            
+            if (this.type.isAssignableFrom(box.getClass())) {
+                return (T) box;
+            }
+            
+            XRLog.general(Level.SEVERE, "Expecting box children to be of type (" +
+                                        this.type.getCanonicalName() + ") but got (" +
+                                        box.getClass().getCanonicalName() + ").");
+            return null;
+        }
+    }
+    
+    /**
+     * Returns an iterator of boxes cast to type.
+     * If a box is not of type, an error will be logged and 
+     * null will be returned for that box.
+     * Therefore, this method should only be used when it is certain
+     * all children are of a particular type.
+     * Eg: TableBox has children only of type TableSectionBox.
+     */
+    public <T> Iterator<T> getChildIteratorOfType(Class<T> type) {
+        return new ChildIteratorOfType<>(getChildIterator(), type);
     }
 
     public static final int NOTHING = 0;
@@ -1226,16 +1271,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public boolean isInDocumentFlow() {
-        Box flowRoot = this;
-        while (true) {
-            Box parent = flowRoot.getParent();
-            if (parent == null) {
-                break;
-            } else {
-                flowRoot = parent;
-            }
-        }
-
+        Box flowRoot = rootBox();
         return flowRoot.isRoot();
     }
 
@@ -1273,17 +1309,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public boolean isContainedInMarginBox() {
-        Box current = this;
-        while (true) {
-            Box parent = current.getParent();
-            if (parent == null) {
-                break;
-            } else {
-                current = parent;
-            }
-        }
-
-        return current.isMarginAreaRoot();
+        return rootBox().isMarginAreaRoot();
     }
 
     public int getEffectiveWidth() {
@@ -1294,15 +1320,89 @@ public abstract class Box implements Styleable, DisplayListItem {
         return false;
     }
 
-	public boolean isFlowingColumnBox() {
-		while (getParent() != null) {
-			if (getParent().isFlowingColumnBox()) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
+    /**
+     * Is this box the first child of its parent?
+     */
+    public boolean isFirstChild() {
+        return getParent() != null &&
+               getParent().getChildCount() > 0 &&
+               getParent().getChild(0) == this;
+    }
+    
+    /**
+     * Is this box unbreakable in regards to column break opportunities?
+     */
+    public boolean isTerminalColumnBreak() {
+        return getChildCount() == 0;
+    }
+    
+    /**
+     * Creates a list of ancestors by walking up the chain of parent,
+     * grandparent, etc. Stops when the provided predicate returns false
+     * or the root box otherwise.
+     */
+    public List<Box> ancestorsWhile(Predicate<Box> predicate) {
+        List<Box> ancestors = new ArrayList<>(4);
+        Box parent = this.getParent();
+        
+        while (parent != null && predicate.test(parent)) {
+            ancestors.add(parent);
+            parent = parent.getParent();
+        }
+        
+        return ancestors;
+    }
+    
+    /**
+     * Get all ancestors, up until the root box.
+     */
+    public List<Box> ancestors() {
+        return ancestorsWhile(LambdaUtil.alwaysTrue());
+    }
+    
+    /**
+     * Walks up the ancestor tree to the root testing ancestors agains
+     * the predicate.
+     * NOTE: Does not test against the current box (this).
+     * @return the box for which predicate returned true or null if none found.
+     */
+    public Box findAncestor(Predicate<Box> predicate) {
+        Box parent = getParent();
+        
+        while (parent != null && !predicate.test(parent)) {
+            parent = parent.getParent();
+        }
+        
+        return parent;
+    }
+    
+    /**
+     * Returns the highest ancestor box. May be current box (this).
+     */
+    public Box rootBox() {
+        return this.getParent() != null ? findAncestor(bx -> bx.getParent() == null) : this;
+    }
+
+    /**
+     * Recursive method to find column break opportunities.
+     * @param store - use to report break opportunities.
+     */
+    public void findColumnBreakOpportunities(ColumnBreakStore store) {
+        if (this.isTerminalColumnBreak() && this.isFirstChild()) {
+            // We report unprocessed ancestor container boxes so that they
+            // can be moved with the first child.
+            List<Box> ancestors = this.ancestorsWhile(store::checkContainerShouldProcess);
+            store.addBreak(this, ancestors);
+        } else if (this.isTerminalColumnBreak()) {
+            store.addBreak(this, null);
+        } else {
+            // This must be a container box so don't add it as a break opportunity.
+            // Recursively query children for their break opportunities.
+            for (Box child : getChildren()) {
+                child.findColumnBreakOpportunities(store);
+            }
+        }
+    }
 
 }
 

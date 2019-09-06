@@ -8,7 +8,9 @@ import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.XRLog;
 import org.apache.batik.bridge.FontFace;
 import org.apache.batik.bridge.FontFamilyResolver;
@@ -21,6 +23,7 @@ import org.w3c.dom.Document;
 
 import java.awt.*;
 import java.awt.font.TextAttribute;
+import java.awt.geom.AffineTransform;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -31,17 +34,24 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	private OutputDevice outputDevice;
 	private double x;
 	private double y;
+	private final Box box;
+	private RenderingContext ctx;
+	private final double dotsPerPixel;
+    private boolean allowScripts = false;
+    private boolean allowExternalResources = false;
 
-	public PDFTranscoder(double width, double height ) {
+	public PDFTranscoder(Box box, double dotsPerPixel, double width, double height) {
+	    this.box = box;
 		this.width = (float)width;
 		this.height = (float)height;
+		this.dotsPerPixel = dotsPerPixel;
 	}
 	
 	public void setRenderingParameters(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver) {
 	    this.x = x;
             this.y = y;
             this.outputDevice = od;
-
+            this.ctx = ctx;
             this.fontResolver = fontResolver;
 	}
 
@@ -160,7 +170,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		            continue;
 		         }
 
-		         byte[] font1 = ctx.getUac().getBinaryResource(src.asString());
+		         byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src.asString());
 		         if (font1 == null) {
 		             XRLog.exception("Could not load font " + src.asString());
 		             continue;
@@ -192,21 +202,44 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		 }
 	}
 	
+    public void setSecurityOptions(boolean allowScripts, boolean allowExternalResources) {
+        this.allowScripts = allowScripts;
+        this.allowExternalResources = allowExternalResources;
+    }
+    
 	@Override
 	protected void transcode(Document svg, String uri, TranscoderOutput out) throws TranscoderException {
 		
 		// Note: We have to initialize user agent here and not in ::createUserAgent() as method
 		// is called before our constructor is called in the super constructor.
-		this.userAgent = new OpenHtmlUserAgent(this.fontResolver);
+		this.userAgent = new OpenHtmlUserAgent(this.fontResolver, this.allowScripts, this.allowExternalResources);
 		super.transcode(svg, uri, out);
+		
+        Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), ctx);
 
-		outputDevice.drawWithGraphics((float)x, (float)y, width, height, new OutputDeviceGraphicsDrawer() {
+        final AffineTransform scale2 = ReplacedElementScaleHelper.createScaleTransform(this.dotsPerPixel, contentBounds, width, height);
+        final AffineTransform inverse2 = ReplacedElementScaleHelper.inverseOrNull(scale2);
+        final boolean transformed2 = scale2 != null && inverse2 != null;
+        
+		outputDevice.drawWithGraphics(
+		        (float) x,
+		        (float) y,
+		        (float) (contentBounds.width / this.dotsPerPixel), 
+		        (float) (contentBounds.height / this.dotsPerPixel),
+		        new OutputDeviceGraphicsDrawer() {
 			@Override
 			public void render(Graphics2D graphics2D) {
+			    if (transformed2) {
+			        graphics2D.transform(scale2);
+			    }
 				/*
 				 * Do the real paint
 				 */
 				PDFTranscoder.this.root.paint(graphics2D);
+				
+				if (transformed2) {
+				    graphics2D.transform(inverse2);
+				}
 			}
 		});
 	}

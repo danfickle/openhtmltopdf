@@ -37,8 +37,8 @@ import com.openhtmltopdf.render.LineBox;
  * non-floated (block) boxes.
  */
 public class FloatManager {
-    private static final int LEFT = 1;
-    private static final int RIGHT = 2;
+    public static final int LEFT = 1;
+    public static final int RIGHT = 2;
 
     /* Lazily created for performance. */
     private List<BoxOffset> _leftFloats = Collections.emptyList();
@@ -124,7 +124,7 @@ public class FloatManager {
         }
     }
     
-    private List<BoxOffset> getFloats(int direction) {
+    public List<BoxOffset> getFloats(int direction) {
         return direction == LEFT ? _leftFloats : _rightFloats;
     }
 
@@ -435,10 +435,10 @@ public class FloatManager {
         performFloatOperation(op, getFloats(RIGHT));
     }
 
-    private static class BoxOffset {
-        private BlockBox _box;
-        private int _x;
-        private int _y;
+    public static class BoxOffset {
+        private final BlockBox _box;
+        private final int _x;
+        private final int _y;
 
         public BoxOffset(BlockBox box, int x, int y) {
             _box = box;
@@ -460,8 +460,8 @@ public class FloatManager {
     }
 
     private static class BoxDistance {
-        private BlockBox _box;
-        private int _distance;
+        private final BlockBox _box;
+        private final int _distance;
 
         public BoxDistance(BlockBox box, int distance) {
             _box = box;

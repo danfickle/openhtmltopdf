@@ -1,0 +1,103 @@
+<html>
+<head>
+<style>
+@font-face {
+  src: url(fonts/Karla-Bold.ttf);
+  font-family: 'MyFont';
+  font-weight: normal;
+}
+@page {
+  size: 10cm 30cm;
+  margin: 0;
+}
+body {
+  margin: 0;
+  font-family: 'MyFont';
+  font-size: 15px;
+}
+latex {
+  display: block;
+  width: 100%;
+  margin: 2px;
+  padding: 5px;
+  page-break-inside: avoid;
+}
+math {
+  font-family: 'MyFont';
+}
+</style>
+</head>
+<body>
+
+<latex><![CDATA[
+  Simple list:
+  \begin{itemize}
+  \item First item
+  \item Second item
+  \end{itemize}
+  ]]>
+</latex>
+
+<latex><![CDATA[
+    Here is a simple table without column lines:
+
+    \begin{tabular}{ l c r }
+    1 & 2 & 3 \\
+    4 & 5 & 6 \\
+    7 & 8 & 9 \\
+    \end{tabular}
+
+    In this table you get column lines:
+
+    \begin{tabular}{ l | c | r }
+    1 & 2 & 3 \\
+    4 & 5 & 6 \\
+    7 & 8 & 9 \\
+    \end{tabular}
+
+    And of course you can get both:
+    \begin{tabular}{ l | c | r }
+    \hline
+    1 & 2 & 3 \\
+    4 & 5 & 6 \\
+    7 & 8 & 9 \\
+    \hline
+    \end{tabular}
+    ]]>
+</latex>
+
+<latex><![CDATA[
+    And even fancier:
+    \begin{center}
+    \begin{tabular}{ | l | c | r | }
+    \hline
+    1 & 2 & 3 \\ \hline
+    4 & 5 & 6 \\ \hline
+    7 & 8 & 9 \\
+    \hline
+    \end{tabular}
+    \end{center}
+
+    The full possibilities of $L^AT_EX$:
+
+    \begin{tabular}{|r|l|}
+    \hline
+    7C0 & hexadecimal \\
+    3700 & octal \\
+    11111000000 & binary \\
+    \hline \hline
+    1984 & decimal \\
+    \hline
+    \end{tabular}
+    ]]>
+</latex>
+
+<latex><![CDATA[
+Math:
+$ \frac{x+1}{3y} $
+$ x^{2^{y-z}} $
+ ]]>
+</latex>
+
+</body>
+</html>

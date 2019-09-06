@@ -298,6 +298,14 @@ public class PdfContentStreamAdapter {
             logAndThrow("drawImage", e);
         }
     }
+    
+    public void drawXForm(PDFormXObject xObject) {
+        try {
+            cs.drawForm(xObject);
+        } catch (IOException e) {
+            logAndThrow("drawXForm", e);
+        }
+    }
 
     public void setMiterLimit(float miterLimit) {
         try {

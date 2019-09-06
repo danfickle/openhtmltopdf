@@ -463,6 +463,8 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     public static class FontRun {
         String str;
         FontDescription des;
+        int spaceCharacterCount;
+        int otherCharacterCount;
     }
     
     private Object[] makeJustificationArray(String s, JustificationInfo info) {
@@ -853,6 +855,11 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
         _cp.drawImage(xobject, (float) mx[4], (float) mx[5], (float) mx[0],
                 (float) mx[3]);
+    }
+    
+    @Override
+    public void drawPdfAsImage(PDFormXObject _src, Rectangle contentBounds, float intrinsicWidth, float intrinsicHeight) {
+        throw new UnsupportedOperationException("Use the fast mode!");
     }
 /*
     private void drawPDFAsImage(PDFAsImage image, int x, int y) {

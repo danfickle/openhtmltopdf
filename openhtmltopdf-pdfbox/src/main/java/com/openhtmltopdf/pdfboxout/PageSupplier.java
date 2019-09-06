@@ -19,13 +19,13 @@ public interface PageSupplier {
 	 * @param doc 
 	 *          {@link PDDocument} the page belongs to
 	 * @param pageWidth 
-	 *          Width of page
+	 *          Width of page in PDF points (1/72 inch)
 	 * @param pageHeight 
-	 *          Height of page
+	 *          Height of page in PDF points
 	 * @param pageNumber 
-	 *          Number of the page
+	 *          Number of the layout page - this may differ from the PDF document page if there are previous shadow pages.
 	 * @param shadowPageNumber 
-	 *          Number of the shadow-page
+	 *          Number of the shadow-page or -1 if on a main page.
 	 * @return {@link PDPage}
 	 */
 	PDPage requestPage(PDDocument doc, float pageWidth, float pageHeight, int pageNumber, int shadowPageNumber);

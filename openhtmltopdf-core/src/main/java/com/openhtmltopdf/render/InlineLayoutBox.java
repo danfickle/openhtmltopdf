@@ -504,11 +504,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     }
     
     public LineBox getLineBox() {
-        Box b = getParent();
-        while (! (b instanceof LineBox)) {
-            b = b.getParent();
-        }
-        return (LineBox)b;
+        return (LineBox) findAncestor(bx -> bx instanceof LineBox);
     }
     
     public List<Box> getElementWithContent() {
@@ -873,10 +869,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     public Box getRestyleTarget() {
         // Inline boxes may be broken across lines so back out
         // to the nearest block box
-        Box result = getParent();
-        while (result instanceof InlineLayoutBox) {
-            result = result.getParent();
-        }
+        Box result = findAncestor(bx -> !(bx instanceof InlineLayoutBox));
         return result.getParent();
     }
     

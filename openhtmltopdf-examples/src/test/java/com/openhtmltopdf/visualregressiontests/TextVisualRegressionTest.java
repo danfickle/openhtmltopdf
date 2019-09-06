@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertTrue;
 
@@ -12,7 +15,11 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
+import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.bidi.support.ICUBreakers;
 import com.openhtmltopdf.extend.FSTextBreaker;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.TextDirection;
 import com.openhtmltopdf.visualtest.VisualTester;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
@@ -40,28 +47,76 @@ public class TextVisualRegressionTest {
         }
     }
     
+    /**
+     * A simple line breaker that produces similar results to the JRE standard line breaker.
+     * So we can test line breaking/justification with conditions more like real world.
+     */
+    private static class CollapsedSpaceTextBreaker implements FSTextBreaker {
+        private final static Pattern SPACES = Pattern.compile("\\s");
+        private Matcher matcher;
+        
+        @Override
+        public int next() {
+            if (!matcher.find()) {
+                return -1;
+            }
+        
+            return matcher.end();
+        }
+
+        @Override
+        public void setText(String newText) {
+            this.matcher = SPACES.matcher(newText);
+        }
+    }
+    
     private static final BuilderConfig WITH_FONT = (builder) -> {
         builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "TestFont");
         builder.useUnicodeLineBreaker(new SimpleTextBreaker());
+    };
+    
+    private static final BuilderConfig WITH_EXTRA_FONT = (builder) -> {
+        WITH_FONT.configure(builder);
+        builder.useFont(new File("target/test/visual-tests/SourceSansPro-Regular.ttf"), "ExtraFont");
+    };
+    
+    private static final BuilderConfig WITH_ARABIC = (builder) -> {
+        WITH_FONT.configure(builder);
+        builder.useFont(new File("target/test/visual-tests/NotoNaskhArabic-Regular.ttf"), "arabic");
+        builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+        builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
+        builder.useUnicodeLineBreaker(new ICUBreakers.ICULineBreaker(Locale.US)); // Overrides WITH_FONT
+        builder.defaultTextDirection(TextDirection.LTR);
+    };
+    
+    private static final BuilderConfig WITH_COLLAPSED_LINE_BREAKER = (builder) -> {
+        WITH_FONT.configure(builder);
+        builder.useUnicodeLineBreaker(new CollapsedSpaceTextBreaker());
     };
     
     /**
      * Output the font file as a regular file so we don't have to use streams.
      * @throws IOException
      */
-    @BeforeClass
-    public static void makeFontFile() throws IOException {
+    private static void makeFontFile(String resource) throws IOException {
         File outputDirectory = new File("target/test/visual-tests/test-output/");
         
         outputDirectory.mkdirs();
         
-        File fontFile = new File("target/test/visual-tests/Karla-Bold.ttf");
+        File fontFile = new File("target/test/visual-tests/" + resource);
         
         if (!fontFile.exists()) {
-            try (InputStream in = TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf")) {
+            try (InputStream in = TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/" + resource)) {
                 Files.copy(in, fontFile.toPath());
             }
         }
+    }
+    
+    @BeforeClass
+    public static void makeFontFiles() throws IOException {
+        makeFontFile("Karla-Bold.ttf");
+        makeFontFile("NotoNaskhArabic-Regular.ttf");
+        makeFontFile("SourceSansPro-Regular.ttf");
     }
     
     @Before
@@ -505,4 +560,84 @@ public class TextVisualRegressionTest {
     public void testContentTableOfContentsExample() throws IOException {
         assertTrue(run("content-toc-example"));
     }
+    
+    /**
+     * Tests that the table caption position is correct in the case when the table is not 100% width.
+     * Issue 340.
+     */
+    @Test
+    @Ignore // Failing because the caption box is set as 100% the width of its container, regardless of the table width.
+    public void testTableCaptionPosition() throws IOException {
+        assertTrue(run("table-caption-position"));
+    }
+    
+    /**
+     * Tests that bi-directional Arabic renders correctly (at least as far as I can compare with browser).
+     */
+    @Test
+    public void testArabicBiDi() throws IOException {
+        assertTrue(vtester.runTest("arabic-bidi", WITH_ARABIC));
+    }
+    
+    /**
+     * Tests that letter-spacing property works correctly with bi-directional text.
+     * Semi-related to issue 342.
+     */
+    @Test
+    public void testLetterSpacingBidi() throws IOException {
+        assertTrue(vtester.runTest("letter-spacing-bidi", WITH_ARABIC));   
+    }
+    
+    /**
+     * Tests that letter spacing property works correctly with mutliple fallback fonts.
+     * Issue 342.
+     */
+    @Test
+    public void testLetterSpacingFallbackFonts() throws IOException {
+        assertTrue(vtester.runTest("letter-spacing-fallback-fonts", WITH_EXTRA_FONT));
+    }
+    
+    /**
+     * Tests that text-justification works when fallback fonts are being used.
+     */
+    @Test
+    public void testJustificationFallbackFonts() throws IOException {
+        assertTrue(vtester.runTest("text-justify-fallback-fonts", WITH_EXTRA_FONT));
+    }
+    
+    /**
+     * Tests that justified text doesn't have space at the end of some lines.
+     * Issue 351.
+     */
+    @Test
+    public void testJustifySpaceAtEnd() throws IOException {
+        assertTrue(vtester.runTest("text-justify-space-at-end", WITH_COLLAPSED_LINE_BREAKER));
+    }
+    
+    /**
+     * Tests that flowing columns containing only text in unbalanced mode
+     * are correctly laid out.
+     */
+    @Test
+    public void testColumnsSimpleUnbalanced() throws IOException {
+        assertTrue(run("columns-simple-unbalanced"));
+    }
+
+    /**
+     * Tests columns with nested content such as paragraphs, lists and span.
+     */
+    @Test
+    public void testColumnsNestedUnbalanced() throws IOException {
+        assertTrue(run("columns-nested-unbalanced"));
+    }
+    
+    /**
+     * Tests columns containing floated and clear elements.
+     * Also tests explicit column breaks.
+     */
+    @Test
+    public void testColumnsFloatsUnbalanced() throws IOException {
+        assertTrue(run("columns-floats-unbalanced"));
+    }
+    
 }

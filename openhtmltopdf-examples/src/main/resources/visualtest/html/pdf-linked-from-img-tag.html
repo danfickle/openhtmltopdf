@@ -1,0 +1,55 @@
+<html>
+<head>
+<style>
+@page {
+  margin: 0;
+}
+img {
+  margin-top: 5px;
+  display: block;
+  box-sizing: border-box;
+  border: 2px solid red;
+}
+body {
+  margin: 0;
+  padding: 0;
+}
+</style>
+</head>
+<body>
+<!-- Intrinsic size -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="" />
+
+<!-- Width larger than real life -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="width: 100%;" />
+
+<!-- Width smaller than real life -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="width: 3cm;" />
+
+<!-- max-width -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="width: 100%; max-width: 200px;" />
+
+<!-- min-width -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="width: 3cm;min-width: 70%;" />
+
+<!-- content-box -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="width: 50%; padding: 50px; box-sizing: content-box;" />
+
+<!-- border-box -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="width: 50%; padding: 50px; box-sizing: border-box;" />
+
+<!-- width and height -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="width: 5cm; height: 5cm;" />
+
+<!-- Height larger than real life -->
+<img src="../../demos/images/hello.pdf" alt="PDF" style="height: 20cm;" />
+
+<!-- max-height and second page -->
+<img src="../../demos/images/hello.pdf" page="2" alt="PDF" style="height: 20cm; max-height: 3cm;" />
+
+<!-- error handling -->
+<img src="non-existant-pdf.pdf" alt="PDF" style="" />
+<img src="../../demos/images/hello.pdf" page="15" alt="PDF" style="" />
+
+</body>
+</html>

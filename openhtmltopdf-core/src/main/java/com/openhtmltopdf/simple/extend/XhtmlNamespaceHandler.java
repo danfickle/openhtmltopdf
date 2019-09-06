@@ -18,8 +18,13 @@
  */
 package com.openhtmltopdf.simple.extend;
 
+import java.awt.Point;
+import java.util.logging.Level;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import com.openhtmltopdf.util.XRLog;
 
 
 /**
@@ -30,6 +35,8 @@ import org.w3c.dom.Node;
  * @author Torbjoern Gannholm
  */
 public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
+    private static final String DEFAULT_SVG_DIMS = "";
+    
     /**
      * {@inheritDoc}
      */
@@ -53,23 +60,84 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     }
 
     public String getNonCssStyling(Element e) {
-        if (e.getNodeName().equals("table")) {
-            return applyTableStyles(e);            
-        } else if (e.getNodeName().equals("td") || e.getNodeName().equals("th")) {
+        switch(e.getNodeName()) {
+        case "table":
+            return applyTableStyles(e);
+        case "td": /* FALL-THRU */
+        case "th":
             return applyTableCellStyles(e);
-        } else if (e.getNodeName().equals("tr")) {
+        case "tr":
             return applyTableRowStyles(e);
-        } else if (e.getNodeName().equals("img")) {
+        case "img":
             return applyImgStyles(e);
-        } else if (e.getNodeName().equals("p") || e.getNodeName().equals("div")) {
+        case "p": /* FALL-THRU */
+        case "div":
             return applyBlockAlign(e);
-        } else if (e.getNodeName().equals("textarea")) {
-        	return applyTextareaStyles(e);
-        } else if (e.getNodeName().equals("input")) {
-        	return applyInputStyles(e);
+        case "textarea":
+            return applyTextareaStyles(e);
+        case "input":
+            return applyInputStyles(e);
+        case "svg":
+            return applySvgStyles(e);
         }
         
         return "";
+    }
+    
+    private String applySvgStyles(Element e) {
+        String w = e.getAttribute("width");
+        String h = e.getAttribute("height");
+        
+        if (!w.isEmpty() || !h.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            
+            if (!w.isEmpty()) {
+                sb.append("width: ");
+                sb.append(w);
+                if (isInteger(w)) {
+                    sb.append("px");
+                }
+                sb.append(';');
+            }
+            
+            if (!h.isEmpty()) {
+                sb.append("height: ");
+                sb.append(h);
+                if (isInteger(h)) {
+                    sb.append("px");
+                }
+                sb.append(';');
+            }
+            
+            return sb.toString();
+        }
+        
+        String viewBoxAttr = e.getAttribute("viewBox");
+        String[] splitViewBox = viewBoxAttr.split("\\s+");
+        
+        if (splitViewBox.length != 4) {
+            return DEFAULT_SVG_DIMS;
+        }
+        try {
+            int viewBoxWidth = Integer.parseInt(splitViewBox[2]);
+            int viewBoxHeight = Integer.parseInt(splitViewBox[3]);
+            
+            StringBuilder sb = new StringBuilder();
+            
+            sb.append("width: ");
+            sb.append(viewBoxWidth);
+            sb.append("px;");
+            
+            sb.append("height: ");
+            sb.append(viewBoxHeight);
+            sb.append("px;");
+        } catch (NumberFormatException ex) {
+            XRLog.general(Level.WARNING,
+                    "Invalid integer passed in viewBox attribute for SVG: " + viewBoxAttr);
+            /* FALL-THRU */
+        }
+        
+        return DEFAULT_SVG_DIMS;
     }
     
     private String applyInputStyles(Element e) {

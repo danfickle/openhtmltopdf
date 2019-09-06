@@ -1303,7 +1303,25 @@ public class PrimitivePropertyBuilders {
             return ALLOWED;
         }
     }
+    
+    public static class BreakBefore extends SingleIdent {
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] { IdentValue.AUTO, IdentValue.COLUMN });
+        
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
 
+    public static class BreakAfter extends SingleIdent {
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] { IdentValue.AUTO, IdentValue.COLUMN });
+        
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
+    
     public static class Page extends AbstractPropertyBuilder {
         public List buildDeclarations(
                 CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {

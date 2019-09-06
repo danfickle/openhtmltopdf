@@ -2,9 +2,6 @@
 
 # OPEN HTML TO PDF
 
-## CURRENTY SEEKING FEEDBACK
-+ [Roadmap for version 1](https://github.com/danfickle/openhtmltopdf/issues/170)
-
 ## OVERVIEW
 Open HTML to PDF is a pure-Java library for rendering arbitrary well-formed XML/XHTML (and even HTML5)
 using CSS 2.1 for layout and formatting, outputting to PDF or images.
@@ -55,7 +52,7 @@ of these can be found in the [dependency graph](https://github.com/danfickle/ope
 Open HTML to PDF is based on [Flying-saucer](https://github.com/flyingsaucerproject/flyingsaucer). Credit goes to the contributors of that project. Code will also be used from [neoFlyingSaucer](https://github.com/danfickle/neoflyingsaucer)
 
 ## FAQ
-+ OPEN HTML TO PDF is tested with OpenJDK 8 and 11, Oracle JDK 8 and 11. As of RC18, it requires at least Java 8 to run.
++ OPEN HTML TO PDF is tested with OpenJDK 8 and 11. We are [not currently testing with Oracle JDKs](https://github.com/travis-ci/travis-ci/issues/10290). As of RC18, it requires at least Java 8 to run.
 + No, you can not use it on Android.
 + You should be able to use it on Google App Engine (Java 8 or greater environment). [Let us know your experience](https://github.com/danfickle/openhtmltopdf/issues/179).
 + <s>Flowing columns are not implemented.</s> Implemented in RC12.
@@ -69,7 +66,31 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 
 ## CHANGELOG
 
-### head - 0.0.1-RC19-SNAPSHOT
+### head - 1.0.1-SNAPSHOT
+
+
+### 1.0.0 (2019-July-23)
++ [#372](https://github.com/danfickle/openhtmltopdf/pull/372) Much improved sizing support for `img`, `svg` and `math` elements.
++ [#344](https://github.com/danfickle/openhtmltopdf/issues/344) Use PDFs in `img` tag: `<img src="some.pdf" page="1" alt="Some alt text" />`.
+
+### 0.0.1-RC21 (2019-June-29)
++ [#361](https://github.com/danfickle/openhtmltopdf/issues/361) The SVG renderer now uses Batik in a more secure mode (no scripts, no external resource requests) by default. If you need the old behavior that allowed external resource requests and possibly scripts, please see the new BatikSVGDrawer constructor (only for trusted SVGs). Thanks @krabbenpuler.
++ [#363](https://github.com/danfickle/openhtmltopdf/pull/363) Upgrade PDFBOX to 2.0.16. Thanks @rototor.
++ [#353](https://github.com/danfickle/openhtmltopdf/issues/353) Better error handling around SVGs linked from `img` tag. Thanks @ieugen.
++ [#342](https://github.com/danfickle/openhtmltopdf/issues/342) Fixed text-justification/letter-spacing when fallback fonts are in use. Thanks @daliuss.
++ [#351](https://github.com/danfickle/openhtmltopdf/issues/351) Improved text-justification by removing spaces at ends of lines. Thanks @halcsi.
+
+
+### 0.0.1-RC20 (2019-April-26)
+**IMPORTANT:** This release was brought forward due to a CVE in PDFBOX. While not directly affecting this project (it affects parsing of untrusted PDFs), it is better not to have a vulnerable library on your classpath.
++ [#349](https://github.com/danfickle/openhtmltopdf/issues/349) Upgrade PDF-BOX to 2.0.15 to avoid CVE in 2.0.14. Thanks @BryceMehring.
++ [#347](https://github.com/danfickle/openhtmltopdf/issues/347) Add document language and title preference for PDF/A documents to satisfy Acrobat Pro validator. Thanks @mattstjean.
++ [#339](https://github.com/danfickle/openhtmltopdf/issues/339) Mark Jsoup DOM converter module as deprecated (for removal). Please see integration guide for replacement. This module may also pull in an insecure version of Guava so please migrate now.
+
+### 0.0.1-RC19 (2019-March-18)
++ [#336](https://github.com/danfickle/openhtmltopdf/issues/336) Fix for broken image links causing an NPE. Thanks @svenfrauen.
++ [#334](https://github.com/danfickle/openhtmltopdf/pull/334) Allow the user to supply `PDPage` objects via page supplier. Thanks @DSW-PS.
+
 
 ### 0.0.1-RC18 (2019-March-10)
 + Please start using the fast renderer (`builder.useFastMode()`) as the old renderer will be removed in a future version.

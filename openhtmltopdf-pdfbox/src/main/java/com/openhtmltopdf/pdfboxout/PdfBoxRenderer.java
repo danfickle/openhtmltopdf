@@ -25,7 +25,6 @@ import com.openhtmltopdf.bidi.BidiSplitterFactory;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.Page;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.BoxBuilder;
@@ -626,7 +625,11 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
                 for (DisplayListPageContainer shadowPage : pageOperations.shadowPages()) {
                     PDPage shadowPdPage = 
-                    		_pageSupplier.requestPage(doc, (float) currentPage.getWidth(c) / _dotsPerPoint, (float) currentPage.getHeight(c) / _dotsPerPoint, i, shadowPageIndex);
+                            _pageSupplier.requestPage(
+                                    doc,
+                                    (float) currentPage.getWidth(c) / _dotsPerPoint, 
+                                    (float) currentPage.getHeight(c) / _dotsPerPoint, i, shadowPageIndex);
+                    
                     PDPageContentStream shadowCs = new PDPageContentStream(doc, shadowPdPage, AppendMode.APPEND, !_testMode);
 
                     _outputDevice.initializePage(shadowCs, shadowPdPage, (float) currentPage.getHeight(c) / _dotsPerPoint);
@@ -634,16 +637,22 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                     paintPageFast(c, currentPage, shadowPage, -translateX);
                     _outputDevice.finishPage();
                     translateX += (pageContentWidth * (currentPage.getCutOffPageDirection() == IdentValue.LTR ? 1 : -1));
+                    
                     pdfPageIndex++;
+                    shadowPageIndex++;
                 }
             }
             
             if (i != pageCount - 1) {
                 PageBox nextPage = pages.get(i + 1);
-                Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
+                
+                Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0,
+                        nextPage.getWidth(c) / _dotsPerPoint,
                         nextPage.getHeight(c) / _dotsPerPoint);
+                
                 PDPage pageNext = 
-                		_pageSupplier.requestPage(doc, (float) nextPageSize.getWidth(), (float) nextPageSize.getHeight(), pdfPageIndex, -1);
+                        _pageSupplier.requestPage(doc, (float) nextPageSize.getWidth(), (float) nextPageSize.getHeight(), i + 1, -1);
+                
                 PDPageContentStream csNext = new PDPageContentStream(doc, pageNext, AppendMode.APPEND, !_testMode);
                 _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
             }
@@ -656,7 +665,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         _outputDevice.setRoot(_root);
         _outputDevice.start(_doc);
         
-        PDPage page = _pageSupplier.requestPage(doc, (float) firstPageSize.getWidth(), (float) firstPageSize.getHeight(), 1, -1);
+        PDPage page = _pageSupplier.requestPage(doc, (float) firstPageSize.getWidth(), (float) firstPageSize.getHeight(), 0, -1);
         PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, !_testMode);
         
         _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
@@ -803,6 +812,11 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             PDDocumentCatalog catalog = document.getDocumentCatalog();
             catalog.setMetadata(metadataStream);
             catalog.setMarkInfo(markInfo);
+            
+            String lang = _doc.getDocumentElement().getAttribute("lang");
+            catalog.setLanguage(!lang.isEmpty() ? lang : "EN-US");
+            catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
+            catalog.getViewerPreferences().setDisplayDocTitle(true);
 
             XmpSerializer serializer = new XmpSerializer();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();

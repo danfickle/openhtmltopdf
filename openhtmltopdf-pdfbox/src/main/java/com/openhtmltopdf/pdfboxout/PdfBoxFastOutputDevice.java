@@ -39,6 +39,7 @@ import com.openhtmltopdf.pdfboxout.PdfBoxPerDocumentFormState;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.FontRun;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
@@ -405,7 +406,13 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         for (FontRun run : fontRuns) {
             drawStringFast(run.str, x + xOffset, y, info, run.des, _font.getSize2D());
             try {
-                xOffset += (run.des.getFont().getStringWidth(run.str) / 1000f) * _font.getSize2D();
+                if (info == null) {
+                    xOffset += ((run.des.getFont().getStringWidth(run.str) / 1000f) * _font.getSize2D());
+                } else {
+                    xOffset += ((run.des.getFont().getStringWidth(run.str) / 1000f) * _font.getSize2D()) +
+                               (run.spaceCharacterCount * info.getSpaceAdjust()) +
+                               (run.otherCharacterCount * info.getNonSpaceAdjust());
+                }
             } catch (Exception e) {
                 XRLog.render(Level.WARNING, "BUG. Font didn't contain expected character.", e);
             }
@@ -835,6 +842,33 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
         _cp.drawImage(xobject, (float) mx[4], (float) mx[5], (float) mx[0],
                 (float) mx[3]);
+    }
+    
+    @Override
+    public void drawPdfAsImage(PDFormXObject _srcObject, Rectangle contentBounds, float intrinsicWidth, float intrinsicHeight) {
+        // We start with the page margins...
+        AffineTransform af = AffineTransform.getTranslateInstance(
+                getTransform().getTranslateX(),
+                (_pageHeight) - getTransform().getTranslateY());
+        
+        // Then the x and y of this object...
+        af.translate(contentBounds.getX() / _dotsPerPoint, -(contentBounds.getY() / _dotsPerPoint));
+
+        // Scale to the desired height and width...
+        AffineTransform scale = ReplacedElementScaleHelper.createScaleTransform(_dotsPerPoint, contentBounds, intrinsicWidth / _dotsPerPoint, intrinsicHeight / _dotsPerPoint);
+
+        if (scale != null) {
+            af.concatenate(scale);
+        }
+        
+        // And take into account the height of the drawn feature...
+        // And yes these transforms were all determined by trial and error!
+        af.translate(0, -((intrinsicHeight / _dotsPerPoint)));
+            
+        _cp.saveGraphics();
+        _cp.applyPdfMatrix(af);
+        _cp.drawXForm(_srcObject);
+        _cp.restoreGraphics();
     }
 
     public float getDotsPerPoint() {

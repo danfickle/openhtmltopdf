@@ -7,14 +7,16 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.jsoup.helper.W3CDom;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 /**
 *
 * @author <a href="mailto:kasper@dfki.de">Walter Kasper</a>
-*
+* @deprecated FOR REMOVAL - Use the {@link W3CDom} class from Jsoup instead.
 */
+@Deprecated
 public class DOMBuilder {
   private DOMBuilder() { }
   
@@ -25,7 +27,9 @@ public class DOMBuilder {
    * @param jsoupDocument
    * The Jsoup document to convert.
    * @return A W3C Document.
+   * @deprecated FOR REMOVAL - Use {@link W3CDom#fromJsoup(org.jsoup.nodes.Document)} instead
    */
+  @Deprecated
   public static Document jsoup2DOM(org.jsoup.nodes.Document jsoupDocument) {
 
     Document document = null;
