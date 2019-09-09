@@ -196,19 +196,6 @@ public class PdfBoxFontResolver implements FontResolver {
 		addFontLazy(new PDFontSupplier(font), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
     }
     
-	private static class PDFontSupplier implements FSSupplier<PDFont> {
-		private final PDFont _font;
-
-		PDFontSupplier(PDFont font) {
-			_font = font;
-		}
-
-		@Override
-		public PDFont supply() {
-			return _font;
-		}
-	}
-
 	/**
 	 * Add a font with a lazy loaded PDFont
 	 */
@@ -345,10 +332,13 @@ public class PdfBoxFontResolver implements FontResolver {
 	}
 	
 	/**
-	 * Add a font using a {@link FSSupplier}. The font may be already loaded or can be loaded in the suppliers {@link FSSupplier#supply()} method.
+	 * Add a font using a <b>PDFontSupplier</b>. Use this method if you need special rules for font-loading (like using a font-cache) 
+	 * and subclass the {@link PDFontSupplier}.
 	 */
-	public void addFontWithSupplier(FSSupplier<PDFont> supplier, String fontFamilyNameOverride, Integer fontWeightOverride,
+	public void addFont(PDFontSupplier supplier, String fontFamilyNameOverride, Integer fontWeightOverride,
 			IdentValue fontStyleOverride, boolean subset) {
+		// would have prefered to used FSSupplier<PDFont> but sadly that would give us an error
+		// because the type-ereasure clashes with addFont(FSSupplier<InputStream> ...)
 		FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
 
 		FontDescription descr = new FontDescription(
