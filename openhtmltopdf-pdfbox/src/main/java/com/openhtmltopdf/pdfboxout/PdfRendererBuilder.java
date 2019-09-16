@@ -77,9 +77,16 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 				fontStyle = IdentValue.OBLIQUE;
 			}
 
+			// use InputStream supplier
 			if (font.supplier != null) {
 				resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset);
-			} else {
+			} 
+			// use PDFont supplier
+			else if (font.pdfontSupplier != null) {
+				resolver.addFont(font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset);
+			} 
+			// load via font File
+			else {
 				try {
 					resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset);
 				} catch (Exception e) {
@@ -187,7 +194,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 */
 	public PdfRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
 			FontStyle fontStyle, boolean subset) {
-		state._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle));
+		state._fonts.add(new AddedFont(supplier, null, null, fontWeight, fontFamily, subset, fontStyle));
 		return this;
 	}
 
@@ -211,7 +218,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 */
 	public PdfRendererBuilder useFont(File fontFile, String fontFamily, Integer fontWeight, FontStyle fontStyle,
 			boolean subset) {
-		state._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle));
+		state._fonts.add(new AddedFont(null, null, fontFile, fontWeight, fontFamily, subset, fontStyle));
 		return this;
 	}
 
@@ -227,6 +234,24 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 		return this.useFont(fontFile, fontFamily, 400, FontStyle.NORMAL, true);
 	}
 
+	/**
+	 * Like {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)} but
+	 * allows to supply a PDFont directly. Subclass {@link PDFontSupplier} if you need
+	 * special font-loading rules (like using a font-cache).
+	 */
+	public PdfRendererBuilder useFont(PDFontSupplier supplier, String fontFamily, Integer fontWeight,
+			FontStyle fontStyle, boolean subset) {
+		state._fonts.add(new AddedFont(null, supplier, null, fontWeight, fontFamily, subset, fontStyle));
+		return this;
+	}
+	
+	/**
+	 * Simpler overload for 
+	 * {@link #useFont(PDFontSupplier, String, Integer, FontStyle, boolean)}
+	 */
+	public PdfRendererBuilder useFont(PDFontSupplier supplier, String fontFamily) {
+		return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
+	}
 
 	/**
 	 * Set a producer on the output document
@@ -278,14 +303,16 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 
 	static class AddedFont {
 		private final FSSupplier<InputStream> supplier;
+		private final PDFontSupplier pdfontSupplier;
 		private final File fontFile;
 		private final Integer weight;
 		private final String family;
 		private final boolean subset;
 		private final FontStyle style;
 
-		private AddedFont(FSSupplier<InputStream> supplier, File fontFile, Integer weight, String family,
-				boolean subset, FontStyle style) {
+		private AddedFont(FSSupplier<InputStream> supplier, PDFontSupplier pdfontSupplier, File fontFile, Integer weight,
+				String family, boolean subset, FontStyle style) {
+			this.pdfontSupplier = pdfontSupplier;
 			this.supplier = supplier;
 			this.fontFile = fontFile;
 			this.weight = weight;
