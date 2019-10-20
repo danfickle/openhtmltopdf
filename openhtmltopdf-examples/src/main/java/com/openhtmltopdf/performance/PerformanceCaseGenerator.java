@@ -32,5 +32,25 @@ public class PerformanceCaseGenerator {
                         .mapToObj(i -> tr)
                         .collect(Collectors.joining("\n", hdr, ftr));
     }
+    
+    /**
+     * Performace case for:
+     *   Issue 396 - CSS border-radius makes pdf rendering very slow.
+     * Caused by Area constructor being very slow (according to VisualVM). 
+     *
+     */
+    public static String borderRadius(int howMany) {
+        final String hdr = "<html><head><style>div.avatar { margin-left: auto; margin-right: auto; height: 200px; width: 160px; " +
+                           "background-size: cover; background-position: center center; background-repeat: no-repeat; " +
+                           "border-radius: 4px;" + 
+                           "background-image: url(demos/images/flyingsaucer.png); }" +
+                           "</style></head><body>";
+        final String div = "<div class=\"avatar\"></div>";
+        final String ftr = "</body></html>";
+    
+        return IntStream.range(0, howMany)
+                .mapToObj(i -> div)
+                .collect(Collectors.joining("\n", hdr, ftr));
+    }
 
 }
