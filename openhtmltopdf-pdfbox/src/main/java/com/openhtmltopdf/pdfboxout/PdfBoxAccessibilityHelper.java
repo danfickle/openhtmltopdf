@@ -75,7 +75,8 @@ public class PdfBoxAccessibilityHelper {
         suppliers.put("th", TableHeaderStructualElement::new);
         
         suppliers.put("a", AnchorStuctualElement::new);
-        
+        suppliers.put("span", SpanStuctualElement::new);
+
         return suppliers;
     }
     
@@ -236,7 +237,30 @@ public class PdfBoxAccessibilityHelper {
             finishTreeItems(child.children, child);
         }
     }
-    
+
+    private static class SpanStuctualElement extends GenericStructualElement {
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.SPAN;
+        }
+
+        @Override
+        void finish(AbstractStructualElement parent) {
+            SpanStuctualElement child = this;
+
+            createPdfStrucureElement(parent, child);
+
+            if (box.getElement() != null) {
+                String alternate = box.getElement().getAttribute("title");
+                String lang = box.getElement().getAttribute("lang");
+                child.elem.setAlternateDescription(alternate);
+                if (!lang.isEmpty()) child.elem.setLanguage(lang);
+            }
+
+            finishTreeItems(child.children, child);
+        }
+    }
+
     private static class ListStructualElement extends AbstractStructualElement {
         final List<ListItemStructualElement> listItems = new ArrayList<>();
 
