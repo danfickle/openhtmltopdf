@@ -75,6 +75,7 @@ public class PdfBoxAccessibilityHelper {
         suppliers.put("th", TableHeaderStructualElement::new);
         
         suppliers.put("a", AnchorStuctualElement::new);
+        suppliers.put("abbr", AbbrStuctualElement::new);
         
         return suppliers;
     }
@@ -120,6 +121,40 @@ public class PdfBoxAccessibilityHelper {
         }
         
         /**
+         * Handles globally valid HTML attributes such as title and lang.
+         */
+        void handleGlobalAttributes() {
+            handleLangAttribute();
+            handleTitleAttribute();
+        }
+        
+        void handleLangAttribute() {
+            if (box != null && box.getElement() != null) {
+                String lang = box.getElement().getAttribute("lang");
+                if (!lang.isEmpty()) {
+                    this.elem.setLanguage(lang);
+                }
+            }
+        }
+        
+        void handleTitleAttribute() {
+            if (box != null && box.getElement() != null) {
+                String alternate = box.getElement().getAttribute("title");
+                if (!alternate.isEmpty()) {
+                    this.elem.setAlternateDescription(alternate);
+                }
+            }
+        }
+        
+        /**
+         * Only a couple of types of structural elements need the PDF version
+         * so leave empty in the base class.
+         */
+        void setPdfVersion(float version) { }
+        
+        /**
+         * The optional attribute dictionary is used for additional information about
+         * the structural element such as bounding box, cell spans, etc.
          * NOTE: This only allows one attribute dictionary (possibly with multiple attributes) with one owner.
          */
         void setAttributeDictionary(COSDictionary attrDict) {
@@ -208,6 +243,8 @@ public class PdfBoxAccessibilityHelper {
                 finishTreeItems(child.children, parent);
             } else {
                 createPdfStrucureElement(parent, child);
+                
+                handleGlobalAttributes();
 
                 // Recursively, depth first, process the structual tree.
                 finishTreeItems(child.children, child);
@@ -233,7 +270,48 @@ public class PdfBoxAccessibilityHelper {
             }
             child.elem.setAlternateDescription(alternate);
             
+            handleLangAttribute();
+            
             finishTreeItems(child.children, child);
+        }
+    }
+    
+    private static class AbbrStuctualElement extends GenericStructualElement {
+        float pdfVersion = 1.5f;
+        
+        @Override
+        String getPdfTag() {
+            return StandardStructureTypes.SPAN;
+        }
+
+        @Override
+        void finish(AbstractStructualElement parent) {
+            AbbrStuctualElement child = this;
+
+            createPdfStrucureElement(parent, child);
+
+            if (box.getElement() != null) {
+                String expanded = box.getElement().getAttribute("title");
+                if (!expanded.isEmpty()) {
+                    if (pdfVersion < 1.5f) {
+                        // The expanded entry for structural elements was only introduced in 1.5.
+                        child.elem.setAlternateDescription(expanded);
+                    } else {
+                        child.elem.setExpandedForm(expanded);
+                    }
+                } else {
+                    XRLog.general("PDF/UA - No title text provided for abbr tag.");
+                }
+                
+                handleLangAttribute();
+            }
+
+            finishTreeItems(child.children, child);
+        }
+        
+        @Override
+        void setPdfVersion(float version) {
+            this.pdfVersion = version;
         }
     }
     
@@ -292,6 +370,8 @@ public class PdfBoxAccessibilityHelper {
             listNumbering.setItem(COSName.getPDFName("ListNumbering"), COSName.getPDFName(listType));
             setAttributeDictionary(listNumbering);
             
+            handleGlobalAttributes();
+            
             finishTreeItems(child.listItems, child);
         }
     }
@@ -323,6 +403,8 @@ public class PdfBoxAccessibilityHelper {
             ListItemStructualElement child = this;
             
             createPdfStrucureElement(parent, child);
+            
+            handleGlobalAttributes();
 
             finishTreeItem(child.label, child);
             finishTreeItem(child.body, child);
@@ -352,6 +434,8 @@ public class PdfBoxAccessibilityHelper {
             }
             
             createPdfStrucureElement(parent, child);
+            
+            handleGlobalAttributes();
 
             finishTreeItems(child.children, child);
         }
@@ -368,6 +452,8 @@ public class PdfBoxAccessibilityHelper {
             ListBodyStructualElement child = this;
             
             createPdfStrucureElement(parent, child);
+            
+            handleGlobalAttributes();
             
             finishTreeItems(child.children, child);
         }
@@ -388,6 +474,7 @@ public class PdfBoxAccessibilityHelper {
             }
         }
 
+        @Override
         void setPdfVersion(float version) {
             this.pdfVersion = version;
         }
@@ -402,6 +489,8 @@ public class PdfBoxAccessibilityHelper {
             TableStructualElement child = this;
             
             createPdfStrucureElement(parent, child);
+            
+            handleGlobalAttributes();
             
             if (pdfVersion < 1.5f) {
                 // THead, TBody and TFoot were introduced in PDF 1.5 so if we can not use
@@ -435,6 +524,9 @@ public class PdfBoxAccessibilityHelper {
         void finish(AbstractStructualElement parent) {
             TableHeadStructualElement child = this;
             createPdfStrucureElement(parent, child);
+            
+            handleGlobalAttributes();
+            
             finishTreeItems(child.children, child);
         }
     }
@@ -457,6 +549,9 @@ public class PdfBoxAccessibilityHelper {
         void finish(AbstractStructualElement parent) {
             TableBodyStructualElement child = this;
             createPdfStrucureElement(parent, child);
+            
+            handleGlobalAttributes();
+            
             finishTreeItems(child.children, child);
         }
     }
@@ -479,6 +574,9 @@ public class PdfBoxAccessibilityHelper {
         void finish(AbstractStructualElement parent) {
             TableFootStructualElement child = this;
             createPdfStrucureElement(parent, child);
+            
+            handleGlobalAttributes();
+            
             finishTreeItems(child.children, child);
         }
     }
@@ -501,6 +599,9 @@ public class PdfBoxAccessibilityHelper {
         void finish(AbstractStructualElement parent) {
             TableRowStructualElement child = this;
             createPdfStrucureElement(parent, child);
+            
+            handleGlobalAttributes();
+            
             finishTreeItems(child.children, child);
         }
     }
@@ -559,6 +660,8 @@ public class PdfBoxAccessibilityHelper {
             addCellAttributes(attrDict);
             setAttributeDictionary(attrDict);
             
+            handleGlobalAttributes();
+            
             finishTreeItems(child.children, child);
         }
     }
@@ -580,6 +683,8 @@ public class PdfBoxAccessibilityHelper {
             if (addCellAttributes(attrDict)) {
                 setAttributeDictionary(attrDict);
             }
+            
+            handleGlobalAttributes();
             
             finishTreeItems(child.children, child);
         }
@@ -619,6 +724,8 @@ public class PdfBoxAccessibilityHelper {
                 XRLog.general(Level.WARNING, "No alt attribute provided for image/replaced in PDF/UA document.");
             }
             child.elem.setAlternateDescription(alternateText);
+            
+            handleLangAttribute();
 
             // Add bounding box attribute.
             COSDictionary attributeDict = new COSDictionary();
@@ -866,6 +973,7 @@ public class PdfBoxAccessibilityHelper {
             
             child.page = _page;
             child.box = box;
+            child.setPdfVersion(_od.getWriter().getVersion());
             
             return child;
     }
