@@ -883,6 +883,14 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("float-clear-both"));
     }
     
+    /**
+     * Tests that border radii work. Issue 396.
+     */
+    @Test
+    public void testBorderRadius() throws IOException {
+        assertTrue(vt.runTest("border-radius"));
+    }
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

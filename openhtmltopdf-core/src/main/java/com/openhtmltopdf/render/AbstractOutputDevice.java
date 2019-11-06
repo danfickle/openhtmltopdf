@@ -247,7 +247,12 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             return;
         }
         
-        Area borderBounds = new Area(BorderPainter.generateBorderBounds(backgroundBounds, border, true));
+        Shape borderBoundsShape = BorderPainter.generateBorderBounds(backgroundBounds, border, true);
+
+        // FIXME for issue 396 - generating an Area for a shape with curves is very very slow and
+        // memory intensive. However, not generating an area for simple squares breaks many tests.
+        // Therefore, for now, we just don't use an area if there are border radii present.
+        Area borderBounds = border.hasBorderRadius() && c.isFastRenderer() ? null : new Area(borderBoundsShape);
 
         Shape oldclip = null;
         
@@ -259,12 +264,12 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             }
             setClip(borderBounds);
         } else if (backgroundImage != null) {
-        	pushClip(borderBounds);
+        	pushClip(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
         if (backgroundColor != null && backgroundColor != FSRGBColor.TRANSPARENT) {
             setColor(backgroundColor);
-            fill(borderBounds);
+            fill(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
         if (backgroundImage != null) {
