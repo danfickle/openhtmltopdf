@@ -256,6 +256,11 @@ public class InlineBox implements Styleable {
         // Breaker should be used
         while ( (current = breakIterator.next()) != BreakIterator.DONE) {
             String currentWord = text.substring(last, current);
+            
+            if (currentWord.length() > 0 && currentWord.charAt(currentWord.length() - 1) == Breaker.SOFT_HYPHEN) {
+                currentWord += '-';
+            }
+            
             int wordWidth = getTextWidth(c, currentWord);
             int minWordWidth;
             if (getStyle().getWordWrap() == IdentValue.BREAK_WORD) {

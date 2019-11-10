@@ -64,7 +64,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
     
     public void drawText(RenderingContext c, InlineText inlineText) {
         InlineLayoutBox iB = inlineText.getParent();
-        String text = inlineText.getSubstring();
+        String text = inlineText.isEndsOnSoftHyphen() ? inlineText.getSubstring() + '-' : inlineText.getSubstring();
 
         // We reorder text here for RTL.
         if (inlineText.getTextDirection() == BidiSplitter.RTL) {

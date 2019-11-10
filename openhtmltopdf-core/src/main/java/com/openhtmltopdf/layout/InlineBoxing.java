@@ -962,7 +962,8 @@ public class InlineBoxing {
         result.setSubstring(lbContext.getStart(), lbContext.getEnd());
         result.setWidth(lbContext.getWidth());
         result.setTextDirection(textDirection);
-
+        result.setEndsOnSoftHyphen(lbContext.isEndsOnSoftHyphen());
+        
         return result;
     }
 

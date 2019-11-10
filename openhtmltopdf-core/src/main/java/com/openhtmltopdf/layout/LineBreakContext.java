@@ -35,6 +35,7 @@ public class LineBreakContext {
     private boolean _needsNewLine;
     private int _width;
     private boolean _endsOnNL;
+    private boolean _endsOnSoftHyphen;
     private Text _textNode;
     
     public int getLast() {
@@ -45,6 +46,7 @@ public class LineBreakContext {
         _width = 0;
         _unbreakable = false;
         _needsNewLine = false;
+        _endsOnSoftHyphen = false;
     }
     
     public int getEnd() {
@@ -136,5 +138,13 @@ public class LineBreakContext {
 
     public void setTextNode(Text _text) {
         this._textNode = _text;
+    }
+
+    public boolean isEndsOnSoftHyphen() {
+        return this._endsOnSoftHyphen;
+    }
+    
+    public void setEndsOnSoftHyphen(boolean b) {
+        this._endsOnSoftHyphen = true;
     }
 }

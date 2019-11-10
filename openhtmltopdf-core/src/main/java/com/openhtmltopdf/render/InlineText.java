@@ -60,6 +60,8 @@ public class InlineText {
     private Text _textNode;
     private byte _textDirection;
     private float _letterSpacing;
+
+    private boolean _endsOnSoftHyphen;
     
     /**
      * @param direction either LTR or RTL from BidiSplitter interface.
@@ -385,6 +387,14 @@ public class InlineText {
 
     public void setTextNode(Text node) {
         this._textNode = node;
+    }
+
+    public void setEndsOnSoftHyphen(boolean endsOnSoftHyphen) {
+        this._endsOnSoftHyphen = endsOnSoftHyphen;
+    }
+
+    public boolean isEndsOnSoftHyphen() {
+        return this._endsOnSoftHyphen;
     }
 }
 

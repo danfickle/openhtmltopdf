@@ -50,9 +50,10 @@ public class TextVisualRegressionTest {
     /**
      * A simple line breaker that produces similar results to the JRE standard line breaker.
      * So we can test line breaking/justification with conditions more like real world.
+     * Also matches soft hyphens.
      */
     private static class CollapsedSpaceTextBreaker implements FSTextBreaker {
-        private final static Pattern SPACES = Pattern.compile("\\s");
+        private final static Pattern SPACES = Pattern.compile("[\\s\u00AD]");
         private Matcher matcher;
         
         @Override
@@ -612,6 +613,16 @@ public class TextVisualRegressionTest {
     @Test
     public void testJustifySpaceAtEnd() throws IOException {
         assertTrue(vtester.runTest("text-justify-space-at-end", WITH_COLLAPSED_LINE_BREAKER));
+    }
+    
+    /**
+     * Tests that soft hyphens used as a line break are converted to visible hyphens.
+     * Issue 403.
+     */
+    @Test
+    @Ignore // Need to work on text justification with soft hyphens.
+    public void testSoftHyphens() throws IOException {
+        assertTrue(vtester.runTest("soft-hyphens", WITH_COLLAPSED_LINE_BREAKER));
     }
     
     /**
