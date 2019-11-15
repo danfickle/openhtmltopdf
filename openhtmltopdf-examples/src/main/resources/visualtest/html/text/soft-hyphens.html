@@ -4,7 +4,7 @@
 <head>
 <style>
 @page {
-  size: 450px 250px;
+  size: 450px 900px;
   margin: 0;
 }
 body {
@@ -25,7 +25,29 @@ th {
 </style>
 </head>
 <body style="font-family: 'TestFont';">
-<table>
+
+<!-- In a block with text-align set to left. -->
+<div style="width: 100px; border: 1px solid red; float: left;">
+        Haft&shy;pflicht&shy;ver&shy;si&shy;che&shy;rung
+        Bun­des­aus­bil­dungs­för­de­rungs­ge­setz
+        Gleich­ge­wichts­dich­te­gra­di­en­ten­zen­tri­fu­ga­tion
+        Hähn­chen­mast
+        Er­trags­scha­den­ver­si­che­rung Mast­ge­flü­gel
+</div>
+
+<!-- In a block with justification. -->
+<div style="width: 100px; margin-left: 20px; text-align: justify;border: 1px solid blue; float: left;">
+        Haft&shy;pflicht&shy;ver&shy;si&shy;che&shy;rung
+        Bun­des­aus­bil­dungs­för­de­rungs­ge­setz
+        Gleich­ge­wichts­dich­te­gra­di­en­ten­zen­tri­fu­ga­tion
+        Hähn­chen­mast
+        Er­trags­scha­den­ver­si­che­rung Mast­ge­flü­gel
+</div>
+
+<div style="clear:both;"></div>
+
+<!-- In a table cell with text-align set to left. -->
+<table style="margin-top: 20px;">
     <thead>
     <tr>
         <th>Spalte 1</th>
@@ -46,7 +68,30 @@ th {
     </tbody>
 </table>
 
+<!-- In a table with justification. -->
 <table style="text-align: justify;margin-top: 20px;">
+    <thead>
+    <tr>
+        <th>Spalte 1</th>
+        <th>Spalte 2</th>
+        <th>Spalte 3</th>
+        <th>Spalte 4</th>
+        <th>Spalte 5</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Haft&shy;pflicht&shy;ver&shy;si&shy;che&shy;rung</td>
+        <td>Bun­des­aus­bil­dungs­för­de­rungs­ge­setz</td>
+        <td>Gleich­ge­wichts­dich­te­gra­di­en­ten­zen­tri­fu­ga­tion</td>
+        <td>Hähn­chen­mast</td>
+        <td>Er­trags­scha­den­ver­si­che­rung Mast­ge­flü­gel</td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- In a table with letter spacing set. -->
+<table style="letter-spacing: 3px;margin-top: 20px;">
     <thead>
     <tr>
         <th>Spalte 1</th>

@@ -234,6 +234,7 @@ public class LineBox extends Box implements InlinePaintable {
                 
                 JustificationInfo info = new JustificationInfo();
 
+                if (counts.getSpaceCount() > 0) {
                     if (counts.getNonSpaceCount() > 1) {
                         info.setNonSpaceAdjust((float)toAdd * JUSTIFY_NON_SPACE_SHARE / (counts.getNonSpaceCount()-1));
                     } else {
@@ -245,6 +246,11 @@ public class LineBox extends Box implements InlinePaintable {
                     } else {
                         info.setSpaceAdjust(0.0f);
                     }
+                } else {
+                    info.setSpaceAdjust(0f);
+                    // TODO: Configure the maximum gap between characters for justification through CSS.
+                    info.setNonSpaceAdjust(Math.min((float) toAdd / (counts.getNonSpaceCount() - 1), 150)); 
+                }
                 
                 adjustChildren(info);
                 

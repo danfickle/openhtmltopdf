@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
 import com.openhtmltopdf.bidi.BidiSplitter;
+import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.extend.ContentFunction;
 import com.openhtmltopdf.css.parser.FSFunction;
@@ -249,6 +250,11 @@ public class InlineBox implements Styleable {
         boolean haveFirstWord = false;
         int firstWord = 0;
         int lastWord = 0;
+        
+        CalculatedStyle style = getStyle();
+        float letterSpacing = style.hasLetterSpacing()
+                ? style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c)
+                : 0f;
 
         String text = getText(trimLeadingSpace);
         FSTextBreaker breakIterator = Breaker.getLineBreakStream(text, c.getSharedContext());
@@ -266,7 +272,7 @@ public class InlineBox implements Styleable {
             if (getStyle().getWordWrap() == IdentValue.BREAK_WORD) {
                 minWordWidth = getMaxCharWidth(c, currentWord);
             } else {
-                minWordWidth = wordWidth;
+                minWordWidth = (int) (wordWidth + (letterSpacing * currentWord.length()));
             }
 
             if (spaceCount > 0) {
@@ -312,7 +318,7 @@ public class InlineBox implements Styleable {
         if (getStyle().getWordWrap() == IdentValue.BREAK_WORD) {
             minWordWidth = getMaxCharWidth(c, currentWord);
         } else {
-            minWordWidth = wordWidth;
+            minWordWidth = (int) (wordWidth + (letterSpacing * currentWord.length()));
         }
         if (spaceCount > 0) {
             if (includeWS) {

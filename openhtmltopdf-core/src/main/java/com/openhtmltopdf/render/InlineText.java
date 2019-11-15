@@ -28,6 +28,7 @@ import com.openhtmltopdf.extend.FSGlyphVector;
 import com.openhtmltopdf.layout.FunctionData;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.WhitespaceStripper;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.Uu;
 
 /**
@@ -337,13 +338,14 @@ public class InlineText {
             char c = s.charAt(i);
             if (c == ' ' || c == '\u00a0' || c == '\u3000') {
                 spaces++;
+            } else if (!OpenUtil.isCodePointPrintable(c)) {
+                
             } else {
                 other++;
             }
         }
-        
         counts.setSpaceCount(counts.getSpaceCount() + spaces);
-        counts.setNonSpaceCount(counts.getNonSpaceCount() + other);
+        counts.setNonSpaceCount(counts.getNonSpaceCount() + other + (isEndsOnSoftHyphen() ? 1 : 0));
     }
     
     public float calcTotalAdjustment(JustificationInfo info) {
@@ -361,9 +363,15 @@ public class InlineText {
             char c = s.charAt(i);
             if (c == ' ' || c == '\u00a0' || c == '\u3000') {
                 result += info.getSpaceAdjust();
+            } else if (!OpenUtil.isCodePointPrintable(c)) {
+                
             } else {
                 result += info.getNonSpaceAdjust();
             }
+        }
+
+        if (isEndsOnSoftHyphen()) {
+            result += info.getNonSpaceAdjust();
         }
         
         return result;
