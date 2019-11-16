@@ -419,6 +419,29 @@ public final class CSSName implements Comparable<CSSName> {
             );
 
     /**
+     * The max extra spacing for space characters when text-align: justify is in use.
+     */
+    public final static CSSName FS_MAX_JUSTIFICATION_INTER_WORD =
+            addProperty(
+                    "-fs-max-justification-inter-word",
+                    PRIMITIVE,
+                    "2cm",
+                    INHERITS,
+                    new PrimitivePropertyBuilders.FSMaxJustificationInterWord()
+            );
+    /**
+     * The max extra spacing for non-space characters when text-align: justify is in use.
+     */
+    public final static CSSName FS_MAX_JUSTIFICATION_INTER_CHAR =
+            addProperty(
+                    "-fs-max-justification-inter-char",
+                    PRIMITIVE,
+                    "0.5mm",
+                    INHERITS,
+                    new PrimitivePropertyBuilders.FSMaxJustificationInterChar()
+            );
+    
+    /**
      * Unique CSSName instance for CSS2 property.
      */
     public final static CSSName BOTTOM =

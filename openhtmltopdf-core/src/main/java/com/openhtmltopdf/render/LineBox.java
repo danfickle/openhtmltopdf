@@ -228,6 +228,9 @@ public class LineBox extends Box implements InlinePaintable {
                 leftFloatDistance - rightFloatDistance - getContentStart(); 
             
             if (available > getContentWidth()) {
+                float maxInterChar = getParent().getStyle().getFloatPropertyProportionalWidth(CSSName.FS_MAX_JUSTIFICATION_INTER_CHAR, getParent().getWidth(), c);
+                float maxInterWord = getParent().getStyle().getFloatPropertyProportionalWidth(CSSName.FS_MAX_JUSTIFICATION_INTER_WORD, getParent().getWidth(), c);
+                
                 int toAdd = available - getContentWidth();
                 
                 CharCounts counts = countJustifiableChars();
@@ -236,20 +239,19 @@ public class LineBox extends Box implements InlinePaintable {
 
                 if (counts.getSpaceCount() > 0) {
                     if (counts.getNonSpaceCount() > 1) {
-                        info.setNonSpaceAdjust((float)toAdd * JUSTIFY_NON_SPACE_SHARE / (counts.getNonSpaceCount()-1));
+                        info.setNonSpaceAdjust(Math.min((float)toAdd * JUSTIFY_NON_SPACE_SHARE / (counts.getNonSpaceCount()-1), maxInterChar));
                     } else {
                         info.setNonSpaceAdjust(0.0f);
                     }
                     
                     if (counts.getSpaceCount() > 0) {
-                        info.setSpaceAdjust((float)toAdd * JUSTIFY_SPACE_SHARE / counts.getSpaceCount());
+                        info.setSpaceAdjust(Math.min((float)toAdd * JUSTIFY_SPACE_SHARE / counts.getSpaceCount(), maxInterWord));
                     } else {
                         info.setSpaceAdjust(0.0f);
                     }
                 } else {
                     info.setSpaceAdjust(0f);
-                    // TODO: Configure the maximum gap between characters for justification through CSS.
-                    info.setNonSpaceAdjust(Math.min((float) toAdd / (counts.getNonSpaceCount() - 1), 150)); 
+                    info.setNonSpaceAdjust(Math.min((float) toAdd / (counts.getNonSpaceCount() - 1), maxInterChar)); 
                 }
                 
                 adjustChildren(info);

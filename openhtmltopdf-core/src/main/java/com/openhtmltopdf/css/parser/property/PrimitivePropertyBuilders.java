@@ -1258,6 +1258,12 @@ public class PrimitivePropertyBuilders {
 
     public static class FSPageBreakMinHeight extends NonNegativeLengthLike {
     }
+    
+    public static class FSMaxJustificationInterWord extends NonNegativeLengthLike {
+    }
+
+    public static class FSMaxJustificationInterChar extends NonNegativeLengthLike {
+    }
 
     public static class Orphans extends PlainInteger {
         protected boolean isNegativeValuesAllowed() {
