@@ -126,9 +126,14 @@ public class PdfBoxBookmarkManager {
     public void loadBookmarks() {
         Document doc = _xml;
         Element head = DOMUtil.getChild(doc.getDocumentElement(), "head");
+        Element body = DOMUtil.getChild(doc.getDocumentElement(), "body");
+        handleBookmarksInParent(head);
+        handleBookmarksInParent(body);
+    }
 
-        if (head != null) {
-            Element bookmarks = DOMUtil.getChild(head, "bookmarks");
+    private void handleBookmarksInParent(Element element) {
+        if (element != null) {
+            Element bookmarks = DOMUtil.getChild(element, "bookmarks");
             if (bookmarks != null) {
                 List<Element> l = DOMUtil.getChildren(bookmarks, "bookmark");
                 if (l != null) {

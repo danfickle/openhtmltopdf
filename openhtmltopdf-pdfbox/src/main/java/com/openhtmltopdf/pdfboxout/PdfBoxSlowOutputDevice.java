@@ -973,8 +973,14 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
     private void loadBookmarks(Document doc) {
         Element head = DOMUtil.getChild(doc.getDocumentElement(), "head");
-        if (head != null) {
-            Element bookmarks = DOMUtil.getChild(head, "bookmarks");
+        Element body = DOMUtil.getChild(doc.getDocumentElement(), "body");
+        handleBookmarksInParent(head);
+        handleBookmarksInParent(body);
+    }
+
+    private void handleBookmarksInParent(Element element) {
+        if (element != null) {
+            Element bookmarks = DOMUtil.getChild(element, "bookmarks");
             if (bookmarks != null) {
                 List<Element> l = DOMUtil.getChildren(bookmarks, "bookmark");
                 if (l != null) {
