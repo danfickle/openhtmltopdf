@@ -890,6 +890,15 @@ public class VisualRegressionTest {
     public void testBorderRadius() throws IOException {
         assertTrue(vt.runTest("border-radius"));
     }
+
+    /**
+     * Check counter style after page break, it should not be affected by a previous bolded text, see issue
+     * https://github.com/danfickle/openhtmltopdf/issues/366
+     */
+    @Test
+    public void testListCounterAfterPageBreak() throws IOException {
+        assertTrue(vt.runTest("list-counter-after-page-break"));
+    }
     
     // TODO:
     // + Elements that appear just on generated overflow pages.

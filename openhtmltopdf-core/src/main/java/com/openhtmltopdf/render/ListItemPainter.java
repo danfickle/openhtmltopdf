@@ -134,6 +134,9 @@ public class ListItemPainter {
         
         c.getOutputDevice().setColor(box.getStyle().getColor());
         c.getOutputDevice().setFont(box.getStyle().getFSFont(c));
+        if (c.getOutputDevice() instanceof AbstractOutputDevice) {
+            ((AbstractOutputDevice) c.getOutputDevice()).setFontSpecification(box.getStyle().getFontSpecification());
+        }
         c.getTextRenderer().drawString(
                 c.getOutputDevice(), text.getText(), x, y);
     }
