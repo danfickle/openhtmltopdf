@@ -28,7 +28,6 @@
     <module>openhtmltopdf-examples</module>
     <module>openhtmltopdf-pdfbox</module>
     <module>openhtmltopdf-rtl-support</module>
-    <module>openhtmltopdf-jsoup-dom-converter</module>
     <module>openhtmltopdf-svg-support</module>
     <module>openhtmltopdf-java2d</module>
     <module>openhtmltopdf-objects</module>
