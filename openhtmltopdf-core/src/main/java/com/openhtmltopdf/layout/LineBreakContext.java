@@ -36,7 +36,6 @@ public class LineBreakContext {
     private int _width;
     private boolean _endsOnNL;
     private boolean _endsOnSoftHyphen;
-    private Text _textNode;
     
     public int getLast() {
         return _master.length();
@@ -130,14 +129,6 @@ public class LineBreakContext {
 
     public void setEndsOnNL(boolean b) {
         _endsOnNL = b;
-    }
-
-    public Text getTextNode() {
-        return this._textNode;
-    }
-
-    public void setTextNode(Text _text) {
-        this._textNode = _text;
     }
 
     public boolean isEndsOnSoftHyphen() {

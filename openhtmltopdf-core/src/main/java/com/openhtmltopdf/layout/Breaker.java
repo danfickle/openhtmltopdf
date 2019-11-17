@@ -23,6 +23,7 @@ package com.openhtmltopdf.layout;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.render.FSFont;
 
@@ -72,12 +73,13 @@ public class Breaker {
             LineBreakContext context, int avail, CalculatedStyle style) {
         FSFont font = style.getFSFont(c);
         IdentValue whitespace = style.getWhitespace();
+        float letterSpacing = style.hasLetterSpacing() ? 
+                style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c) : 0f;
 
         // ====== handle nowrap
         if (whitespace == IdentValue.NOWRAP) {
-        	context.setEnd(context.getLast());
-        	context.setWidth(c.getTextRenderer().getWidth(
-                    c.getFontContext(), font, context.getCalculatedSubstring()));
+            context.setEnd(context.getLast());
+            context.setWidth(Breaker.getTextWidthWithLetterSpacing(c, font, context.getCalculatedSubstring(), letterSpacing));
             return;
         }
 
@@ -88,14 +90,12 @@ public class Breaker {
             int n = context.getStartSubstring().indexOf(WhitespaceStripper.EOL);
             if (n > -1) {
                 context.setEnd(context.getStart() + n + 1);
-                context.setWidth(c.getTextRenderer().getWidth(
-                        c.getFontContext(), font, context.getCalculatedSubstring()));
+                context.setWidth(Breaker.getTextWidthWithLetterSpacing(c, font, context.getCalculatedSubstring(), letterSpacing));
                 context.setNeedsNewLine(true);
                 context.setEndsOnNL(true);
             } else if (whitespace == IdentValue.PRE) {
             	context.setEnd(context.getLast());
-                context.setWidth(c.getTextRenderer().getWidth(
-                        c.getFontContext(), font, context.getCalculatedSubstring()));
+                context.setWidth(Breaker.getTextWidthWithLetterSpacing(c, font, context.getCalculatedSubstring(), letterSpacing));
             }
         }
 
@@ -281,4 +281,13 @@ public class Breaker {
 		i.setText(s);
 		return i;
 	}
+
+	/**
+	 * Gets the width of a string with letter spacing factored in.
+	 * Favor this method over using the text renderer directly.
+	 */
+    public static int getTextWidthWithLetterSpacing(CssContext c, FSFont font, String text, float letterSpacing) {
+        float extraSpace = text.length() * letterSpacing;
+        return (int) (c.getTextRenderer().getWidth(c.getFontContext(), font, text) + extraSpace);
+    }
 }

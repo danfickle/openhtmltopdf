@@ -97,29 +97,6 @@ public class BreakerTest {
 		}
 
 		@Override
-		public void drawGlyphVector(OutputDevice outputDevice,
-				FSGlyphVector vector, float x, float y) {
-		}
-
-		@Override
-		public FSGlyphVector getGlyphVector(OutputDevice outputDevice,
-				FSFont font, String string) {
-			return null;
-		}
-
-		@Override
-		public float[] getGlyphPositions(OutputDevice outputDevice,
-				FSFont font, FSGlyphVector fsGlyphVector) {
-			return null;
-		}
-
-		@Override
-		public Rectangle getGlyphBounds(OutputDevice outputDevice, FSFont font,
-				FSGlyphVector fsGlyphVector, int index, float x, float y) {
-			return null;
-		}
-
-		@Override
 		public FSFontMetrics getFSFontMetrics(FontContext context, FSFont font,
 				String string) {
 			return null;

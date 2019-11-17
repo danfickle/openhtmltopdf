@@ -93,6 +93,7 @@ public class LayoutContext implements CssContext {
     
     private Boolean isPrintOverride = null; // True, false, or null for no override.
 
+    @Override
     public TextRenderer getTextRenderer() {
         return _sharedContext.getTextRenderer();
     }
@@ -375,6 +376,7 @@ public class LayoutContext implements CssContext {
         return _sharedContext.getReplacedElementFactory();
     }
 
+    @Override
     public FontContext getFontContext() {
         return _fontContext;
     }

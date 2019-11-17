@@ -858,7 +858,7 @@ public class BoxBuilder {
             }
 
             if (content != null) {
-                InlineBox iB = new InlineBox(content, null);
+                InlineBox iB = new InlineBox(content);
                 iB.setContentFunction(contentFunction);
                 iB.setFunction(function);
                 iB.setElement(element);
@@ -1054,7 +1054,7 @@ public class BoxBuilder {
 
     private static InlineBox createInlineBox(
             String text, Element parent, CalculatedStyle parentStyle, Text node) {
-        InlineBox result = new InlineBox(text, node);
+        InlineBox result = new InlineBox(text);
 
         if (parentStyle.isInline() && ! (parent.getParentNode() instanceof Document)) {
             result.setStyle(parentStyle);

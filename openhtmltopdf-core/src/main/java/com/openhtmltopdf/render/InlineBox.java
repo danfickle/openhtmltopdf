@@ -21,8 +21,6 @@ package com.openhtmltopdf.render;
 import java.text.BreakIterator;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Text;
-
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
@@ -73,12 +71,9 @@ public class InlineBox implements Styleable {
 
     private String _pseudoElementOrClass;
 
-    private final Text _textNode;
-
-    public InlineBox(String text, Text textNode) {
+    public InlineBox(String text) {
         _text = text;
         _originalText = text;
-        _textNode = textNode;
     }
 
     private byte _textDirection;
@@ -502,9 +497,5 @@ public class InlineBox implements Styleable {
     public void truncateText() {
         _text = "";
         _originalText = "";
-    }
-
-    public Text getTextNode() {
-        return this._textNode;
     }
 }
