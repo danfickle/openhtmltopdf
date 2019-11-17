@@ -5,7 +5,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -538,7 +538,7 @@ public class PdfBoxForm {
         OutputStream os = null;
         try {
             os = s.getContentStream().createOutputStream();
-            os.write(appear.getBytes("ASCII"));
+            os.write(appear.getBytes(StandardCharsets.US_ASCII));
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("createCheckboxAppearance", e);
         } finally {
@@ -553,9 +553,9 @@ public class PdfBoxForm {
         return s;
     }
 
-    private COSString getCOSStringUTF16Encoded(String value) throws UnsupportedEncodingException {
+    private COSString getCOSStringUTF16Encoded(String value) {
         // UTF-16BE encoded string with a leading byte order marker
-        byte[] data = value.getBytes("UTF-16BE");
+        byte[] data = value.getBytes(StandardCharsets.UTF_16BE);
         ByteArrayOutputStream out = new ByteArrayOutputStream(data.length + 2);
         out.write(0xFE); // BOM
         out.write(0xFF); // BOM
