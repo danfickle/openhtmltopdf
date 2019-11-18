@@ -1,6 +1,8 @@
 ## CHANGELOG
 
-### head - 1.0.1-SNAPSHOT
+### head - 1.0.2-SNAPSHOT
+
+### 1.0.1 (2019-November-18)
 + [#413](https://github.com/danfickle/openhtmltopdf/pull/413) Handle form problems such as no name on input element without throwing a NPE. Thanks @syjer for PR and @mmatecki for reporting.
 + [#412](https://github.com/danfickle/openhtmltopdf/pull/412) Add HTML block level elements usch as `section` to default CSS. Thanks @syjer.
 + [#339](https://github.com/danfickle/openhtmltopdf/issues/339) Remove the JSoup to DOM converter module. Thanks @kewilson.
