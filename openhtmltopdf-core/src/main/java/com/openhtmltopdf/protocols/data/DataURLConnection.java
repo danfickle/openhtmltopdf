@@ -22,7 +22,6 @@ package com.openhtmltopdf.protocols.data;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -69,7 +68,7 @@ public class DataURLConnection extends URLConnection {
         return new ByteArrayInputStream(_data);
     }
 
-    protected void parseURL() throws UnsupportedEncodingException {
+    protected void parseURL() throws UnsupportedCharsetException {
         String sub = getURL().getPath();
 
         int comma = sub.indexOf(',');
