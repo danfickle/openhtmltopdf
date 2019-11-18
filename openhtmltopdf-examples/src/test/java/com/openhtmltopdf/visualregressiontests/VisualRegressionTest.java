@@ -899,6 +899,18 @@ public class VisualRegressionTest {
     public void testListCounterAfterPageBreak() throws IOException {
         assertTrue(vt.runTest("list-counter-after-page-break"));
     }
+
+    /**
+     * Check the added elements are considered as block by default.
+     *
+     * See issue: https://github.com/danfickle/openhtmltopdf/issues/382
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testMissingHtml5BlockElements() throws IOException {
+        assertTrue(vt.runTest("html5-missing-block-elements"));
+    }
     
     // TODO:
     // + Elements that appear just on generated overflow pages.
