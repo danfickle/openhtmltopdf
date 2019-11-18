@@ -1,6 +1,7 @@
 package com.openhtmltopdf.svgsupport;
 
 import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 import org.apache.batik.bridge.DocumentLoader;
 import org.apache.batik.bridge.UserAgent;
@@ -10,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.logging.Level;
 
 public class OpenHtmlDocumentLoader extends DocumentLoader {
 
@@ -33,7 +35,7 @@ public class OpenHtmlDocumentLoader extends DocumentLoader {
                 uri = userAgentCallback.resolveURI(uri);
             }
         } catch (URISyntaxException uriSyntaxException) {
-            XRLog.exception("URI syntax exception while loading external svg resource: " + uri, uriSyntaxException);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_URI_SYNTAX_WHILE_LOADING_EXTERNAL_SVG_RESOURCE, uri, uriSyntaxException);
         }
         return super.loadDocument(uri, new ByteArrayInputStream(userAgentCallback.getBinaryResource(uri)));
     }

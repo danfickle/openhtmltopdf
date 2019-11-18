@@ -19,12 +19,12 @@
  */
 package com.openhtmltopdf.simple.extend.form;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.logging.Level;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.layout.LayoutContext;
@@ -54,12 +54,9 @@ class SubmitField extends AbstractButtonField {
 
         button.setText(value);
 
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                XRLog.layout("Submit pressed: Submit");
-
-                getParentForm().submit(getComponent());
-            }
+        button.addActionListener(event -> {
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LAYOUT_FORM_ACTION_PERFORMED, "Submit", "Submit");
+            getParentForm().submit(getComponent());
         });
 
         return button;

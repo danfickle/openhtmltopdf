@@ -27,6 +27,7 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.swing.ImageMapParser;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.multipdf.LayerUtility;
@@ -65,7 +66,7 @@ public class PdfBoxPDFReplacedElement implements PdfBoxReplacedElement, IPdfBoxE
         try {
             return Integer.parseInt(e.getAttribute("page")) - 1;
         } catch (NumberFormatException e1) {
-            XRLog.exception("Unable to parse page of img tag with PDF!", e1);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_UNABLE_TO_PARSE_PAGE_OF_IMG_TAG_WITH_PDF, e1);
         }
 
         return 0;
@@ -75,7 +76,7 @@ public class PdfBoxPDFReplacedElement implements PdfBoxReplacedElement, IPdfBoxE
         try (PDDocument srcDocument = PDDocument.load(pdfBytes)){
             int pageNo = parsePage(e);
             if (pageNo >= srcDocument.getNumberOfPages()) {
-                XRLog.load(Level.WARNING, "Page does not exist for pdf in img tag. Ignoring!");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LOAD_PAGE_DOES_NOT_EXIST_FOR_PDF_IN_IMG_TAG);
                 return null;
             }
             
@@ -89,9 +90,9 @@ public class PdfBoxPDFReplacedElement implements PdfBoxReplacedElement, IPdfBoxE
             
             return new PdfBoxPDFReplacedElement(formXObject, e, box, ctx, shared, width, height);
         } catch (InvalidPasswordException e1) {
-            XRLog.exception("Tried to open a password protected document as src for an img!", e1);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_TRIED_TO_OPEN_A_PASSWORD_PROTECTED_DOCUMENT_AS_SRC_FOR_IMG, e1);
         } catch (IOException e1) {
-            XRLog.exception("Could not read pdf passed as src for img element!", e1);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_COULD_NOT_READ_PDF_AS_SRC_FOR_IMG, e1);
         }
         
         return null;

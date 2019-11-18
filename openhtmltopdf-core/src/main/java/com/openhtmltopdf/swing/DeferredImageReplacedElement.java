@@ -27,6 +27,7 @@ import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import javax.swing.*;
@@ -149,12 +150,8 @@ public class DeferredImageReplacedElement extends ImageReplacedElement {
                 _image = image;
             }
             _loaded = true;
-            XRLog.load(Level.FINE, "Icon: replaced image " + _imageResource.getImageUri() + ", repaint requested");
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    repaintListener.repaintRequested(_doScaleImage);
-                }
-            });
+            XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.LOAD_ICON_REPLACED_IMAGE_REPAINT_REQUESTED, _imageResource.getImageUri());
+            SwingUtilities.invokeLater(() -> repaintListener.repaintRequested(_doScaleImage));
 
         }
 

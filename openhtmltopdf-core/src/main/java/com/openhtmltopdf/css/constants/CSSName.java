@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+
 import com.openhtmltopdf.css.parser.CSSErrorHandler;
 import com.openhtmltopdf.css.parser.CSSParser;
 import com.openhtmltopdf.css.parser.PropertyValue;
@@ -42,6 +44,7 @@ import com.openhtmltopdf.css.parser.property.SizePropertyBuilder;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.DerivedValueFactory;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 
@@ -1959,11 +1962,8 @@ public final class CSSName implements Comparable<CSSName> {
     }
 
     static {
-        CSSParser parser = new CSSParser(new CSSErrorHandler() {
-            @Override
-            public void error(String uri, String message) {
-                XRLog.cssParse("(" + uri + ") " + message);
-            }
+        CSSParser parser = new CSSParser((uri, message) -> {
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.CSS_PARSE_GENERIC_MESSAGE, uri, message);
         });
         for (Iterator<CSSName> i = ALL_PRIMITIVE_PROPERTY_NAMES.values().iterator(); i.hasNext(); ) {
             CSSName cssName = i.next();
@@ -1972,7 +1972,7 @@ public final class CSSName implements Comparable<CSSName> {
                         cssName, StylesheetInfo.USER_AGENT, cssName.initialValue);
 
                 if (value == null) {
-                    XRLog.exception("Unable to derive initial value for " + cssName);
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CSS_UNABLE_TO_DERIVE_INITIAL_VALUE_FOR_CLASSNAME, cssName);
                 } else {
                     cssName.initialDerivedValue = DerivedValueFactory.newDerivedValue(
                             null,

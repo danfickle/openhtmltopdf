@@ -41,6 +41,7 @@ import com.openhtmltopdf.render.ContentLimitContainer;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.ArrayUtil;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 // Much of this code is directly inspired by (and even copied from)
@@ -420,7 +421,7 @@ public class TableBox extends BlockBox {
         ContentLimit limit = _contentLimitContainer.getContentLimit(c.getPageNo());
 
         if (limit == null) {
-            XRLog.layout(Level.WARNING, "No content limit found");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LAYOUT_NO_CONTENT_LIMIT_FOUND);
             return result;
         } else {
             if (limit.getTop() == ContentLimit.UNDEFINED ||

@@ -49,6 +49,7 @@ import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPage
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
@@ -248,7 +249,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             try {
                 this.setDocumentP(doc.file);
             } catch (IOException e) {
-                XRLog.exception("Problem trying to read input XHTML file", e);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_PROBLEM_TRYING_TO_READ_INPUT_XHTML_FILE, e);
                 throw new RuntimeException("File IO problem", e);
             }
         }
@@ -521,9 +522,9 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
      */
     private void createPdfFast(boolean finish) throws IOException {
         boolean success = false;
-        
-        XRLog.general(Level.INFO, "Using fast-mode renderer. Prepare to fly.");
-        
+
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId0Param.GENERAL_PDF_USING_FAST_MODE);
+
         try {
             // renders the layout if it wasn't created
             if (_root == null) {
@@ -724,7 +725,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             String title = info.getTitle() != null ? info.getTitle() : "";
             
             if (title.isEmpty()) {
-                XRLog.general(Level.WARNING, "No document title provided. Document will not be PDF/UA compliant.");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_TITLE_PROVIDED);
             }
             
             XMPMetadata xmp = XMPMetadata.createXMPMetadata();

@@ -2,9 +2,11 @@ package com.openhtmltopdf.outputdevice.helper;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.logging.Level;
 
 import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 public class FontFaceFontSupplier implements FSSupplier<InputStream> {
@@ -21,7 +23,7 @@ public class FontFaceFontSupplier implements FSSupplier<InputStream> {
         byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src);
         
         if (font1 == null) {
-            XRLog.exception("Could not load @font-face font: " + src);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT_FACE, src);
             return null;
         }
         

@@ -34,6 +34,7 @@ import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.Styleable;
 import com.openhtmltopdf.render.FlowingColumnContainerBox.ColumnBreakStore;
 import com.openhtmltopdf.util.LambdaUtil;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -347,10 +348,9 @@ public abstract class Box implements Styleable, DisplayListItem {
             if (this.type.isAssignableFrom(box.getClass())) {
                 return (T) box;
             }
-            
-            XRLog.general(Level.SEVERE, "Expecting box children to be of type (" +
-                                        this.type.getCanonicalName() + ") but got (" +
-                                        box.getClass().getCanonicalName() + ").");
+
+            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId2Param.GENERAL_EXPECTING_BOX_CHILDREN_OF_TYPE_BUT_GOT,
+                    this.type.getCanonicalName(), box.getClass().getCanonicalName());
             return null;
         }
     }
@@ -758,7 +758,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     public int forcePageBreakBefore(LayoutContext c, IdentValue pageBreakValue, boolean pendingPageName) {
         PageBox page = c.getRootLayer().getFirstPage(c, this);
         if (page == null) {
-            XRLog.layout(Level.WARNING, "Box has no page");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LAYOUT_BOX_HAS_NO_PAGE);
             return 0;
         } else {
             int pageBreakCount = 1;

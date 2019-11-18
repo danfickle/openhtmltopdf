@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.util.Diagnostic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class Slf4jLogger implements XRLogger {
     
     private static final Map<String, String> LOGGER_NAME_MAP;
     static {
-        LOGGER_NAME_MAP = new HashMap<String, String>();
+        LOGGER_NAME_MAP = new HashMap<>();
         
         LOGGER_NAME_MAP.put(XRLog.CONFIG, "com.openhtmltopdf.config");
         LOGGER_NAME_MAP.put(XRLog.EXCEPTION, "com.openhtmltopdf.exception");
@@ -52,7 +53,42 @@ public class Slf4jLogger implements XRLogger {
     
     private String _defaultLoggerName = DEFAULT_LOGGER_NAME;
     private Map<String, String> _loggerNameMap = LOGGER_NAME_MAP;
-    
+
+    @Override
+    public boolean isLogLevelEnabled(Diagnostic diagnostic) {
+        Level level = diagnostic.getLevel();
+        Logger logger = LoggerFactory.getLogger(getLoggerName(diagnostic.getLogMessageId().getWhere()));
+        if (level == Level.SEVERE) {
+            return logger.isErrorEnabled();
+        } else if (level == Level.WARNING) {
+            return logger.isWarnEnabled();
+        } else if (level == Level.INFO || level == Level.CONFIG) {
+            return logger.isInfoEnabled();
+        } else if (level == Level.FINE || level == Level.FINER || level == Level.FINEST) {
+            return logger.isDebugEnabled();
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public void log(Diagnostic diagnostic) {
+        Logger logger = LoggerFactory.getLogger(getLoggerName(diagnostic.getLogMessageId().getWhere()));
+        Level level = diagnostic.getLevel();
+        String msg = diagnostic.getLogMessageId().getMessageFormat();
+        Object[] args = diagnostic.getArgs();
+        if (level == Level.SEVERE)
+            logger.error(msg, args);
+        else if (level == Level.WARNING)
+            logger.warn(msg, args);
+        else if (level == Level.INFO || level == Level.CONFIG)
+            logger.info(msg, args);
+        else if (level == Level.FINE || level == Level.FINER || level == Level.FINEST)
+            logger.debug(msg, args);
+        else
+            logger.info(msg, args);
+    }
+
     @Override
     public void log(String where, Level level, String msg) {
     	Logger logger = LoggerFactory.getLogger(getLoggerName(where));

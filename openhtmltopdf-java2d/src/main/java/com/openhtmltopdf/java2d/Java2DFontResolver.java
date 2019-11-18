@@ -33,6 +33,7 @@ import com.openhtmltopdf.outputdevice.helper.FontFamily;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.outputdevice.helper.MinimalFontDescription;
 import com.openhtmltopdf.render.FSFont;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.awt.Font;
@@ -54,7 +55,7 @@ import java.util.logging.Level;
 public class Java2DFontResolver implements FontResolver {
 
     private static abstract class FontDescription implements MinimalFontDescription {
-        protected static final String FAIL_MSG = "Couldn't load font. Please check that it is a valid truetype font.";
+        //protected static final String FAIL_MSG = "Couldn't load font. Please check that it is a valid truetype font.";
         protected final int _weight;
         protected final IdentValue _style;
         protected Font _font;
@@ -102,7 +103,7 @@ public class Java2DFontResolver implements FontResolver {
                 try {
                     _font = Font.createFont(Font.TRUETYPE_FONT, is);
                 } catch (IOException|FontFormatException e) {
-                    XRLog.exception(FAIL_MSG, e);
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_JAVA2D_COULD_NOT_LOAD_FONT, e);
                     return false;
                 } finally {
                     try {
@@ -130,8 +131,8 @@ public class Java2DFontResolver implements FontResolver {
                 try {
                     _font = Font.createFont(Font.TRUETYPE_FONT, _fontFile);
                     _fontFile = null;
-                } catch (IOException|FontFormatException e) {
-                    XRLog.exception(FAIL_MSG, e);
+                } catch (IOException | FontFormatException e) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_JAVA2D_COULD_NOT_LOAD_FONT, e);
                     return false;
                 }
             }
@@ -205,7 +206,7 @@ public class Java2DFontResolver implements FontResolver {
             if (rule.hasFontFamily()) {
                 fontFamily = style.valueByName(CSSName.FONT_FAMILY).asString();
             } else {
-                XRLog.cssParse(Level.WARNING, "Must provide at least a font-family and src in @font-face rule");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.CSS_PARSE_MUST_PROVIDE_AT_LEAST_A_FONT_FAMILY_AND_SRC_IN_FONT_FACE_RULE);
                 continue;
             }
 

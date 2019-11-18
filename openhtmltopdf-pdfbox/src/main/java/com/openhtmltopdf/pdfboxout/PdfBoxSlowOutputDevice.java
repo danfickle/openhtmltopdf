@@ -39,6 +39,7 @@ import com.openhtmltopdf.pdfboxout.PdfBoxPerDocumentFormState;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
@@ -394,7 +395,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
             try {
                 xOffset += (run.des.getFont().getStringWidth(run.str) / 1000f) * _font.getSize2D();
             } catch (Exception e) {
-                XRLog.render(Level.WARNING, "BUG. Font didn't contain expected character.", e);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_BUG_FONT_DIDNT_CONTAIN_EXPECTED_CHARACTER, e);
             }
         }
     }
@@ -717,7 +718,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
     public void clip(Shape s) {
         if (isFastRenderer()) {
-            XRLog.render(Level.SEVERE, "clip MUST not be used by the fast renderer. Please consider reporting this bug.");
+            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId1Param.RENDER_OP_MUST_NOT_BE_USED_BY_FAST_RENDERER, "clip");
             return;
         }
         
@@ -736,7 +737,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
     public Shape getClip() {
         if (isFastRenderer()) {
-            XRLog.render(Level.SEVERE, "getClip MUST not be used by the fast renderer. Please consider reporting this bug.");
+            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId1Param.RENDER_OP_MUST_NOT_BE_USED_BY_FAST_RENDERER, "getClip");
             return null;
         }
         
@@ -765,7 +766,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     @Override
     public void setClip(Shape s) {
         if (isFastRenderer()) {
-            XRLog.render(Level.SEVERE, "setClip MUST not be used by the fast renderer. Please consider reporting this bug.");
+            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId1Param.RENDER_OP_MUST_NOT_BE_USED_BY_FAST_RENDERER, "setClip");
             return;
         }
 
@@ -1418,7 +1419,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
                 _cp.applyPdfMatrix(normalized);
             }
         } catch (NoninvertibleTransformException e) {
-            XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_TRIED_TO_SET_NON_INVERTIBLE_CSS_TRANSFORM);
         }
         return inverse;
     }
@@ -1454,7 +1455,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
             Color c = (Color) paint;
             this.setColor(new FSRGBColor(c.getRed(), c.getGreen(), c.getBlue()));
         } else {
-            XRLog.render(Level.WARNING, "Unknown paint: " + paint.getClass().getCanonicalName());
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.RENDER_UNKNOWN_PAINT, paint.getClass().getCanonicalName());
         }
     }
 

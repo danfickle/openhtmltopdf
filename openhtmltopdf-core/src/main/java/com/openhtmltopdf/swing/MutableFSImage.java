@@ -20,6 +20,7 @@
 package com.openhtmltopdf.swing;
 
 import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
@@ -64,7 +65,7 @@ public class MutableFSImage extends AWTFSImage {
         
         img = newImg;
         loaded = true;
-        XRLog.general(Level.FINE, "Mutable image " + uri + " loaded, repaint requested");
+        XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.GENERAL_MUTABLE_IMAGE_URI_LOADED_REPAINT_REQUESTED, uri);
         repaintListener.repaintRequested(wasScaled);
     }
 

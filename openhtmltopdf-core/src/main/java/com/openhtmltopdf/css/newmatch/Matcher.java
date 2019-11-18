@@ -28,12 +28,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
 
 import com.openhtmltopdf.css.constants.MarginBoxName;
 import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.StylesheetFactory;
 import com.openhtmltopdf.css.extend.TreeResolver;
 import com.openhtmltopdf.css.sheet.*;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 
@@ -149,7 +151,7 @@ public class Matcher {
     Mapper createDocumentMapper(List<Stylesheet> stylesheets, String medium) {
         java.util.TreeMap<String,Selector> sorter = new java.util.TreeMap<String,Selector>();
         addAllStylesheets(stylesheets, sorter, medium);
-        XRLog.match("Matcher created with " + sorter.size() + " selectors");
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.MATCH_MATCHER_CREATED_WITH_SELECTOR, sorter.size());
         return new Mapper(sorter.values());
     }
     

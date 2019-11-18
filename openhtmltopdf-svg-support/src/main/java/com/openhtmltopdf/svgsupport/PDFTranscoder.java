@@ -12,6 +12,7 @@ import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.FontFace;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class PDFTranscoder extends SVGAbstractTranscoder {
 	private OpenHtmlFontResolver fontResolver;
@@ -179,7 +181,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 
 		         byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src.asString());
 		         if (font1 == null) {
-		             XRLog.exception("Could not load font " + src.asString());
+		         	XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, src.asString());
 		             continue;
 		         }
 		         
@@ -202,7 +204,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		         try {
 					addFontFaceFont(fontFamily, fontWeight, fontStyle, src.asString(), font1);
 				} catch (FontFormatException e) {
-					XRLog.exception("Couldn't read font", e);
+		         	XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_SVG_COULD_NOT_READ_FONT, e);
 					continue;
 				}
 		    }
@@ -271,17 +273,17 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		return new ErrorHandler() {
 			@Override
 			public void warning(TranscoderException arg0) throws TranscoderException {
-				XRLog.exception("SVG WARN", arg0);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_SVG_ERROR_HANDLER, "WARN", arg0);
 			}
 			
 			@Override
 			public void fatalError(TranscoderException arg0) throws TranscoderException {
-				XRLog.exception("SVG FATAL", arg0);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_SVG_ERROR_HANDLER, "FATAL", arg0);
 			}
 			
 			@Override
 			public void error(TranscoderException arg0) throws TranscoderException {
-				XRLog.exception("SVG ERROR", arg0);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_SVG_ERROR_HANDLER, "ERROR", arg0);
 			}
 		};
 	}

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSInteger;
@@ -266,7 +267,7 @@ public class PdfBoxAccessibilityHelper {
             
             String alternate = box.getElement() != null ? box.getElement().getAttribute("title") : "";
             if (alternate.isEmpty()) {
-                XRLog.general("PDF/UA - No title text provided for link.");
+                XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.GENERAL_PDF_ACCESSIBILITY_NO_TITLE_TEXT_PROVIDED_FOR, "link");
             }
             child.elem.setAlternateDescription(alternate);
             
@@ -300,7 +301,7 @@ public class PdfBoxAccessibilityHelper {
                         child.elem.setExpandedForm(expanded);
                     }
                 } else {
-                    XRLog.general("PDF/UA - No title text provided for abbr tag.");
+                    XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.GENERAL_PDF_ACCESSIBILITY_NO_TITLE_TEXT_PROVIDED_FOR, "abbr tag");
                 }
                 
                 handleLangAttribute();
@@ -721,7 +722,7 @@ public class PdfBoxAccessibilityHelper {
             // Add alt text.
             String alternateText = child.box.getElement() == null ? "" : box.getElement().getAttribute("alt");
             if (alternateText.isEmpty()) {
-                XRLog.general(Level.WARNING, "No alt attribute provided for image/replaced in PDF/UA document.");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_ALT_ATTRIBUTE_PROVIDED_FOR_IMAGE);
             }
             child.elem.setAlternateDescription(alternateText);
             
@@ -779,12 +780,7 @@ public class PdfBoxAccessibilityHelper {
     }
     
     private static void logIncompatibleChild(AbstractTreeItem parent, AbstractTreeItem child, Class<?> expected) {
-        XRLog.general(Level.WARNING,
-                "Trying to add incompatible child to parent item: " +
-                " child type=" + child.getClass().getSimpleName() + 
-                ", parent type=" + parent.getClass().getSimpleName() +
-                ", expected child type=" + expected.getSimpleName() +
-                ". Document will not be PDF/UA compliant.");
+        XRLog.log(Level.WARNING, LogMessageId.LogMessageId3Param.GENERAL_PDF_ACCESSIBILITY_INCOMPATIBLE_CHILD, child.getClass().getSimpleName(), parent.getClass().getSimpleName(), expected.getSimpleName());
     }
     
     /**

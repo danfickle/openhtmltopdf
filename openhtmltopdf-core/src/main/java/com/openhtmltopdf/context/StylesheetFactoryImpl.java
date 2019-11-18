@@ -31,6 +31,7 @@ import com.openhtmltopdf.css.sheet.Stylesheet;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.resource.CSSResource;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 /**
@@ -64,10 +65,8 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
 
     public StylesheetFactoryImpl(UserAgentCallback userAgentCallback) {
         _userAgentCallback = userAgentCallback;
-        _cssParser = new CSSParser(new CSSErrorHandler() {
-            public void error(String uri, String message) {
-                XRLog.cssParse(Level.WARNING, "(" + uri + ") " + message);
-            }
+        _cssParser = new CSSParser((uri, message) -> {
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.CSS_PARSE_GENERIC_MESSAGE, uri, message);
         });
     }
 
@@ -75,7 +74,7 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
         try {
             return _cssParser.parseStylesheet(info.getUri(), info.getOrigin(), reader);
         } catch (IOException e) {
-            XRLog.cssParse(Level.WARNING, "Couldn't parse stylesheet at URI " + info.getUri() + ": " + e.getMessage(), e);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.CSS_PARSE_COULDNT_PARSE_STYLESHEET_AT_URI, info.getUri(), e.getMessage(), e);
             return new Stylesheet(info.getUri(), info.getOrigin());
         }
     }
@@ -170,7 +169,7 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
      */
     //TODO: this looks a bit odd
     public Stylesheet getStylesheet(StylesheetInfo info) {
-        XRLog.load("Requesting stylesheet: " + info.getUri());
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_REQUESTING_STYLESHEET_AT_URI, info.getUri());
 
         Stylesheet s = getCachedStylesheet(info.getUri());
         if (s == null && !containsStylesheet(info.getUri())) {

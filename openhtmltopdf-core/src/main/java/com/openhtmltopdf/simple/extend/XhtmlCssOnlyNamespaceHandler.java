@@ -26,7 +26,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -390,7 +392,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
                 is = null;
             } catch (Exception e) {
                 _defaultStylesheetError = true;
-                XRLog.exception("Could not parse default stylesheet", e);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_COULD_NOT_PARSE_DEFAULT_STYLESHEET, e);
             } finally {
                 if (is != null) {
                     try {
@@ -412,8 +414,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         String defaultStyleSheet = Configuration.valueFor("xr.css.user-agent-default-css") + "XhtmlNamespaceHandler.css";
         stream = this.getClass().getResourceAsStream(defaultStyleSheet);
         if (stream == null) {
-            XRLog.exception("Can't load default CSS from " + defaultStyleSheet + "." +
-                    "This file must be on your CLASSPATH. Please check before continuing.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_DEFAULT_CSS, defaultStyleSheet);
             _defaultStylesheetError = true;
         }
 

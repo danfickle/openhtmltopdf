@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 import com.openhtmltopdf.extend.FSImage;
@@ -49,7 +50,7 @@ public class PdfBoxImage implements FSImage {
                         || type.equalsIgnoreCase("jpg") || type
                         .equalsIgnoreCase("jfif"));
             } else {
-                XRLog.load(Level.WARNING, "Unrecognized image format for: " + uri);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_UNRECOGNIZED_IMAGE_FORMAT_FOR_URI, uri);
                 // TODO: Avoid throw here.
                 throw new IOException("Unrecognized Image format");
             }

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
@@ -80,7 +81,7 @@ public class PdfBoxBookmarkManager {
         }
         
         if (target == null) {
-            XRLog.general(Level.WARNING, "Could not find valid target for bookmark. Bookmark href = " + href);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_BOOKMARK, href);
         }
 
         PDOutlineItem outline = new PDOutlineItem();

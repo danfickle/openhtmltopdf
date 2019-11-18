@@ -33,7 +33,7 @@ import java.util.logging.Level;
  * @author empty
  */
 public class XRLog {
-    private static final List<String> LOGGER_NAMES = new ArrayList<String>(20);
+    private static final List<String> LOGGER_NAMES = new ArrayList<>(20);
     public final static String CONFIG = registerLoggerByName("com.openhtmltopdf.config");
     public final static String EXCEPTION = registerLoggerByName("com.openhtmltopdf.exception");
     public final static String GENERAL = registerLoggerByName("com.openhtmltopdf.general");
@@ -66,176 +66,59 @@ public class XRLog {
      */
     public static List<String> listRegisteredLoggers() {
         // defensive copy
-        return new ArrayList<String>(LOGGER_NAMES);
+        return new ArrayList<>(LOGGER_NAMES);
     }
 
-
-    public static void cssParse(String msg) {
-        cssParse(Level.INFO, msg);
+    public static void log(Level level, LogMessageId.LogMessageId0Param logMessageId) {
+        log(level, logMessageId, false);
     }
 
-    public static void cssParse(Level level, String msg) {
-        log(CSS_PARSE, level, msg);
+    public static void log(Level level, LogMessageId.LogMessageId0Param logMessageId, Throwable t) {
+        log(level, logMessageId, true, t);
     }
 
-    public static void cssParse(Level level, String msg, Throwable th) {
-        log(CSS_PARSE, level, msg, th);
+    public static void log(Level level, LogMessageId.LogMessageId1Param logMessageId, Object arg) {
+        log(level, logMessageId, false, arg);
     }
 
-    public static void xmlEntities(String msg) {
-        xmlEntities(Level.INFO, msg);
+    public static void log(Level level, LogMessageId.LogMessageId1Param logMessageId, Object arg, Throwable throwable) {
+        log(level, logMessageId, true, arg, throwable);
     }
 
-    public static void xmlEntities(Level level, String msg) {
-        log(XML_ENTITIES, level, msg);
+    public static void log(Level level, LogMessageId.LogMessageId2Param logMessageId, Object arg1, Object arg2) {
+        log(level, logMessageId, false, arg1, arg2);
     }
 
-    public static void xmlEntities(Level level, String msg, Throwable th) {
-        log(XML_ENTITIES, level, msg, th);
+    public static void log(Level level, LogMessageId.LogMessageId2Param logMessageId, Object arg1, Object arg2, Throwable throwable) {
+        log(level, logMessageId, true, arg1, arg2, throwable);
     }
 
-    public static void cascade(String msg) {
-        cascade(Level.INFO, msg);
+    public static void log(Level level, LogMessageId.LogMessageId3Param logMessageId, Object arg1, Object arg2, Object arg3) {
+        log(level, logMessageId, false, arg1, arg2, arg3);
     }
 
-    public static void cascade(Level level, String msg) {
-        log(CASCADE, level, msg);
+    public static void log(Level level, LogMessageId.LogMessageId3Param logMessageId, Object arg1, Object arg2, Object arg3, Throwable throwable) {
+        log(level, logMessageId, true, arg1, arg2, arg3, throwable);
     }
 
-    public static void cascade(Level level, String msg, Throwable th) {
-        log(CASCADE, level, msg, th);
+    public static void log(Level level, LogMessageId.LogMessageId4Param logMessageId, Object arg1, Object arg2, Object arg3, Object arg4) {
+        log(level, logMessageId, false, arg1, arg2, arg3, arg4);
     }
 
-    public static void exception(String msg) {
-        exception(msg, null);
+    public static void log(Level level, LogMessageId.LogMessageId5Param logMessageId, Object arg1, Object arg2, Object arg3, Object arg4, Object arg5) {
+        log(level, logMessageId, false, arg1, arg2, arg3, arg4, arg5);
     }
 
-    public static void exception(String msg, Throwable th) {
-        log(EXCEPTION, Level.WARNING, msg, th);
-    }
-
-    public static void general(String msg) {
-        general(Level.INFO, msg);
-    }
-
-    public static void general(Level level, String msg) {
-        log(GENERAL, level, msg);
-    }
-
-    public static void general(Level level, String msg, Throwable th) {
-        log(GENERAL, level, msg, th);
-    }
-
-    public static void init(String msg) {
-        init(Level.INFO, msg);
-    }
-
-    public static void init(Level level, String msg) {
-        log(INIT, level, msg);
-    }
-
-    public static void init(Level level, String msg, Throwable th) {
-        log(INIT, level, msg, th);
-    }
-
-    public static void junit(String msg) {
-        junit(Level.FINEST, msg);
-    }
-
-    public static void junit(Level level, String msg) {
-        log(JUNIT, level, msg);
-    }
-
-    public static void junit(Level level, String msg, Throwable th) {
-        log(JUNIT, level, msg, th);
-    }
-
-    public static void load(String msg) {
-        load(Level.INFO, msg);
-    }
-
-    public static void load(Level level, String msg) {
-        log(LOAD, level, msg);
-    }
-
-    public static void load(Level level, String msg, Throwable th) {
-        log(LOAD, level, msg, th);
-    }
-
-    public static void match(String msg) {
-        match(Level.INFO, msg);
-    }
-
-    public static void match(Level level, String msg) {
-        log(MATCH, level, msg);
-    }
-
-    public static void match(Level level, String msg, Throwable th) {
-        log(MATCH, level, msg, th);
-    }
-
-    public static void layout(String msg) {
-        layout(Level.INFO, msg);
-    }
-
-    public static void layout(Level level, String msg) {
-        log(LAYOUT, level, msg);
-    }
-
-    public static void layout(Level level, String msg, Throwable th) {
-        log(LAYOUT, level, msg, th);
-    }
-
-    public static void render(String msg) {
-        render(Level.INFO, msg);
-    }
-
-    public static void render(Level level, String msg) {
-        log(RENDER, level, msg);
-    }
-
-    public static void render(Level level, String msg, Throwable th) {
-        log(RENDER, level, msg, th);
-    }
-
-    public static synchronized void log(String where, Level level, String msg) {
+    private static void log(Level level, LogMessageId logMessageId, boolean hasError, Object... args) {
         if (initPending) {
             init();
         }
         if (isLoggingEnabled()) {
-            loggerImpl.log(where, level, msg);
-        }
-    }
-
-    public static synchronized void log(String where, Level level, String msg, Throwable th) {
-        if (initPending) {
-            init();
-        }
-        if (isLoggingEnabled()) {
-            loggerImpl.log(where, level, msg, th);
-        }
-    }
-
-    public static void main(String args[]) {
-        try {
-            XRLog.cascade("Cascade msg");
-            XRLog.cascade(Level.WARNING, "Cascade msg");
-            XRLog.exception("Exception msg");
-            XRLog.exception("Exception msg", new Exception());
-            XRLog.general("General msg");
-            XRLog.general(Level.WARNING, "General msg");
-            XRLog.init("Init msg");
-            XRLog.init(Level.WARNING, "Init msg");
-            XRLog.load("Load msg");
-            XRLog.load(Level.WARNING, "Load msg");
-            XRLog.match("Match msg");
-            XRLog.match(Level.WARNING, "Match msg");
-            XRLog.layout("Layout msg");
-            XRLog.layout(Level.WARNING, "Layout msg");
-            XRLog.render("Render msg");
-            XRLog.render(Level.WARNING, "Render msg");
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            Diagnostic diagnostic = new Diagnostic(level, logMessageId, hasError, args);
+            if (loggerImpl.isLogLevelEnabled(diagnostic)) {
+                loggerImpl.log(diagnostic);
+            }
+            ThreadCtx.addDiagnostic(diagnostic);
         }
     }
 

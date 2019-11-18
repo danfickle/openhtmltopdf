@@ -22,6 +22,7 @@ package com.openhtmltopdf.swing;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
@@ -57,13 +58,13 @@ class ImageLoadWorker extends Thread {
                 }
                 final ImageResource ir = ImageResourceLoader.loadImageResourceFromUri(loadItem._uri);
                 FSImage awtfsImage = ir.getImage();
-                BufferedImage newImg = (BufferedImage) ((AWTFSImage) awtfsImage).getImage();
-                XRLog.load(Level.FINE, this + ", loaded " + loadItem._uri);
+                BufferedImage newImg = ((AWTFSImage) awtfsImage).getImage();
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId2Param.LOAD_IMAGE_LOAD_WORKER_LOADED_WITH_URI, this, loadItem._uri);
 
                 loadItem._imageResourceLoader.loaded(ir, newImg.getWidth(), newImg.getHeight());
                 final boolean wasScaled;
                 if (loadItem.haveTargetDimensions() && !ir.hasDimensions(loadItem._targetWidth, loadItem._targetHeight)) {
-                    XRLog.load(Level.FINE, this + ", scaling " + loadItem._uri + " to " + loadItem._targetWidth + ", " + loadItem._targetHeight);
+                    XRLog.log(Level.FINE, LogMessageId.LogMessageId4Param.LOAD_IMAGE_LOADER_SCALING_URI_TO, this, loadItem._uri, loadItem._targetWidth, loadItem._targetHeight);
                     newImg = ImageUtil.getScaledInstance(newImg, loadItem._targetWidth, loadItem._targetHeight);
                     ImageResource sir = new ImageResource(ir.getImageUri(), AWTFSImage.createImage(newImg));
                     loadItem._imageResourceLoader.loaded(sir, newImg.getWidth(), newImg.getHeight());
@@ -74,11 +75,7 @@ class ImageLoadWorker extends Thread {
 
                 // msfImage belongs to the Swing AWT thread
                 final BufferedImage newImg1 = newImg;
-                EventQueue.invokeLater(new Runnable() {
-                    public void run() {
-                        loadItem._mfsImage.setImage(loadItem._uri, newImg1, wasScaled);
-                    }
-                });
+                EventQueue.invokeLater(() -> loadItem._mfsImage.setImage(loadItem._uri, newImg1, wasScaled));
             }
         } catch (InterruptedException e) {
             //

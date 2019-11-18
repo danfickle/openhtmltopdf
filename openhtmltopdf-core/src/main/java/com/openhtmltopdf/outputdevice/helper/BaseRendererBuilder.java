@@ -6,8 +6,11 @@ import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 
+import com.openhtmltopdf.util.Diagnostic;
+import com.openhtmltopdf.util.ThreadCtx;
 import org.w3c.dom.Document;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -15,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Baseclass for all RendererBuilders (PDF and Java2D), has all common settings
@@ -60,7 +64,8 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 		public String _preferredTransformerFactoryImplementationClass = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 		public String _preferredDocumentBuilderFactoryImplementationClass = "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl";
 		public boolean _useFastRenderer = false;
-	}
+		public Consumer<Diagnostic> _diagnosticConsumer;
+    }
 
 	protected final TBaseRendererBuilderState state;
 
@@ -496,6 +501,15 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
     public TFinalClass useFont(FSSupplier<InputStream> supplier, String fontFamily) {
         return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
     }
+
+	public TFinalClass withDiagnosticConsumer(Consumer<Diagnostic> diagnosticConsumer) {
+		state._diagnosticConsumer = diagnosticConsumer;
+		return (TFinalClass) this;
+	}
+
+	protected Closeable applyDiagnosticConsumer() {
+		return ThreadCtx.applyDiagnosticConsumer(state._diagnosticConsumer);
+	}
 
 	public enum TextDirection {
 		RTL, LTR

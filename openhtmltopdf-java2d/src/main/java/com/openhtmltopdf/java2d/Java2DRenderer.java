@@ -4,7 +4,10 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.List;
+import java.util.logging.Level;
+
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilderState;
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -181,7 +184,7 @@ public class Java2DRenderer implements Closeable {
             try {
                 this.setDocument(doc.file);
             } catch (IOException e) {
-                XRLog.exception("Problem trying to read input XHTML file", e);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_PROBLEM_TRYING_TO_READ_INPUT_XHTML_FILE, e);
                 throw new RuntimeException("File IO problem", e);
             }
         }

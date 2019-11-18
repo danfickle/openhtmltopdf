@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.util.LogMessageId;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
@@ -117,9 +118,7 @@ public class BatikSVGImage implements SVGImage {
         try {
             return Integer.valueOf(attrValue);
         } catch (NumberFormatException e) {
-            XRLog.general(Level.WARNING,
-                    "Invalid integer passed as dimension for SVG: "
-                            + attrValue);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_INVALID_INTEGER_PASSED_AS_DIMENSION_FOR_SVG, attrValue);
             return null;
         }
     }
@@ -160,8 +159,7 @@ public class BatikSVGImage implements SVGImage {
 
         OpenHtmlFontResolver fontResolver = this.fontResolver;
         if (fontResolver == null) {
-            XRLog.general(Level.INFO,
-                    "importFontFaceRules has not been called for this pdf transcoder");
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId0Param.GENERAL_IMPORT_FONT_FACE_RULES_HAS_NOT_BEEN_CALLED);
             fontResolver = new OpenHtmlFontResolver();
         }
 
@@ -191,7 +189,7 @@ public class BatikSVGImage implements SVGImage {
             TranscoderInput in = new TranscoderInput(newDocument);
             pdfTranscoder.transcode(in, null);
         } catch (TranscoderException e) {
-            XRLog.exception("Couldn't draw SVG.", e);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_SVG_COULD_NOT_DRAW, e);
         }
     }
 }

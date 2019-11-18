@@ -52,6 +52,7 @@ import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRRuntimeException;
 
@@ -252,9 +253,7 @@ public class CalculatedStyle {
         try {
             isAbs = valueByName(cssName).hasAbsoluteUnit();
         } catch (Exception e) {
-            XRLog.layout(Level.WARNING, "Property " + cssName + " has an assignment we don't understand, " +
-                    "and can't tell if it's an absolute unit or not. Assuming it is not. Exception was: " +
-                    e.getMessage());
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.LAYOUT_CSS_PROPERTY_HAS_UNPROCESSABLE_ASSIGNMENT, cssName, e.getMessage());
             isAbs = false;
         }
         return isAbs;

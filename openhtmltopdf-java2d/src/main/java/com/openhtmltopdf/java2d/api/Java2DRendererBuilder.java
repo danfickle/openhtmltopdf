@@ -2,6 +2,8 @@ package com.openhtmltopdf.java2d.api;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.Closeable;
+
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.java2d.Java2DRenderer;
 import com.openhtmltopdf.layout.Layer;
@@ -87,12 +89,14 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @throws Exception
 	 */
 	public void runPaged() throws Exception {
-		Java2DRenderer renderer = this.buildJava2DRenderer();
-		renderer.layout();
-		if (state._pagingMode == Layer.PAGED_MODE_PRINT)
-			renderer.writePages();
-		else
-			renderer.writeSinglePage();
+		try (Closeable d = this.applyDiagnosticConsumer()) {
+			Java2DRenderer renderer = this.buildJava2DRenderer();
+			renderer.layout();
+			if (state._pagingMode == Layer.PAGED_MODE_PRINT)
+				renderer.writePages();
+			else
+				renderer.writeSinglePage();
+		}
 	}
 
 	/**
@@ -104,12 +108,14 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @throws Exception
 	 */
 	public void runFirstPage() throws Exception {
-		Java2DRenderer renderer = this.buildJava2DRenderer();
-		renderer.layout();
-		if (state._pagingMode == Layer.PAGED_MODE_PRINT)
-			renderer.writePage(0);
-		else
-			renderer.writeSinglePage();
+		try (Closeable d = this.applyDiagnosticConsumer()) {
+			Java2DRenderer renderer = this.buildJava2DRenderer();
+			renderer.layout();
+			if (state._pagingMode == Layer.PAGED_MODE_PRINT)
+				renderer.writePage(0);
+			else
+				renderer.writeSinglePage();
+		}
 	}
 
 	public Java2DRenderer buildJava2DRenderer() {

@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.openhtmltopdf.util.Diagnostic;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
@@ -71,7 +72,12 @@ public class TestSupport {
             this.delegate = delegate;
             this.sb = sb;
         }
-        
+
+        @Override
+        public boolean isLogLevelEnabled(Diagnostic diagnostic) {
+            return true;
+        }
+
         @Override
         public void setLevel(String logger, Level level) {
         }

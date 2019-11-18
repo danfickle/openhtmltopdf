@@ -8,10 +8,12 @@ import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Level;
@@ -36,13 +38,14 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 */
 	public void run() throws IOException {
 		PdfBoxRenderer renderer = null;
-		try {
+		try (Closeable d = applyDiagnosticConsumer()){
 			renderer = this.buildPdfRenderer();
 			renderer.layout();
 			renderer.createPDF();
 		} finally {
-			if (renderer != null)
+			if (renderer != null) {
 				renderer.close();
+			}
 		}
 	}
 
@@ -91,7 +94,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 				try {
 					resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset);
 				} catch (Exception e) {
-					XRLog.init(Level.WARNING, "Font " + font.fontFile + " could not be loaded", e);
+					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
 				}
 			}
 		}
@@ -204,7 +207,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 		state._producer = producer;
 		return this;
 	}
-	
+
 	/**
 	 * List of caches available.
 	 */

@@ -10,6 +10,7 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -229,7 +230,7 @@ public class PdfBoxFastLinkManager {
 
 				addLinkToPage(page, annot, box, target);
 			} else {
-			    XRLog.general(Level.WARNING, "Could not find valid target for link. Link href = " + uri);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_LINK, uri);
 			}
 		} else if (isURI(uri)) {
 			PDActionURI uriAct = new PDActionURI();
@@ -252,7 +253,7 @@ public class PdfBoxFastLinkManager {
 		try {
 			return URI.create(uri) != null;
 		} catch (IllegalArgumentException e) {
-			XRLog.general(Level.INFO, "'"+uri+"' in href is not a valid URI, will be skipped");
+			XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.GENERAL_PDF_URI_IN_HREF_IS_NOT_A_VALID_URI, uri);
 			return false;
 		}
 	}

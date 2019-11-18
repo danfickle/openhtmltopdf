@@ -22,6 +22,7 @@ package com.openhtmltopdf.css.newmatch;
 import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.TreeResolver;
 import com.openhtmltopdf.css.sheet.Ruleset;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.util.logging.Level;
@@ -299,7 +300,7 @@ public class Selector {
     public void setPseudoElement(String pseudoElement) {
         if (_pe != null) {
             addUnsupportedCondition();
-            XRLog.match(Level.WARNING, "Trying to set more than one pseudo-element");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.MATCH_TRYING_TO_SET_MORE_THAN_ONE_PSEUDO_ELEMENT);
         } else {
             _specificityD++;
             _pe = pseudoElement;
@@ -408,7 +409,7 @@ public class Selector {
                 sibling = treeRes.getPreviousSiblingElement(e);
                 break;
             default:
-                XRLog.exception("Bad sibling axis");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_SELECTOR_BAD_SIBLING_AXIS);
         }
         return sibling;
     }
@@ -424,7 +425,7 @@ public class Selector {
         }
         if (_pe != null) {
             conditions.add(Condition.createUnsupportedCondition());
-            XRLog.match(Level.WARNING, "Trying to append conditions to pseudoElement " + _pe);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.MATCH_TRYING_TO_APPEND_CONDITIONS_TO_PSEUDO_ELEMENT, _pe);
         }
         conditions.add(c);
     }

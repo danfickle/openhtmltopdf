@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.net.URLConnection;
 import java.net.URL;
+import java.util.logging.Level;
 
 /**
  * Created by IntelliJ IDEA.
@@ -31,24 +32,24 @@ public class StreamResource {
             // If using Java 5+ you can set timeouts for the URL connection--useful if the remote
             // server is down etc.; the default timeout is pretty long
             //
-            //uc.setConnectTimeout(10 * 1000);
-            //uc.setReadTimeout(30 * 1000);
+            _conn.setConnectTimeout(10 * 1000);
+            _conn.setReadTimeout(30 * 1000);
             //
             // TODO:CLEAN-JDK1.4
             // Since we target 1.4, we use a couple of system properties--note these are only supported
             // in the Sun JDK implementation--see the Net properties guide in the JDK
             // e.g. file:///usr/java/j2sdk1.4.2_17/docs/guide/net/properties.html
-            System.setProperty("sun.net.client.defaultConnectTimeout", String.valueOf(10 * 1000));
-            System.setProperty("sun.net.client.defaultReadTimeout", String.valueOf(30 * 1000));
+            //System.setProperty("sun.net.client.defaultConnectTimeout", String.valueOf(10 * 1000));
+            //System.setProperty("sun.net.client.defaultReadTimeout", String.valueOf(30 * 1000));
 
             _conn.connect();
             _slen = _conn.getContentLength();
         } catch (java.net.MalformedURLException e) {
-            XRLog.exception("bad URL given: " + _uri, e);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_MALFORMED_URL, _uri, e);
         } catch (FileNotFoundException e) {
-            XRLog.exception("item at URI " + _uri + " not found");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_ITEM_AT_URI_NOT_FOUND, _uri, e);
         } catch (IOException e) {
-            XRLog.exception("IO problem for " + _uri, e);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_IO_PROBLEM_FOR_URI, _uri, e);
         }
     }
 

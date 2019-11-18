@@ -31,6 +31,7 @@ import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.swing.AWTFSImage;
 import com.openhtmltopdf.swing.ImageReplacedElement;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
@@ -227,7 +228,7 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 				gfxTransform.concatenate(transform);
 			}
 		} catch (NoninvertibleTransformException e) {
-			XRLog.render(Level.WARNING, "Tried to set a non-invertible CSS transform. Ignored.");
+		    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_TRIED_TO_SET_NON_INVERTIBLE_CSS_TRANSFORM);
 		}
 		_graphics.setTransform(gfxTransform);
 		return inverse;
