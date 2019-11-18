@@ -26,7 +26,6 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.util.Charsets;
 import org.hamcrest.CustomTypeSafeMatcher;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -716,6 +715,24 @@ public class NonVisualRegressionTest {
         PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
         assertEquals(0, form.getFields().size());
         remove("input-without-name-attribute", doc);
+    }
+
+    /**
+     * See issue: https://github.com/danfickle/openhtmltopdf/issues/261 .
+     * This will fail using the slow renderer as the calculated index for the link is wrong.
+     */
+    @Test
+    public void testIssue261IndexOutOfBoundExceptionWithWrongPageLink() throws IOException {
+        PDDocument doc = run("issue-261-index-out-of-bound-exception");
+        assertEquals(1, doc.getPage(0).getAnnotations().size());
+
+        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+        PDActionGoTo action = (PDActionGoTo) link.getAction();
+        assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
+        PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
+        // note, the div id="actionHistory" is empty, so it will not generate a second page
+        assertEquals(dest.getPage(), doc.getPage(0));
+        remove("issue-261-index-out-of-bound-exception", doc);
     }
     
     // TODO:
