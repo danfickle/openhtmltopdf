@@ -52,6 +52,8 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 
 public class PdfBoxForm {
@@ -263,6 +265,10 @@ public class PdfBoxForm {
     
     private String populateOptions(Element e, List<String> labels, List<String> values, List<Integer> selectedIndices) {
         List<Element> opts = DOMUtil.getChildren(e, "option");
+        if (opts == null) {
+            XRLog.general(Level.WARNING, "A <"+e.getTagName() + "> element does not have <option> children");
+            return "";
+        }
         String selected = "";
         int i = 0;
         
@@ -297,10 +303,8 @@ public class PdfBoxForm {
     private void processMultiSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDListBox field = new PDListBox(acro);
 
-        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
-        fObj.field = field;
-        
-        field.setPartialName(fObj.partialName);
+        setPartialNameToField(ctrl, field);
+
         field.setMultiSelect(true);
         
         List<String> labels = new ArrayList<String>();
@@ -346,11 +350,8 @@ public class PdfBoxForm {
      */
     private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDComboBox field = new PDComboBox(acro);
-        
-        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
-        fObj.field = field;
-        
-        field.setPartialName(fObj.partialName);
+
+        setPartialNameToField(ctrl, field);
         
         List<String> labels = new ArrayList<String>();
         List<String> values = new ArrayList<String>();
@@ -397,11 +398,8 @@ public class PdfBoxForm {
     
     private void processHiddenControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDTextField field = new PDTextField(acro);
-        
-        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
-        fObj.field = field;
-        
-        field.setPartialName(fObj.partialName);
+
+        setPartialNameToField(ctrl, field);
         
         String value = ctrl.box.getElement().getAttribute("value");
         
@@ -418,11 +416,8 @@ public class PdfBoxForm {
     
     private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDTextField field = new PDTextField(acro);
-        
-        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
-        fObj.field = field;
-        
-        field.setPartialName(fObj.partialName);
+
+        setPartialNameToField(ctrl, field);
         
         FSColor color = ctrl.box.getStyle().getColor();
         String colorOperator = getColorOperator(color);
@@ -575,12 +570,9 @@ public class PdfBoxForm {
     
     private void processCheckboxControl(ControlFontPair pair, PDAcroForm acro, int i, Control ctrl, Box root) throws IOException {
         PDCheckBox field = new PDCheckBox(acro);
-        
-        Field fObj = allFieldMap.get(ctrl.box.getElement().getAttribute("name"));
-        fObj.field = field;
-        
-        field.setPartialName(fObj.partialName);
-        
+
+        setPartialNameToField(ctrl, field);
+
         if (ctrl.box.getElement().hasAttribute("required")) {
             field.setRequired(true);
         }
@@ -640,11 +632,9 @@ public class PdfBoxForm {
     private void processRadioButtonGroup(List<Control> group, PDAcroForm acro, int i, Box root) throws IOException {
         String groupName = group.get(0).box.getElement().getAttribute("name");
         PDRadioButton field = new PDRadioButton(acro);
-        
+
         Field fObj = allFieldMap.get(groupName);
-        fObj.field = field;
-        
-        field.setPartialName(fObj.partialName);
+        setPartialNameToField(group.get(0).box.getElement(), fObj, field);
         
         List<String> values = new ArrayList<String>(group.size());
         for (Control ctrl : group) {
@@ -767,6 +757,28 @@ public class PdfBoxForm {
         acro.getFields().add(btn);
         ctrl.page.getAnnotations().add(widget);
     }
+
+    private void setPartialNameToField(Control ctrl, PDField field) {
+        Element elem = ctrl.box.getElement();
+        Field fObj = allFieldMap.get(elem.getAttribute("name"));
+        setPartialNameToField(elem, fObj, field);
+    }
+
+    private static void setPartialNameToField(Element element, Field fObj, PDField field) {
+        if (fObj != null) {
+            fObj.field = field;
+            field.setPartialName(fObj.partialName);
+        } else {
+            StringBuilder sb = new StringBuilder();
+            NamedNodeMap attributes = element.getAttributes();
+            int length = attributes.getLength();
+            for (int i = 0; i < length; i++) {
+                Node item = attributes.item(i);
+                sb.append(' ').append(item.getNodeName()).append("=\"").append(item.getNodeValue()).append('"');
+            }
+            XRLog.general(Level.WARNING, "found a <" + element.getTagName() + sb.toString() +"> element without attribute name, the element will not work without this attribute");
+        }
+    }
     
     public int process(PDAcroForm acro, int startId, Box root) throws IOException {
         processControlNames();
@@ -806,7 +818,7 @@ public class PdfBoxForm {
                        e.getAttribute("type").equals("hidden")) {
                 
                 processHiddenControl(pair, ctrl, acro, i, root);
-            }else if (e.getNodeName().equals("input") &&
+            } else if (e.getNodeName().equals("input") &&
                        e.getAttribute("type").equals("radio")) {
                 // We have to do radio button groups in one hit so add them to a map of list keyed on name.
                 List<Control> radioGroup = radioGroups.get(e.getAttribute("name"));
