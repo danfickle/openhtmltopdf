@@ -22,8 +22,12 @@ package com.openhtmltopdf.newtable;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -62,6 +66,8 @@ public class TableBox extends BlockBox {
 
     private int _extraSpaceTop;
     private int _extraSpaceBottom;
+
+    private Map<Box, CalculatedStyle> hiddenHeaderFooterPreviousStyles;
 
     @Override
     public boolean isMarginAreaRoot() {
@@ -538,6 +544,84 @@ public class TableBox extends BlockBox {
             }
         }
     }
+
+    /**
+     * If first element of table is header and the last is footer then hide its header
+     * and footer if there is no content between them.
+     * The hiding process is done using an EmptyStyle with visibility set to hidden.
+     * It is used to fix the bug: danfickle/openhtmltopdf#399
+     */
+    public void hideHeaderFooterIfSiblings(RenderingContext c) {
+        ContentLimit limit = _contentLimitContainer.getContentLimit(c.getPageNo());
+
+        if (limit != null) {
+            TableSectionBox header = null;
+            TableSectionBox footer = null;
+            if (limit.getTop() != ContentLimit.UNDEFINED ||
+                    c.getPageNo() == _contentLimitContainer.getInitialPageNo()) {
+                if (getChildCount() > 0) {
+                    TableSectionBox section = (TableSectionBox) getChild(0);
+                    if (section.isHeader()) {
+                        header = section;
+                    }
+                }
+            }
+
+            if (limit.getBottom() != ContentLimit.UNDEFINED ||
+                    c.getPageNo() == _contentLimitContainer.getLastPageNo()) {
+                if (getChildCount() > 0) {
+                    TableSectionBox section = (TableSectionBox) getChild(getChildCount() - 1);
+                    if (section.isFooter()) {
+                        footer = section;
+                    }
+                }
+            }
+
+            // If no header or footer found, return from function
+            if (header == null || footer == null) {
+                return;
+            }
+
+            // Initialize elements to style map if not initialized
+            if (hiddenHeaderFooterPreviousStyles == null) {
+                hiddenHeaderFooterPreviousStyles = new HashMap<>(2);
+            }
+
+            // If header and footer aren't placed one after another and there aren't any previous styles, return from function
+            if ((header.getAbsY() + header.getHeight()) != footer.getAbsY() && hiddenHeaderFooterPreviousStyles.isEmpty()) {
+                return;
+            }
+
+            // The queue where header and footer and their all descent boxes are added in order to change style (hide) them
+            Queue<Box> boxes_to_check = new LinkedList<>();
+            boxes_to_check.add(header);
+            boxes_to_check.add(footer);
+
+            while (boxes_to_check.size() > 0) {
+                Box element = boxes_to_check.poll();
+
+                // Check if the header and footer are placed one after another
+                if (header.getAbsY() + header.getHeight() == footer.getAbsY()) {
+                    if (element.getStyle() != VisibilityHiddenStyle.STYLE) {
+                        // Save previous style
+                        hiddenHeaderFooterPreviousStyles.put(element, element.getStyle());
+
+                        // Hide boxes
+                        element.setStyle(VisibilityHiddenStyle.STYLE);
+                    }
+                }
+                else {
+                    // Revert original style, if present
+                    element.setStyle(hiddenHeaderFooterPreviousStyles.getOrDefault(element, element.getStyle()));
+                    hiddenHeaderFooterPreviousStyles.remove(element);
+                }
+
+                // Add children of box, so their style will be changed too
+                boxes_to_check.addAll(element.getChildren());
+            }
+        }
+    }
+
 
     private void calcPageClearance(LayoutContext c) {
         if (c.isPrint() && getStyle().isCollapseBorders()) {
