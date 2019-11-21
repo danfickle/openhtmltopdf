@@ -592,7 +592,7 @@ public class TableBox extends BlockBox {
                 return;
             }
 
-            // The queue where header and footer and their all descent boxes are added in order to change style (hide) them
+            // The queue where header and footer and their all descendants boxes are added in order to change style (hide) them
             Queue<Box> boxes_to_check = new LinkedList<>();
             boxes_to_check.add(header);
             boxes_to_check.add(footer);
