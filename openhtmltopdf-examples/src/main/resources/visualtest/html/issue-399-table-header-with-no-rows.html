@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <style type="text/css">
+        @page {
+            margin: 25mm 10mm;
+            size: 210mm 297mm;
+        }
+        table {
+            width: 100%;
+            border: 1px solid black;
+            -fs-table-paginate: paginate;
+        }
+        table tbody tr {
+            page-break-inside: avoid;
+            background-color: orange;
+        }
+        table thead tr {
+            background-color: red;
+        }
+        table tfoot tr {
+            background-color: blue;
+        }
+        table tbody tr td {
+            height: 450px;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <td>
+                    &#160;
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    &#160;
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>
+                    &#160;
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    <table>
+        <thead>
+        <tr>
+            <td>
+                &#160;
+            </td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                &#160;
+            </td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td>
+                &#160;
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+</body>
+</html>

@@ -912,6 +912,18 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("html5-missing-block-elements"));
     }
     
+    /**
+     * Tests that a paginated table doesn't add header and footer with no rows
+     * on a page.
+     * https://github.com/danfickle/openhtmltopdf/issues/399
+     */
+    @Test
+    @Ignore // Failing for now.
+    public void testIssue399TableHeaderFooterWithNoRows() throws IOException {
+        assertTrue(vt.runTest("issue-399-table-header-with-no-rows"));    
+    }
+    
+    
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
