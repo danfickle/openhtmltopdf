@@ -922,6 +922,17 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-399-table-header-with-no-rows"));    
     }
     
+    /**
+     * Tests that a paginated table pushed to the next page does not have too
+     * much height in the first body row and the thead section is not orphaned on
+     * the first page.
+     * https://github.com/danfickle/openhtmltopdf/issues/202
+     */
+    @Test
+    @Ignore // First td has too much height, thead is orphaned on first page.
+    public void testIssue202PaginatedTableAtStartOfNewPage() throws IOException {
+        assertTrue(vt.runTest("issue-202-paginated-table-start-page"));
+    }
     
     // TODO:
     // + Elements that appear just on generated overflow pages.
