@@ -96,17 +96,27 @@ public class TableRowBox extends BlockBox {
         
         if (running) {
             if (isShouldMoveToNextPage(c)) {
-                if (getTable().getFirstBodyRow() == this) {
-                    // XXX Performance problem here.  This forces the table
-                    // to move to the next page (which we want), but the initial
-                    // table layout run still completes (which we don't)
-                    getTable().setNeedPageClear(true);
-                } else {
                     setNeedPageClear(true);
-                }
             }
             c.setExtraSpaceTop(prevExtraTop);
             c.setExtraSpaceBottom(prevExtraBottom);
+        }
+    }
+    
+    @Override
+    public void setNeedPageClear(boolean needPageClear) {
+        if (needPageClear && getTable().getFirstBodyRow() == this) {
+            // Always move the table itself to a new page, if the first body
+            // row is moved. Otherwise, we can get header/footer with no body rows on
+            // a page. This is a fix for:
+            // https://github.com/danfickle/openhtmltopdf/issues/399
+            
+            // XXX Performance problem here.  This forces the table
+            // to move to the next page (which we want), but the initial
+            // table layout run still completes (which we don't)
+            getTable().setNeedPageClear(true);
+        } else {
+            super.setNeedPageClear(needPageClear);
         }
     }
     

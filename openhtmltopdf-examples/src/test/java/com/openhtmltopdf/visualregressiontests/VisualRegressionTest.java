@@ -918,7 +918,6 @@ public class VisualRegressionTest {
      * https://github.com/danfickle/openhtmltopdf/issues/399
      */
     @Test
-    @Ignore // Failing for now.
     public void testIssue399TableHeaderFooterWithNoRows() throws IOException {
         assertTrue(vt.runTest("issue-399-table-header-with-no-rows"));    
     }
