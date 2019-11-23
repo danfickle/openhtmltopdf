@@ -137,6 +137,7 @@ public class TableRowBox extends BlockBox {
         return true;
     }
     
+    @Override
     public void analyzePageBreaks(LayoutContext c, ContentLimitContainer container) {
         if (getTable().getStyle().isPaginateTable()) {
             _contentLimitContainer = new ContentLimitContainer(c, getAbsY());
@@ -201,6 +202,7 @@ public class TableRowBox extends BlockBox {
         _extraSpaceBottom = maxBorderAndPadding;
     }
 
+    @Override
     protected void layoutChildren(LayoutContext c, int contentStart) {
         setState(Box.CHILDREN_FLUX);
         ensureChildren(c);
@@ -317,6 +319,7 @@ public class TableRowBox extends BlockBox {
         }
     }
     
+    @Override
     protected void calcLayoutHeight(
             LayoutContext c, BorderPropertySet border, 
             RectPropertySet margin, RectPropertySet padding) {
@@ -462,6 +465,7 @@ public class TableRowBox extends BlockBox {
         cell.layout(c, contentStart);
     } 
     
+    @Override
     public void initStaticPos(LayoutContext c, BlockBox parent, int childOffset) {
         setX(0);
         
@@ -509,6 +513,7 @@ public class TableRowBox extends BlockBox {
         _haveBaseline = haveBaseline;
     }
     
+    @Override
     protected String getExtraBoxDescription() {
         if (isHaveBaseline()) {
             return "(baseline=" + getBaseline() + ") ";
