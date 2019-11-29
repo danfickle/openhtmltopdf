@@ -312,6 +312,10 @@ public class InlineText {
             // letter spacing is already explicitly set.
             return 0f;
         }
+
+        if (_counts == null) {
+            return 0f;
+        }
         
         return (_counts.getSpaceCount() * info.getSpaceAdjust()) +
                (_counts.getNonSpaceCount() * info.getNonSpaceAdjust());

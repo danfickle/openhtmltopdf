@@ -923,7 +923,12 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-399-table-header-with-no-rows"));    
     }
     
-    
+
+    @Test
+    public void testIssue420JustifyTextNullPointerException() throws IOException {
+        assertTrue(vt.runTest("issue-420-justify-text-null-pointer-exception"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
