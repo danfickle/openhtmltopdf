@@ -314,6 +314,10 @@ public class InlineText {
         }
 
         if (_counts == null) {
+            // This will only happen for non-justifiable text nested inside
+            // justifiable text (eg. white-space: pre).
+            // Therefore the correct answer is 0.
+            // See InlineLayoutBox#countJustifiableChars.
             return 0f;
         }
         

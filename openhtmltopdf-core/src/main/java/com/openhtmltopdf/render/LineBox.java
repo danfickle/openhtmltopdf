@@ -42,7 +42,6 @@ import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
-import com.openhtmltopdf.render.FlowingColumnContainerBox.ColumnBreakStore;
 import com.openhtmltopdf.util.XRRuntimeException;
 
 /**
@@ -217,7 +216,6 @@ public class LineBox extends Box implements InlinePaintable {
     }
     
     public void justify(CssContext c) {
-        
         if (getParent().getStyle().hasLetterSpacing()) {
             // Do nothing, letter-spacing turns off text justification.
         } else if (! isLastLineWithContent()) {
@@ -239,19 +237,22 @@ public class LineBox extends Box implements InlinePaintable {
 
                 if (counts.getSpaceCount() > 0) {
                     if (counts.getNonSpaceCount() > 1) {
-                        info.setNonSpaceAdjust(Math.min((float)toAdd * JUSTIFY_NON_SPACE_SHARE / (counts.getNonSpaceCount()-1), maxInterChar));
+                        info.setNonSpaceAdjust(Math.min(toAdd * JUSTIFY_NON_SPACE_SHARE / (counts.getNonSpaceCount() - 1), maxInterChar));
                     } else {
                         info.setNonSpaceAdjust(0.0f);
                     }
                     
                     if (counts.getSpaceCount() > 0) {
-                        info.setSpaceAdjust(Math.min((float)toAdd * JUSTIFY_SPACE_SHARE / counts.getSpaceCount(), maxInterWord));
+                        info.setSpaceAdjust(Math.min(toAdd * JUSTIFY_SPACE_SHARE / counts.getSpaceCount(), maxInterWord));
                     } else {
                         info.setSpaceAdjust(0.0f);
                     }
-                } else {
+                } else if (counts.getNonSpaceCount() > 1) {
                     info.setSpaceAdjust(0f);
                     info.setNonSpaceAdjust(Math.min((float) toAdd / (counts.getNonSpaceCount() - 1), maxInterChar)); 
+                } else {
+                    info.setSpaceAdjust(0f);
+                    info.setNonSpaceAdjust(0f);
                 }
                 
                 adjustChildren(info);

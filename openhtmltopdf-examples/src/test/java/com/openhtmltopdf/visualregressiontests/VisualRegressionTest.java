@@ -924,9 +924,23 @@ public class VisualRegressionTest {
     }
     
 
+    /**
+     * Tests that justified text with non-justified content (br) nested inside it
+     * will not throw a NPE.
+     * https://github.com/danfickle/openhtmltopdf/issues/420
+     */
     @Test
     public void testIssue420JustifyTextNullPointerException() throws IOException {
         assertTrue(vt.runTest("issue-420-justify-text-null-pointer-exception"));
+    }
+    
+    /**
+     * Tests that justified text with non-justified content nested inside it
+     * correctly justifies.
+     */
+    @Test
+    public void testIssue420JustifyTextWhiteSpacePre() throws IOException {
+        assertTrue(vt.runTest("issue-420-justify-text-white-space-pre"));
     }
 
     // TODO:
