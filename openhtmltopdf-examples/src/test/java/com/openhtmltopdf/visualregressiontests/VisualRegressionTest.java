@@ -943,6 +943,12 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-420-justify-text-white-space-pre"));
     }
 
+
+    @Test
+    public void testBetterGoogleFontsSupport() throws IOException {
+        assertTrue(vt.runTest("better-google-font-support"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

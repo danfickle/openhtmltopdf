@@ -1427,6 +1427,23 @@ public class PrimitivePropertyBuilders {
     }
 
     public static class Src extends GenericURIWithNone {
+
+        public List buildDeclarations(
+                CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
+
+            // currently Src accept only one values, thus making skip the whole property like:
+            // "src: local('PT Sans'), local('PTSans-Regular'), url(https://fonts.gstatic.com/s/ptsans/v11/jizaRExUiTo99u79D0KEwA.ttf) format('truetype');"
+            // ideally, we want to isolate the url
+            // removing all unknown values and fetching the first one is a decent heuristic (with a fallback to the first value)
+            if (values.size() > 1) {
+                values = Collections.singletonList(values.stream().filter(o -> o instanceof PropertyValue)
+                        .filter(o -> ((PropertyValue) o).getPrimitiveType() != CSSPrimitiveValue.CSS_UNKNOWN)
+                        .findFirst().orElse(values.get(0)));
+            }
+
+            return super.buildDeclarations(cssName, values, origin, important, inheritAllowed);
+        }
+
     }
 
     public static class TabSize extends PlainInteger {
