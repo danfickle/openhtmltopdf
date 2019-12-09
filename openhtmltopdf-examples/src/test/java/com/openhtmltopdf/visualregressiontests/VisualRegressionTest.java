@@ -911,7 +911,7 @@ public class VisualRegressionTest {
     public void testMissingHtml5BlockElements() throws IOException {
         assertTrue(vt.runTest("html5-missing-block-elements"));
     }
-    
+
     /**
      * Tests that a paginated table doesn't add header and footer with no rows
      * on a page.
@@ -941,6 +941,16 @@ public class VisualRegressionTest {
     @Test
     public void testIssue420JustifyTextWhiteSpacePre() throws IOException {
         assertTrue(vt.runTest("issue-420-justify-text-white-space-pre"));
+    }
+
+    /**
+     * Don't launch a ClassCastException if a td in a table is floated.
+     *
+     * See issue: https://github.com/danfickle/openhtmltopdf/issues/309
+     */
+    @Test
+    public void testIssue309ClassCastExceptionOnFloatTd() throws IOException {
+        assertTrue(vt.runTest("issue-309-classcastexception-on-float-td"));
     }
 
     // TODO:
