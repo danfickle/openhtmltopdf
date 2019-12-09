@@ -35,12 +35,13 @@ import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 
 public class ContentPropertyBuilder extends AbstractPropertyBuilder {
 
-    public List buildDeclarations(
-            CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
+    @Override
+    public List<PropertyDeclaration> buildDeclarations(
+            CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
         if (values.size() == 1) {
-            PropertyValue value = (PropertyValue)values.get(0);
+            PropertyValue value = values.get(0);
             if (value.getCssValueType() == CSSValue.CSS_INHERIT) {
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             } else if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
                 IdentValue ident = checkIdent(CSSName.CONTENT, value);
                 if (ident == IdentValue.NONE || ident == IdentValue.NORMAL) {
@@ -50,9 +51,9 @@ public class ContentPropertyBuilder extends AbstractPropertyBuilder {
             }
         }
         
-        List resultValues = new ArrayList();
-        for (Iterator i = values.iterator(); i.hasNext(); ) {
-            PropertyValue value = (PropertyValue)i.next();
+        List<PropertyValue> resultValues = new ArrayList<>();
+        for (Iterator<PropertyValue> i = values.iterator(); i.hasNext(); ) {
+            PropertyValue value = i.next();
             
             if (value.getOperator() != null) {
                 throw new CSSParseException(
@@ -89,7 +90,7 @@ public class ContentPropertyBuilder extends AbstractPropertyBuilder {
             return Collections.singletonList(
                     new PropertyDeclaration(CSSName.CONTENT, new PropertyValue(resultValues), important, origin));
         } else {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
     }
     

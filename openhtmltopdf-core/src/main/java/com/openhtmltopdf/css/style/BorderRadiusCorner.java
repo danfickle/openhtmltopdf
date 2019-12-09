@@ -28,9 +28,9 @@ public class BorderRadiusCorner {
 		PropertyValue first = null, second = null;
 		if(value instanceof ListValue) {
 			ListValue lValues = (ListValue)value;
-			first = (PropertyValue)lValues.getValues().get(0);
+			first = lValues.getValues().get(0);
 			if(lValues.getValues().size() > 1)
-				second = (PropertyValue)lValues.getValues().get(1);
+				second = lValues.getValues().get(1);
 			else
 				second = first;
 		
@@ -82,7 +82,6 @@ public class BorderRadiusCorner {
 	}
 	private void setRight(CSSName fromVal, CalculatedStyle style, PropertyValue value, CssContext ctx) {
 		if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_PERCENTAGE) {
-            float percent = value.getFloatValue() / 100.0f;
             _rightPercent = true;
             _right = value.getFloatValue() / 100.0f;
         } else {

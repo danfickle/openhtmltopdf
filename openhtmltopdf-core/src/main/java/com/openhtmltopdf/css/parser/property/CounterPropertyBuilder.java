@@ -38,9 +38,10 @@ public abstract class CounterPropertyBuilder extends AbstractPropertyBuilder {
     
     // XXX returns a PropertyValue of type VALUE_TYPE_LIST, but the List contains
     // CounterData objects and not PropertyValue objects
-    public List buildDeclarations(CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
+    @Override
+    public List<PropertyDeclaration> buildDeclarations(CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
         if (values.size() == 1) {
-            PropertyValue value = (PropertyValue)values.get(0);
+            PropertyValue value = values.get(0);
             
             checkInheritAllowed(value, inheritAllowed);
             
@@ -64,14 +65,14 @@ public abstract class CounterPropertyBuilder extends AbstractPropertyBuilder {
         } else {
             List<CounterData> result = new ArrayList<>();
             for (int i = 0; i < values.size(); i++) {
-                PropertyValue value = (PropertyValue)values.get(i);
+                PropertyValue value = values.get(i);
                 
                 if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
                     String name = value.getStringValue();
                     int cValue = getDefaultValue();
                     
                     if (i < values.size() - 1) {
-                        PropertyValue next = (PropertyValue)values.get(i+1);
+                        PropertyValue next = values.get(i+1);
                         if (next.getPrimitiveType() == CSSPrimitiveValue.CSS_NUMBER) {
                             checkNumberIsInteger(cssName, next);
                             
@@ -100,12 +101,14 @@ public abstract class CounterPropertyBuilder extends AbstractPropertyBuilder {
     }
     
     public static class CounterReset extends CounterPropertyBuilder {
+        @Override
         protected int getDefaultValue() {
             return 0;
         }
     }
 
     public static class CounterIncrement extends CounterPropertyBuilder {
+        @Override
         protected int getDefaultValue() {
             return 1;
         }

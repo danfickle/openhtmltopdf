@@ -32,7 +32,7 @@ public class MakeTokens {
     private static final String INPUT = "C:/eclipseWorkspaceQT/xhtmlrenderer/src/java/org/xhtmlrenderer/css/parser/tokens.txt";
     
     public static final void main(String[] args) throws IOException {
-        List tokens = new ArrayList();
+        List<String> tokens = new ArrayList<>();
         
         BufferedReader reader = null; 
         try {
@@ -55,8 +55,8 @@ public class MakeTokens {
         StringBuilder buf = new StringBuilder();
         
         int offset = 1;
-        for (Iterator i = tokens.iterator(); i.hasNext(); offset++) {
-            String s = (String)i.next();
+        for (Iterator<String> i = tokens.iterator(); i.hasNext(); offset++) {
+            String s = i.next();
             String id = s.substring(0, s.indexOf(','));
             
             buf.append("\tpublic static final int ");
@@ -69,8 +69,8 @@ public class MakeTokens {
         
         buf.append(EOL);
         
-        for (Iterator i = tokens.iterator(); i.hasNext(); offset++) {
-            String s = (String)i.next();
+        for (Iterator<String> i = tokens.iterator(); i.hasNext(); offset++) {
+            String s = i.next();
             String id = s.substring(0, s.indexOf(','));
             String descr = s.substring(s.indexOf(',')+1);
             

@@ -31,13 +31,13 @@ import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 
 public class PageInfo {
-    private final List _properties;
+    private final List<PropertyDeclaration> _properties;
     private final CascadedStyle _pageStyle;
     private final Map<MarginBoxName, List<PropertyDeclaration>> _marginBoxes;
     
-    private final List _xmpPropertyList;
+    private final List<PropertyDeclaration> _xmpPropertyList;
     
-    public PageInfo(List properties, CascadedStyle pageStyle, Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes) {
+    public PageInfo(List<PropertyDeclaration> properties, CascadedStyle pageStyle, Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes) {
         _properties = properties;
         _pageStyle = pageStyle;
         _marginBoxes = marginBoxes;
@@ -45,7 +45,7 @@ public class PageInfo {
         _xmpPropertyList = marginBoxes.remove(MarginBoxName.FS_PDF_XMP_METADATA);
     }
 
-    public Map getMarginBoxes() {
+    public Map<MarginBoxName, List<PropertyDeclaration>> getMarginBoxes() {
         return _marginBoxes;
     }
     
@@ -53,7 +53,7 @@ public class PageInfo {
         return _pageStyle;
     }
     
-    public List getProperties() {
+    public List<PropertyDeclaration> getProperties() {
         return _properties;
     }
     
@@ -98,7 +98,7 @@ public class PageInfo {
         return false;
     }
     
-    public List getXMPPropertyList()
+    public List<PropertyDeclaration> getXMPPropertyList()
     {
         return _xmpPropertyList;
     }

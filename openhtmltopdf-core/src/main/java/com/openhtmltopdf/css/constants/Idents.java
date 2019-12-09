@@ -82,44 +82,44 @@ public final class Idents {
     /**
      * Description of the Field
      */
-    private final static Map COLOR_MAP;
+    private final static Map<String, String> COLOR_MAP;
     /**
      * Description of the Field
      */
-    private final static Map FONT_SIZES;
+    private final static Map<String, String> FONT_SIZES;
     /**
      * Description of the Field
      */
-    private final static Map FONT_WEIGHTS;
+    private final static Map<String, String> FONT_WEIGHTS;
     /**
      * Description of the Field
      */
-    private final static Map BORDER_WIDTHS;
+    private final static Map<String, String> BORDER_WIDTHS;
     /**
      * Description of the Field
      */
-    private final static Map BACKGROUND_POSITIONS;
+    private final static Map<String, String> BACKGROUND_POSITIONS;
     /**
      * Description of the Field
      */
-    private final static List BACKGROUND_REPEATS;
+    private final static List<String> BACKGROUND_REPEATS;
     /**
      * Description of the Field
      */
-    private final static List BORDER_STYLES;
+    private final static List<String> BORDER_STYLES;
     /**
      * Description of the Field
      */
-    private final static List LIST_TYPES;
+    private final static List<String> LIST_TYPES;
     /**
      * Description of the Field
      */
-    private final static List FONT_STYLES;
+    private final static List<String> FONT_STYLES;
 
     /**
      * Description of the Field
      */
-    private final static List BACKGROUND_POSITIONS_IDENTS;
+    private final static List<String> BACKGROUND_POSITIONS_IDENTS;
 
     /**
      * Description of the Method
@@ -136,13 +136,13 @@ public final class Idents {
         String val = ident;
 
         if (cssName == CSSName.FONT_SIZE) {
-            String size = (String) FONT_SIZES.get(ident);
+            String size = FONT_SIZES.get(ident);
             val = (size == null ? ident : size);
         } else if (cssName == CSSName.FONT_WEIGHT) {
-            String size = (String) FONT_WEIGHTS.get(ident);
+            String size = FONT_WEIGHTS.get(ident);
             val = (size == null ? ident : size);
         } else if (cssName == CSSName.BACKGROUND_POSITION) {
-            String pos = (String) BACKGROUND_POSITIONS.get(ident);
+            String pos = BACKGROUND_POSITIONS.get(ident);
             val = (pos == null ? ident : pos);
         } else if (
                 cssName == CSSName.BORDER_BOTTOM_WIDTH ||
@@ -151,7 +151,7 @@ public final class Idents {
                 cssName == CSSName.BORDER_WIDTH_SHORTHAND ||
                 cssName == CSSName.BORDER_TOP_WIDTH) {
 
-            String size = (String) BORDER_WIDTHS.get(ident);
+            String size = BORDER_WIDTHS.get(ident);
             val = (size == null ? ident : size);
         } else if (
                 cssName == CSSName.BORDER_BOTTOM_COLOR ||
@@ -350,7 +350,7 @@ public final class Idents {
         if (value == null) {
             throw new XRRuntimeException("value is null on getColorHex()");
         }
-        String retval = (String) COLOR_MAP.get(value.toLowerCase());
+        String retval = COLOR_MAP.get(value.toLowerCase());
         if (retval == null) {
             if (value.trim().startsWith("rgb(")) {
                 retval = value;
@@ -365,7 +365,7 @@ public final class Idents {
     }
 
     static {
-        COLOR_MAP = new HashMap();
+        COLOR_MAP = new HashMap<>();
         /* From CSS 2.1- 4.3.6: Colors
         aqua #00ffff
         black #000000
@@ -405,7 +405,7 @@ public final class Idents {
         COLOR_MAP.put("yellow", "#ffff00");
 
         //TODO: FONT_SIZES should be determined by the User Interface!
-        FONT_SIZES = new HashMap();
+        FONT_SIZES = new HashMap<>();
         FONT_SIZES.put("xx-small", "6.9pt");
         FONT_SIZES.put("x-small", "8.3pt");
         FONT_SIZES.put("small", "10pt");
@@ -418,7 +418,7 @@ public final class Idents {
         FONT_SIZES.put("smaller", "0.8em");
         FONT_SIZES.put("larger", "1.2em");
 
-        FONT_WEIGHTS = new HashMap();
+        FONT_WEIGHTS = new HashMap<>();
         FONT_WEIGHTS.put("normal", "400");
         FONT_WEIGHTS.put("bold", "700");
         FONT_WEIGHTS.put("100", "100");
@@ -434,18 +434,18 @@ public final class Idents {
         FONT_WEIGHTS.put("lighter", "lighter");
         // NOTE: 'bolder' and 'lighter' need to be handled programmatically
 
-        BORDER_WIDTHS = new HashMap();
+        BORDER_WIDTHS = new HashMap<>();
         BORDER_WIDTHS.put("thin", "1px");
         BORDER_WIDTHS.put("medium", "2px");
         BORDER_WIDTHS.put("thick", "3px");
 
-        BACKGROUND_POSITIONS_IDENTS = new ArrayList();
+        BACKGROUND_POSITIONS_IDENTS = new ArrayList<>();
         BACKGROUND_POSITIONS_IDENTS.add("top");
         BACKGROUND_POSITIONS_IDENTS.add("center");
         BACKGROUND_POSITIONS_IDENTS.add("bottom");
         BACKGROUND_POSITIONS_IDENTS.add("right");
         BACKGROUND_POSITIONS_IDENTS.add("left");
-        BACKGROUND_POSITIONS = new HashMap();
+        BACKGROUND_POSITIONS = new HashMap<>();
 
         // NOTE: combinations of idents for background-positions, are specified in the CSS
         // spec; some are disallowed, for example, there is no "top" all by itself. Check
@@ -478,13 +478,13 @@ public final class Idents {
         BACKGROUND_POSITIONS.put("bottom right", "100% 100%");
         BACKGROUND_POSITIONS.put("right bottom", "100% 100%");
 
-        BACKGROUND_REPEATS = new ArrayList();
+        BACKGROUND_REPEATS = new ArrayList<>();
         BACKGROUND_REPEATS.add("repeat");
         BACKGROUND_REPEATS.add("repeat-x");
         BACKGROUND_REPEATS.add("repeat-y");
         BACKGROUND_REPEATS.add("no-repeat");
 
-        BORDER_STYLES = new ArrayList();
+        BORDER_STYLES = new ArrayList<>();
         BORDER_STYLES.add("none");
         BORDER_STYLES.add("hidden");
         BORDER_STYLES.add("dotted");
@@ -496,7 +496,7 @@ public final class Idents {
         BORDER_STYLES.add("inset");
         BORDER_STYLES.add("outset");
 
-        LIST_TYPES = new ArrayList();
+        LIST_TYPES = new ArrayList<>();
         LIST_TYPES.add("disc");
         LIST_TYPES.add("circle");
         LIST_TYPES.add("square");
@@ -519,7 +519,7 @@ public final class Idents {
         LIST_TYPES.add("katakana-iroha");
         LIST_TYPES.add("none");
 
-        FONT_STYLES = new ArrayList();
+        FONT_STYLES = new ArrayList<>();
         FONT_STYLES.add("normal");
         FONT_STYLES.add("italic");
         FONT_STYLES.add("oblique");

@@ -195,6 +195,7 @@ public class BorderPropertySet extends RectPropertySet {
         return new BorderPropertySet(style, ctx);
     }
 
+    @Override
     public String toString() {
         return "BorderPropertySet[top=" + _top + ",right=" + _right + ",bottom=" + _bottom + ",left=" + _left + "]";
     }

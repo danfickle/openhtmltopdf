@@ -33,13 +33,14 @@ import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 public class SizePropertyBuilder extends AbstractPropertyBuilder {
     private static final CSSName[] ALL = { CSSName.FS_PAGE_ORIENTATION, CSSName.FS_PAGE_HEIGHT, CSSName.FS_PAGE_WIDTH };
     
-    public List buildDeclarations(
-            CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
-        List result = new ArrayList(3);
+    @Override
+    public List<PropertyDeclaration> buildDeclarations(
+            CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
         checkValueCount(cssName, 1, 2, values.size());
-        
+        List<PropertyDeclaration> result = new ArrayList<>(3);
+
         if (values.size() == 1) {
-            PropertyValue value = (PropertyValue)values.get(0);
+            PropertyValue value = values.get(0);
             
             checkInheritAllowed(value, inheritAllowed);
             
@@ -94,8 +95,8 @@ public class SizePropertyBuilder extends AbstractPropertyBuilder {
                 throw new CSSParseException("Value for " + cssName + " must be a length or identifier", -1);
             }
         } else { /* values.size == 2 */
-            PropertyValue value1 = (PropertyValue)values.get(0);
-            PropertyValue value2 = (PropertyValue)values.get(1);
+            PropertyValue value1 = values.get(0);
+            PropertyValue value2 = values.get(1);
             
             checkInheritAllowed(value2, false);
             

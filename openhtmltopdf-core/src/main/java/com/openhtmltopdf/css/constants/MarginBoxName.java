@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MarginBoxName {
-    private static final Map ALL = new HashMap();
+    private static final Map<String, MarginBoxName> ALL = new HashMap<>();
     private static int _maxAssigned = 0;
     
     public final int FS_ID;
@@ -68,18 +68,21 @@ public class MarginBoxName {
         return val;
     }
     
+    @Override
     public String toString() {
         return _ident;
     }
     
     public static MarginBoxName valueOf(String ident) {
-        return (MarginBoxName)ALL.get(ident);
+        return ALL.get(ident);
     }
     
+    @Override
     public int hashCode() {
         return FS_ID;
     }
     
+    @Override
     public boolean equals(Object o) {
         if (o == null || ! (o instanceof MarginBoxName)) {
             return false;

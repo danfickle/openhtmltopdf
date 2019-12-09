@@ -51,9 +51,10 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
         }
     }
 
-    public List buildDeclarations(
-            CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
-        List result = checkInheritAll(ALL, values, origin, important, inheritAllowed);
+    @Override
+    public List<PropertyDeclaration> buildDeclarations(
+            CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
+        List<PropertyDeclaration> result = checkInheritAll(ALL, values, origin, important, inheritAllowed);
         if (result != null) {
             return result;
         }
@@ -65,7 +66,7 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
         PropertyDeclaration backgroundPosition = null;
         
         for (int i = 0; i < values.size(); i++) {
-            PropertyValue value = (PropertyValue)values.get(i);
+            PropertyValue value = values.get(i);
             checkInheritAllowed(value, false);
             
             boolean processingBackgroundPosition = false;
@@ -146,10 +147,10 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                     throw new CSSParseException("A background-position value cannot be set twice", -1);
                 }
                 
-                List v = new ArrayList(2);
+                List<PropertyValue> v = new ArrayList<>(2);
                 v.add(value);
                 if (i < values.size() - 1) {
-                    PropertyValue next = (PropertyValue)values.get(i+1);
+                    PropertyValue next = values.get(i+1);
                     if (isAppliesToBackgroundPosition(next)) {
                         v.add(next);
                         i++;
@@ -157,7 +158,7 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                 }
                 
                 PropertyBuilder builder = CSSName.getPropertyBuilder(CSSName.BACKGROUND_POSITION);
-                backgroundPosition = (PropertyDeclaration)builder.buildDeclarations(
+                backgroundPosition = builder.buildDeclarations(
                         CSSName.BACKGROUND_POSITION, v, origin, important).get(0);
             }
         }
@@ -184,14 +185,14 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
         }
         
         if (backgroundPosition == null) {
-            List v = new ArrayList(2);
+            List<PropertyValue> v = new ArrayList<>(2);
             v.add(new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 0.0f, "0%"));
             v.add(new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 0.0f, "0%"));
             backgroundPosition = new PropertyDeclaration(
                     CSSName.BACKGROUND_POSITION, new PropertyValue(v), important, origin);
         }
         
-        result = new ArrayList(5);
+        result = new ArrayList<>(5);
         result.add(backgroundColor);
         result.add(backgroundImage);
         result.add(backgroundRepeat);

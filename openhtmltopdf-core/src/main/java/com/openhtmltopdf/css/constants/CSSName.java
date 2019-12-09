@@ -1834,6 +1834,7 @@ public final class CSSName implements Comparable<CSSName> {
      *
      * @return a string representation of the object.
      */
+    @Override
     public String toString() {
         return this.propName;
     }
@@ -1921,7 +1922,7 @@ public final class CSSName implements Comparable<CSSName> {
      * Adds a feature to the Property attribute of the CSSName class
      *
      * @param propName     The feature to be added to the Property attribute
-     * @param ‚type
+     * @param type
      * @param initialValue
      * @param inherit
      * @param implemented
@@ -1959,6 +1960,7 @@ public final class CSSName implements Comparable<CSSName> {
 
     static {
         CSSParser parser = new CSSParser(new CSSErrorHandler() {
+            @Override
             public void error(String uri, String message) {
                 XRLog.cssParse("(" + uri + ") " + message);
             }

@@ -27,6 +27,7 @@ import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.CSSParseException;
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
+import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
@@ -35,22 +36,23 @@ public class BorderPropertyBuilders {
     private static abstract class BorderSidePropertyBuilder extends AbstractPropertyBuilder {
         protected abstract CSSName[][] getProperties();
         
-        private void addAll(List result, CSSName[] properties, CSSPrimitiveValue value, int origin, boolean important) {
+        private void addAll(List<PropertyDeclaration> result, CSSName[] properties, CSSPrimitiveValue value, int origin, boolean important) {
             for (int i = 0; i < properties.length; i++) {
                 result.add(new PropertyDeclaration(
                         properties[i], value, important, origin));
             }
         }
         
-        public List buildDeclarations(
-                CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
+        @Override
+        public List<PropertyDeclaration> buildDeclarations(
+                CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
             CSSName[][] props = getProperties();
             
-            List result = new ArrayList(3);
+            List<PropertyDeclaration> result = new ArrayList<>(3);
             
             if (values.size() == 1 && 
-                    ((CSSPrimitiveValue)values.get(0)).getCssValueType() == CSSPrimitiveValue.CSS_INHERIT) {
-                CSSPrimitiveValue value = (CSSPrimitiveValue)values.get(0);
+                    ((CSSPrimitiveValue)values.get(0)).getCssValueType() == CSSValue.CSS_INHERIT) {
+                CSSPrimitiveValue value = values.get(0);
                 addAll(result, props[0], value, origin, important);
                 addAll(result, props[1], value, origin, important);
                 addAll(result, props[2], value, origin, important);
@@ -62,8 +64,8 @@ public class BorderPropertyBuilders {
                 boolean haveBorderColor = false;
                 boolean haveBorderWidth = false;
                 
-                for (Iterator i = values.iterator(); i.hasNext(); ) {
-                    CSSPrimitiveValue value = (CSSPrimitiveValue)i.next();
+                for (Iterator<PropertyValue> i = values.iterator(); i.hasNext(); ) {
+                    CSSPrimitiveValue value = i.next();
                     checkInheritAllowed(value, false);
                     boolean matched = false;
                     CSSPrimitiveValue borderWidth = convertToBorderWidth(value);
@@ -176,6 +178,7 @@ public class BorderPropertyBuilders {
     }
     
     public static class BorderTop extends BorderSidePropertyBuilder {
+        @Override
         protected CSSName[][] getProperties() {
             return new CSSName[][] { 
                     new CSSName[] { CSSName.BORDER_TOP_WIDTH }, 
@@ -185,6 +188,7 @@ public class BorderPropertyBuilders {
     }
     
     public static class BorderRight extends BorderSidePropertyBuilder {
+        @Override
         protected CSSName[][] getProperties() {
             return new CSSName[][] { 
                     new CSSName[] { CSSName.BORDER_RIGHT_WIDTH }, 
@@ -194,6 +198,7 @@ public class BorderPropertyBuilders {
     }
     
     public static class BorderBottom extends BorderSidePropertyBuilder {
+        @Override
         protected CSSName[][] getProperties() {
             return new CSSName[][] { 
                     new CSSName[] { CSSName.BORDER_BOTTOM_WIDTH }, 
@@ -203,6 +208,7 @@ public class BorderPropertyBuilders {
     }
     
     public static class BorderLeft extends BorderSidePropertyBuilder {
+        @Override
         protected CSSName[][] getProperties() {
             return new CSSName[][] { 
                     new CSSName[] { CSSName.BORDER_LEFT_WIDTH }, 
@@ -212,6 +218,7 @@ public class BorderPropertyBuilders {
     }
     
     public static class Border extends BorderSidePropertyBuilder {
+        @Override
         protected CSSName[][] getProperties() {
             return new CSSName[][] { 
                     new CSSName[] { 

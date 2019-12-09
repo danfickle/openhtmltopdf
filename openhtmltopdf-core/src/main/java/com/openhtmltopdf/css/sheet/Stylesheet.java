@@ -67,6 +67,7 @@ public class Stylesheet implements RulesetContainer {
      *
      * @return The origin value: user-agent, user or author from <code>StylesheetInfo</code>
      */
+    @Override
     public int getOrigin() {
         return _origin;
     }
@@ -80,6 +81,7 @@ public class Stylesheet implements RulesetContainer {
         return _uri;
     }
     
+    @Override
     public void addContent(Ruleset ruleset) {
         _contents.add(ruleset);
     }

@@ -1285,7 +1285,7 @@ public class CSSParser {
                 if (t == Token.TK_COLON) {
                     skip_whitespace();
 
-                    List values = expr(
+                    List<PropertyValue> values = expr(
                             cssName == CSSName.FONT_FAMILY ||
                             cssName == CSSName.FONT_SHORTHAND ||
                             cssName == CSSName.FS_PDF_FONT_ENCODING);
@@ -1345,7 +1345,7 @@ public class CSSParser {
 //  expr
 //    : term [ operator term ]*
 //    ;
-    private List expr(boolean literal) throws IOException {
+    private List<PropertyValue> expr(boolean literal) throws IOException {
         //System.out.println("expr()");
         List<PropertyValue> result = new ArrayList<PropertyValue>(10);
         result.add(term(literal));
