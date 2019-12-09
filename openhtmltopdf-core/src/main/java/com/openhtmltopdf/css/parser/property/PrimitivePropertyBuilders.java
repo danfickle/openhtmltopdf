@@ -1488,14 +1488,27 @@ public class PrimitivePropertyBuilders {
     public static class Src extends GenericURIWithNone {
         @Override
         public List<PropertyDeclaration> buildDeclarations(CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
+            if (values.size() == 1) {
+                return super.buildDeclarations(cssName, values, origin, important, inheritAllowed);    
+            }
             
+            for (int i = 0; i < values.size(); i++) {
+                PropertyValue value = values.get(i);
+                PropertyValue next = (i + 1 < values.size()) ? values.get(i + 1) : null;
+
+                if (value.getPrimitiveType() != CSSPrimitiveValue.CSS_URI ||
+                    next == null ||
+                    next.getPropertyValueType() != PropertyValue.VALUE_TYPE_FUNCTION ||
+                    !"format".equals(next.getFunction().getName()) ||
+                    next.getFunction().getParameters().size() < 1 ||
+                    !"truetype".equals(next.getFunction().getParameters().get(0).getStringValue())) {
+                    continue;
+                } else {
+                    return super.buildDeclarations(cssName, Collections.singletonList(value), origin, important, inheritAllowed); 
+                }
+            }
             
-            
-            
-            
-            
-            
-            return super.buildDeclarations(cssName, values, origin, important, inheritAllowed);
+            throw new CSSParseException("Could not find font src with format(truetype) in list (" + values.toString() + ") of fonts", -1);
         }
     }
 
