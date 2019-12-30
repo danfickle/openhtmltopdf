@@ -911,7 +911,7 @@ public class VisualRegressionTest {
     public void testMissingHtml5BlockElements() throws IOException {
         assertTrue(vt.runTest("html5-missing-block-elements"));
     }
-    
+
     /**
      * Tests that a paginated table doesn't add header and footer with no rows
      * on a page.
@@ -933,7 +933,63 @@ public class VisualRegressionTest {
     public void testIssue202PaginatedTableAtStartOfNewPage() throws IOException {
         assertTrue(vt.runTest("issue-202-paginated-table-start-page"));
     }
+
+    /**
+     * Tests that justified text with non-justified content (br) nested inside it
+     * will not throw a NPE.
+     * https://github.com/danfickle/openhtmltopdf/issues/420
+     */
+    @Test
+    public void testIssue420JustifyTextNullPointerException() throws IOException {
+        assertTrue(vt.runTest("issue-420-justify-text-null-pointer-exception"));
+    }
     
+    /**
+     * Tests that justified text with non-justified content nested inside it
+     * correctly justifies.
+     */
+    @Test
+    public void testIssue420JustifyTextWhiteSpacePre() throws IOException {
+        assertTrue(vt.runTest("issue-420-justify-text-white-space-pre"));
+    }
+
+    /**
+     * Don't launch a ClassCastException if a td in a table is floated.
+     *
+     * See issue: https://github.com/danfickle/openhtmltopdf/issues/309
+     */
+    @Test
+    public void testIssue309ClassCastExceptionOnFloatTd() throws IOException {
+        assertTrue(vt.runTest("issue-309-classcastexception-on-float-td"));
+    }
+    
+    /**
+     * Tests that a font-face rule with multiple sources in different formats
+     * loads the truetype font only.
+     */
+    @Test
+    public void testCssFontFaceRuleAdvanced() throws IOException {
+        assertTrue(vt.runTest("css-font-face-rule-advanced"));
+    }
+    
+    /**
+     * Tests that a simple font-face rule continues to work.
+     */
+    @Test
+    public void testCssFontFaceRuleSimple() throws IOException {
+        assertTrue(vt.runTest("css-font-face-rule-simple"));
+    }
+    
+    /**
+     * Tests that a google font import will work (provided that truetype font is included).
+     */
+    @Test
+    @Ignore // Passing manual test - we do not want to rely on google always returning the same thing
+            // and network load of font slows down the tests.
+    public void testCssFontFaceRuleGoogle() throws IOException {
+        assertTrue(vt.runTest("css-font-face-rule-google"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

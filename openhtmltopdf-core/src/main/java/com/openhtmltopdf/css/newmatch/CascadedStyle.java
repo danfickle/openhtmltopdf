@@ -155,7 +155,8 @@ public class CascadedStyle {
 		 * order of specificity
 		 */
         //noinspection unchecked
-        java.util.List<PropertyDeclaration>[] buckets =  (java.util.List<PropertyDeclaration>[])new java.util.List[PropertyDeclaration.IMPORTANCE_AND_ORIGIN_COUNT];
+        @SuppressWarnings("unchecked")
+        java.util.List<PropertyDeclaration>[] buckets =  new java.util.List[PropertyDeclaration.IMPORTANCE_AND_ORIGIN_COUNT];
 
         while (iter.hasNext()) {
             PropertyDeclaration prop = iter.next();

@@ -186,6 +186,7 @@ public class Matcher {
         }
         
         Collections.sort(_pageRules, new Comparator<PageRule>() {
+            @Override
             public int compare(PageRule p1, PageRule p2) {
                 if (p1.getOrder() - p2.getOrder() < 0) {
                     return -1;

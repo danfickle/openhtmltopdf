@@ -205,6 +205,7 @@ abstract class Condition {
             _value = value;
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             if (attRes == null) {
                 return false;
@@ -236,6 +237,7 @@ abstract class Condition {
             return true;
         }
         
+        @Override
         protected boolean compare(String attrValue, String conditionValue) {
             throw new UnsupportedOperationException();
         }
@@ -246,6 +248,7 @@ abstract class Condition {
             super(namespaceURI, name, value);
         }
 
+        @Override
         protected boolean compare(String attrValue, String conditionValue) {
             return attrValue.equals(conditionValue);
         }
@@ -256,6 +259,7 @@ abstract class Condition {
             super(namespaceURI, name, value);
         }
 
+        @Override
         protected boolean compare(String attrValue, String conditionValue) {
             return attrValue.startsWith(conditionValue);
         }
@@ -266,6 +270,7 @@ abstract class Condition {
             super(namespaceURI, name, value);
         }
 
+        @Override
         protected boolean compare(String attrValue, String conditionValue) {
             return attrValue.endsWith(conditionValue);
         }
@@ -276,6 +281,7 @@ abstract class Condition {
             super(namespaceURI, name, value);
         }
 
+        @Override
         protected boolean compare(String attrValue, String conditionValue) {
             return attrValue.indexOf(conditionValue) > -1;
         }
@@ -286,6 +292,7 @@ abstract class Condition {
             super(namespaceURI, name, value);
         }
         
+        @Override
         protected boolean compare(String attrValue, String conditionValue) {
             String[] ca = split(attrValue, ' ');
             boolean matched = false;
@@ -303,6 +310,7 @@ abstract class Condition {
             super(namespaceURI, name, value);
         }
         
+        @Override
         protected boolean compare(String attrValue, String conditionValue) {
             String[] ca = split(attrValue, '-');
             if (conditionValue.equals(ca[0])) {
@@ -320,6 +328,7 @@ abstract class Condition {
             _paddedClassName = " " + className + " ";
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             if (attRes == null) {
                 return false;
@@ -344,6 +353,7 @@ abstract class Condition {
             _id = id;
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             if (attRes == null) {
                 return false;
@@ -362,6 +372,7 @@ abstract class Condition {
             _lang = lang;
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             if (attRes == null) {
                 return false;
@@ -386,6 +397,7 @@ abstract class Condition {
         FirstChildCondition() {
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             return treeRes.isFirstChildElement(e);
         }
@@ -396,6 +408,7 @@ abstract class Condition {
         LastChildCondition() {
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             return treeRes.isLastChildElement(e);
         }
@@ -413,6 +426,7 @@ abstract class Condition {
             this.b = b;
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             // getPositionOfElement() starts at 0, CSS spec starts at 1
             int position = treeRes.getPositionOfElement(e)+1;
@@ -465,6 +479,7 @@ abstract class Condition {
         EvenChildCondition() {
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             int position = treeRes.getPositionOfElement(e);
             return position >= 0 && position % 2 == 0;
@@ -476,6 +491,7 @@ abstract class Condition {
         OddChildCondition() {
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             int position = treeRes.getPositionOfElement(e);
             return position >= 0 && position % 2 == 1;
@@ -487,6 +503,7 @@ abstract class Condition {
         LinkCondition() {
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             return attRes.isLink(e);
         }
@@ -500,6 +517,7 @@ abstract class Condition {
         UnsupportedCondition() {
         }
 
+        @Override
         boolean matches(Object e, AttributeResolver attRes, TreeResolver treeRes) {
             return false;
         }

@@ -32,6 +32,7 @@ import com.openhtmltopdf.css.extend.TreeResolver;
  * Works for Xhtml in a DOM tree
  */
 public class DOMStaticXhtmlAttributeResolver implements AttributeResolver {
+    @Override
     public String getAttributeValue(Object e, String attrName) {
     	if (!((Element) e).hasAttribute(attrName)) {
     		return null;
@@ -40,6 +41,7 @@ public class DOMStaticXhtmlAttributeResolver implements AttributeResolver {
         return ((Element) e).getAttribute(attrName);
     }
     
+    @Override
     public String getAttributeValue(Object o, String namespaceURI, String attrName) {
         Element e = (Element)o;
         if (namespaceURI == TreeResolver.NO_NAMESPACE) {
@@ -64,22 +66,27 @@ public class DOMStaticXhtmlAttributeResolver implements AttributeResolver {
         }
     }
 
+    @Override
     public String getClass(Object e) {
         return ((Element) e).getAttribute("class");
     }
 
+    @Override
     public String getID(Object e) {
         return ((Element) e).getAttribute("id");
     }
 
+    @Override
     public String getNonCssStyling(Object e) {
         return null;
     }
 
+    @Override
     public String getLang(Object e) {
         return ((Element) e).getAttribute("lang");
     }
 
+    @Override
     public String getElementStyling(Object el) {
         Element e = ((Element) el);
         StringBuilder style = new StringBuilder();
@@ -100,23 +107,28 @@ public class DOMStaticXhtmlAttributeResolver implements AttributeResolver {
         return style.toString();
     }
 
+    @Override
     public boolean isActive(Object e) {
         return false;
     }
 
+    @Override
     public boolean isFocus(Object e) {
         return false;
     }
 
+    @Override
     public boolean isHover(Object e) {
         return false;
     }
 
+    @Override
     public boolean isLink(Object el) {
         Element e = ((Element) el);
         return e.getNodeName().equalsIgnoreCase("a") && !e.getAttribute("href").equals("");
     }
 
+    @Override
     public boolean isVisited(Object e) {
         return false;
     }

@@ -61,6 +61,7 @@ public class FSRGBColor implements FSColor {
         return _red;
     }
     
+    @Override
     public String toString() {
         return '#' + toString(_red) + toString(_green) + toString(_blue);
     }
@@ -74,6 +75,7 @@ public class FSRGBColor implements FSColor {
         }
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof FSRGBColor)) return false;
@@ -87,6 +89,7 @@ public class FSRGBColor implements FSColor {
         return true;
     }
 
+    @Override
     public int hashCode() {
         int result = _red;
         result = 31 * result + _green;
@@ -94,6 +97,7 @@ public class FSRGBColor implements FSColor {
         return result;
     }
 
+    @Override
     public FSColor lightenColor() {
         float[] hsb = RGBtoHSB(getRed(), getGreen(), getBlue(), null);
         float hBase = hsb[0];
@@ -108,6 +112,7 @@ public class FSRGBColor implements FSColor {
         return new FSRGBColor(rgb[0], rgb[1], rgb[2]);
     }
     
+    @Override
     public FSColor darkenColor() {
         float[] hsb = RGBtoHSB(getRed(), getGreen(), getBlue(), null);
         float hBase = hsb[0];
@@ -135,7 +140,7 @@ public class FSRGBColor implements FSColor {
         if (b < cmin)
             cmin = b;
 
-        brightness = ((float) cmax) / 255.0f;
+        brightness = (cmax) / 255.0f;
         if (cmax != 0)
             saturation = ((float) (cmax - cmin)) / ((float) cmax);
         else

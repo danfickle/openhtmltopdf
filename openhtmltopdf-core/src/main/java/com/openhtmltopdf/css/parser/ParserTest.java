@@ -30,6 +30,7 @@ public class ParserTest {
         }
         
         CSSErrorHandler errorHandler = new CSSErrorHandler() {
+            @Override
             public void error(String uri, String message) {
                 System.out.println(message);
             }

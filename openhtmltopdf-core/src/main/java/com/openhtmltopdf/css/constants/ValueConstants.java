@@ -42,11 +42,11 @@ public final class ValueConstants {
      * Type descriptions--a crude approximation taken by scanning CSSValue
      * statics
      */
-    private final static List TYPE_DESCRIPTIONS;
+    private final static List<String> TYPE_DESCRIPTIONS;
     /**
      * Description of the Field
      */
-    private final static Map sacTypesStrings;
+    private final static Map<Short, String> sacTypesStrings;
 
     /**
      * A text representation of the CSS type for this value.
@@ -61,7 +61,7 @@ public final class ValueConstants {
             if (primitiveValueType >= TYPE_DESCRIPTIONS.size()) {
                 desc = "{unknown: " + primitiveValueType + "}";
             } else {
-                desc = (String) TYPE_DESCRIPTIONS.get(primitiveValueType);
+                desc = TYPE_DESCRIPTIONS.get(primitiveValueType);
                 if (desc == null) {
                     desc = "{UNKNOWN VALUE TYPE}";
                 }
@@ -112,7 +112,7 @@ public final class ValueConstants {
      * @return Returns
      */
     public static String stringForSACPrimitiveType(short type) {
-        return (String) sacTypesStrings.get(new Short(type));
+        return sacTypesStrings.get(new Short(type));
     }
 
     /**
@@ -127,7 +127,7 @@ public final class ValueConstants {
     //TODO: method may be unnecessary (tobe)
     public static boolean isAbsoluteUnit(CSSPrimitiveValue primitive) {
         short type = 0;
-        type = ((CSSPrimitiveValue) primitive).getPrimitiveType();
+        type = primitive.getPrimitiveType();
         return isAbsoluteUnit(type);
     }
 
@@ -253,8 +253,8 @@ public final class ValueConstants {
     }
 
     static {
-        SortedMap map = new TreeMap();
-        TYPE_DESCRIPTIONS = new ArrayList();
+        SortedMap<Short, String> map = new TreeMap<>();
+        TYPE_DESCRIPTIONS = new ArrayList<>();
         try {
             Field fields[] = CSSPrimitiveValue.class.getFields();
             for (int i = 0; i < fields.length; i++) {
@@ -278,13 +278,13 @@ public final class ValueConstants {
                 }
             }
             // now sort by the key--the short constant for the public fields
-            List keys = new ArrayList(map.keySet());
+            List<Short> keys = new ArrayList<>(map.keySet());
             Collections.sort(keys);
 
             // then add to our static list, in the order the keys appear. this means
             // list.get(index) will return the item at index, which should be the description
             // for that constant
-            Iterator iter = keys.iterator();
+            Iterator<Short> iter = keys.iterator();
             while (iter.hasNext()) {
                 TYPE_DESCRIPTIONS.add(map.get(iter.next()));
             }
@@ -293,7 +293,7 @@ public final class ValueConstants {
         }
 
         // HACK: this is a quick way to perform the lookup, but dumb if the short assigned are > 100; but the compiler will tell us that (PWW 21-01-05)
-        sacTypesStrings = new HashMap(25);
+        sacTypesStrings = new HashMap<>(25);
         sacTypesStrings.put(new Short(CSSPrimitiveValue.CSS_EMS), "em");
         sacTypesStrings.put(new Short(CSSPrimitiveValue.CSS_EXS), "ex");
         sacTypesStrings.put(new Short(CSSPrimitiveValue.CSS_PX), "px");

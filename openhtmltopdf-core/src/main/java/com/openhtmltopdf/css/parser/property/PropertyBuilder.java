@@ -23,6 +23,8 @@ package com.openhtmltopdf.css.parser.property;
 import java.util.List;
 
 import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.parser.PropertyValue;
+import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 
 public interface PropertyBuilder {
     /**
@@ -30,8 +32,8 @@ public interface PropertyBuilder {
      * property <code>cssName</code>. <code>values</code> must contain
      * <code>CSSPrimitiveValue</code> objects.
      */
-    public List buildDeclarations(
-            CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed);
+    public List<PropertyDeclaration> buildDeclarations(
+            CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed);
     
-    public List buildDeclarations(CSSName cssName, List values, int origin, boolean important);    
+    public List<PropertyDeclaration> buildDeclarations(CSSName cssName, List<PropertyValue> values, int origin, boolean important);    
 }

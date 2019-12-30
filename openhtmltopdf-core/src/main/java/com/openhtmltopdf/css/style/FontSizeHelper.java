@@ -27,8 +27,8 @@ import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 
 public class FontSizeHelper {
-    private static final LinkedHashMap PROPORTIONAL_FONT_SIZES = new LinkedHashMap();
-    private static final LinkedHashMap FIXED_FONT_SIZES = new LinkedHashMap();
+    private static final LinkedHashMap<IdentValue, PropertyValue> PROPORTIONAL_FONT_SIZES = new LinkedHashMap<>();
+    private static final LinkedHashMap<IdentValue, PropertyValue> FIXED_FONT_SIZES = new LinkedHashMap<>();
     
     private static final PropertyValue DEFAULT_SMALLER = new PropertyValue(CSSPrimitiveValue.CSS_EMS, 0.8f, "0.8em");
     private static final PropertyValue DEFAULT_LARGER = new PropertyValue(CSSPrimitiveValue.CSS_EMS, 1.2f, "1.2em");
@@ -55,8 +55,8 @@ public class FontSizeHelper {
     
     public static IdentValue getNextSmaller(IdentValue absFontSize) {
         IdentValue prev = null;
-        for (Iterator i = PROPORTIONAL_FONT_SIZES.keySet().iterator(); i.hasNext(); ) {
-            IdentValue ident = (IdentValue)i.next();
+        for (Iterator<IdentValue> i = PROPORTIONAL_FONT_SIZES.keySet().iterator(); i.hasNext(); ) {
+            IdentValue ident = i.next();
             if (ident == absFontSize) {
                 return prev;
             }
@@ -66,10 +66,10 @@ public class FontSizeHelper {
     }
     
     public static IdentValue getNextLarger(IdentValue absFontSize) {
-        for (Iterator i = PROPORTIONAL_FONT_SIZES.keySet().iterator(); i.hasNext(); ) {
-            IdentValue ident = (IdentValue)i.next();
+        for (Iterator<IdentValue> i = PROPORTIONAL_FONT_SIZES.keySet().iterator(); i.hasNext(); ) {
+            IdentValue ident = i.next();
             if (ident == absFontSize && i.hasNext()) {
-                return (IdentValue)i.next();
+                return i.next();
             }
         }
         return null;
@@ -79,9 +79,9 @@ public class FontSizeHelper {
         boolean monospace = isMonospace(fontFamilies);
         
         if (monospace) {
-            return (PropertyValue)FIXED_FONT_SIZES.get(fontSize);
+            return FIXED_FONT_SIZES.get(fontSize);
         } else {
-            return (PropertyValue)PROPORTIONAL_FONT_SIZES.get(fontSize);
+            return PROPORTIONAL_FONT_SIZES.get(fontSize);
         }
     }
     

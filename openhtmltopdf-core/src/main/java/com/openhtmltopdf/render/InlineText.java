@@ -312,6 +312,14 @@ public class InlineText {
             // letter spacing is already explicitly set.
             return 0f;
         }
+
+        if (_counts == null) {
+            // This will only happen for non-justifiable text nested inside
+            // justifiable text (eg. white-space: pre).
+            // Therefore the correct answer is 0.
+            // See InlineLayoutBox#countJustifiableChars.
+            return 0f;
+        }
         
         return (_counts.getSpaceCount() * info.getSpaceAdjust()) +
                (_counts.getNonSpaceCount() * info.getNonSpaceAdjust());
