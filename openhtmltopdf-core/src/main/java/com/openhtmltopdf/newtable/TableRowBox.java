@@ -85,7 +85,7 @@ public class TableRowBox extends BlockBox {
             prevExtraTop = c.getExtraSpaceTop();
             prevExtraBottom = c.getExtraSpaceBottom();
             
-            calcExtraSpaceTop(c);
+            // FIXME: Uncommenting seems to double count space: calcExtraSpaceTop(c);
             calcExtraSpaceBottom(c);
             
             c.setExtraSpaceTop(c.getExtraSpaceTop() + getExtraSpaceTop());
