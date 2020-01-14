@@ -696,6 +696,16 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests that an image with width and height specified but max-width or max-height
+     * takes precedence, that the image will keep its aspect ratio.
+     * https://github.com/danfickle/openhtmltopdf/issues/417
+     */
+    @Test
+    public void testIssue417ReplacedSizingWidthHeightWithMax() throws IOException {
+        assertTrue(vt.runTest("issue-417-replaced-sizing-width-height-with-max"));
+    }
+    
+    /**
      * Tests that a fixed position element correctly resizes to the sum of its child boxes
      * using border-box sizing.
      */
