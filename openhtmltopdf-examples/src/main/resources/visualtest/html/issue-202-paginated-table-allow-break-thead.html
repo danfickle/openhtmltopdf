@@ -1,0 +1,41 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+}
+body {
+  border: 1px solid orange;
+}
+table {
+    -fs-table-paginate: paginate;
+}
+th {
+  background-color: red;
+}
+td {
+  background-color: blue;
+}
+th, td {
+    border: 1px solid black;
+}
+thead {
+  page-break-inside: auto;
+}
+</style>
+</head>
+<body>
+<div style="height: 70px;"></div>
+
+<table>
+    <thead>
+        <tr><th>HA</th><th>HB</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>a</td><td>b</td></tr>
+        <tr><td>c</td><td>d</td></tr>
+    </tbody>
+</table>
+
+</body>
+</html>

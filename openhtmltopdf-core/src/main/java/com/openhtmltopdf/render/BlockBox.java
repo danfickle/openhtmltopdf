@@ -916,8 +916,7 @@ public class BlockBox extends Box implements InlinePaintable {
     private void calcExtraPageClearance(LayoutContext c) {
         if (c.isPageBreaksAllowed() &&
             c.getExtraSpaceTop() > 0 && 
-            (getStyle().isTableRow() ||
-             getStyle().isSpecifiedAsBlock() || 
+            (getStyle().isSpecifiedAsBlock() || 
              getStyle().isListItem())) {
 
             PageBox first = c.getRootLayer().getFirstPage(c, this);

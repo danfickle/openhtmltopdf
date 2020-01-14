@@ -1,0 +1,58 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 10px;
+}
+body {
+  border: 1px solid orange;
+  margin: 0;
+}
+table {
+    -fs-table-paginate: paginate;
+}
+th {
+  background-color: red;
+}
+td {
+  background-color: blue;
+  padding-top: 60px;
+  color: white;
+  font-size: 16px;
+}
+th, td {
+    border: 1px solid black;
+}
+td {
+  border-top: 60px solid green;
+}
+</style>
+</head>
+<body>
+<div style="height: 70px;"></div>
+
+<table>
+    <thead>
+        <tr><th>HA</th><th>HB</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          aa
+          <br/>1<br/>2<br/>3
+        </td>
+        <td>b</td>
+      </tr>
+      <tr>
+        <td>c</td>
+        <td>
+          dd
+          <br/>1<br/>2<br/>3
+        </td>
+      </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
