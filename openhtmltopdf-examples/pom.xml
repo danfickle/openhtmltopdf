@@ -150,7 +150,7 @@
       </resource>
       <resource>
         <directory>../</directory>
-        <targetPath>${project.build.outputDirectory}/META-INF</targetPath>
+        <targetPath>META-INF</targetPath>
         <includes>
           <include>LICENSE*</include>
         </includes>
