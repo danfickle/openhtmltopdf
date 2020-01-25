@@ -19,8 +19,6 @@
  */
 package com.openhtmltopdf.layout;
 
-import org.w3c.dom.Text;
-
 /**
  * A bean which serves as a way for the layout code to pass information to the
  * line breaking code and for the line breaking code to pass instructions back
@@ -36,6 +34,9 @@ public class LineBreakContext {
     private int _width;
     private boolean _endsOnNL;
     private boolean _endsOnSoftHyphen;
+    private int _nextWidth;
+    private boolean _endsOnWordBreak;
+    private boolean _finishedInCharBreakingMode;
     
     public int getLast() {
         return _master.length();
@@ -46,6 +47,8 @@ public class LineBreakContext {
         _unbreakable = false;
         _needsNewLine = false;
         _endsOnSoftHyphen = false;
+        _nextWidth = 0;
+        _endsOnWordBreak = false;
     }
     
     public int getEnd() {
@@ -137,5 +140,39 @@ public class LineBreakContext {
     
     public void setEndsOnSoftHyphen(boolean b) {
         this._endsOnSoftHyphen = true;
+    }
+
+    /**
+     * If needs newline, returns the graphics width of the next unbreakable sequence.
+     * We use this to test if we should actually put in a newline before a long word
+     * when break-word is on. If getNextWidth would fit on an empty line we put in the 
+     * new line else we split in the long word immediately.
+     */
+    public int getNextWidth() {
+        return _nextWidth;
+    }
+
+    public void setNextWidth(int nextWidth) {
+        this._nextWidth = nextWidth;
+    }
+
+    public boolean isEndsOnWordBreak() {
+        return _endsOnWordBreak;
+    }
+
+    public void setEndsOnWordBreak(boolean _endsOnWordBreak) {
+        this._endsOnWordBreak = _endsOnWordBreak;
+    }
+
+    public void setFinishedInCharBreakingMode(boolean mode) {
+        this._finishedInCharBreakingMode = mode;
+    }
+
+    /**
+     * If this is true, it means we finished in char breaking mode because
+     * a word was too large. The next line should begin in char breaking mode.
+     */
+    public boolean isFinishedInCharBreakingMode() {
+        return _finishedInCharBreakingMode;
     }
 }

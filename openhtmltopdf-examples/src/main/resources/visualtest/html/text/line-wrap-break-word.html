@@ -12,7 +12,8 @@ body {
 </style>
 </head>
 <body style="font-family: 'TestFont'; color: black; font-size: 20px; word-wrap: break-word;">
-<!-- The over sized word starting with M should have a line break before it and split over as many lines as needed. -->
-ABCDEFGHIJ A B C D MNOPQRSTUVWXYZ123456789 A B C D
+<!-- The over sized word starting with M should not have a line break before it and split over as many lines as needed.
+     In contrast the word starting with XYZ fits on its own line so will have a line break before it. -->
+ABCDEFGHIJ A B C D MNOPQRSTUVWXYZ123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ Aa Bb Cc Dd XYZ123456789AB
 </body>
 </html>

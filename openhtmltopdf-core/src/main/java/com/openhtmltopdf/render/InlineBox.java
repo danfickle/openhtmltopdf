@@ -55,7 +55,15 @@ public class InlineBox implements Styleable {
     private String _originalText;
     private String _text;
     private boolean _removableWhitespace;
+    
+    /**
+     * See {@link #isStartsHere()}
+     */
     private boolean _startsHere;
+    
+    /**
+     * See {@link #isEndsHere()}
+     */
     private boolean _endsHere;
 
     private CalculatedStyle _style;
@@ -114,18 +122,37 @@ public class InlineBox implements Styleable {
         _removableWhitespace = removeableWhitespace;
     }
 
+    /**
+     * The opposite of {@link #isStartsHere()}
+     */
     public boolean isEndsHere() {
         return _endsHere;
     }
 
+    /**
+     * See {@link #isEndsHere()}
+     */
     public void setEndsHere(boolean endsHere) {
         _endsHere = endsHere;
     }
 
+    /**
+     * Whether this is the first InlineBox for a box. For example:
+     * 
+     * <code>[b]one[i]two[/i]three[/b]</code>
+     * 
+     * will create three InlineBox objects and one and two will return
+     * true for isStartsHere.
+     * 
+     * This is used for example to decide whether left margin needs to be applied.
+     */
     public boolean isStartsHere() {
         return _startsHere;
     }
 
+    /**
+     * See {@link #isStartsHere()}
+     */
     public void setStartsHere(boolean startsHere) {
         _startsHere = startsHere;
     }

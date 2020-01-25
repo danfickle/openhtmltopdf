@@ -20,6 +20,8 @@
  */
 package com.openhtmltopdf.layout;
 
+import java.util.function.ToIntFunction;
+
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
@@ -70,7 +72,9 @@ public class Breaker {
     }
 
     public static void breakText(LayoutContext c,
-            LineBreakContext context, int avail, CalculatedStyle style) {
+            LineBreakContext context, int avail,
+            CalculatedStyle style, boolean tryToBreakAnywhere, int lineWidth) {
+        
         FSFont font = style.getFSFont(c);
         IdentValue whitespace = style.getWhitespace();
         float letterSpacing = style.hasLetterSpacing() ? 
@@ -106,13 +110,184 @@ public class Breaker {
         }
 
         context.setEndsOnNL(false);
-        doBreakText(c, context, avail, style, false);
+        
+        if (style.getWordWrap() != IdentValue.BREAK_WORD) {
+            // Ordinary old word wrap which will overflow too long unbreakable words.
+            doBreakText(c, context, avail, style, tryToBreakAnywhere);
+        } else {
+            int originalStart = context.getStart();
+
+            // The idea is we only break a word if it will not fit on a line by itself.
+            
+            while (true) {
+                doBreakText(c, context, avail, style, tryToBreakAnywhere);
+                
+                if (context.isFinished()) {
+                    break;
+                } else if (tryToBreakAnywhere && context.isEndsOnWordBreak()) {
+                    // We were in char breaking mode, but have found a line breaking opportunity.
+                    tryToBreakAnywhere = false;
+                } else if (!tryToBreakAnywhere && context.isNeedsNewLine() && context.getNextWidth() >= lineWidth) {
+                    // The next word will not fit on a line by itself so turn on char breaking mode.
+                    tryToBreakAnywhere = true;
+                } else if (!tryToBreakAnywhere && context.isUnbreakable()) {
+                    // Safety valve: Not sure we need it.
+                    break;
+                } else if (context.isNeedsNewLine()) {
+                    // Stop, we're at the end of the line.
+                    break;
+                }
+                
+                avail -= context.getWidth();
+                context.setStart(context.getEnd());
+            }
+
+            context.setStart(originalStart);
+            
+            // We need to know this for the next line.
+            context.setFinishedInCharBreakingMode(tryToBreakAnywhere);
+        }
     }
     
     private static void doBreakText(LayoutContext c,
             LineBreakContext context, int avail, CalculatedStyle style,
             boolean tryToBreakAnywhere) {
-    	doBreakText(c, context, avail, style, STANDARD_CHARACTER_BREAKER, STANDARD_LINE_BREAKER, tryToBreakAnywhere);
+        if (!tryToBreakAnywhere) {
+            doBreakText(c, context, avail, style, STANDARD_LINE_BREAKER);
+        } else {
+            FSFont font = style.getFSFont(c);
+
+            float letterSpacing = style.hasLetterSpacing()
+                    ? style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c)
+                    : 0f;
+
+            ToIntFunction<String> measurer = (str) ->
+                   c.getTextRenderer().getWidth(c.getFontContext(), font, str);
+                  
+            String currentString = context.getStartSubstring();
+            FSTextBreaker lineIterator = STANDARD_LINE_BREAKER.getBreaker(currentString, c.getSharedContext());
+            FSTextBreaker charIterator = STANDARD_CHARACTER_BREAKER.getBreaker(currentString, c.getSharedContext());       
+                   
+            doBreakCharacters(currentString, lineIterator, charIterator, context, avail, letterSpacing, measurer);
+        }
+    }
+    
+    /**
+     * Breaks at most one word (until the next word break) going character by character to see
+     * what will fit in.
+     */
+    static void doBreakCharacters(
+            String currentString,
+            FSTextBreaker lineIterator,
+            FSTextBreaker charIterator,
+            LineBreakContext context,
+            int avail,
+            float letterSpacing,
+            ToIntFunction<String> measurer) {
+
+        // The next word break opportunity. We don't want to go past this
+        // because we want to resume (if possible) normal word breaking after this
+        // too long word has been broken anywhere to fit.
+        int nextWordBreak = lineIterator.next();
+        if (nextWordBreak == 0) {
+            nextWordBreak = lineIterator.next();
+        }
+        if (nextWordBreak < 0) {
+            // No word breaking opportunity, use end of the string.
+            nextWordBreak = currentString.length();
+        }
+        
+        // Next character break opportunity. Working variable.
+        int nextCharBreak = charIterator.next();
+        if (nextCharBreak < 0) {
+            nextCharBreak = nextWordBreak;
+        }
+        
+        // Working vars for current graphics length which may go over the 
+        // available length.
+        int graphicsLength = 0;
+        
+        // Working var to denote the first position, after which we are looking
+        // for break opportunities. This will change as we go past each break
+        // opportunity that fits.
+        int left = 0;
+        
+        // Maintain a record of the last good wrap index and the last good graphics length.
+        int lastGoodWrap = 0;
+        int lastGoodGraphicsLength = 0;
+        
+        // While we've found a another break opportunity and its in our range (ie. before
+        // the next word break) and fits keep going.
+        while (nextCharBreak >= 0 &&
+               nextCharBreak <= nextWordBreak &&
+               graphicsLength < avail) {
+            String subString = currentString.substring(left, nextCharBreak);
+            float extraSpacing = (nextCharBreak - left) * letterSpacing;
+            
+            int splitWidth = (int) (measurer.applyAsInt(subString) + extraSpacing);
+            
+            lastGoodWrap = left;
+            left = nextCharBreak;
+            
+            lastGoodGraphicsLength = graphicsLength;
+            
+            graphicsLength += splitWidth;
+            nextCharBreak = charIterator.next();
+        }
+        
+        if (graphicsLength == avail) {
+            // Exact fit..
+            context.setNeedsNewLine(currentString.length() > left);
+            context.setEnd(left);
+            context.setWidth(graphicsLength);
+            return;
+        }
+
+        if (nextCharBreak < 0) {
+            nextCharBreak = nextWordBreak;
+        }
+               
+        if (graphicsLength < avail) {
+            // Try for the last bit too!
+            lastGoodWrap = nextCharBreak;
+            lastGoodGraphicsLength = graphicsLength;
+            
+            nextCharBreak = Math.min(currentString.length(), nextWordBreak);
+            
+            float extraSpacing = (nextCharBreak - left) * letterSpacing;
+            int splitWidth = (int) (measurer.applyAsInt(currentString.substring(left, nextCharBreak)) + extraSpacing);
+
+            graphicsLength += splitWidth;
+        }
+
+        if (graphicsLength <= avail) {
+            // The entire word fit.
+            context.setWidth(graphicsLength);
+            context.setEnd(nextCharBreak + context.getStart());
+            context.setEndsOnWordBreak(nextCharBreak == nextWordBreak);
+            return;
+        }
+        
+        // We need a newline for this word.
+        context.setNeedsNewLine(true);
+        
+        if (lastGoodWrap != 0) {
+            // We found a wrap point in which to wrap this word.
+            context.setWidth(lastGoodGraphicsLength);
+            context.setEnd(lastGoodWrap + context.getStart());
+            context.setEndsOnWordBreak(lastGoodWrap == nextWordBreak);
+            return;
+        } else {
+            // One character word, so we didn't find a wrap point.
+            float extraSpacing = nextWordBreak * letterSpacing;
+            int splitWidth = (int) (measurer.applyAsInt(currentString.substring(0, nextWordBreak)) + extraSpacing); 
+
+            context.setUnbreakable(true);
+            context.setEnd(nextWordBreak + context.getStart());
+            context.setEndsOnWordBreak(true);
+            context.setWidth(splitWidth);
+            return;
+        }
     }
     
     public static final char SOFT_HYPHEN = '\u00ad';
@@ -132,15 +307,13 @@ public class Breaker {
             other.isSoftHyphenBreak = isSoftHyphenBreak;
         }
     }
-
+    
     public static void doBreakText(
             LayoutContext c,
             LineBreakContext context,
             int avail,
             CalculatedStyle style,
-            TextBreakerSupplier characterBreaker,
-            TextBreakerSupplier lineBreaker, 
-            boolean tryToBreakAnywhere) {
+            TextBreakerSupplier lineBreaker) {
 
         FSFont font = style.getFSFont(c);
 
@@ -149,9 +322,7 @@ public class Breaker {
                 : 0f;
 
         String currentString = context.getStartSubstring();
-        FSTextBreaker iterator = tryToBreakAnywhere ? 
-                characterBreaker.getBreaker(currentString, c.getSharedContext())
-                   : lineBreaker.getBreaker(currentString, c.getSharedContext());
+        FSTextBreaker iterator = lineBreaker.getBreaker(currentString, c.getSharedContext());
 
         int lastWrap = 0;
         
@@ -159,6 +330,11 @@ public class Breaker {
         AppBreakOpportunity prev = new AppBreakOpportunity();
         
         current.right = iterator.next();
+        if (current.right == 0) {
+            current.right = iterator.next();
+        }
+
+        int nextUnfittableSplitWidth = 0;
         
         while (current.right > 0 && current.graphicsLength <= avail) {
             current.copyTo(prev);
@@ -189,6 +365,7 @@ public class Breaker {
             }
             
             current.graphicsLength += normalSplitWidth;
+            nextUnfittableSplitWidth = normalSplitWidth;
             lastWrap = current.left;
             current.left = current.right;
             current.right = iterator.next();
@@ -200,8 +377,10 @@ public class Breaker {
             current.copyTo(prev);
             current.right = currentString.length();
             float extraSpacing = (current.right - current.left) * letterSpacing;
-            current.graphicsLength += c.getTextRenderer().getWidth(
-                    c.getFontContext(), font, currentString.substring(current.left)) + extraSpacing;
+            int splitWidth = (int) (c.getTextRenderer().getWidth(
+                    c.getFontContext(), font, currentString.substring(current.left)) + extraSpacing);
+            current.graphicsLength += splitWidth;
+            nextUnfittableSplitWidth = splitWidth;
         }
 
         if (current.graphicsLength <= avail) {
@@ -212,12 +391,6 @@ public class Breaker {
         }
 
         context.setNeedsNewLine(true);
-        if ( lastWrap == 0 && style.getWordWrap() == IdentValue.BREAK_WORD ) {
-            if ( ! tryToBreakAnywhere ) {
-                doBreakText(c, context, avail, style, characterBreaker, lineBreaker, true);
-                return;
-            }
-        }
 
         if (lastWrap != 0) {
             // Found a place to wrap
@@ -228,6 +401,7 @@ public class Breaker {
                 context.setWidth(prev.graphicsLength);
             }
             
+            context.setNextWidth(nextUnfittableSplitWidth);
             context.setEnd(context.getStart() + lastWrap);
         } else {
             // Unbreakable string

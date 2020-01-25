@@ -952,6 +952,16 @@ public class VisualRegressionTest {
     public void testIssue420JustifyTextWhiteSpacePre() throws IOException {
         assertTrue(vt.runTest("issue-420-justify-text-white-space-pre"));
     }
+    
+    /**
+     * Tests that in break-word mode, a long word will only be broken if it would not
+     * fit on a line by itself.
+     * https://github.com/danfickle/openhtmltopdf/issues/429
+     */
+    @Test
+    public void testIssue429BreakWordNested() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-nested"));
+    }
 
     /**
      * Don't launch a ClassCastException if a td in a table is floated.

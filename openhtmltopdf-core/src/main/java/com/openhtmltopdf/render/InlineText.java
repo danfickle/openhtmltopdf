@@ -26,7 +26,6 @@ import com.openhtmltopdf.layout.FunctionData;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.WhitespaceStripper;
 import com.openhtmltopdf.util.OpenUtil;
-import com.openhtmltopdf.util.Uu;
 
 /**
  * A lightweight object which contains a chunk of text from an inline element.  
@@ -130,8 +129,8 @@ public class InlineText {
     
     public void setSubstring(int start, int end) {
         if (end < start) {
-            Uu.p("setting substring to: " + start + " " + end);
-            throw new RuntimeException("set substring length too long: " + this);
+            String msg = String.format("(start = %d, end = %d)", start, end);
+            throw new RuntimeException("set substring length too long " + msg + ": " + this);
         } else if (end < 0 || start < 0) {
             throw new RuntimeException("Trying to set negative index to inline box");
         }
