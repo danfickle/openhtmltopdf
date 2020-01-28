@@ -1,0 +1,32 @@
+<html>
+<head>
+<style>
+@page {
+  size: 60mm 20cm;
+  margin: 0;
+}
+body {
+  word-wrap: break-word;
+  margin: 0;
+  max-width: 60mm;
+}
+</style>
+</head>
+<body>
+
+<div>
+<div style="width: 50%; height: 30px; background-color: red;float: left;"></div>Some words some more.
+FirstWordTooLongForLineSoItShouldWrap MiddleWordTooLongForLineSoItShouldWrap LastWordTooLongForLineSoItShouldWrap
+</div>
+   
+<div style="clear:both;"></div>
+
+<div>
+<div style="width: 50%; height: 30px; background-color: red;float: right;"></div>
+  FirstWordTooLongForLineSoItShouldWrap MiddleWordTooLongForLineSoItShouldWrap LastWordTooLongForLineSoItShouldWrap
+</div>
+
+<div style="clear:both;"></div>
+
+</body>
+</html>

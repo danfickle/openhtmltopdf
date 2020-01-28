@@ -964,6 +964,25 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests additional problems with break-word such as the first word being too long, etc.
+     */
+    @Test
+    public void testIssue429BreakWordExtra() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-extra"));
+    }
+  
+    /**
+     * Tests break-word in the presence of floats.
+     */
+    @Test
+    @Ignore // If the first too long word is next to a float it will be pushed 
+            // below the float rather than be character broken (see chrome for correct display).
+            // Otherwise working pretty well.
+    public void testIssue429BreakWordWithFloats() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-with-floats"));
+    }
+
+    /**
      * Don't launch a ClassCastException if a td in a table is floated.
      *
      * See issue: https://github.com/danfickle/openhtmltopdf/issues/309

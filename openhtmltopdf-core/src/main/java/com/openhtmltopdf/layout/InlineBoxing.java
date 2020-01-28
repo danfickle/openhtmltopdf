@@ -186,10 +186,11 @@ public class InlineBoxing {
                                 continue;
                             }
                         } else {
-                            if (!startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, inCharBreakingMode)) {
+                            boolean shouldContinue = !startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, inCharBreakingMode);
+                            inCharBreakingMode = lbContext.isFinishedInCharBreakingMode();
+                            if (shouldContinue) {
                                 continue;
                             }
-                            inCharBreakingMode = lbContext.isFinishedInCharBreakingMode();
                         }
                     }
 
@@ -374,14 +375,15 @@ public class InlineBoxing {
             boolean trimmedLeadingSpace, boolean tryToBreakAnywhere) {
 
         lbContext.saveEnd();
+        CalculatedStyle style = inlineBox.getStyle();
         
         // Layout the text into the remaining width on this line. Will only go to the end of the line (at most)
         // and will produce one InlineText object.
         InlineText inlineText = layoutText(
-                c, inlineBox.getStyle(), space.remainingWidth - fit, lbContext, false, inlineBox.getTextDirection(), tryToBreakAnywhere, space.maxAvailableWidth - fit);
+                c, style, space.remainingWidth - fit, lbContext, false, inlineBox.getTextDirection(), tryToBreakAnywhere, space.maxAvailableWidth - fit);
         
-        if (inlineBox.getStyle().hasLetterSpacing()) {
-            inlineText.setLetterSpacing(inlineBox.getStyle().getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c));
+        if (style.hasLetterSpacing()) {
+            inlineText.setLetterSpacing(style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c));
         }
         
         if (lbContext.isUnbreakable() && !current.line.isContainsContent()) {
