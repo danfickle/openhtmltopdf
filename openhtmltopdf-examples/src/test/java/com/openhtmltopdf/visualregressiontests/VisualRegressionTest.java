@@ -983,6 +983,16 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that a line ending with the br tag does not get justified.
+     * https://github.com/danfickle/openhtmltopdf/issues/433
+     */
+    @Test
+    @Ignore // Line ending with br tag is being incorrectly justified.
+    public void testIssue433TextJustifyWithBr() throws IOException {
+        assertTrue(vt.runTest("issue-433-text-justify-with-br"));
+    }
+
+    /**
      * Don't launch a ClassCastException if a td in a table is floated.
      *
      * See issue: https://github.com/danfickle/openhtmltopdf/issues/309
