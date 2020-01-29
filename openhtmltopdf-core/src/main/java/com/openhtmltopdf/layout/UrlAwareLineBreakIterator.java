@@ -140,6 +140,7 @@ public class UrlAwareLineBreakIterator implements FSTextBreaker {
             return stop;
         }
 
+        @Override
         public String toString() {
             return "[" + start + ", " + stop + ")";
         }

@@ -62,6 +62,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
 
     protected abstract void drawLine(int x1, int y1, int x2, int y2);
     
+    @Override
     public void drawText(RenderingContext c, InlineText inlineText) {
         InlineLayoutBox iB = inlineText.getParent();
         String text = inlineText.isEndsOnSoftHyphen() ? inlineText.getSubstring() + '-' : inlineText.getSubstring();
@@ -137,6 +138,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         drawLine(x, y, x + width, y);
     }
 
+    @Override
     public void drawTextDecoration(
             RenderingContext c, InlineLayoutBox iB, TextDecoration decoration) {
         setColor(iB.getStyle().getColor());
@@ -147,12 +149,13 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                     edge.width, decoration.getThickness());
     }
 
+    @Override
     public void drawTextDecoration(RenderingContext c, LineBox lineBox) {
         setColor(lineBox.getStyle().getColor());
         Box parent = lineBox.getParent();
-        List decorations = lineBox.getTextDecorations();
-        for (Iterator i = decorations.iterator(); i.hasNext(); ) {
-            TextDecoration textDecoration = (TextDecoration)i.next();
+        List<TextDecoration> decorations = lineBox.getTextDecorations();
+        for (Iterator<TextDecoration> i = decorations.iterator(); i.hasNext(); ) {
+            TextDecoration textDecoration = i.next();
             if (parent.getStyle().isIdent(
                     CSSName.FS_TEXT_DECORATION_EXTENT, IdentValue.BLOCK)) {
                 fillRect(
@@ -169,6 +172,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         }
     }
 
+    @Override
     public void drawDebugOutline(RenderingContext c, Box box, FSColor color) {
         setColor(color);
         Rectangle rect = box.getMarginEdge(box.getAbsX(), box.getAbsY(), c, 0, 0);
@@ -177,11 +181,13 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         drawRect(rect.x, rect.y, rect.width, rect.height);
     }
 
+    @Override
     public void paintCollapsedBorder(
             RenderingContext c, BorderPropertySet border, Rectangle bounds, int side) {
         BorderPainter.paint(bounds, side, border, c, 0, false);
     }
 
+    @Override
     public void paintBorder(RenderingContext c, Box box) {
         if (! box.getStyle().isVisible(c, box)) {
             return;
@@ -192,6 +198,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         BorderPainter.paint(borderBounds, box.getBorderSides(), box.getBorder(c), c, 0, true);
     }
 
+    @Override
     public void paintBorder(RenderingContext c, CalculatedStyle style, Rectangle edge, int sides) {
         BorderPainter.paint(edge, sides, style.getBorder(c), c, 0, true);
     }
@@ -209,12 +216,14 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         return null;
     }
 
+    @Override
     public void paintBackground(
             RenderingContext c, CalculatedStyle style,
             Rectangle bounds, Rectangle bgImageContainer, BorderPropertySet border) {
         paintBackground0(c, style, bounds, bgImageContainer, border);
     }
 
+    @Override
     public void paintBackground(RenderingContext c, Box box) {
         if (! box.getStyle().isVisible(c, box)) {
             return;
