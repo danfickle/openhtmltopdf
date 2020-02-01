@@ -336,7 +336,9 @@ public class InlineBoxing {
             MarkerData markerData, List<FloatLayoutResult> pendingFloats, boolean hasFirstLinePEs,
             List<Layer> pendingInlineLayers, int lineOffset, InlineBox inlineBox, LineBreakContext lbContext) {
         
-        if (inlineBox.getStyle().isTextJustify()) {
+        IdentValue align = inlineBox.getStyle().getIdent(CSSName.TEXT_ALIGN);
+        if (align == IdentValue.JUSTIFY ||
+            (align != IdentValue.LEFT && inlineBox.getStyle().getWordWrap() == IdentValue.BREAK_WORD)) {
             current.line.trimTrailingSpace(c);
         }
         

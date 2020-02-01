@@ -970,6 +970,14 @@ public class VisualRegressionTest {
     public void testIssue429BreakWordExtra() throws IOException {
         assertTrue(vt.runTest("issue-429-break-word-extra"));
     }
+
+    /**
+     * Similar to break word extra but with with text-align: center enabled.
+     */
+    @Test
+    public void testIssue429BreakWordExtraCentered() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-extra-centered"));
+    }
   
     /**
      * Tests break-word in the presence of floats.

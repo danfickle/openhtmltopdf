@@ -119,51 +119,74 @@ public class Breaker {
             return doBreakText(c, context, avail, style, tryToBreakAnywhere);
         } else {
             int originalStart = context.getStart();
+            int totalWidth = 0;
+
             // The idea is we only break a word if it will not fit on a line by itself.
             
             LineBreakResult result;
             LOOP:
             while (true) {
+                int savedEnd = context.getEnd();
                 result = doBreakText(c, context, avail, style, tryToBreakAnywhere);
 
                 switch (result) {
                 case WORD_BREAKING_FINISHED:
                 case CHAR_BREAKING_FINISHED:
-                case CHAR_BREAKING_UNBREAKABLE:
                 case CHAR_BREAKING_NEED_NEW_LINE:
+                    totalWidth += context.getWidth();
                     break LOOP;
-                
+
+                case CHAR_BREAKING_UNBREAKABLE:
+                    if (totalWidth == 0 &&
+                        avail == lineWidth) {
+                        // We are at the start of the line but could not fit a single character!
+                        totalWidth += context.getWidth();
+                        break LOOP;
+                    } else {
+                        // We may be at the end of the line, so pick up at next line.
+                        context.setEnd(savedEnd);
+                        break LOOP;
+                    }
+
                 case CHAR_BREAKING_FOUND_WORD_BREAK:
+                    // We found a word break so resume normal word wrapping.
                     tryToBreakAnywhere = false;
                     break;
 
                 case WORD_BREAKING_NEED_NEW_LINE: {
                     if (context.getNextWidth() >= lineWidth) {
+                        // If the next word is too great to fit on a line by itself, start wrapping
+                        // here in character breaking mode.
                         tryToBreakAnywhere = true;
                         break;
                     } else {
+                        // Else, finish so it can be put on a new line.
+                        totalWidth += context.getWidth();
                         break LOOP;
                     }
                 }
                 case WORD_BREAKING_UNBREAKABLE: {
                     if (context.getWidth() >= lineWidth) {
+                        // If the word is too long to fit on a line by itself, retry it in 
+                        // character breaking mode.
                         tryToBreakAnywhere = true;
-                        context.resetEnd();
+                        context.setEnd(savedEnd);
                         continue LOOP;
                     } else {
+                        // Else, retry it on a new line.
+                        context.setEnd(savedEnd);
                         break LOOP;
                     }
                 }
-                
-                default:
-                    break LOOP;
                 }
                 
                 context.setStart(context.getEnd());
                 avail -= context.getWidth();
+                totalWidth += context.getWidth();
             }
 
             context.setStart(originalStart);
+            context.setWidth(totalWidth);
             
             // We need to know this for the next line.
             context.setFinishedInCharBreakingMode(tryToBreakAnywhere);
