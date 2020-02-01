@@ -345,17 +345,24 @@ public class Breaker {
             } else {
                 return LineBreakResult.CHAR_BREAKING_NEED_NEW_LINE;
             }
-        } else {
-            // One character word, so we didn't find a wrap point.
-            float extraSpacing = nextWordBreak * letterSpacing;
-            int splitWidth = (int) (measurer.applyAsInt(currentString.substring(0, nextWordBreak)) + extraSpacing); 
+        } else if (!currentString.isEmpty()) {
+            // Not even one character fit!
+            int end = 1;
+            float extraSpacing = letterSpacing;
+            int splitWidth = (int) (measurer.applyAsInt(currentString.substring(0, end)) + extraSpacing); 
 
             context.setUnbreakable(true);
-            context.setEnd(nextWordBreak + context.getStart());
-            context.setEndsOnWordBreak(true);
+            context.setEnd(end + context.getStart());
+            context.setEndsOnWordBreak(end == nextWordBreak);
             context.setWidth(splitWidth);
             
             return LineBreakResult.CHAR_BREAKING_UNBREAKABLE;
+        } else {
+            // Empty string.
+            context.setEnd(context.getStart());
+            context.setWidth(0);
+
+            return LineBreakResult.CHAR_BREAKING_FINISHED;
         }
     }
     

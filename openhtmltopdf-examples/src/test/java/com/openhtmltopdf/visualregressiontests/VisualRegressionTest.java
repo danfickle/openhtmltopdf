@@ -978,6 +978,14 @@ public class VisualRegressionTest {
     public void testIssue429BreakWordExtraCentered() throws IOException {
         assertTrue(vt.runTest("issue-429-break-word-extra-centered"));
     }
+
+    /**
+     * Tests the behavior of very large unbreakable characters with break-word enabled.
+     */
+    @Test
+    public void testIssue429BreakWordLargeChars() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-large-chars"));
+    }
   
     /**
      * Tests break-word in the presence of floats.

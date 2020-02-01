@@ -169,11 +169,12 @@ public class BreakerTest {
         
         Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER3);
         
+        // Breaks off minimum of one character.
         assertTrue(context.isUnbreakable());
         assertTrue(context.isNeedsNewLine());
-        assertThat(context.getWidth(), equalTo(18));
-        assertThat(context.getEnd(), equalTo(6));
-        assertThat(whole.substring(context.getEnd()), equalTo(""));
+        assertThat(context.getWidth(), equalTo(3));
+        assertThat(context.getEnd(), equalTo(1));
+        assertThat(whole.substring(context.getEnd()), equalTo("BCDEF"));
     }
     
     @Test
