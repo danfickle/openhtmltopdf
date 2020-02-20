@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 
+import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.ParagraphSplitter.Paragraph;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
@@ -337,7 +338,8 @@ public class InlineBoxing {
             List<Layer> pendingInlineLayers, int lineOffset, InlineBox inlineBox, LineBreakContext lbContext) {
         
         IdentValue align = inlineBox.getStyle().getIdent(CSSName.TEXT_ALIGN);
-        if (align != IdentValue.LEFT) {
+        if (align != IdentValue.LEFT &&
+            (align != IdentValue.START || inlineBox.getTextDirection() != BidiSplitter.LTR)) {
             current.line.trimTrailingSpace(c);
         }
         
