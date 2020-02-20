@@ -337,8 +337,7 @@ public class InlineBoxing {
             List<Layer> pendingInlineLayers, int lineOffset, InlineBox inlineBox, LineBreakContext lbContext) {
         
         IdentValue align = inlineBox.getStyle().getIdent(CSSName.TEXT_ALIGN);
-        if (align == IdentValue.JUSTIFY ||
-            (align != IdentValue.LEFT && inlineBox.getStyle().getWordWrap() == IdentValue.BREAK_WORD)) {
+        if (align != IdentValue.LEFT) {
             current.line.trimTrailingSpace(c);
         }
         

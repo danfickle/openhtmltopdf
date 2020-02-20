@@ -1018,6 +1018,15 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that aligned right text doesn't have trailing spaces
+     * that cause ragged text on the right.
+     */
+    @Test
+    public void testIssue440TrailingWsAlignRight() throws IOException {
+        assertTrue(vt.runTest("issue-440-trailing-ws-align-right"));
+    }
+
+    /**
      * Don't launch a ClassCastException if a td in a table is floated.
      *
      * See issue: https://github.com/danfickle/openhtmltopdf/issues/309

@@ -1,0 +1,139 @@
+%PDF-1.4
+%öäüß
+1 0 obj
+<<
+/Type /Catalog
+/Version /1.7
+/Pages 2 0 R
+>>
+endobj
+3 0 obj
+<<
+/CreationDate (D:20200220181343+11'00')
+/Producer (openhtmltopdf.com)
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [4 0 R]
+/Count 1
+>>
+endobj
+4 0 obj
+<<
+/Type /Page
+/MediaBox [0.0 0.0 187.5 450.0]
+/Parent 2 0 R
+/Contents 5 0 R
+/Resources 6 0 R
+>>
+endobj
+5 0 obj
+<<
+/Length 705
+>>
+stream
+0.0375 w
+2 J
+0 j
+10 M
+[] 0 d
+q
+36 414 m
+151.5 414 l
+151.5 36.03748 l
+36 36.03748 l
+36 414 l
+h
+W
+n
+0 0 0 rg
+BT
+/F1 12 Tf
+1 0 0 1 51.4875 397.23749 Tm
+(This is some text to) Tj
+ET
+BT
+/F1 12 Tf
+1 0 0 1 78.15 383.8125 Tm
+(show that text) Tj
+ET
+BT
+/F1 12 Tf
+1 0 0 1 47.8125 370.38751 Tm
+(aligned right has the) Tj
+ET
+BT
+/F1 12 Tf
+1 0 0 1 76.5 356.96249 Tm
+(trailing spaces) Tj
+ET
+BT
+/F1 12 Tf
+1 0 0 1 59.1375 343.53751 Tm
+(removed, just like) Tj
+ET
+BT
+/F1 12 Tf
+1 0 0 1 46.1625 330.11249 Tm
+(justified text. All the) Tj
+ET
+BT
+/F1 12 Tf
+1 0 0 1 67.5 316.6875 Tm
+(characters at the) Tj
+ET
+BT
+/F1 12 Tf
+1 0 0 1 51.825 303.26248 Tm
+(right should line up) Tj
+ET
+BT
+/F1 12 Tf
+1 0 0 1 130.8 289.83749 Tm
+(em) Tj
+ET
+Q
+
+endstream
+endobj
+6 0 obj
+<<
+/Font 7 0 R
+>>
+endobj
+7 0 obj
+<<
+/F1 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Times-Roman
+/Encoding /WinAnsiEncoding
+>>
+endobj
+xref
+0 9
+0000000000 65535 f
+0000000015 00000 n
+0000000169 00000 n
+0000000078 00000 n
+0000000226 00000 n
+0000000338 00000 n
+0000001096 00000 n
+0000001129 00000 n
+0000001160 00000 n
+trailer
+<<
+/Root 1 0 R
+/Info 3 0 R
+/ID [<902E51DEDA0B3582704306C45365AC49> <902E51DEDA0B3582704306C45365AC49>]
+/Size 9
+>>
+startxref
+1259
+%%EOF
