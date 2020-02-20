@@ -1009,6 +1009,15 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that the lang() selector takes into account any lang set on 
+     * ancestor elements.
+     */
+    @Test
+    public void testIssue446LangSelector() throws IOException {
+        assertTrue(vt.runTest("issue-446-lang-selector"));
+    }
+
+    /**
      * Don't launch a ClassCastException if a td in a table is floated.
      *
      * See issue: https://github.com/danfickle/openhtmltopdf/issues/309

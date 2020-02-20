@@ -54,7 +54,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     private static StylesheetInfo _defaultStylesheet;
     private static boolean _defaultStylesheetError = false;
 
-    private final Map _metadata = null;
+    private String _contentLanguageMetaValue;
 
     /**
      * Gets the namespace attribute of the XhtmlNamespaceHandler object
@@ -156,6 +156,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         }
         return href;
     }
+
     public String getAnchorName(Element e) {
         if (e != null && e.getNodeName().equalsIgnoreCase("a") &&
                 e.hasAttribute("name")) {
@@ -250,6 +251,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
 
         return null;
     }
+
     protected StylesheetInfo readStyleElement(Element style) {
         String media = style.getAttribute("media");
         if ("".equals(media)) {
@@ -323,7 +325,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
      * @return The stylesheetLinks value
      */
     public StylesheetInfo[] getStylesheets(org.w3c.dom.Document doc) {
-        List result = new ArrayList();
+        List<StylesheetInfo> result = new ArrayList<>();
         //get the processing-instructions (actually for XmlDocuments)
         result.addAll(Arrays.asList(super.getStylesheets(doc)));
 
@@ -354,7 +356,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
             }
         }
 
-        return (StylesheetInfo[])result.toArray(new StylesheetInfo[result.size()]);
+        return result.toArray(new StylesheetInfo[result.size()]);
     }
 
     public StylesheetInfo getDefaultStylesheet(StylesheetFactory factory) {
@@ -418,15 +420,12 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         return stream;
     }
 
-    private Map getMetaInfo(org.w3c.dom.Document doc) {
-        if(this._metadata != null) {
-            return this._metadata;
-        }
-
-        Map metadata = new HashMap();
+    private Map<String, String> getMetaInfo(org.w3c.dom.Document doc) {
+        Map<String, String> metadata = new HashMap<>();
 
         Element html = doc.getDocumentElement();
         Element head = findFirstChild(html, "head");
+
         if (head != null) {
             Node current = head.getFirstChild();
             while (current != null) {
@@ -453,14 +452,37 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         return metadata;
     }
 
+    /**
+     * Get the Content-Language meta tag value from the head section of the doc
+     * or the empty string. Caches value so can be called multiple times without performance
+     * issues.
+     */
+    private String getContentLanguageMetaTag(org.w3c.dom.Document doc) {
+        if (this._contentLanguageMetaValue == null) {
+            String possible = this.getMetaInfo(doc).get("Content-Language");
+            this._contentLanguageMetaValue = possible != null ? possible : "";
+        }
+
+        return this._contentLanguageMetaValue;
+    }
+
+    /**
+     * Gets the language of an element as specified (in order of precedence) by the lang attribute on the element itself,
+     * the first ancestor with a lang attribute, the Content-Language meta tag or the empty string.
+     */
     public String getLang(org.w3c.dom.Element e) {
         String lang = e.getAttribute("lang");
-        if(lang.equals("")) {
-            lang = (String) this.getMetaInfo(e.getOwnerDocument()).get("Content-Language");
-            if(lang == null) {
-                lang = "";
+
+        if (lang.isEmpty()) {
+            org.w3c.dom.Node parent = e.getParentNode();
+
+            if (parent instanceof org.w3c.dom.Element) {
+                return getLang((org.w3c.dom.Element) parent);
+            } else {
+                return getContentLanguageMetaTag(e.getOwnerDocument());
             }
         }
+
         return lang;
     }
 }

@@ -18,7 +18,6 @@
  */
 package com.openhtmltopdf.simple.extend;
 
-import java.awt.Point;
 import java.util.logging.Level;
 
 import org.w3c.dom.Element;
@@ -52,11 +51,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     }
 
     public String getImageSourceURI(Element e) {
-        String uri = null;
-        if (e != null) {
-            uri = e.getAttribute("src");
-        }
-        return uri;
+        return e != null ? e.getAttribute("src") : null;
     }
 
     public String getNonCssStyling(Element e) {
