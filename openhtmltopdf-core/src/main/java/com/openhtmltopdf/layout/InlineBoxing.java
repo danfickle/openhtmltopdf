@@ -342,7 +342,9 @@ public class InlineBoxing {
             (align != IdentValue.START || inlineBox.getTextDirection() != BidiSplitter.LTR)) {
             current.line.trimTrailingSpace(c);
         }
-        
+
+        current.line.setEndsOnNL(lbContext.isEndsOnNL());
+
         saveLine(current.line, c, box, minimumLineHeight,
                 space.maxAvailableWidth, pendingFloats,
                 hasFirstLinePEs, pendingInlineLayers, markerData,

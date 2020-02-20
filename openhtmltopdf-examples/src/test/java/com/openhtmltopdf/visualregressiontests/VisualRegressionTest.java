@@ -1003,7 +1003,6 @@ public class VisualRegressionTest {
      * https://github.com/danfickle/openhtmltopdf/issues/433
      */
     @Test
-    @Ignore // Line ending with br tag is being incorrectly justified.
     public void testIssue433TextJustifyWithBr() throws IOException {
         assertTrue(vt.runTest("issue-433-text-justify-with-br"));
     }

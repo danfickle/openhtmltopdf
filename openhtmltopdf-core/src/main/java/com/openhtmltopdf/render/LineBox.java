@@ -55,6 +55,7 @@ public class LineBox extends Box implements InlinePaintable {
     
     private boolean _containsContent;
     private boolean _containsBlockLevelContent;
+    private boolean _isEndsOnNL;
     
     private FloatDistances _floatDistances;
     
@@ -222,7 +223,7 @@ public class LineBox extends Box implements InlinePaintable {
     public void justify(CssContext c) {
         if (getParent().getStyle().hasLetterSpacing()) {
             // Do nothing, letter-spacing turns off text justification.
-        } else if (! isLastLineWithContent()) {
+        } else if (!isLastLineWithContent() && !isEndsOnNL()) {
             int leftFloatDistance = getFloatDistances().getLeftFloatDistance();
             int rightFloatDistance = getFloatDistances().getRightFloatDistance();
             
@@ -672,6 +673,14 @@ public class LineBox extends Box implements InlinePaintable {
     public boolean isTerminalColumnBreak() {
         // A line box can not be further broken for the purpose of column breaks.
         return true;
+    }
+
+    public boolean isEndsOnNL() {
+        return _isEndsOnNL;
+    }
+
+    public void setEndsOnNL(boolean endsOnNL) {
+        _isEndsOnNL = endsOnNL;
     }
 }
 
