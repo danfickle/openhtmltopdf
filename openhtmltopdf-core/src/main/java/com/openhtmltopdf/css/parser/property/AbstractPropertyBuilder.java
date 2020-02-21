@@ -164,6 +164,10 @@ public abstract class AbstractPropertyBuilder implements PropertyBuilder {
     }
     
     protected boolean isLength(CSSPrimitiveValue value) {
+        return isLengthHelper(value);
+    }
+
+    public static boolean isLengthHelper(CSSPrimitiveValue value) {
         int unit = value.getPrimitiveType();
         return unit == CSSPrimitiveValue.CSS_EMS || unit == CSSPrimitiveValue.CSS_EXS
                 || unit == CSSPrimitiveValue.CSS_PX || unit == CSSPrimitiveValue.CSS_IN
