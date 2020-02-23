@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyLis
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.shading.PDShading;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.apache.pdfbox.util.Matrix;
@@ -365,6 +366,14 @@ public class PdfContentStreamAdapter {
             cs.endMarkedContent();
         } catch (IOException e) {
             logAndThrow("endMarkedContent", e);
+        }
+    }
+
+    public void paintGradient(PDShading shading) {
+        try {
+            cs.shadingFill(shading);
+        } catch (IOException e) {
+            logAndThrow("paintGradient", e);
         }
     }
 }

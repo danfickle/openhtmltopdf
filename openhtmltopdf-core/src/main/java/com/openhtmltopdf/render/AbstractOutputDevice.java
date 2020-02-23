@@ -32,6 +32,7 @@ import com.openhtmltopdf.css.style.BackgroundSize;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
+import com.openhtmltopdf.css.style.derived.FSLinearGradient;
 import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
@@ -243,7 +244,14 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         }
 
         FSColor backgroundColor = style.getBackgroundColor();
-        FSImage backgroundImage = getBackgroundImage(c, style);
+        FSImage backgroundImage = null;
+        FSLinearGradient backgroundLinearGradient = null;
+        
+        if (style.isLinearGradient()) {
+            backgroundLinearGradient = style.getLinearGradient(c, (int) (bgImageContainer.width - border.width()), (int) (bgImageContainer.height - border.height()));
+        } else {
+            backgroundImage = getBackgroundImage(c, style);
+        }
 
         // If the image width or height is zero, then there's nothing to draw.
         // Also prevents infinte loop when trying to tile an image with zero size.
@@ -252,7 +260,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         }
 
         if ( (backgroundColor == null || backgroundColor == FSRGBColor.TRANSPARENT) &&
-                backgroundImage == null) {
+             backgroundImage == null && backgroundLinearGradient == null) {
             return;
         }
         
@@ -272,7 +280,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         	    borderBounds.intersect(new Area(oldclip));
             }
             setClip(borderBounds);
-        } else if (backgroundImage != null) {
+        } else if (backgroundImage != null || backgroundLinearGradient != null) {
         	pushClip(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
@@ -281,7 +289,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             fill(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
-        if (backgroundImage != null) {
+        if (backgroundImage != null || backgroundLinearGradient != null) {
             Rectangle localBGImageContainer = bgImageContainer;
             if (style.isFixedBackground()) {
                 localBGImageContainer = c.getViewportRectangle();
@@ -295,6 +303,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                 yoff += (int)border.top();
             }
 
+            if (backgroundImage != null) {
             scaleBackgroundImage(c, style, localBGImageContainer, backgroundImage);
 
             float imageWidth = backgroundImage.getWidth();
@@ -341,12 +350,15 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                             yoff,
                             backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
                 }
+            } // End background image painting.
+            } else if (backgroundLinearGradient != null) {
+                drawLinearGradient(backgroundLinearGradient, new Rectangle(xoff, yoff, bgImageContainer.width, bgImageContainer.height));
             }
         }
         
         if (!c.isFastRenderer()) {
         	setClip(oldclip);
-        } else if (backgroundImage != null) {
+        } else if (backgroundImage != null || backgroundLinearGradient != null) {
         	popClip();
         }
     }

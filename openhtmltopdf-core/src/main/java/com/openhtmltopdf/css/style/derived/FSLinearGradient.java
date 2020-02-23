@@ -37,7 +37,7 @@ public class FSLinearGradient {
     public static class StopPoint extends IntermediateStopPoint {
         private final float _length;
 
-        public StopPoint(FSColor color, float length) {
+        StopPoint(FSColor color, float length) {
             super(color);
             this._length = length;
         }
@@ -45,17 +45,22 @@ public class FSLinearGradient {
         public float getLength() {
             return _length;
         }
+
+        @Override
+        public String toString() {
+            return "StopPoint [length=" + _length +
+            ", color=" + getColor() + "]";
+        }
     }
 
     private final List<StopPoint> _stopPoints;
     private final float _angle;
-    // TODO.
-    // private final int x1;
-    // private final int x2;
-    // private final int y1;
-    // private final int y2;
+    private int x1;
+    private int x2;
+    private int y1;
+    private int y2;
 
-    public FSLinearGradient(CalculatedStyle style, FSFunction function, float boxWidth, CssContext ctx) {
+    public FSLinearGradient(CalculatedStyle style, FSFunction function, int boxWidth, int boxHeight, CssContext ctx) {
         List<PropertyValue> params = function.getParameters();
         int stopsStartIndex = getStopsStartIndex(params);
 
@@ -67,6 +72,95 @@ public class FSLinearGradient {
 
         this._angle = prelimAngle;
         this._stopPoints = calculateStopPoints(params, style, ctx, boxWidth, stopsStartIndex);
+        endPointsFromAngle(_angle, boxWidth, boxHeight);
+    }
+
+    private float deg2rad(final float deg) {
+        return (float) Math.toRadians(deg);
+    }
+
+    // Compute the endpoints so that a gradient of the given angle
+	// covers a box of the given size.
+	// From: https://github.com/WebKit/webkit/blob/master/Source/WebCore/css/CSSGradientValue.cpp
+    private void endPointsFromAngle(float angleDeg, final int w, final int h) {
+        if (angleDeg == 0) {
+            x1 = 0;
+            y1 = h;
+
+            x2 = 0;
+            y2 = 0;
+            return;
+        }
+
+        if (angleDeg == 90) {
+            x1 = 0;
+            y1 = 0;
+
+            x2 = w;
+            y2 = 0;
+            return;
+        }
+
+        if (angleDeg == 180) {
+            x1 = 0;
+            y1 = 0;
+
+            x2 = 0;
+            y2 = h;
+            return;
+        }
+
+        if (angleDeg == 270) {
+            x1 = w;
+            y1 = 0;
+
+            x2 = 0;
+            y2 = 0;
+            return;
+        }
+
+        // angleDeg is a "bearing angle" (0deg = N, 90deg = E),
+        // but tan expects 0deg = E, 90deg = N.
+        final float slope = (float) Math.tan(deg2rad(90 - angleDeg));
+
+        // We find the endpoint by computing the intersection of the line formed by the
+        // slope,
+        // and a line perpendicular to it that intersects the corner.
+        final float perpendicularSlope = -1 / slope;
+
+        // Compute start corner relative to center, in Cartesian space (+y = up).
+        final float halfHeight = h / 2;
+        final float halfWidth = w / 2;
+        float xEnd, yEnd;
+
+        if (angleDeg < 90) {
+            xEnd = halfWidth;
+            yEnd = halfHeight;
+        } else if (angleDeg < 180) {
+            xEnd = halfWidth;
+            yEnd = -halfHeight;
+        } else if (angleDeg < 270) {
+            xEnd = -halfWidth;
+            yEnd = -halfHeight;
+        } else {
+            xEnd = -halfWidth;
+            yEnd = halfHeight;
+        }
+
+        // Compute c (of y = mx + c) using the corner point.
+        final float c = yEnd - perpendicularSlope * xEnd;
+        final float endX = c / (slope - perpendicularSlope);
+        final float endY = perpendicularSlope * endX + c;
+
+        // We computed the end point, so set the second point,
+        // taking into account the moved origin and the fact that we're in drawing space
+        // (+y = down).
+        x2 = (int) (halfWidth + endX);
+        y2 = (int) (halfHeight - endY);
+
+        // Reflect around the center for the start point.
+        x1 = (int) (halfWidth - endX);
+        y1 = (int) (halfHeight + endY);
     }
 
     private boolean isLengthOrPercentage(PropertyValue value) {
@@ -79,7 +173,7 @@ public class FSLinearGradient {
 
         List<IntermediateStopPoint> points = new ArrayList<>();
 
-        for (int i = stopsStartIndex; i < params.size(); i++) {
+        for (int i = stopsStartIndex; i < params.size();) {
             PropertyValue value = params.get(i);
             FSColor color;
 
@@ -95,8 +189,10 @@ public class FSLinearGradient {
                 float length = LengthValue.calcFloatProportionalValue(style, CSSName.BACKGROUND_IMAGE, "",
                         lengthValue.getFloatValue(), lengthValue.getPrimitiveType(), boxWidth, ctx);
                 points.add(new StopPoint(color, length));
+                i += 2;
             } else {
                 points.add(new IntermediateStopPoint(color));
+                i += 1;
             }
         }
 
@@ -137,12 +233,12 @@ public class FSLinearGradient {
                 int rangeCount = (topRangeIndex - bottomRangeIndex) + 1;
                 int thisCount = i - bottomRangeIndex;
 
-                // TODO: Check for div by zero.
-                float interval = range / rangeCount;
-
-                float thisLength = prevLength + (interval * thisCount);
-
-                ret.add(new StopPoint(pt.getColor(), thisLength));
+                // rangeCount should never be zero.
+                if (rangeCount != 0) {
+                    float interval = range / rangeCount;
+                    float thisLength = prevLength + (interval * thisCount);
+                    ret.add(new StopPoint(pt.getColor(), thisLength));
+                }
             }
         }
 
@@ -164,7 +260,7 @@ public class FSLinearGradient {
     }
 
     private boolean isStopPointWithLength(IntermediateStopPoint pt) {
-        return pt.getClass() == IntermediateStopPoint.class;
+        return pt.getClass() == StopPoint.class;
     }
 
     private int getNextStopPointWithLengthIndex(List<IntermediateStopPoint> points, int startIndex) {
@@ -180,6 +276,7 @@ public class FSLinearGradient {
         if (Objects.equals(params.get(0).getStringValue(), "to")) {
             int i = 1;
             while (i < params.size() && 
+                   params.get(i).getStringValue() != null &&
                    Idents.looksLikeABGPosition(params.get(i).getStringValue())) {
                  i++;
             }
@@ -215,6 +312,10 @@ public class FSLinearGradient {
                 return 135f;
             else if (positions.contains("bottom"))
                 return 180f;
+            else if (positions.contains("left"))
+                return 270f;
+            else if (positions.contains("right"))
+                return 90f;
             else
                 return 0f;
         }
@@ -243,5 +344,27 @@ public class FSLinearGradient {
      */
     public float getAngle() {
         return _angle;
+    }
+
+    public int getX1() {
+        return x1;
+    }
+
+    public int getX2() {
+        return x2;
+    }
+
+    public int getY1() {
+        return y1;
+    }
+
+    public int getY2() {
+        return y2;
+    }
+
+    @Override
+    public String toString() {
+        return "FSLinearGradient [_angle=" + _angle + ", _stopPoints=" + _stopPoints + ", x1=" + x1 + ", x2=" + x2
+                + ", y1=" + y1 + ", y2=" + y2 + "]";
     }
 }

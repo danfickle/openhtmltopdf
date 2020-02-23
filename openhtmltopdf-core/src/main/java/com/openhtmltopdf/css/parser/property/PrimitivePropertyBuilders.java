@@ -529,6 +529,24 @@ public class PrimitivePropertyBuilders {
     }
 
     public static class BackgroundImage extends GenericURIWithNone {
+        @Override
+        public List<PropertyDeclaration> buildDeclarations(
+            CSSName cssName, List<PropertyValue> values, int origin,
+            boolean important, boolean inheritAllowed) {
+
+            checkValueCount(cssName, 1, values.size());
+            PropertyValue value = values.get(0);
+
+            if (value.getPropertyValueType() == PropertyValue.VALUE_TYPE_FUNCTION &&
+                Objects.equals(value.getFunction().getName(), "linear-gradient")) {
+                // TODO: Validation of linear-gradient args.
+                return Collections.singletonList(
+                        new PropertyDeclaration(cssName, value, important, origin));
+            } else {
+                return super.buildDeclarations(cssName, values, origin, important, inheritAllowed);
+            }
+        }
+
     }
 
     public static class BackgroundSize extends AbstractPropertyBuilder {
