@@ -1037,6 +1037,7 @@ public class VisualRegressionTest {
 
     /**
      * Tests various linear gradients.
+     * https://github.com/danfickle/openhtmltopdf/issues/439
      */
     @Test
     public void testIssue439LinearGradient() throws IOException {
