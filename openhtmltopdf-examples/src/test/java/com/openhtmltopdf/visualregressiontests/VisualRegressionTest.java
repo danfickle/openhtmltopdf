@@ -1034,7 +1034,16 @@ public class VisualRegressionTest {
     public void testIssue309ClassCastExceptionOnFloatTd() throws IOException {
         assertTrue(vt.runTest("issue-309-classcastexception-on-float-td"));
     }
-    
+
+    /**
+     * Tests various linear gradients.
+     * https://github.com/danfickle/openhtmltopdf/issues/439
+     */
+    @Test
+    public void testIssue439LinearGradient() throws IOException {
+        assertTrue(vt.runTest("issue-439-linear-gradient"));
+    }
+
     /**
      * Tests that a font-face rule with multiple sources in different formats
      * loads the truetype font only.

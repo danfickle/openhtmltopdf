@@ -27,6 +27,7 @@ import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.css.style.derived.FSLinearGradient;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
@@ -35,7 +36,6 @@ import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
-import com.openhtmltopdf.pdfboxout.PdfBoxPerDocumentFormState;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.FontRun;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.render.*;
@@ -54,6 +54,7 @@ import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.shading.PDShading;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -630,7 +631,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     /**
      * Converts a top down unit to a bottom up PDF unit for the current page.
      */
-    private float normalizeY(float y) {
+    public float normalizeY(float y) {
         return _pageHeight - y;
     }
     
@@ -798,6 +799,12 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
         img.clearBytes();
         img.setXObject(xobject);
+    }
+
+    @Override
+    public void drawLinearGradient(FSLinearGradient backgroundLinearGradient, Shape bounds) {
+        PDShading shading = GradientHelper.createLinearGradient(this, getTransform(), backgroundLinearGradient, bounds);
+        _cp.paintGradient(shading);
     }
 
     @Override
