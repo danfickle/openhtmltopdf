@@ -181,6 +181,7 @@ public class TableSectionBox extends BlockBox {
         cell.setCol(getTable().effColToCol(col));
     }
     
+    @Override
     public void reset(LayoutContext c) {
         super.reset(c);
         _grid.clear();
@@ -312,5 +313,14 @@ public class TableSectionBox extends BlockBox {
 
     public void setOriginalAbsY(int originalAbsY) {
         _originalAbsY = originalAbsY;
+    }
+    
+    @Override
+    public void setNeedPageClear(boolean needPageClear) {
+        if (needPageClear && isHeader()) {
+            getTable().setNeedPageClear(true);
+        } else {
+            super.setNeedPageClear(needPageClear);
+        }
     }
 }

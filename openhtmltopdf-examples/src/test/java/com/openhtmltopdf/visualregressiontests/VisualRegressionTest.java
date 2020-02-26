@@ -928,11 +928,51 @@ public class VisualRegressionTest {
      * https://github.com/danfickle/openhtmltopdf/issues/399
      */
     @Test
-    @Ignore // Failing for now.
     public void testIssue399TableHeaderFooterWithNoRows() throws IOException {
         assertTrue(vt.runTest("issue-399-table-header-with-no-rows"));    
     }
     
+    /**
+     * Tests that a paginated table pushed to the next page does not have too
+     * much height in the first body row and the thead section is not orphaned on
+     * the first page.
+     * https://github.com/danfickle/openhtmltopdf/issues/202
+     */
+    @Test
+    public void testIssue202PaginatedTableAtStartOfNewPage() throws IOException {
+        assertTrue(vt.runTest("issue-202-paginated-table-start-page"));
+    }
+
+    /**
+     * Tests that a paginated table pushed to the next page does not have too
+     * much height in the first body row and the thead section is not orphaned on
+     * the first page. With explicit allowing of page breaks in thead.
+     * https://github.com/danfickle/openhtmltopdf/issues/202
+     */
+    @Test
+    @Ignore // Has both problems. Low priority as very few people want their thead
+            // broken over two or more pages.
+    public void testIssue202PaginatedTableAllowBreakThead() throws IOException {
+        assertTrue(vt.runTest("issue-202-paginated-table-allow-break-thead"));
+    }    
+    
+    /**
+     * Tests that paginated tables with cells which have large border and padding
+     * lays out correctly.
+     */
+    @Test
+    public void testPaginatedTableLargeBorderPadding() throws IOException {
+        assertTrue(vt.runTest("paginated-table-large-border-padding"));
+    }
+    
+    /**
+     * Tests that a paginated table with rows that go over two or more pages
+     * lays out correctly.
+     */
+    @Test
+    public void testPaginatedTableMutliPageRow() throws IOException {
+        assertTrue(vt.runTest("paginated-table-multi-page-row"));
+    }
 
     /**
      * Tests that justified text with non-justified content (br) nested inside it

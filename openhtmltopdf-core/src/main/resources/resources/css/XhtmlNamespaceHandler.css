@@ -183,6 +183,7 @@ tbody {
 thead {
   display: table-header-group;
   vertical-align: middle;
+  page-break-inside: avoid;
 }
 
 tfoot {
