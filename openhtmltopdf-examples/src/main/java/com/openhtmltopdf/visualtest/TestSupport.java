@@ -107,7 +107,7 @@ public class TestSupport {
      * So we can test line breaking/justification with conditions more like real world.
      */
     public static class CollapsedSpaceTextBreaker implements FSTextBreaker {
-        private final static Pattern SPACES = Pattern.compile("\\s");
+        private final static Pattern SPACES = Pattern.compile("[\\s\u00AD]");
         private Matcher matcher;
         
         @Override

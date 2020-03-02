@@ -521,7 +521,7 @@ public class TextVisualRegressionTest {
      */
     @Test
     public void testSoftHyphens() throws IOException {
-        assertTrue(vtester.runTest("soft-hyphens", WITH_COLLAPSED_LINE_BREAKER));
+        assertTrue(vtester.runTest("soft-hyphens", TestSupport.WITH_COLLAPSED_LINE_BREAKER));
     }
     
     /**

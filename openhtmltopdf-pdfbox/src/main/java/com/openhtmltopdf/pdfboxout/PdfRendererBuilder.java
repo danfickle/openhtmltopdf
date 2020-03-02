@@ -82,7 +82,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 			} 
 			// use PDFont supplier
 			else if (font.pdfontSupplier != null) {
-				resolver.addFont(font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset);
+				resolver.addFont((PDFontSupplier) font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset);
 			} 
 			// load via font File
 			else {
@@ -179,7 +179,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 */
 	public PdfRendererBuilder useFont(PDFontSupplier supplier, String fontFamily, Integer fontWeight,
 			FontStyle fontStyle, boolean subset) {
-		state._fonts.add(new AddedFont(null, supplier, null, fontWeight, fontFamily, subset, fontStyle));
+		state._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, subset, fontStyle));
 		return this;
 	}
 	
