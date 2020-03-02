@@ -21,9 +21,8 @@ package com.openhtmltopdf.render;
 import java.text.BreakIterator;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Text;
-
 import com.openhtmltopdf.bidi.BidiSplitter;
+import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.extend.ContentFunction;
 import com.openhtmltopdf.css.parser.FSFunction;
@@ -56,7 +55,15 @@ public class InlineBox implements Styleable {
     private String _originalText;
     private String _text;
     private boolean _removableWhitespace;
+    
+    /**
+     * See {@link #isStartsHere()}
+     */
     private boolean _startsHere;
+    
+    /**
+     * See {@link #isEndsHere()}
+     */
     private boolean _endsHere;
 
     private CalculatedStyle _style;
@@ -72,12 +79,9 @@ public class InlineBox implements Styleable {
 
     private String _pseudoElementOrClass;
 
-    private final Text _textNode;
-
-    public InlineBox(String text, Text textNode) {
+    public InlineBox(String text) {
         _text = text;
         _originalText = text;
-        _textNode = textNode;
     }
 
     private byte _textDirection;
@@ -118,18 +122,37 @@ public class InlineBox implements Styleable {
         _removableWhitespace = removeableWhitespace;
     }
 
+    /**
+     * The opposite of {@link #isStartsHere()}
+     */
     public boolean isEndsHere() {
         return _endsHere;
     }
 
+    /**
+     * See {@link #isEndsHere()}
+     */
     public void setEndsHere(boolean endsHere) {
         _endsHere = endsHere;
     }
 
+    /**
+     * Whether this is the first InlineBox for a box. For example:
+     * 
+     * <code>[b]one[i]two[/i]three[/b]</code>
+     * 
+     * will create three InlineBox objects and one and two will return
+     * true for isStartsHere.
+     * 
+     * This is used for example to decide whether left margin needs to be applied.
+     */
     public boolean isStartsHere() {
         return _startsHere;
     }
 
+    /**
+     * See {@link #isStartsHere()}
+     */
     public void setStartsHere(boolean startsHere) {
         _startsHere = startsHere;
     }
@@ -249,6 +272,11 @@ public class InlineBox implements Styleable {
         boolean haveFirstWord = false;
         int firstWord = 0;
         int lastWord = 0;
+        
+        CalculatedStyle style = getStyle();
+        float letterSpacing = style.hasLetterSpacing()
+                ? style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c)
+                : 0f;
 
         String text = getText(trimLeadingSpace);
         FSTextBreaker breakIterator = Breaker.getLineBreakStream(text, c.getSharedContext());
@@ -256,12 +284,17 @@ public class InlineBox implements Styleable {
         // Breaker should be used
         while ( (current = breakIterator.next()) != BreakIterator.DONE) {
             String currentWord = text.substring(last, current);
+            
+            if (currentWord.length() > 0 && currentWord.charAt(currentWord.length() - 1) == Breaker.SOFT_HYPHEN) {
+                currentWord += '-';
+            }
+            
             int wordWidth = getTextWidth(c, currentWord);
             int minWordWidth;
             if (getStyle().getWordWrap() == IdentValue.BREAK_WORD) {
                 minWordWidth = getMaxCharWidth(c, currentWord);
             } else {
-                minWordWidth = wordWidth;
+                minWordWidth = (int) (wordWidth + (letterSpacing * currentWord.length()));
             }
 
             if (spaceCount > 0) {
@@ -307,7 +340,7 @@ public class InlineBox implements Styleable {
         if (getStyle().getWordWrap() == IdentValue.BREAK_WORD) {
             minWordWidth = getMaxCharWidth(c, currentWord);
         } else {
-            minWordWidth = wordWidth;
+            minWordWidth = (int) (wordWidth + (letterSpacing * currentWord.length()));
         }
         if (spaceCount > 0) {
             if (includeWS) {
@@ -491,9 +524,5 @@ public class InlineBox implements Styleable {
     public void truncateText() {
         _text = "";
         _originalText = "";
-    }
-
-    public Text getTextNode() {
-        return this._textNode;
     }
 }

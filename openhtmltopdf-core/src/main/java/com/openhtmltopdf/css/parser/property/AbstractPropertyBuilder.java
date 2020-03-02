@@ -27,11 +27,13 @@ import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.CSSParseException;
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
+import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 
 public abstract class AbstractPropertyBuilder implements PropertyBuilder {
-    public List buildDeclarations(CSSName cssName, List values, int origin, boolean important) {
+    @Override
+    public List<PropertyDeclaration> buildDeclarations(CSSName cssName, List<PropertyValue> values, int origin, boolean important) {
         return buildDeclarations(cssName, values, origin, important, true);
     }
     
@@ -162,6 +164,10 @@ public abstract class AbstractPropertyBuilder implements PropertyBuilder {
     }
     
     protected boolean isLength(CSSPrimitiveValue value) {
+        return isLengthHelper(value);
+    }
+
+    public static boolean isLengthHelper(CSSPrimitiveValue value) {
         int unit = value.getPrimitiveType();
         return unit == CSSPrimitiveValue.CSS_EMS || unit == CSSPrimitiveValue.CSS_EXS
                 || unit == CSSPrimitiveValue.CSS_PX || unit == CSSPrimitiveValue.CSS_IN
@@ -190,17 +196,17 @@ public abstract class AbstractPropertyBuilder implements PropertyBuilder {
     }
     
     protected void checkInheritAllowed(CSSPrimitiveValue value, boolean inheritAllowed) {
-        if (value.getCssValueType() == CSSPrimitiveValue.CSS_INHERIT && ! inheritAllowed) {
+        if (value.getCssValueType() == CSSValue.CSS_INHERIT && ! inheritAllowed) {
             throw new CSSParseException("Invalid use of inherit", -1);
         }
     }
 
-    protected List checkInheritAll(CSSName[] all, List values, int origin, boolean important, boolean inheritAllowed) {
+    protected List<PropertyDeclaration> checkInheritAll(CSSName[] all, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
         if (values.size() == 1) {
-            CSSPrimitiveValue value = (CSSPrimitiveValue)values.get(0);
+            CSSPrimitiveValue value = values.get(0);
             checkInheritAllowed(value, inheritAllowed);
-            if (value.getCssValueType() == CSSPrimitiveValue.CSS_INHERIT) {
-                List result = new ArrayList(all.length);
+            if (value.getCssValueType() == CSSValue.CSS_INHERIT) {
+                List<PropertyDeclaration> result = new ArrayList<>(all.length);
                 for (int i = 0; i < all.length; i++) {
                     result.add(
                             new PropertyDeclaration(all[i], value, important, origin));

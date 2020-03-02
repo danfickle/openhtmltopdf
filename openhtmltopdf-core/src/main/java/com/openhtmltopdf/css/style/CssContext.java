@@ -2,6 +2,8 @@ package com.openhtmltopdf.css.style;
 
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.value.FontSpecification;
+import com.openhtmltopdf.extend.FontContext;
+import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 
@@ -29,4 +31,8 @@ public interface CssContext {
     StyleReference getCss();
     
     FSFontMetrics getFSFontMetrics(FSFont font);
+    
+    FontContext getFontContext();
+    
+    TextRenderer getTextRenderer();
 }

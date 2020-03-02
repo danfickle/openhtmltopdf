@@ -26,11 +26,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -86,11 +86,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		@Override
 		public Reader getReader() {
 			if (this.strm != null) {
-				try {
-					return new InputStreamReader(this.strm, "UTF-8");
-				} catch (UnsupportedEncodingException e) {
-					XRLog.exception("Exception when creating stream reader", e);
-				}
+				return new InputStreamReader(this.strm, StandardCharsets.UTF_8);
 			}
 			return null;
 		}
@@ -207,14 +203,8 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         } catch (URISyntaxException e1) {
         	XRLog.exception("bad URL given: " + uri, e1);
 		}
-    	
-    	try {
-			return is == null ? null : new InputStreamReader(is, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			XRLog.exception("Failed to create stream reader", e);
-		}
-    	
-    	return null;
+
+		return is == null ? null : new InputStreamReader(is, StandardCharsets.UTF_8);
     }
     
     protected String readAll(Reader reader) throws IOException {

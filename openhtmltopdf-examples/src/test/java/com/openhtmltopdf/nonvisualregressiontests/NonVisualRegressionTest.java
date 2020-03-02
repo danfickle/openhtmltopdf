@@ -162,6 +162,26 @@ public class NonVisualRegressionTest {
     }
 
     /**
+     * Tests that a simple body bookmark linking to top of the second page works.
+     */
+    @Test
+    public void testBookmarkBodySimple() throws IOException {
+        PDDocument doc = run("bookmark-body-simple");
+        PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+
+        PDOutlineItem bm = outline.getFirstChild();
+        assertThat(bm.getTitle(), equalTo("Test bookmark"));
+        assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
+        PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
+
+        // At top of second page.
+        assertEquals(dest.getPage(), doc.getPage(1));
+        assertEquals(doc.getPage(1).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
+
+        remove("bookmark-body-simple", doc);
+    }
+
+    /**
      * Tests that a head bookmark linking to transformed element (by way of transform) on third page works. 
      */
     @Test
@@ -681,6 +701,21 @@ public class NonVisualRegressionTest {
         assertEquals("Hello World!", field.getValue());
         
         remove("form-control-after-overflow-page", doc);
+    }
+
+    /**
+     * Check that an input without name attribute does not launch a NPE.
+     * Will now log a warning message.
+     * See issue: https://github.com/danfickle/openhtmltopdf/issues/151
+     *
+     * Additionally, check that a select element without options will not launch a NPE too.
+     */
+    @Test
+    public void testInputWithoutNameAttribute() throws IOException {
+        PDDocument doc = run("input-without-name-attribute");
+        PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
+        assertEquals(0, form.getFields().size());
+        remove("input-without-name-attribute", doc);
     }
     
     // TODO:

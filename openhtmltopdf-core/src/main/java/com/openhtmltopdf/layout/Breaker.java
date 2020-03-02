@@ -20,10 +20,14 @@
  */
 package com.openhtmltopdf.layout;
 
+import java.util.function.ToIntFunction;
+
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.FSTextBreaker;
+import com.openhtmltopdf.layout.LineBreakContext.LineBreakResult;
 import com.openhtmltopdf.render.FSFont;
 
 /**
@@ -68,17 +72,20 @@ public class Breaker {
         return end;
     }
 
-    public static void breakText(LayoutContext c,
-            LineBreakContext context, int avail, CalculatedStyle style) {
+    public static LineBreakResult breakText(LayoutContext c,
+            LineBreakContext context, int avail,
+            CalculatedStyle style, boolean tryToBreakAnywhere, int lineWidth) {
+        
         FSFont font = style.getFSFont(c);
         IdentValue whitespace = style.getWhitespace();
+        float letterSpacing = style.hasLetterSpacing() ? 
+                style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c) : 0f;
 
         // ====== handle nowrap
         if (whitespace == IdentValue.NOWRAP) {
-        	context.setEnd(context.getLast());
-        	context.setWidth(c.getTextRenderer().getWidth(
-                    c.getFontContext(), font, context.getCalculatedSubstring()));
-            return;
+            context.setEnd(context.getLast());
+            context.setWidth(Breaker.getTextWidthWithLetterSpacing(c, font, context.getCalculatedSubstring(), letterSpacing));
+            return LineBreakResult.WORD_BREAKING_FINISHED;
         }
 
         //check if we should break on the next newline
@@ -88,109 +95,411 @@ public class Breaker {
             int n = context.getStartSubstring().indexOf(WhitespaceStripper.EOL);
             if (n > -1) {
                 context.setEnd(context.getStart() + n + 1);
-                context.setWidth(c.getTextRenderer().getWidth(
-                        c.getFontContext(), font, context.getCalculatedSubstring()));
+                context.setWidth(Breaker.getTextWidthWithLetterSpacing(c, font, context.getCalculatedSubstring(), letterSpacing));
                 context.setNeedsNewLine(true);
                 context.setEndsOnNL(true);
             } else if (whitespace == IdentValue.PRE) {
             	context.setEnd(context.getLast());
-                context.setWidth(c.getTextRenderer().getWidth(
-                        c.getFontContext(), font, context.getCalculatedSubstring()));
+                context.setWidth(Breaker.getTextWidthWithLetterSpacing(c, font, context.getCalculatedSubstring(), letterSpacing));
             }
         }
 
         //check if we may wrap
         if (whitespace == IdentValue.PRE ||
                 (context.isNeedsNewLine() && context.getWidth() <= avail)) {
-            return;
+            return context.isNeedsNewLine() ?
+                LineBreakResult.WORD_BREAKING_NEED_NEW_LINE : 
+                LineBreakResult.WORD_BREAKING_FINISHED;
         }
 
         context.setEndsOnNL(false);
-        doBreakText(c, context, avail, style, false);
+        
+        if (style.getWordWrap() != IdentValue.BREAK_WORD) {
+            // Ordinary old word wrap which will overflow too long unbreakable words.
+            return doBreakText(c, context, avail, style, tryToBreakAnywhere);
+        } else {
+            int originalStart = context.getStart();
+            int totalWidth = 0;
+
+            // The idea is we only break a word if it will not fit on a line by itself.
+            
+            LineBreakResult result;
+            LOOP:
+            while (true) {
+                int savedEnd = context.getEnd();
+                result = doBreakText(c, context, avail, style, tryToBreakAnywhere);
+
+                switch (result) {
+                case WORD_BREAKING_FINISHED:
+                case CHAR_BREAKING_FINISHED:
+                case CHAR_BREAKING_NEED_NEW_LINE:
+                    totalWidth += context.getWidth();
+                    break LOOP;
+
+                case CHAR_BREAKING_UNBREAKABLE:
+                    if (totalWidth == 0 &&
+                        avail == lineWidth) {
+                        // We are at the start of the line but could not fit a single character!
+                        totalWidth += context.getWidth();
+                        break LOOP;
+                    } else {
+                        // We may be at the end of the line, so pick up at next line.
+                        context.setEnd(savedEnd);
+                        break LOOP;
+                    }
+
+                case CHAR_BREAKING_FOUND_WORD_BREAK:
+                    // We found a word break so resume normal word wrapping.
+                    tryToBreakAnywhere = false;
+                    break;
+
+                case WORD_BREAKING_NEED_NEW_LINE: {
+                    if (context.getNextWidth() >= lineWidth) {
+                        // If the next word is too great to fit on a line by itself, start wrapping
+                        // here in character breaking mode.
+                        tryToBreakAnywhere = true;
+                        break;
+                    } else {
+                        // Else, finish so it can be put on a new line.
+                        totalWidth += context.getWidth();
+                        break LOOP;
+                    }
+                }
+                case WORD_BREAKING_UNBREAKABLE: {
+                    if (context.getWidth() >= lineWidth) {
+                        // If the word is too long to fit on a line by itself, retry it in 
+                        // character breaking mode.
+                        tryToBreakAnywhere = true;
+                        context.setEnd(savedEnd);
+                        continue LOOP;
+                    } else {
+                        // Else, retry it on a new line.
+                        context.setEnd(savedEnd);
+                        break LOOP;
+                    }
+                }
+                }
+                
+                context.setStart(context.getEnd());
+                avail -= context.getWidth();
+                totalWidth += context.getWidth();
+            }
+
+            context.setStart(originalStart);
+            context.setWidth(totalWidth);
+            
+            // We need to know this for the next line.
+            context.setFinishedInCharBreakingMode(tryToBreakAnywhere);
+            return result;
+        }
     }
     
-    private static void doBreakText(LayoutContext c,
+    private static LineBreakResult doBreakText(LayoutContext c,
             LineBreakContext context, int avail, CalculatedStyle style,
             boolean tryToBreakAnywhere) {
-    	doBreakText(c, context, avail, style, STANDARD_CHARACTER_BREAKER, STANDARD_LINE_BREAKER, tryToBreakAnywhere);
+        if (!tryToBreakAnywhere) {
+            return doBreakText(c, context, avail, style, STANDARD_LINE_BREAKER);
+        } else {
+            FSFont font = style.getFSFont(c);
+
+            float letterSpacing = style.hasLetterSpacing()
+                    ? style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c)
+                    : 0f;
+
+            ToIntFunction<String> measurer = (str) ->
+                   c.getTextRenderer().getWidth(c.getFontContext(), font, str);
+                  
+            String currentString = context.getStartSubstring();
+            FSTextBreaker lineIterator = STANDARD_LINE_BREAKER.getBreaker(currentString, c.getSharedContext());
+            FSTextBreaker charIterator = STANDARD_CHARACTER_BREAKER.getBreaker(currentString, c.getSharedContext());       
+                   
+            return doBreakCharacters(currentString, lineIterator, charIterator, context, avail, letterSpacing, measurer);
+        }
     }
     
-    public static void doBreakText(
-    		LayoutContext c,
+    /**
+     * Breaks at most one word (until the next word break) going character by character to see
+     * what will fit in.
+     */
+    static LineBreakResult doBreakCharacters(
+            String currentString,
+            FSTextBreaker lineIterator,
+            FSTextBreaker charIterator,
+            LineBreakContext context,
+            int avail,
+            float letterSpacing,
+            ToIntFunction<String> measurer) {
+
+        // The next word break opportunity. We don't want to go past this
+        // because we want to resume (if possible) normal word breaking after this
+        // too long word has been broken anywhere to fit.
+        int nextWordBreak = lineIterator.next();
+        if (nextWordBreak == 0) {
+            nextWordBreak = lineIterator.next();
+        }
+        if (nextWordBreak < 0) {
+            // No word breaking opportunity, use end of the string.
+            nextWordBreak = currentString.length();
+        }
+        
+        // Next character break opportunity. Working variable.
+        int nextCharBreak = charIterator.next();
+        if (nextCharBreak < 0) {
+            nextCharBreak = nextWordBreak;
+        }
+        
+        // Working vars for current graphics length which may go over the 
+        // available length.
+        int graphicsLength = 0;
+        
+        // Working var to denote the first position, after which we are looking
+        // for break opportunities. This will change as we go past each break
+        // opportunity that fits.
+        int left = 0;
+        
+        // Maintain a record of the last good wrap index and the last good graphics length.
+        int lastGoodWrap = 0;
+        int lastGoodGraphicsLength = 0;
+        
+        // While we've found a another break opportunity and its in our range (ie. before
+        // the next word break) and fits keep going.
+        while (nextCharBreak >= 0 &&
+               nextCharBreak <= nextWordBreak &&
+               graphicsLength < avail) {
+            String subString = currentString.substring(left, nextCharBreak);
+            float extraSpacing = (nextCharBreak - left) * letterSpacing;
+            
+            int splitWidth = (int) (measurer.applyAsInt(subString) + extraSpacing);
+            
+            lastGoodWrap = left;
+            left = nextCharBreak;
+            
+            lastGoodGraphicsLength = graphicsLength;
+            
+            graphicsLength += splitWidth;
+            nextCharBreak = charIterator.next();
+        }
+        
+        if (graphicsLength == avail) {
+            // Exact fit..
+            boolean needNewLine = currentString.length() > left;
+            
+            context.setNeedsNewLine(needNewLine);
+            context.setEnd(left + context.getStart());
+            context.setWidth(graphicsLength);
+            
+            if (left >= currentString.length()) {
+                return LineBreakResult.CHAR_BREAKING_FINISHED;
+            } else if (left >= nextWordBreak) {
+                return LineBreakResult.CHAR_BREAKING_FOUND_WORD_BREAK;
+            } else {
+                return LineBreakResult.CHAR_BREAKING_NEED_NEW_LINE;
+            }
+        }
+
+        if (nextCharBreak < 0) {
+            nextCharBreak = nextWordBreak;
+        }
+               
+        if (graphicsLength < avail) {
+            // Try for the last bit too!
+            lastGoodWrap = nextCharBreak;
+            lastGoodGraphicsLength = graphicsLength;
+            
+            nextCharBreak = nextWordBreak;
+            
+            float extraSpacing = (nextCharBreak - left) * letterSpacing;
+            int splitWidth = (int) (measurer.applyAsInt(currentString.substring(left, nextCharBreak)) + extraSpacing);
+
+            graphicsLength += splitWidth;
+        }
+
+        if (graphicsLength <= avail) {
+            // The entire word fit.
+            context.setWidth(graphicsLength);
+            context.setEnd(nextCharBreak + context.getStart());
+            context.setEndsOnWordBreak(nextCharBreak == nextWordBreak);
+            
+            if (nextCharBreak >= currentString.length()) {
+                return LineBreakResult.CHAR_BREAKING_FINISHED;
+            } else if (nextCharBreak >= nextWordBreak) {
+                return LineBreakResult.CHAR_BREAKING_FOUND_WORD_BREAK;
+            } else {
+                return LineBreakResult.CHAR_BREAKING_NEED_NEW_LINE;
+            }
+        }
+        
+        // We need a newline for this word.
+        context.setNeedsNewLine(true);
+        
+        if (lastGoodWrap != 0) {
+            // We found a wrap point in which to wrap this word.
+            context.setWidth(lastGoodGraphicsLength);
+            context.setEnd(lastGoodWrap + context.getStart());
+            context.setEndsOnWordBreak(lastGoodWrap == nextWordBreak);
+
+            if (lastGoodWrap >= currentString.length()) {
+                return LineBreakResult.CHAR_BREAKING_FINISHED;
+            } else if (lastGoodWrap >= nextWordBreak) {
+                return LineBreakResult.CHAR_BREAKING_FOUND_WORD_BREAK;
+            } else {
+                return LineBreakResult.CHAR_BREAKING_NEED_NEW_LINE;
+            }
+        } else if (!currentString.isEmpty()) {
+            // Not even one character fit!
+            int end = 1;
+            float extraSpacing = letterSpacing;
+            int splitWidth = (int) (measurer.applyAsInt(currentString.substring(0, end)) + extraSpacing); 
+
+            context.setUnbreakable(true);
+            context.setEnd(end + context.getStart());
+            context.setEndsOnWordBreak(end == nextWordBreak);
+            context.setWidth(splitWidth);
+            
+            return LineBreakResult.CHAR_BREAKING_UNBREAKABLE;
+        } else {
+            // Empty string.
+            context.setEnd(context.getStart());
+            context.setWidth(0);
+
+            return LineBreakResult.CHAR_BREAKING_FINISHED;
+        }
+    }
+    
+    public static final char SOFT_HYPHEN = '\u00ad';
+    
+    private static class AppBreakOpportunity {
+        int left;
+        int right;
+        int graphicsLength;
+        int withHyphenGraphicsLength;
+        boolean isSoftHyphenBreak;
+        
+        void copyTo(AppBreakOpportunity other) {
+            other.left = left;
+            other.right = right;
+            other.graphicsLength = graphicsLength;
+            other.withHyphenGraphicsLength = withHyphenGraphicsLength;
+            other.isSoftHyphenBreak = isSoftHyphenBreak;
+        }
+    }
+    
+    public static LineBreakResult doBreakText(
+            LayoutContext c,
             LineBreakContext context,
             int avail,
             CalculatedStyle style,
-            TextBreakerSupplier characterBreaker,
-            TextBreakerSupplier lineBreaker, 
-            boolean tryToBreakAnywhere) {
-    	
-    	FSFont font = style.getFSFont(c);
+            TextBreakerSupplier lineBreaker) {
 
-    	float letterSpacing = style.hasLetterSpacing() ?
-    	    style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c) :
-    	    0f;
-    	
+        FSFont font = style.getFSFont(c);
+
+        float letterSpacing = style.hasLetterSpacing()
+                ? style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c)
+                : 0f;
+
         String currentString = context.getStartSubstring();
-        FSTextBreaker iterator = tryToBreakAnywhere ? 
-        		characterBreaker.getBreaker(currentString, c.getSharedContext()) :
-        		lineBreaker.getBreaker(currentString, c.getSharedContext());
-        			
-        int left = 0;
-        int right = iterator.next();
+        FSTextBreaker iterator = lineBreaker.getBreaker(currentString, c.getSharedContext());
+
         int lastWrap = 0;
-        int graphicsLength = 0;
-        int lastGraphicsLength = 0;
-
-        // FIXME: Should this be >= instead. See comment in BreakerTest.
-        while (right > 0 && graphicsLength <= avail) {
-            lastGraphicsLength = graphicsLength;
-            graphicsLength += c.getTextRenderer().getWidth(
-                    c.getFontContext(), font, currentString.substring(left, right)) + ((right - left) * letterSpacing); 
-            lastWrap = left;
-            left = right;
-            right = iterator.next();
+        
+        AppBreakOpportunity current = new AppBreakOpportunity();
+        AppBreakOpportunity prev = new AppBreakOpportunity();
+        
+        current.right = iterator.next();
+        if (current.right == 0) {
+            current.right = iterator.next();
         }
 
-        if (graphicsLength <= avail) {
-            //try for the last bit too!
-            lastWrap = left;
-            lastGraphicsLength = graphicsLength;
-            graphicsLength += c.getTextRenderer().getWidth(
-                    c.getFontContext(), font, currentString.substring(left));
+        int nextUnfittableSplitWidth = 0;
+        
+        while (current.right > 0 && current.graphicsLength <= avail) {
+            current.copyTo(prev);
+            
+            String subString = currentString.substring(current.left, current.right);
+            float extraSpacing = (current.right - current.left) * letterSpacing;
+            
+            int normalSplitWidth = (int) (c.getTextRenderer().getWidth(
+                    c.getFontContext(), font, subString) + extraSpacing);
+            
+            if (currentString.charAt(current.right - 1) == SOFT_HYPHEN) {
+                current.isSoftHyphenBreak = true;
+                int withTrailingHyphenSplitWidth = (int) (c.getTextRenderer().getWidth(
+                        c.getFontContext(), font, subString + '-') + 
+                        extraSpacing + letterSpacing);
+                current.withHyphenGraphicsLength = current.graphicsLength + withTrailingHyphenSplitWidth;
+                
+                if (current.withHyphenGraphicsLength > avail) {
+                    current.graphicsLength = current.withHyphenGraphicsLength;
+                    lastWrap = current.left;
+                    current.left = current.right;
+                    current.right = iterator.next();
+                    break;
+                }
+            } else {
+                current.isSoftHyphenBreak = false;
+                current.withHyphenGraphicsLength += normalSplitWidth;
+            }
+            
+            current.graphicsLength += normalSplitWidth;
+            nextUnfittableSplitWidth = normalSplitWidth;
+            lastWrap = current.left;
+            current.left = current.right;
+            current.right = iterator.next();
+        }
+        
+        if (current.graphicsLength <= avail) {
+            // Try for the last bit too!
+            lastWrap = current.left;
+            current.copyTo(prev);
+            current.right = currentString.length();
+            float extraSpacing = (current.right - current.left) * letterSpacing;
+            int splitWidth = (int) (c.getTextRenderer().getWidth(
+                    c.getFontContext(), font, currentString.substring(current.left)) + extraSpacing);
+            current.graphicsLength += splitWidth;
+            nextUnfittableSplitWidth = splitWidth;
         }
 
-        if (graphicsLength <= avail) {
-            context.setWidth(graphicsLength);
+        if (current.graphicsLength <= avail) {
+            context.setWidth(current.graphicsLength);
             context.setEnd(context.getMaster().length());
-            //It fit!
-            return;
+            // It all fit!
+            return LineBreakResult.WORD_BREAKING_FINISHED;
         }
 
         context.setNeedsNewLine(true);
-        if ( lastWrap == 0 && style.getWordWrap() == IdentValue.BREAK_WORD ) {
-            if ( ! tryToBreakAnywhere ) {
-                doBreakText(c, context, avail, style, characterBreaker, lineBreaker, true);
-                return;
-            }
-        }
 
-        if (lastWrap != 0) {//found a place to wrap
+        if (lastWrap != 0) {
+            // Found a place to wrap
+            if (prev.isSoftHyphenBreak) {
+                context.setEndsOnSoftHyphen(true);
+                context.setWidth(prev.withHyphenGraphicsLength);
+            } else {
+                context.setWidth(prev.graphicsLength);
+            }
+            
+            context.setNextWidth(nextUnfittableSplitWidth);
             context.setEnd(context.getStart() + lastWrap);
-            context.setWidth(lastGraphicsLength);
-        } else {//unbreakable string
-            if (left == 0) {
-                left = currentString.length();
+            
+            return LineBreakResult.WORD_BREAKING_NEED_NEW_LINE;
+        } else {
+            // Unbreakable string
+            if (current.left == 0) {
+                current.left = currentString.length();
             }
 
-            context.setEnd(context.getStart() + left);
+            context.setEnd(context.getStart() + current.left);
             context.setUnbreakable(true);
 
-            if (left == currentString.length()) {
-                context.setWidth(c.getTextRenderer().getWidth(
-                        c.getFontContext(), font, context.getCalculatedSubstring()));
+            if (current.left == currentString.length()) {
+                String text = context.getCalculatedSubstring();
+                float extraSpacing = text.length() * letterSpacing;
+                context.setWidth((int) (c.getTextRenderer().getWidth(
+                        c.getFontContext(), font, text) + extraSpacing));
             } else {
-                context.setWidth(graphicsLength);
+                context.setWidth(current.graphicsLength);
             }
+            
+            return LineBreakResult.WORD_BREAKING_UNBREAKABLE;
         }
     }
     
@@ -226,4 +535,13 @@ public class Breaker {
 		i.setText(s);
 		return i;
 	}
+
+	/**
+	 * Gets the width of a string with letter spacing factored in.
+	 * Favor this method over using the text renderer directly.
+	 */
+    public static int getTextWidthWithLetterSpacing(CssContext c, FSFont font, String text, float letterSpacing) {
+        float extraSpace = text.length() * letterSpacing;
+        return (int) (c.getTextRenderer().getWidth(c.getFontContext(), font, text) + extraSpace);
+    }
 }

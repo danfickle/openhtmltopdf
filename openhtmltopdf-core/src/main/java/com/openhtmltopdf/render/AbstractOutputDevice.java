@@ -32,6 +32,7 @@ import com.openhtmltopdf.css.style.BackgroundSize;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
+import com.openhtmltopdf.css.style.derived.FSLinearGradient;
 import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
@@ -62,9 +63,10 @@ public abstract class AbstractOutputDevice implements OutputDevice {
 
     protected abstract void drawLine(int x1, int y1, int x2, int y2);
     
+    @Override
     public void drawText(RenderingContext c, InlineText inlineText) {
         InlineLayoutBox iB = inlineText.getParent();
-        String text = inlineText.getSubstring();
+        String text = inlineText.isEndsOnSoftHyphen() ? inlineText.getSubstring() + '-' : inlineText.getSubstring();
 
         // We reorder text here for RTL.
         if (inlineText.getTextDirection() == BidiSplitter.RTL) {
@@ -137,6 +139,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         drawLine(x, y, x + width, y);
     }
 
+    @Override
     public void drawTextDecoration(
             RenderingContext c, InlineLayoutBox iB, TextDecoration decoration) {
         setColor(iB.getStyle().getColor());
@@ -147,12 +150,13 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                     edge.width, decoration.getThickness());
     }
 
+    @Override
     public void drawTextDecoration(RenderingContext c, LineBox lineBox) {
         setColor(lineBox.getStyle().getColor());
         Box parent = lineBox.getParent();
-        List decorations = lineBox.getTextDecorations();
-        for (Iterator i = decorations.iterator(); i.hasNext(); ) {
-            TextDecoration textDecoration = (TextDecoration)i.next();
+        List<TextDecoration> decorations = lineBox.getTextDecorations();
+        for (Iterator<TextDecoration> i = decorations.iterator(); i.hasNext(); ) {
+            TextDecoration textDecoration = i.next();
             if (parent.getStyle().isIdent(
                     CSSName.FS_TEXT_DECORATION_EXTENT, IdentValue.BLOCK)) {
                 fillRect(
@@ -169,6 +173,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         }
     }
 
+    @Override
     public void drawDebugOutline(RenderingContext c, Box box, FSColor color) {
         setColor(color);
         Rectangle rect = box.getMarginEdge(box.getAbsX(), box.getAbsY(), c, 0, 0);
@@ -177,11 +182,13 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         drawRect(rect.x, rect.y, rect.width, rect.height);
     }
 
+    @Override
     public void paintCollapsedBorder(
             RenderingContext c, BorderPropertySet border, Rectangle bounds, int side) {
         BorderPainter.paint(bounds, side, border, c, 0, false);
     }
 
+    @Override
     public void paintBorder(RenderingContext c, Box box) {
         if (! box.getStyle().isVisible(c, box)) {
             return;
@@ -192,6 +199,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         BorderPainter.paint(borderBounds, box.getBorderSides(), box.getBorder(c), c, 0, true);
     }
 
+    @Override
     public void paintBorder(RenderingContext c, CalculatedStyle style, Rectangle edge, int sides) {
         BorderPainter.paint(edge, sides, style.getBorder(c), c, 0, true);
     }
@@ -209,12 +217,14 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         return null;
     }
 
+    @Override
     public void paintBackground(
             RenderingContext c, CalculatedStyle style,
             Rectangle bounds, Rectangle bgImageContainer, BorderPropertySet border) {
         paintBackground0(c, style, bounds, bgImageContainer, border);
     }
 
+    @Override
     public void paintBackground(RenderingContext c, Box box) {
         if (! box.getStyle().isVisible(c, box)) {
             return;
@@ -234,7 +244,14 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         }
 
         FSColor backgroundColor = style.getBackgroundColor();
-        FSImage backgroundImage = getBackgroundImage(c, style);
+        FSImage backgroundImage = null;
+        FSLinearGradient backgroundLinearGradient = null;
+        
+        if (style.isLinearGradient()) {
+            backgroundLinearGradient = style.getLinearGradient(c, (int) (bgImageContainer.width - border.width()), (int) (bgImageContainer.height - border.height()));
+        } else {
+            backgroundImage = getBackgroundImage(c, style);
+        }
 
         // If the image width or height is zero, then there's nothing to draw.
         // Also prevents infinte loop when trying to tile an image with zero size.
@@ -243,11 +260,16 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         }
 
         if ( (backgroundColor == null || backgroundColor == FSRGBColor.TRANSPARENT) &&
-                backgroundImage == null) {
+             backgroundImage == null && backgroundLinearGradient == null) {
             return;
         }
         
-        Area borderBounds = new Area(BorderPainter.generateBorderBounds(backgroundBounds, border, true));
+        Shape borderBoundsShape = BorderPainter.generateBorderBounds(backgroundBounds, border, true);
+
+        // FIXME for issue 396 - generating an Area for a shape with curves is very very slow and
+        // memory intensive. However, not generating an area for simple squares breaks many tests.
+        // Therefore, for now, we just don't use an area if there are border radii present.
+        Area borderBounds = border.hasBorderRadius() && c.isFastRenderer() ? null : new Area(borderBoundsShape);
 
         Shape oldclip = null;
         
@@ -258,16 +280,16 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         	    borderBounds.intersect(new Area(oldclip));
             }
             setClip(borderBounds);
-        } else if (backgroundImage != null) {
-        	pushClip(borderBounds);
+        } else if (backgroundImage != null || backgroundLinearGradient != null) {
+        	pushClip(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
         if (backgroundColor != null && backgroundColor != FSRGBColor.TRANSPARENT) {
             setColor(backgroundColor);
-            fill(borderBounds);
+            fill(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
-        if (backgroundImage != null) {
+        if (backgroundImage != null || backgroundLinearGradient != null) {
             Rectangle localBGImageContainer = bgImageContainer;
             if (style.isFixedBackground()) {
                 localBGImageContainer = c.getViewportRectangle();
@@ -281,6 +303,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                 yoff += (int)border.top();
             }
 
+            if (backgroundImage != null) {
             scaleBackgroundImage(c, style, localBGImageContainer, backgroundImage);
 
             float imageWidth = backgroundImage.getWidth();
@@ -327,12 +350,15 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                             yoff,
                             backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
                 }
+            } // End background image painting.
+            } else if (backgroundLinearGradient != null) {
+                drawLinearGradient(backgroundLinearGradient, new Rectangle(xoff, yoff, bgImageContainer.width, bgImageContainer.height));
             }
         }
         
         if (!c.isFastRenderer()) {
         	setClip(oldclip);
-        } else if (backgroundImage != null) {
+        } else if (backgroundImage != null || backgroundLinearGradient != null) {
         	popClip();
         }
     }

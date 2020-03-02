@@ -51,9 +51,9 @@ public class BlockBoxing {
     public static void layoutContent(LayoutContext c, BlockBox block, int contentStart) {
         int offset = -1;
 
-        List localChildren = block.getChildren();
+        List<Box> localChildren = block.getChildren();
         if (c.isPrint() && ! (localChildren instanceof RandomAccess)) {
-            localChildren = new ArrayList(localChildren);
+            localChildren = new ArrayList<>(localChildren);
         }
 
         int childOffset = block.getHeight() + contentStart;
@@ -65,7 +65,7 @@ public class BlockBoxing {
 
         int pageCount = NO_PAGE_TRIM;
         BlockBox previousChildBox = null;
-        for (Iterator i = localChildren.iterator(); i.hasNext();) {
+        for (Iterator<Box> i = localChildren.iterator(); i.hasNext();) {
             BlockBox child = (BlockBox) i.next();
             offset++;
 
@@ -154,7 +154,7 @@ public class BlockBoxing {
     }
 
     private static RelayoutRunResult processPageBreakAvoidRun(final LayoutContext c, final BlockBox block,
-                                                              List localChildren, int offset,
+                                                              List<Box> localChildren, int offset,
                                                               RelayoutDataList relayoutDataList, RelayoutData relayoutData,
                                                               BlockBox childBox) {
         RelayoutRunResult result = new RelayoutRunResult();
@@ -216,12 +216,12 @@ public class BlockBoxing {
     }
 
     private static int relayoutRun(
-            LayoutContext c, List localChildren, BlockBox block,
+            LayoutContext c, List<Box> localChildren, BlockBox block,
             RelayoutDataList relayoutDataList, int start, int end, boolean onNewPage) {
         int childOffset = relayoutDataList.get(start).getChildOffset();
 
         if (onNewPage) {
-            Box startBox = (Box) localChildren.get(start);
+            Box startBox = localChildren.get(start);
             PageBox startPageBox = c.getRootLayer().getFirstPage(c, startBox);
             childOffset += startPageBox.getBottom() - startBox.getAbsY();
         }
@@ -355,17 +355,17 @@ public class BlockBoxing {
     }
 
     private static class RelayoutDataList {
-        private List _hints;
+        private List<RelayoutData> _hints;
 
         public RelayoutDataList(int size) {
-            _hints = new ArrayList(size);
+            _hints = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 _hints.add(new RelayoutData());
             }
         }
 
         public RelayoutData get(int index) {
-            return (RelayoutData) _hints.get(index);
+            return _hints.get(index);
         }
 
         public void markRun(int offset, BlockBox previous, BlockBox current) {

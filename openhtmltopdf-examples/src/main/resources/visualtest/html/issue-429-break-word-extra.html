@@ -1,0 +1,49 @@
+<html>
+<head>
+<style>
+@page {
+  size: 100mm 25cm;
+}
+body, td {
+  border: 1px solid black;
+}
+table, .wrap {
+    word-wrap: break-word;
+}
+</style>
+</head>
+<body style="font-family: monospace;">
+
+<div class="wrap">
+  FirstWordTooLongForLineSoItShouldWrap MiddleWordTooLongForLineSoItShouldWrap LastWordTooLongForLineSoItShouldWrap
+</div><br/>
+
+<div class="wrap">
+  First Word Too Long For Line So It Should MiddleWordTooLongForLineSoItShouldWrap LastWordTooLongForLineSoItShouldWrap
+</div><br/>
+
+<div class="wrap">
+  First Word Too Long For Line So It Should MiddleWordTooLongForLineSoItShouldWrap Last Word Too Long For Line So It Should
+</div><br/>
+
+<div class="wrap">
+  FirstWordNotTooLongForLineSoIt FirstWordNotTooLongForLineSoIt FirstWordNotTooLongForLineSoIt FirstWordNotTooLongForLineSoIt
+</div><br/>
+
+<div class="wrap">
+  FirstWordNotTooLongForLine <b>FirstWordNotTooLongForLine</b> <b><i>FirstWordNotTooLongForLineSoIt FirstWordNotTooLongForLineSoIt</i></b>
+</div><br/>
+
+<div class="wrap">
+  One two three FirstWordNotTooLongForLineSoIt four five FirstWordNotTooLongForLineSoIt six seven FirstWordNotTooLongForLineSoIt eight FirstWordNotTooLongForLineSoIt
+</div><br/>
+
+<table>
+<tr><td>OneTwoThreeFour</td><td>Five six seven</td><td>Eight nine</td></tr>
+<tr><td>One Two Three Four</td><td>Fivesixseven</td><td>Eight nine</td></tr>
+<tr><td>One Two Three Four</td><td>Five six seven</td><td>Eightnine</td></tr>
+<tr><td>OneTwoThreeFour</td><td>Fivesixseven</td><td>Eightnine</td></tr>
+</table>
+
+</body>
+</html>

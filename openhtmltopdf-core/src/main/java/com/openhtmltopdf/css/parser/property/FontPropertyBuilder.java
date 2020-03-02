@@ -37,10 +37,10 @@ public class FontPropertyBuilder extends AbstractPropertyBuilder {
     private static final CSSName[] ALL = new CSSName[] {
         CSSName.FONT_STYLE, CSSName.FONT_VARIANT, CSSName.FONT_WEIGHT, 
         CSSName.FONT_SIZE, CSSName.LINE_HEIGHT, CSSName.FONT_FAMILY };
-    
-    public List buildDeclarations(
-            CSSName cssName, List values, int origin, boolean important, boolean inheritAllowed) {
-        List result = checkInheritAll(ALL, values, origin, important, inheritAllowed);
+    @Override
+    public List<PropertyDeclaration> buildDeclarations(
+            CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
+        List<PropertyDeclaration> result = checkInheritAll(ALL, values, origin, important, inheritAllowed);
         if (result != null) {
             return result;
         }
@@ -54,9 +54,9 @@ public class FontPropertyBuilder extends AbstractPropertyBuilder {
         
         boolean keepGoing = false;
         
-        ListIterator i = values.listIterator();
+        ListIterator<PropertyValue> i = values.listIterator();
         while (i.hasNext()) {
-            PropertyValue value = (PropertyValue)i.next();
+            PropertyValue value = i.next();
             int type = value.getPrimitiveType();
             if (type == CSSPrimitiveValue.CSS_IDENT) {
                 // The parser will have given us ident values as they appear
@@ -111,7 +111,7 @@ public class FontPropertyBuilder extends AbstractPropertyBuilder {
         
         if (keepGoing) {
             i.previous();
-            PropertyValue value = (PropertyValue)i.next();
+            PropertyValue value = i.next();
             
             if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
                 String lowerCase = value.getStringValue().toLowerCase();
@@ -119,32 +119,32 @@ public class FontPropertyBuilder extends AbstractPropertyBuilder {
             }
             
             PropertyBuilder fontSizeBuilder = CSSName.getPropertyBuilder(CSSName.FONT_SIZE);
-            List l = fontSizeBuilder.buildDeclarations(
+            List<PropertyDeclaration> l = fontSizeBuilder.buildDeclarations(
                     CSSName.FONT_SIZE, Collections.singletonList(value), origin, important);
             
-            fontSize = (PropertyDeclaration)l.get(0);
+            fontSize = l.get(0);
             
             if (i.hasNext()) {
-                value = (PropertyValue)i.next();
+                value = i.next();
                 if (value.getOperator() == Token.TK_VIRGULE) {
                     PropertyBuilder lineHeightBuilder = CSSName.getPropertyBuilder(CSSName.LINE_HEIGHT);
                     l = lineHeightBuilder.buildDeclarations(
                             CSSName.LINE_HEIGHT, Collections.singletonList(value), origin, important);
-                    lineHeight = (PropertyDeclaration)l.get(0);
+                    lineHeight = l.get(0);
                 } else {
                     i.previous();
                 }
             }
             
             if (i.hasNext()) {
-                List families = new ArrayList();
+                List<PropertyValue> families = new ArrayList<>();
                 while (i.hasNext()) {
                     families.add(i.next());
                 }
                 PropertyBuilder fontFamilyBuilder = CSSName.getPropertyBuilder(CSSName.FONT_FAMILY);
                 l = fontFamilyBuilder.buildDeclarations(
                         CSSName.FONT_FAMILY, families, origin, important);
-                fontFamily = (PropertyDeclaration)l.get(0);
+                fontFamily = l.get(0);
             }
         }
         
@@ -174,7 +174,7 @@ public class FontPropertyBuilder extends AbstractPropertyBuilder {
         
         // XXX font-family should be reset too (although does this really make sense?)
         
-        result = new ArrayList(ALL.length);
+        result = new ArrayList<>(ALL.length);
         result.add(fontStyle);
         result.add(fontVariant);
         result.add(fontWeight);

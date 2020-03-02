@@ -2,6 +2,7 @@ package com.openhtmltopdf.freemarker;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 import org.apache.pdfbox.io.MemoryUsageSetting;
@@ -64,7 +65,7 @@ public class FreeMarkerGenerator {
 	public void generateHTMLToFile(String templateName, Locale locale, FreemarkerRootObject object, File htmlFile)
 			throws IOException, TemplateException {
 		FileOutputStream output = new FileOutputStream(htmlFile);
-		Writer fw = new OutputStreamWriter(output, "UTF-8");
+		Writer fw = new OutputStreamWriter(output, StandardCharsets.UTF_8);
 		cfg.getTemplate(templateName, locale, "UTF-8").process(object, fw);
 		fw.close();
 		output.close();

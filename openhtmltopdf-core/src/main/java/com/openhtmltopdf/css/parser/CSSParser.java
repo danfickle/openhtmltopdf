@@ -37,17 +37,17 @@ import java.util.*;
 import java.util.logging.Level;
 
 public class CSSParser {
-    private static final Set SUPPORTED_PSEUDO_ELEMENTS;
-    private static final Set CSS21_PSEUDO_ELEMENTS;
+    private static final Set<String> SUPPORTED_PSEUDO_ELEMENTS;
+    private static final Set<String> CSS21_PSEUDO_ELEMENTS;
 
     static {
-        SUPPORTED_PSEUDO_ELEMENTS = new HashSet();
+        SUPPORTED_PSEUDO_ELEMENTS = new HashSet<>();
         SUPPORTED_PSEUDO_ELEMENTS.add("first-line");
         SUPPORTED_PSEUDO_ELEMENTS.add("first-letter");
         SUPPORTED_PSEUDO_ELEMENTS.add("before");
         SUPPORTED_PSEUDO_ELEMENTS.add("after");
 
-        CSS21_PSEUDO_ELEMENTS = new HashSet();
+        CSS21_PSEUDO_ELEMENTS = new HashSet<>();
         CSS21_PSEUDO_ELEMENTS.add("first-line");
         CSS21_PSEUDO_ELEMENTS.add("first-letter");
         CSS21_PSEUDO_ELEMENTS.add("before");
@@ -60,7 +60,7 @@ public class CSSParser {
     private CSSErrorHandler _errorHandler;
     private String _URI;
 
-    private Map _namespaces = new HashMap();
+    private Map<String, String> _namespaces = new HashMap<>();
     private boolean _supportCMYKColors;
 
     public CSSParser(CSSErrorHandler errorHandler) {
@@ -105,13 +105,13 @@ public class CSSParser {
         _URI = cssName + " property value";
         try {
             reset(new StringReader(expr));
-            List values = expr(
+            List<PropertyValue> values = expr(
                     cssName == CSSName.FONT_FAMILY ||
                     cssName == CSSName.FONT_SHORTHAND ||
                     cssName == CSSName.FS_PDF_FONT_ENCODING);
 
             PropertyBuilder builder = CSSName.getPropertyBuilder(cssName);
-            List props;
+            List<PropertyDeclaration> props;
             try {
                 props = builder.buildDeclarations(cssName, values, origin, false);
             } catch (CSSParseException e) {
@@ -124,7 +124,7 @@ public class CSSParser {
                         "Builder created " + props.size() + "properties, expected 1", getCurrentLine());
             }
 
-            PropertyDeclaration decl = (PropertyDeclaration)props.get(0);
+            PropertyDeclaration decl = props.get(0);
 
             return (PropertyValue)decl.getValue();
         } catch (IOException e) {
@@ -781,8 +781,8 @@ public class CSSParser {
 //    ;
     private void selector(Ruleset ruleset) throws IOException {
         //System.out.println("selector()");
-        List selectors = new ArrayList();
-        List combinators = new ArrayList();
+        List<Selector> selectors = new ArrayList<>();
+        List<Token> combinators = new ArrayList<>();
         selectors.add(simple_selector(ruleset));
         LOOP:
         while (true) {
@@ -815,18 +815,18 @@ public class CSSParser {
         ruleset.addFSSelector(mergeSimpleSelectors(selectors, combinators));
     }
 
-    private Selector mergeSimpleSelectors(List selectors, List combinators) {
+    private Selector mergeSimpleSelectors(List<Selector> selectors, List<Token> combinators) {
         int count = selectors.size();
         if (count == 1) {
-            return (Selector)selectors.get(0);
+            return selectors.get(0);
         }
 
         int lastDescendantOrChildAxis = Selector.DESCENDANT_AXIS;
         Selector result = null;
         for (int i = 0; i < count - 1; i++) {
-            Selector first = (Selector)selectors.get(i);
-            Selector second = (Selector)selectors.get(i+1);
-            Token combinator = (Token)combinators.get(i);
+            Selector first = selectors.get(i);
+            Selector second = selectors.get(i + 1);
+            Token combinator = combinators.get(i);
 
             if (first.getPseudoElement() != null) {
                 throw new CSSParseException(
@@ -862,7 +862,7 @@ public class CSSParser {
                 }
                 if (i > 0) {
                     for (int j = i-1; j >= 0; j--) {
-                        Selector selector = (Selector)selectors.get(j);
+                        Selector selector = selectors.get(j);
                         if (selector.getChainedSelector() == first) {
                             selector.setChainedSelector(second);
                             second.setAxis(lastDescendantOrChildAxis);
@@ -992,13 +992,13 @@ public class CSSParser {
 
         String namespaceURI = null;
         if (prefix != null && prefix != TreeResolver.NO_NAMESPACE) {
-            namespaceURI = (String)_namespaces.get(prefix.toLowerCase());
+            namespaceURI = _namespaces.get(prefix.toLowerCase());
             if (namespaceURI == null) {
                 throw new CSSParseException("There is no namespace with prefix " + prefix + " defined",
                         getCurrentLine());
             }
         } else if (prefix == null && ! matchAttribute) {
-            namespaceURI = (String)_namespaces.get(null);
+            namespaceURI = _namespaces.get(null);
         }
 
         if (matchAttribute && name == null) {
@@ -1285,7 +1285,7 @@ public class CSSParser {
                 if (t == Token.TK_COLON) {
                     skip_whitespace();
 
-                    List values = expr(
+                    List<PropertyValue> values = expr(
                             cssName == CSSName.FONT_FAMILY ||
                             cssName == CSSName.FONT_SHORTHAND ||
                             cssName == CSSName.FS_PDF_FONT_ENCODING);
@@ -1345,7 +1345,7 @@ public class CSSParser {
 //  expr
 //    : term [ operator term ]*
 //    ;
-    private List expr(boolean literal) throws IOException {
+    private List<PropertyValue> expr(boolean literal) throws IOException {
         //System.out.println("expr()");
         List<PropertyValue> result = new ArrayList<PropertyValue>(10);
         result.add(term(literal));
@@ -1614,7 +1614,7 @@ public class CSSParser {
         if (t == Token.TK_FUNCTION) {
             String f = getTokenValue(t);
             skip_whitespace();
-            List params = expr(false);
+            List<PropertyValue> params = expr(false);
             t = next();
             if (t != Token.TK_RPAREN) {
                 push(t);
@@ -1643,7 +1643,7 @@ public class CSSParser {
         return result;
     }
 
-    private FSCMYKColor createCMYKColorFromFunction(List params) {
+    private FSCMYKColor createCMYKColorFromFunction(List<PropertyValue> params) {
         if (params.size() != 4) {
             throw new CSSParseException(
                     "The cmyk() function must have exactly four parameters",
@@ -1653,7 +1653,7 @@ public class CSSParser {
         float[] colorComponents = new float[4];
 
         for (int i = 0; i < params.size(); i++) {
-            colorComponents[i] = parseCMYKColorComponent((PropertyValue)params.get(i), (i+1)); //Warning on the truncation?
+            colorComponents[i] = parseCMYKColorComponent(params.get(i), (i+1)); //Warning on the truncation?
         }
 
         return new FSCMYKColor(colorComponents[0], colorComponents[1], colorComponents[2], colorComponents[3]);
@@ -1681,7 +1681,7 @@ public class CSSParser {
         return result;
     }
 
-    private FSRGBColor createRGBColorFromFunction(List params) {
+    private FSRGBColor createRGBColorFromFunction(List<PropertyValue> params) {
         if (params.size() != 3) {
             throw new CSSParseException(
                     "The rgb() function must have exactly three parameters",
@@ -1692,7 +1692,7 @@ public class CSSParser {
         int green = 0;
         int blue = 0;
         for (int i = 0; i < params.size(); i++) {
-            PropertyValue value = (PropertyValue)params.get(i);
+            PropertyValue value = params.get(i);
             short type = value.getPrimitiveType();
             if (type != CSSPrimitiveValue.CSS_PERCENTAGE &&
                     type != CSSPrimitiveValue.CSS_NUMBER) {

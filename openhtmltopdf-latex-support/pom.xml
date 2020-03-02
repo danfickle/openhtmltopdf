@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
   </parent>
 
   <artifactId>openhtmltopdf-latex-support</artifactId>
@@ -52,7 +52,7 @@
 	  <resources>
 	    <resource>
 	      <directory>../</directory>
-	      <targetPath>${project.build.outputDirectory}/META-INF</targetPath>
+	      <targetPath>META-INF</targetPath>
 	      <includes>
 	        <include>LICENSE*</include>
 	      </includes>

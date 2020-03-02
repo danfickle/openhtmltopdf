@@ -687,6 +687,16 @@ public class VisualRegressionTest {
     }
     
     /**
+     * Tests that an image with width and height specified but max-width or max-height
+     * takes precedence, that the image will keep its aspect ratio.
+     * https://github.com/danfickle/openhtmltopdf/issues/417
+     */
+    @Test
+    public void testIssue417ReplacedSizingWidthHeightWithMax() throws IOException {
+        assertTrue(vt.runTest("issue-417-replaced-sizing-width-height-with-max"));
+    }
+    
+    /**
      * Tests that a fixed position element correctly resizes to the sum of its child boxes
      * using border-box sizing.
      */
@@ -874,6 +884,184 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("float-clear-both"));
     }
     
+    /**
+     * Tests that border radii work. Issue 396.
+     */
+    @Test
+    public void testBorderRadius() throws IOException {
+        assertTrue(vt.runTest("border-radius"));
+    }
+
+    /**
+     * Check counter style after page break, it should not be affected by a previous bolded text, see issue
+     * https://github.com/danfickle/openhtmltopdf/issues/366
+     */
+    @Test
+    public void testListCounterAfterPageBreak() throws IOException {
+        assertTrue(vt.runTest("list-counter-after-page-break"));
+    }
+
+    /**
+     * Check the added elements are considered as block by default.
+     *
+     * See issue: https://github.com/danfickle/openhtmltopdf/issues/382
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testMissingHtml5BlockElements() throws IOException {
+        assertTrue(vt.runTest("html5-missing-block-elements"));
+    }
+
+    /**
+     * Tests that a paginated table doesn't add header and footer with no rows
+     * on a page.
+     * https://github.com/danfickle/openhtmltopdf/issues/399
+     */
+    @Test
+    @Ignore // Failing for now.
+    public void testIssue399TableHeaderFooterWithNoRows() throws IOException {
+        assertTrue(vt.runTest("issue-399-table-header-with-no-rows"));    
+    }
+    
+
+    /**
+     * Tests that justified text with non-justified content (br) nested inside it
+     * will not throw a NPE.
+     * https://github.com/danfickle/openhtmltopdf/issues/420
+     */
+    @Test
+    public void testIssue420JustifyTextNullPointerException() throws IOException {
+        assertTrue(vt.runTest("issue-420-justify-text-null-pointer-exception"));
+    }
+    
+    /**
+     * Tests that justified text with non-justified content nested inside it
+     * correctly justifies.
+     */
+    @Test
+    public void testIssue420JustifyTextWhiteSpacePre() throws IOException {
+        assertTrue(vt.runTest("issue-420-justify-text-white-space-pre"));
+    }
+    
+    /**
+     * Tests that in break-word mode, a long word will only be broken if it would not
+     * fit on a line by itself.
+     * https://github.com/danfickle/openhtmltopdf/issues/429
+     */
+    @Test
+    public void testIssue429BreakWordNested() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-nested"));
+    }
+
+    /**
+     * Tests additional problems with break-word such as the first word being too long, etc.
+     */
+    @Test
+    public void testIssue429BreakWordExtra() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-extra"));
+    }
+
+    /**
+     * Similar to break word extra but with with text-align: center enabled.
+     */
+    @Test
+    public void testIssue429BreakWordExtraCentered() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-extra-centered"));
+    }
+
+    /**
+     * Tests the behavior of very large unbreakable characters with break-word enabled.
+     */
+    @Test
+    public void testIssue429BreakWordLargeChars() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-large-chars"));
+    }
+  
+    /**
+     * Tests break-word in the presence of floats.
+     */
+    @Test
+    @Ignore // If the first too long word is next to a float it will be pushed 
+            // below the float rather than be character broken (see chrome for correct display).
+            // Otherwise working pretty well.
+    public void testIssue429BreakWordWithFloats() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-with-floats"));
+    }
+
+    /**
+     * Tests that a line ending with the br tag does not get justified.
+     * https://github.com/danfickle/openhtmltopdf/issues/433
+     */
+    @Test
+    public void testIssue433TextJustifyWithBr() throws IOException {
+        assertTrue(vt.runTest("issue-433-text-justify-with-br"));
+    }
+
+    /**
+     * Tests that the lang() selector takes into account any lang set on 
+     * ancestor elements.
+     */
+    @Test
+    public void testIssue446LangSelector() throws IOException {
+        assertTrue(vt.runTest("issue-446-lang-selector"));
+    }
+
+    /**
+     * Tests that aligned right text doesn't have trailing spaces
+     * that cause ragged text on the right.
+     */
+    @Test
+    public void testIssue440TrailingWsAlignRight() throws IOException {
+        assertTrue(vt.runTest("issue-440-trailing-ws-align-right"));
+    }
+
+    /**
+     * Don't launch a ClassCastException if a td in a table is floated.
+     *
+     * See issue: https://github.com/danfickle/openhtmltopdf/issues/309
+     */
+    @Test
+    public void testIssue309ClassCastExceptionOnFloatTd() throws IOException {
+        assertTrue(vt.runTest("issue-309-classcastexception-on-float-td"));
+    }
+
+    /**
+     * Tests various linear gradients.
+     * https://github.com/danfickle/openhtmltopdf/issues/439
+     */
+    @Test
+    public void testIssue439LinearGradient() throws IOException {
+        assertTrue(vt.runTest("issue-439-linear-gradient"));
+    }
+
+    /**
+     * Tests that a font-face rule with multiple sources in different formats
+     * loads the truetype font only.
+     */
+    @Test
+    public void testCssFontFaceRuleAdvanced() throws IOException {
+        assertTrue(vt.runTest("css-font-face-rule-advanced"));
+    }
+    
+    /**
+     * Tests that a simple font-face rule continues to work.
+     */
+    @Test
+    public void testCssFontFaceRuleSimple() throws IOException {
+        assertTrue(vt.runTest("css-font-face-rule-simple"));
+    }
+    
+    /**
+     * Tests that a google font import will work (provided that truetype font is included).
+     */
+    @Test
+    @Ignore // Passing manual test - we do not want to rely on google always returning the same thing
+            // and network load of font slows down the tests.
+    public void testCssFontFaceRuleGoogle() throws IOException {
+        assertTrue(vt.runTest("css-font-face-rule-google"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

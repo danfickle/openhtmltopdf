@@ -858,7 +858,7 @@ public class BoxBuilder {
             }
 
             if (content != null) {
-                InlineBox iB = new InlineBox(content, null);
+                InlineBox iB = new InlineBox(content);
                 iB.setContentFunction(contentFunction);
                 iB.setFunction(function);
                 iB.setElement(element);
@@ -993,6 +993,9 @@ public class BoxBuilder {
             BlockBox result;
             if (style.isTable() || style.isInlineTable()) {
                 result = new TableBox();
+            } else if (style.isTableCell()) {
+                info.setContainsTableContent(true);
+                result = new TableCellBox();
             } else {
                 result = new BlockBox();
             }
@@ -1054,7 +1057,7 @@ public class BoxBuilder {
 
     private static InlineBox createInlineBox(
             String text, Element parent, CalculatedStyle parentStyle, Text node) {
-        InlineBox result = new InlineBox(text, node);
+        InlineBox result = new InlineBox(text);
 
         if (parentStyle.isInline() && ! (parent.getParentNode() instanceof Document)) {
             result.setStyle(parentStyle);
@@ -1357,7 +1360,9 @@ public class BoxBuilder {
 
         for (Styleable child : children) {
             if (child.getStyle().isLayedOutInInlineContext() &&
-                    ! (layoutRunningBlocks && child.getStyle().isRunning())) {
+                    ! (layoutRunningBlocks && child.getStyle().isRunning()) &&
+                    !child.getStyle().isTableCell() //see issue https://github.com/danfickle/openhtmltopdf/issues/309
+            ) {
                 inline.add(child);
 
                 if (child.getStyle().isInline()) {

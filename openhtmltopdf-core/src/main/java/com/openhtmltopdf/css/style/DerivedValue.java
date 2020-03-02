@@ -70,6 +70,7 @@ public abstract class DerivedValue implements FSDerivedValue {
      * not a DerivedValue
      *
      */
+    @Override
     public boolean isDeclaredInherit() {
         return false;
     }
@@ -82,14 +83,17 @@ public abstract class DerivedValue implements FSDerivedValue {
         return ValueConstants.isAbsoluteUnit(_cssSacUnitType);
     }
 
+    @Override
     public float asFloat() {
         throw new XRRuntimeException("asFloat() needs to be overridden in subclass.");
     }
 
+    @Override
     public FSColor asColor() {
         throw new XRRuntimeException("asColor() needs to be overridden in subclass.");
     }
 
+    @Override
     public float getFloatProportionalTo(
             CSSName cssName,
             float baseValue,
@@ -98,21 +102,27 @@ public abstract class DerivedValue implements FSDerivedValue {
         throw new XRRuntimeException("getFloatProportionalTo() needs to be overridden in subclass.");
     }
 
+    @Override
     public String asString() {
         return getStringValue();
     }
+    @Override
     public String[] asStringArray() {
         throw new XRRuntimeException("asStringArray() needs to be overridden in subclass.");
     }
+    @Override
     public IdentValue asIdentValue() {
         throw new XRRuntimeException("asIdentValue() needs to be overridden in subclass.");
     }
+    @Override
     public boolean hasAbsoluteUnit() {
         throw new XRRuntimeException("hasAbsoluteUnit() needs to be overridden in subclass.");
     }
+    @Override
     public boolean isIdent() {
         return false;
     }
+    @Override
     public boolean isDependentOnFontSize() {
         return false;
     }

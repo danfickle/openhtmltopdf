@@ -33,6 +33,7 @@ public class FontFaceRule implements RulesetContainer {
         _origin = origin;
     }
 
+    @Override
     public void addContent(Ruleset ruleset) {
         if (_ruleset != null) {
             throw new XRRuntimeException("Ruleset can only be set once");
@@ -40,6 +41,7 @@ public class FontFaceRule implements RulesetContainer {
         _ruleset = ruleset;
     }
 
+    @Override
     public int getOrigin() {
         return _origin;
     }

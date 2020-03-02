@@ -22,6 +22,7 @@ package com.openhtmltopdf.css.style;
 
 import java.awt.Cursor;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,7 @@ import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.CountersValue;
 import com.openhtmltopdf.css.style.derived.DerivedValueFactory;
+import com.openhtmltopdf.css.style.derived.FSLinearGradient;
 import com.openhtmltopdf.css.style.derived.FunctionValue;
 import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.css.style.derived.ListValue;
@@ -212,6 +214,7 @@ public class CalculatedStyle {
      *
      * @return The borderWidth value
      */
+    @Override
     public String toString() {
         return genStyleKey();
     }
@@ -1392,9 +1395,22 @@ public class CalculatedStyle {
 			return (int) cssMaxHeight.value();
 		}
 	}
-	
-	
-}// end class
+
+    public boolean isLinearGradient() {
+        FSDerivedValue value = valueByName(CSSName.BACKGROUND_IMAGE);    	
+        return value instanceof FunctionValue &&
+               Objects.equals(((FunctionValue) value).getFunction().getName(), "linear-gradient");
+    }
+
+    public FSLinearGradient getLinearGradient(CssContext cssContext, int boxWidth, int boxHeight) {
+        if (!isLinearGradient()) {
+            return null;
+        }
+
+        FunctionValue value = (FunctionValue) valueByName(CSSName.BACKGROUND_IMAGE);
+        return new FSLinearGradient(this, value.getFunction(), boxWidth, boxHeight, cssContext);
+    }
+}
 
 /*
  * $Id$

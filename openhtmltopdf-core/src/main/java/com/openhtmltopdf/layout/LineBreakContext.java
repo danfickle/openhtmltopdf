@@ -19,14 +19,26 @@
  */
 package com.openhtmltopdf.layout;
 
-import org.w3c.dom.Text;
-
 /**
  * A bean which serves as a way for the layout code to pass information to the
  * line breaking code and for the line breaking code to pass instructions back
  * to the layout code.
  */
 public class LineBreakContext {
+    public static enum LineBreakResult {
+        CHAR_BREAKING_NEED_NEW_LINE,
+        WORD_BREAKING_NEED_NEW_LINE,
+
+        CHAR_BREAKING_UNBREAKABLE,
+        WORD_BREAKING_UNBREAKABLE,
+
+        CHAR_BREAKING_FOUND_WORD_BREAK,
+
+        CHAR_BREAKING_FINISHED, 
+        WORD_BREAKING_FINISHED;
+    }
+    
+    
     private String _master;
     private int _start;
     private int _end;
@@ -35,7 +47,10 @@ public class LineBreakContext {
     private boolean _needsNewLine;
     private int _width;
     private boolean _endsOnNL;
-    private Text _textNode;
+    private boolean _endsOnSoftHyphen;
+    private int _nextWidth;
+    private boolean _endsOnWordBreak;
+    private boolean _finishedInCharBreakingMode;
     
     public int getLast() {
         return _master.length();
@@ -45,6 +60,9 @@ public class LineBreakContext {
         _width = 0;
         _unbreakable = false;
         _needsNewLine = false;
+        _endsOnSoftHyphen = false;
+        _nextWidth = 0;
+        _endsOnWordBreak = false;
     }
     
     public int getEnd() {
@@ -130,11 +148,45 @@ public class LineBreakContext {
         _endsOnNL = b;
     }
 
-    public Text getTextNode() {
-        return this._textNode;
+    public boolean isEndsOnSoftHyphen() {
+        return this._endsOnSoftHyphen;
+    }
+    
+    public void setEndsOnSoftHyphen(boolean b) {
+        this._endsOnSoftHyphen = true;
     }
 
-    public void setTextNode(Text _text) {
-        this._textNode = _text;
+    /**
+     * If needs newline, returns the graphics width of the next unbreakable sequence.
+     * We use this to test if we should actually put in a newline before a long word
+     * when break-word is on. If getNextWidth would fit on an empty line we put in the 
+     * new line else we split in the long word immediately.
+     */
+    public int getNextWidth() {
+        return _nextWidth;
+    }
+
+    public void setNextWidth(int nextWidth) {
+        this._nextWidth = nextWidth;
+    }
+
+    public boolean isEndsOnWordBreak() {
+        return _endsOnWordBreak;
+    }
+
+    public void setEndsOnWordBreak(boolean _endsOnWordBreak) {
+        this._endsOnWordBreak = _endsOnWordBreak;
+    }
+
+    public void setFinishedInCharBreakingMode(boolean mode) {
+        this._finishedInCharBreakingMode = mode;
+    }
+
+    /**
+     * If this is true, it means we finished in char breaking mode because
+     * a word was too large. The next line should begin in char breaking mode.
+     */
+    public boolean isFinishedInCharBreakingMode() {
+        return _finishedInCharBreakingMode;
     }
 }

@@ -22,11 +22,15 @@ package com.openhtmltopdf.extend;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
+import com.openhtmltopdf.css.style.derived.FSLinearGradient;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.util.XRLog;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
 import java.util.List;
+import java.util.logging.Level;
 
 public interface OutputDevice {
 	public void setPaint(Paint paint);
@@ -84,6 +88,10 @@ public interface OutputDevice {
     public void drawBorderLine(Shape bounds, int side, int width, boolean solid);
     
     public void drawImage(FSImage image, int x, int y, boolean interpolate);
+
+    default public void drawLinearGradient(FSLinearGradient backgroundLinearGradient, Shape bounds) {
+        XRLog.render(Level.WARNING, "linear-gradient(...) is not supported in this output device");
+    }
 
     public void draw(Shape s);
     public void fill(Shape s);

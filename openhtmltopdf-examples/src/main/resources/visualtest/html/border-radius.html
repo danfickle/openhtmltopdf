@@ -1,0 +1,44 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 300px;
+  margin: 0;
+  padding: 0;
+}
+body {
+  padding: 0;
+  margin: 0;
+}
+div {
+  margin: 10px;
+  width: 150px;
+  height: 40px;
+  background-color: blue;
+}
+.one {
+  /* no border */
+  border-radius: 10px;
+}
+.two {
+  /* with-border */
+  border-radius: 8px;
+  border: 2px solid red;
+}
+.three {
+  /* multiple value syntax */
+  border-radius: 20px 5px;
+}
+.four {
+  /* individual corner */
+  border-top-left-radius: 20px 10px;
+}
+</style>
+</head>
+<body>
+<div class="one"></div>
+<div class="two"></div>
+<div class="three"></div>
+<div class="four"></div>
+</body>
+</html>

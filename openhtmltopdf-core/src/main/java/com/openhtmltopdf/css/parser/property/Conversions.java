@@ -29,9 +29,9 @@ import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.parser.PropertyValue;
 
 public class Conversions {
-    private static final Map COLORS = new HashMap();
-    private static final Map NUMERIC_FONT_WEIGHTS = new HashMap();
-    private static final Map BORDER_WIDTHS = new HashMap();
+    private static final Map<String, FSRGBColor> COLORS = new HashMap<>();
+    private static final Map<Float, IdentValue> NUMERIC_FONT_WEIGHTS = new HashMap<>();
+    private static final Map<String, PropertyValue> BORDER_WIDTHS = new HashMap<>();
     
     static {
         COLORS.put("cyan", new FSRGBColor(0x00FFFF));
@@ -194,15 +194,15 @@ public class Conversions {
     }
     
     public static FSRGBColor getColor(String ident) {
-        return (FSRGBColor)COLORS.get(ident);
+        return COLORS.get(ident);
     }
     
     public static IdentValue getNumericFontWeight(float weight) {
-        return (IdentValue)NUMERIC_FONT_WEIGHTS.get(new Float(weight));
+        return NUMERIC_FONT_WEIGHTS.get(new Float(weight));
     }
     
     public static PropertyValue getBorderWidth(String ident) {
-        return (PropertyValue)BORDER_WIDTHS.get(ident);
+        return BORDER_WIDTHS.get(ident);
     }
     
 }

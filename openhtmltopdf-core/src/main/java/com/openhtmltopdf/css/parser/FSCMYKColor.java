@@ -60,14 +60,17 @@ public class FSCMYKColor implements FSColor {
         return _black;
     }
 
+    @Override
     public String toString() {
         return "cmyk(" + _cyan + ", " + _magenta + ", " + _yellow + ", " + _black + ")";
     }
     
+    @Override
     public FSColor lightenColor() {
         return new FSCMYKColor(_cyan * 0.8f, _magenta * 0.8f, _yellow * 0.8f, _black);
     }
     
+    @Override
     public FSColor darkenColor() {
         return new FSCMYKColor(
                 Math.min(1.0f, _cyan / 0.8f), Math.min(1.0f, _magenta / 0.8f), 

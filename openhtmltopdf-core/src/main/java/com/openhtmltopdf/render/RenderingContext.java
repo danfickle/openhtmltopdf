@@ -101,6 +101,7 @@ public class RenderingContext implements CssContext, Cloneable {
         return sharedContext.getXHeight(getFontContext(), parentFont);
     }
 
+    @Override
     public TextRenderer getTextRenderer() {
         return sharedContext.getTextRenderer();
     }
@@ -192,6 +193,7 @@ public class RenderingContext implements CssContext, Cloneable {
         this.outputDevice = outputDevice;
     }
 
+    @Override
     public FontContext getFontContext() {
         return fontContext;
     }

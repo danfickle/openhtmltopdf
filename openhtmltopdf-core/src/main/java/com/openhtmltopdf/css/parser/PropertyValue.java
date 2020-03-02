@@ -204,6 +204,7 @@ public class PropertyValue implements CSSPrimitiveValue {
         _stringArrayValue = ArrayUtil.cloneOrEmpty(stringArrayValue);
     }
     
+    @Override
     public String toString() {
         return _cssText;
     }

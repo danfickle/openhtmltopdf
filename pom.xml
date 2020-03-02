@@ -5,7 +5,7 @@
 
   <groupId>com.openhtmltopdf</groupId>
   <artifactId>openhtmltopdf-parent</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.3-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
@@ -23,12 +23,10 @@
 
   <modules>
     <module>openhtmltopdf-core</module>
-    <module>openhtmltopdf-log4j</module>
     <module>openhtmltopdf-slf4j</module>
     <module>openhtmltopdf-examples</module>
     <module>openhtmltopdf-pdfbox</module>
     <module>openhtmltopdf-rtl-support</module>
-    <module>openhtmltopdf-jsoup-dom-converter</module>
     <module>openhtmltopdf-svg-support</module>
     <module>openhtmltopdf-java2d</module>
     <module>openhtmltopdf-objects</module>
@@ -148,7 +146,7 @@
 
   <properties>
     <open.deploy.plugin.version>3.0.0-M1</open.deploy.plugin.version>
-    <open.batik.version>1.10</open.batik.version>
+    <open.batik.version>1.12</open.batik.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 

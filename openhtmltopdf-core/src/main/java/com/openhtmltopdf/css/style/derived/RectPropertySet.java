@@ -54,6 +54,7 @@ public class RectPropertySet {
         return rect;
     }
 
+    @Override
     public String toString() {
         return "RectPropertySet[top=" + _top + ",right=" + _right + ",bottom=" + _bottom + ",left=" + _left + "]";
     }

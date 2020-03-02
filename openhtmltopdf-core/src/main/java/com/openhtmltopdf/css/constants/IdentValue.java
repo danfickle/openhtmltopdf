@@ -323,6 +323,7 @@ public class IdentValue implements FSDerivedValue {
      * Most of these throw exceptions--makes use of the interface easier in CS (avoids casting)
      */
 
+    @Override
     public boolean isDeclaredInherit() {
         return this == INHERIT;
     }
@@ -331,42 +332,51 @@ public class IdentValue implements FSDerivedValue {
         return this;
     }
 
+    @Override
     public float asFloat() {
         throw new XRRuntimeException("Ident value is never a float; wrong class used for derived value.");
     }
 
+    @Override
     public FSColor asColor() {
         throw new XRRuntimeException("Ident value is never a color; wrong class used for derived value.");
     }
 
+    @Override
     public float getFloatProportionalTo(CSSName cssName,
                                         float baseValue,
                                         CssContext ctx) {
         throw new XRRuntimeException("Ident value (" + toString() + ") is never a length; wrong class used for derived value.");
     }
 
+    @Override
     public String asString() {
         return toString();
     }
 
+    @Override
     public String[] asStringArray() {
         throw new XRRuntimeException("Ident value is never a string array; wrong class used for derived value.");
     }
 
+    @Override
     public IdentValue asIdentValue() {
         return this;
     }
 
+    @Override
     public boolean hasAbsoluteUnit() {
         // log and return false
         throw new XRRuntimeException("Ident value is never an absolute unit; wrong class used for derived value; this " +
                 "ident value is a " + this.asString());
     }
 
+    @Override
     public boolean isIdent() {
         return true;
     }
 
+    @Override
     public boolean isDependentOnFontSize() {
         return false;
     }

@@ -20,15 +20,12 @@
  */
 package com.openhtmltopdf.render;
 
-import java.awt.Rectangle;
-
-import org.w3c.dom.Text;
-
-import com.openhtmltopdf.extend.FSGlyphVector;
+import com.openhtmltopdf.bidi.BidiSplitter;
+import com.openhtmltopdf.layout.Breaker;
 import com.openhtmltopdf.layout.FunctionData;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.WhitespaceStripper;
-import com.openhtmltopdf.util.Uu;
+import com.openhtmltopdf.util.OpenUtil;
 
 /**
  * A lightweight object which contains a chunk of text from an inline element.  
@@ -39,56 +36,75 @@ public class InlineText {
     private InlineLayoutBox _parent;
     
     private int _x;
+    private int _width;
     
     private String _masterText;
     private int _start;
     private int _end;
     
-    private int _width;
-    
-    private FunctionData _functionData;
-    
     private boolean _containedLF = false;
-    
-    private short _selectionStart;
-    private short _selectionEnd;
-    
-    private float[] _glyphPositions;
     
     private boolean _trimmedLeadingSpace;
     private boolean _trimmedTrailingSpace;
-    private Text _textNode;
-    private byte _textDirection;
-    private float _letterSpacing;
+    
+    static class InlineTextRareData {
+        FunctionData _functionData;
+        boolean _endsOnSoftHyphen = false;
+        float _letterSpacing = 0f;
+        byte _textDirection = BidiSplitter.LTR;
+    }
+    
+    private CharCounts _counts;
+    
+    private InlineTextRareData _rareData;
+    
+    private void ensureRareData() {
+        if (_rareData == null) {
+            _rareData = new InlineTextRareData();
+        }
+    }
     
     /**
      * @param direction either LTR or RTL from BidiSplitter interface.
      */
     public void setTextDirection(byte direction) {
-    	this._textDirection = direction;
+        if (direction != BidiSplitter.LTR) {
+            ensureRareData();
+        }
+        
+        if (_rareData != null) {
+            _rareData._textDirection = direction;
+        }
     }
     
     /**
      * @return either LTR or RTL from BidiSplitter interface.
      */
     public byte getTextDirection() {
-    	return this._textDirection;
+    	return _rareData != null ? _rareData._textDirection : BidiSplitter.LTR;
     }
     
     public void setLetterSpacing(float letterSpacing) {
-        this._letterSpacing = letterSpacing;
+        if (letterSpacing != 0f) {
+            ensureRareData();
+        }
+        
+        if (_rareData != null) {
+            _rareData._letterSpacing = letterSpacing;
+        }
     }
     
     public float getLetterSpacing() {
-        return this._letterSpacing;
+        return _rareData != null ? _rareData._letterSpacing : 0f;
     }
     
     public void trimTrailingSpace(LayoutContext c) {
         if (! isEmpty() && _masterText.charAt(_end-1) == ' ') {
             _end--;
-            setWidth(c.getTextRenderer().getWidth(c.getFontContext(), 
+            setWidth(Breaker.getTextWidthWithLetterSpacing(c,
                     getParent().getStyle().getFSFont(c),
-                    getSubstring()));
+                    getSubstring(),
+                    getLetterSpacing()));
             setTrimmedTrailingSpace(true);
         } 
     }
@@ -113,8 +129,8 @@ public class InlineText {
     
     public void setSubstring(int start, int end) {
         if (end < start) {
-            Uu.p("setting substring to: " + start + " " + end);
-            throw new RuntimeException("set substring length too long: " + this);
+            String msg = String.format("(start = %d, end = %d)", start, end);
+            throw new RuntimeException("set substring length too long " + msg + ": " + this);
         } else if (end < 0 || start < 0) {
             throw new RuntimeException("Trying to set negative index to inline box");
         }
@@ -168,28 +184,37 @@ public class InlineText {
     }
 
     public boolean isDynamicFunction() {
-        return _functionData != null;
+        return _rareData != null && _rareData._functionData != null;
     }
 
     public FunctionData getFunctionData() {
-        return _functionData;
+        return _rareData != null ? _rareData._functionData : null;
     }
 
     public void setFunctionData(FunctionData functionData) {
-        _functionData = functionData;
+        if (functionData != null) {
+            ensureRareData();
+        }
+        
+        if (_rareData != null) {
+            _rareData._functionData = functionData;
+        }
     }
     
     public void updateDynamicValue(RenderingContext c) {
-        String value = _functionData.getContentFunction().calculate(
-                c, _functionData.getFunction(), this);
+        String value = _rareData._functionData.getContentFunction().calculate(
+                c, _rareData._functionData.getFunction(), this);
         _start = 0;
         _end = value.length();
         _masterText = value;
-        _width = c.getTextRenderer().getWidth(
-                c.getFontContext(), getParent().getStyle().getFSFont(c),
-                value);
+        
+        setWidth(Breaker.getTextWidthWithLetterSpacing(c,
+                getParent().getStyle().getFSFont(c),
+                value,
+                getLetterSpacing()));
     }
     
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append("InlineText: ");
@@ -208,81 +233,6 @@ public class InlineText {
         result.append(')');
         
         return result.toString();
-    }
-    
-    public boolean updateSelection(RenderingContext c, Rectangle selection) {
-        ensureGlyphPositions(c);
-        float[] positions = _glyphPositions;
-        int y = getParent().getAbsY();
-        int offset = getParent().getAbsX() + getX();
-        
-        int prevSelectionStart = _selectionStart;
-        int prevSelectionEnd = _selectionEnd;
-        
-        boolean found = false;
-        _selectionStart = 0;
-        _selectionEnd = 0;
-        for (int i = 0; i < positions.length - 2; i += 2) {
-            Rectangle target = new Rectangle(
-                    (int)(offset + (positions[i] + positions[i+2]) / 2),
-                    y,
-                    1,
-                    getParent().getHeight());
-            if (selection.intersects(target)) {
-                if (! found) {
-                    found = true;
-                    _selectionStart = (short)(i / 2);
-                    _selectionEnd = (short)(i / 2 + 1);
-                } else {
-                    _selectionEnd++;
-                }
-            }
-        }
-        
-        return prevSelectionStart != _selectionStart || prevSelectionEnd != _selectionEnd;
-    }
-
-    private void ensureGlyphPositions(RenderingContext c) {
-        if (_glyphPositions == null) {
-            FSGlyphVector glyphVector = c.getTextRenderer().getGlyphVector(
-                    c.getOutputDevice(),
-                    getParent().getStyle().getFSFont(c),
-                    getSubstring());
-            _glyphPositions = c.getTextRenderer().getGlyphPositions(
-                    c.getOutputDevice(), 
-                    getParent().getStyle().getFSFont(c),
-                    glyphVector);
-        } 
-    }
-    
-    public boolean clearSelection() {
-        boolean result = _selectionStart != 0 || _selectionEnd != 0;
-        
-        _selectionStart = 0;
-        _selectionEnd = 0;
-        
-        return result;
-    }
-    
-    public boolean isSelected() {
-        return _selectionStart != _selectionEnd;
-    }
-
-    public short getSelectionEnd() {
-        return _selectionEnd;
-    }
-
-    public short getSelectionStart() {
-        return _selectionStart;
-    }
-    
-    public String getSelection() {
-        return getSubstring().substring(_selectionStart, _selectionEnd);
-    }
-    
-    public void selectAll() {
-        _selectionStart = 0;
-        _selectionEnd = (short)getSubstring().length();
     }
     
     public String getTextExportText() {
@@ -335,13 +285,24 @@ public class InlineText {
             char c = s.charAt(i);
             if (c == ' ' || c == '\u00a0' || c == '\u3000') {
                 spaces++;
+            } else if (!OpenUtil.isCodePointPrintable(c)) {
+                
             } else {
                 other++;
             }
         }
         
+        if (isEndsOnSoftHyphen()) {
+            other++;
+        }
+        
         counts.setSpaceCount(counts.getSpaceCount() + spaces);
         counts.setNonSpaceCount(counts.getNonSpaceCount() + other);
+
+        // Our own personal copy we can use in the calcTotalAdjustment method.
+        _counts = new CharCounts();
+        _counts.setSpaceCount(spaces);
+        _counts.setNonSpaceCount(other);
     }
     
     public float calcTotalAdjustment(JustificationInfo info) {
@@ -350,41 +311,39 @@ public class InlineText {
             // letter spacing is already explicitly set.
             return 0f;
         }
-        
-        String s = getSubstring();
-        int len = s.length();
 
-        float result = 0.0f;
-        for (int i = 0; i < len; i++) {
-            char c = s.charAt(i);
-            if (c == ' ' || c == '\u00a0' || c == '\u3000') {
-                result += info.getSpaceAdjust();
-            } else {
-                result += info.getNonSpaceAdjust();
-            }
+        if (_counts == null) {
+            // This will only happen for non-justifiable text nested inside
+            // justifiable text (eg. white-space: pre).
+            // Therefore the correct answer is 0.
+            // See InlineLayoutBox#countJustifiableChars.
+            return 0f;
         }
         
-        return result;
+        return (_counts.getSpaceCount() * info.getSpaceAdjust()) +
+               (_counts.getNonSpaceCount() * info.getNonSpaceAdjust());
     }
+    
     public int getStart(){
         return _start;
     }
+    
     public int getEnd(){
         return _end;
     }
-    public void setSelectionStart(short s){
-        _selectionStart = s;
-    }
-    public void setSelectionEnd(short s){
-        _selectionEnd = s;
+
+    public void setEndsOnSoftHyphen(boolean endsOnSoftHyphen) {
+        if (endsOnSoftHyphen) {
+            ensureRareData();
+        }
+        
+        if (_rareData != null) {
+            _rareData._endsOnSoftHyphen = endsOnSoftHyphen;
+        }
     }
 
-    public Text getTextNode() {
-        return this._textNode;
-    }
-
-    public void setTextNode(Text node) {
-        this._textNode = node;
+    public boolean isEndsOnSoftHyphen() {
+        return _rareData != null ? _rareData._endsOnSoftHyphen : false;
     }
 }
 

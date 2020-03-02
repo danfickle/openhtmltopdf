@@ -516,6 +516,15 @@ public class TextVisualRegressionTest {
     }
     
     /**
+     * Tests that soft hyphens used as a line break are converted to visible hyphens.
+     * Issue 403.
+     */
+    @Test
+    public void testSoftHyphens() throws IOException {
+        assertTrue(vtester.runTest("soft-hyphens", WITH_COLLAPSED_LINE_BREAKER));
+    }
+    
+    /**
      * Tests that flowing columns containing only text in unbalanced mode
      * are correctly laid out.
      */

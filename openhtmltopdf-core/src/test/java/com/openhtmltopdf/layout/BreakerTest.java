@@ -1,241 +1,197 @@
 package com.openhtmltopdf.layout;
 
-import java.awt.Rectangle;
-import java.text.BreakIterator;
+import java.util.function.ToIntFunction;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 
-import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.css.style.CssContext;
-import com.openhtmltopdf.extend.FSGlyphVector;
 import com.openhtmltopdf.extend.FSTextBreaker;
-import com.openhtmltopdf.extend.FontContext;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.TextRenderer;
-import com.openhtmltopdf.layout.Breaker.TextBreakerSupplier;
-import com.openhtmltopdf.render.FSFont;
-import com.openhtmltopdf.render.FSFontMetrics;
-import com.openhtmltopdf.render.JustificationInfo;
 
 public class BreakerTest {
-	// Mocks for Breaker:::doBreakText
-	
-	private static class CharacterBreaker implements FSTextBreaker {
-		private String str;
-		private int position = 0;
-		
-		@Override
-		public int next() {
-			return position < str.length() ? position++ : BreakIterator.DONE;
-		}
+    private static class SimpleCharBreaker implements FSTextBreaker {
+        private String text;
+        private int pos;
+        
+        @Override
+        public int next() {
+            return pos > text.length() ? -1 : pos++;
+        }
 
-		@Override
-		public void setText(String newText) {
-			this.str = newText;
-		}
-	}
-	
-	private static class LineBreaker implements FSTextBreaker {
-		private String str;
-		private int position = 0;
-		
-		@Override
-		public int next() {
-			String working = str.substring(position);
-			int nextSpaceInWorking = working.indexOf(' ');
-			
-			if (nextSpaceInWorking >= 0) {
-				position = position + nextSpaceInWorking;
-				return position++;
-			} else {
-				position = Math.max(str.length() - 1, 0);
-				return BreakIterator.DONE;
-			}
-		}
+        @Override
+        public void setText(String newText) {
+            this.text = newText;
+            this.pos = 0;
+        }
+    }
+    
+    private static class SimpleLineBreaker implements FSTextBreaker {
+        private String text;
+        private int position;
+        
+        @Override
+        public int next() {
+            int ret = text.indexOf(' ', this.position);
+            this.position = ret < 0 ? -1 : ret + 1;
+            return ret;
+        }
 
-		@Override
-		public void setText(String newText) {
-			this.str = newText;
-		}
-	}
-	
-	private static class CharacterBreakerSupplier implements TextBreakerSupplier {
-		@Override
-		public FSTextBreaker getBreaker(String str, SharedContext sharedContext) {
-			FSTextBreaker breaker = new CharacterBreaker();
-			breaker.setText(str);
-			return breaker;
-		}
-	}
-	
-	private static class LineBreakerSupplier implements TextBreakerSupplier {
-		@Override
-		public FSTextBreaker getBreaker(String str, SharedContext sharedContext) {
-			FSTextBreaker breaker = new LineBreaker();
-			breaker.setText(str);
-			return breaker;
-		}
-	}
-	
-	private static class TextRendererMock implements TextRenderer {
+        @Override
+        public void setText(String newText) {
+            this.text = newText;
+            this.position = 0;
+        }
+    }
 
-		@Override
-		public void setup(FontContext context) {
-		}
+    private FSTextBreaker createLine(String line) {
+        SimpleLineBreaker breaker = new SimpleLineBreaker();
+        breaker.setText(line);
+        return breaker;
+    }
 
-		@Override
-		public void drawString(OutputDevice outputDevice, String string,
-				float x, float y) {
-		}
+    private FSTextBreaker createChar(String line) {
+        FSTextBreaker breaker = new SimpleCharBreaker();
+        breaker.setText(line);
+        return breaker;
+    }
 
-		@Override
-		public void drawString(OutputDevice outputDevice, String string,
-				float x, float y, JustificationInfo info) {
-		}
+    private final ToIntFunction<String> MEASURER = (str) -> str.length();
+    private final ToIntFunction<String> MEASURER3 = (str) -> str.length() * 3;
+    
+    private LineBreakContext createContext(String str) {
+        LineBreakContext ctx = new LineBreakContext();
+        ctx.setMaster(str);
+        return ctx;
+    }
+    
+    @Test
+    public void testCharacterBreakerSingleChar() {
+        String whole = "A";
+        int avail = 5;
+        float letterSpacing = 0;
+        LineBreakContext context = createContext(whole);
+        
+        Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER);
+        
+        assertFalse(context.isUnbreakable());
+        assertFalse(context.isNeedsNewLine());
+        assertThat(context.getWidth(), equalTo(1));
+        assertThat(context.getEnd(), equalTo(1));
+    }
 
-		@Override
-		public void drawGlyphVector(OutputDevice outputDevice,
-				FSGlyphVector vector, float x, float y) {
-		}
+    @Test
+    public void testCharacterBreakerEmptyString() {
+        String whole = "";
+        int avail = 5;
+        float letterSpacing = 0;
+        LineBreakContext context = createContext(whole);
+        
+        Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER);
+        
+        assertFalse(context.isUnbreakable());
+        assertFalse(context.isNeedsNewLine());
+        assertThat(context.getWidth(), equalTo(0));
+        assertThat(context.getEnd(), equalTo(0));
+    }
+    
+    @Test
+    public void testCharacterBreakerUntilWord() {
+        String whole = "ABCD WORD";
+        int avail = 15;
+        float letterSpacing = 0;
+        LineBreakContext context = createContext(whole);
+        
+        Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER);
+        
+        assertFalse(context.isUnbreakable());
+        assertFalse(context.isNeedsNewLine());
+        assertThat(context.getWidth(), equalTo(4));
+        assertThat(context.getEnd(), equalTo(4));
+    }
 
-		@Override
-		public FSGlyphVector getGlyphVector(OutputDevice outputDevice,
-				FSFont font, String string) {
-			return null;
-		}
+    @Test
+    public void testCharacterBreakerNoFit() {
+        String whole = "ABCDEF";
+        int avail = 4;
+        float letterSpacing = 0;
+        LineBreakContext context = createContext(whole);
+        
+        Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER);
+        
+        assertFalse(context.isUnbreakable());
+        assertTrue(context.isNeedsNewLine());
+        assertThat(context.getWidth(), equalTo(4));
+        assertThat(context.getEnd(), equalTo(4));
+        assertThat(whole.substring(context.getEnd()), equalTo("EF"));
+    }
 
-		@Override
-		public float[] getGlyphPositions(OutputDevice outputDevice,
-				FSFont font, FSGlyphVector fsGlyphVector) {
-			return null;
-		}
-
-		@Override
-		public Rectangle getGlyphBounds(OutputDevice outputDevice, FSFont font,
-				FSGlyphVector fsGlyphVector, int index, float x, float y) {
-			return null;
-		}
-
-		@Override
-		public FSFontMetrics getFSFontMetrics(FontContext context, FSFont font,
-				String string) {
-			return null;
-		}
-
-		@Override
-		public int getWidth(FontContext context, FSFont font, String string) {
-			return string.length();
-		}
-
-		@Override
-		public void setFontScale(float scale) {
-		}
-
-		@Override
-		public float getFontScale() {
-			return 0;
-		}
-
-		@Override
-		public void setSmoothingThreshold(float fontsize) {
-		}
-
-		@Override
-		public int getSmoothingLevel() {
-			return 0;
-		}
-
-		@Override
-		public void setSmoothingLevel(int level) {
-		}
-	}
-
-	private static class LayoutContextMock extends LayoutContext {
-		LayoutContextMock() {
-			super(null);
-		}
-		
-		@Override
-		public TextRenderer getTextRenderer() {
-			return new TextRendererMock();
-		}
-	}
-	
-	private static class FontMock implements FSFont {
-		@Override
-		public float getSize2D() {
-			return 1;
-		}
-	}
-	
-	private static class CalculatedStyleMock extends CalculatedStyle {
-		@Override
-		public FSFont getFSFont(CssContext cssContext) {
-			return new FontMock();
-		}
-	}
-
-	private final LayoutContext c = new LayoutContextMock();
-	private final TextBreakerSupplier characterBreaker = new CharacterBreakerSupplier();
-	private final TextBreakerSupplier lineBreaker = new LineBreakerSupplier();
-	private final CalculatedStyle style = new CalculatedStyleMock();
-
-	private LineBreakContext createContext(String str) {
-		LineBreakContext ctx = new LineBreakContext();
-		ctx.setMaster(str);
-		return ctx;
-	}
-	
-	@Test
-	public void testEmptyString() {
-		int avail = 0;
-		boolean tryToBreakAnywhere = false;
-		LineBreakContext context = createContext("");
-		
-		Breaker.doBreakText(c, context, avail, style, characterBreaker, lineBreaker, tryToBreakAnywhere);
-		Assert.assertThat(context.getStart(), equalTo(0));
-		Assert.assertThat(context.getEnd(), equalTo(0));
-		Assert.assertThat(context.getCalculatedSubstring(), equalTo(""));
-	}
-	
-	@Test
-	public void testSecondLine() {
-		int avail = 4;
-		boolean tryToBreakAnywhere = false;
-		LineBreakContext context = createContext("lmn opq"); 
-		context.setStart(4);
-		
-		Breaker.doBreakText(c, context, avail, style, characterBreaker, lineBreaker, tryToBreakAnywhere);
-		Assert.assertThat(context.getStart(), equalTo(4));
-		Assert.assertThat(context.getEnd(), equalTo(7));
-		Assert.assertThat(context.getCalculatedSubstring(), equalTo("opq")); 
-	}
-	
-	// Currently the break loop condition is as follows:
-	//
-	// while (right > 0 && graphicsLength <= avail) 
-	//
-	// where right is ultimately derived from an instance of BreakIterator.
-	// I think this is meant to be 'right >= 0' as BreakIterator.DONE is equal to -1
-	// and 0 is a valid break offset (the first character).
-	// I think it is only a problem with breaking characters other than space as space characters
-	// are stripped from the beginning elsewhere. 
-	//
-	// Unfortunately, I'm too scared to change this at the moment but document it via a test instead.
-	@Test
-	public void testBrokenBehaviorOnFirstCharacterBeingBreaking() {
-		int avail = 3;
-		boolean tryToBreakAnywhere = false;
-		LineBreakContext context = createContext(" opq");
-		
-		Breaker.doBreakText(c, context, avail, style, characterBreaker, lineBreaker, tryToBreakAnywhere);
-		Assert.assertThat(context.isUnbreakable(), equalTo(true));
-		Assert.assertThat(context.getCalculatedSubstring(), equalTo(" opq"));
-	}
-
-
-
+    @Test
+    public void testCharacterBreakerExactFit() {
+        String whole = "ABCD";
+        int avail = 4;
+        float letterSpacing = 0;
+        LineBreakContext context = createContext(whole);
+        
+        Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER);
+        
+        assertFalse(context.isUnbreakable());
+        assertFalse(context.isNeedsNewLine());
+        assertThat(context.getWidth(), equalTo(4));
+        assertThat(context.getEnd(), equalTo(4));
+        assertThat(whole.substring(context.getEnd()), equalTo(""));
+    }
+    
+    @Test
+    public void testCharacterBreakerPartialFit() {
+        String whole = "ABCDEF";
+        int avail = 13;
+        float letterSpacing = 0;
+        LineBreakContext context = createContext(whole);
+        
+        Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER3);
+        
+        assertFalse(context.isUnbreakable());
+        assertTrue(context.isNeedsNewLine());
+        assertThat(context.getWidth(), equalTo(12));
+        assertThat(context.getEnd(), equalTo(4));
+        assertThat(whole.substring(context.getEnd()), equalTo("EF"));
+    }
+    
+    @Test
+    public void testCharacterBreakerNoFit2() {
+        String whole = "ABCDEF";
+        int avail = 2;
+        float letterSpacing = 0;
+        LineBreakContext context = createContext(whole);
+        
+        Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER3);
+        
+        // Breaks off minimum of one character.
+        assertTrue(context.isUnbreakable());
+        assertTrue(context.isNeedsNewLine());
+        assertThat(context.getWidth(), equalTo(3));
+        assertThat(context.getEnd(), equalTo(1));
+        assertThat(whole.substring(context.getEnd()), equalTo("BCDEF"));
+    }
+    
+    @Test
+    public void testCharacterBreakerWordBreakAtStart() {
+        String whole = "  ABCDEF";
+        int avail = 20;
+        float letterSpacing = 0;
+        LineBreakContext context = createContext(whole);
+        
+        Breaker.doBreakCharacters(whole, createLine(whole), createChar(whole), context, avail, letterSpacing, MEASURER);
+        
+        assertFalse(context.isUnbreakable());
+        assertFalse(context.isNeedsNewLine());
+        
+        // Should always consume one space character.
+        assertThat(context.getWidth(), equalTo(1));
+        assertThat(context.getEnd(), equalTo(1));
+        assertThat(whole.substring(context.getEnd()), equalTo(" ABCDEF"));
+    }
 }

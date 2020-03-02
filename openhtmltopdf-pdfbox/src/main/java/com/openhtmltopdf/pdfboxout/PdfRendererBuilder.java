@@ -76,9 +76,16 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 				fontStyle = IdentValue.OBLIQUE;
 			}
 
+			// use InputStream supplier
 			if (font.supplier != null) {
 				resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset);
-			} else {
+			} 
+			// use PDFont supplier
+			else if (font.pdfontSupplier != null) {
+				resolver.addFont(font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset);
+			} 
+			// load via font File
+			else {
 				try {
 					resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset);
 				} catch (Exception e) {
@@ -165,7 +172,24 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	    return this;
 	}
 
-
+	/**
+	 * Like {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)} but
+	 * allows to supply a PDFont directly. Subclass {@link PDFontSupplier} if you need
+	 * special font-loading rules (like using a font-cache).
+	 */
+	public PdfRendererBuilder useFont(PDFontSupplier supplier, String fontFamily, Integer fontWeight,
+			FontStyle fontStyle, boolean subset) {
+		state._fonts.add(new AddedFont(null, supplier, null, fontWeight, fontFamily, subset, fontStyle));
+		return this;
+	}
+	
+	/**
+	 * Simpler overload for 
+	 * {@link #useFont(PDFontSupplier, String, Integer, FontStyle, boolean)}
+	 */
+	public PdfRendererBuilder useFont(PDFontSupplier supplier, String fontFamily) {
+		return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
+	}
 
 	/**
 	 * Set a producer on the output document

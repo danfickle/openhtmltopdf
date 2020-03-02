@@ -60,7 +60,7 @@ public class LayoutUtil {
 
     public static FloatLayoutResult layoutFloated(
             final LayoutContext c, LineBox currentLine, BlockBox block,
-            int avail, List pendingFloats) {
+            int avail, List<FloatLayoutResult> pendingFloats) {
         FloatLayoutResult result = new FloatLayoutResult();
 
         MarkerData markerData = c.getCurrentMarkerData();

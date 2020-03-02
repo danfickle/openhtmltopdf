@@ -21,13 +21,9 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import com.openhtmltopdf.util.XRLog;
 
 public class DOMUtil {
     public static Element getChild(Element parent, String name) {
@@ -45,7 +41,7 @@ public class DOMUtil {
     }
     
     public static List<Element> getChildren(Element parent, String name) {
-        List result = new ArrayList();
+        List<Element> result = new ArrayList<>();
         NodeList children = parent.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node n = (Node)children.item(i);

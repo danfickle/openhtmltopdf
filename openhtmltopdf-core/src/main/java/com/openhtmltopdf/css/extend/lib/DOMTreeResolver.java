@@ -40,12 +40,14 @@ public class DOMTreeResolver implements TreeResolver {
      */
     private final Map<Node, Map<Node, Integer>> cachedPositions = new HashMap<>();
     
+    @Override
     public Object getParentElement(Object element) {
         Node parent = ((org.w3c.dom.Element) element).getParentNode();
         if (parent.getNodeType() != Node.ELEMENT_NODE) parent = null;
         return parent;
     }
 
+    @Override
     public Object getPreviousSiblingElement(Object element) {
         Node sibling = ((Element) element).getPreviousSibling();
         while (sibling != null && sibling.getNodeType() != Node.ELEMENT_NODE) {
@@ -57,12 +59,14 @@ public class DOMTreeResolver implements TreeResolver {
         return sibling;
     }
 
+    @Override
     public String getElementName(Object element) {
         String name = ((Element) element).getLocalName();
         if (name == null) name = ((Element) element).getNodeName();
         return name;
     }
 
+    @Override
     public boolean isFirstChildElement(Object element) {
         org.w3c.dom.Node parent = ((org.w3c.dom.Element) element).getParentNode();
         Node currentChild = parent.getFirstChild();
@@ -72,6 +76,7 @@ public class DOMTreeResolver implements TreeResolver {
         return currentChild == element;
     }
 
+    @Override
     public boolean isLastChildElement(Object element) {
         org.w3c.dom.Node parent = ((org.w3c.dom.Element) element).getParentNode();
         Node currentChild = parent.getLastChild();
@@ -81,6 +86,7 @@ public class DOMTreeResolver implements TreeResolver {
         return currentChild == element;
     }
 
+    @Override
     public boolean matchesElement(Object element, String namespaceURI, String name) {
         Element e = (Element)element;
         String localName = e.getLocalName();

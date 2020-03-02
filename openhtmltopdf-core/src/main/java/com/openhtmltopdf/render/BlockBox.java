@@ -745,20 +745,46 @@ public class BlockBox extends Box implements InlinePaintable {
         
         boolean haveExactDims = cssWidth >= 0 && cssHeight >= 0;
         
+        boolean usedMinWidth = false;
+        boolean usedMinHeight = false;
+        boolean usedMaxWidth = false;
+        boolean usedMaxHeight = false;
+        
         int intrinsicWidth = re.getIntrinsicWidth();
         int intrinsicHeight = re.getIntrinsicHeight();
         
-        cssWidth = !getStyle().isMaxWidthNone() && 
-                (intrinsicWidth > getCSSMaxWidth(c) || cssWidth > getCSSMaxWidth(c)) ? 
-                          getCSSMaxWidth(c) : cssWidth;
-        cssWidth = cssWidth >= 0 && getCSSMinWidth(c) > 0 && cssWidth < getCSSMinWidth(c) ?
-                          getCSSMinWidth(c) : cssWidth;
+        int minWidth = getCSSMinWidth(c);
+        int minHeight = getCSSMinHeight(c);
         
-        cssHeight = !getStyle().isMaxHeightNone() &&
-                (intrinsicHeight > getCSSMaxHeight(c) || cssHeight > getCSSMaxHeight(c)) ?
-                          getCSSMaxHeight(c) : cssHeight;
-        cssHeight = cssHeight >= 0 && getCSSMinHeight(c) > 0 && cssHeight < getCSSMinHeight(c) ?
-                          getCSSMinHeight(c) : cssHeight;
+        // Clamp w to max-width if required.
+        if (!getStyle().isMaxWidthNone() &&
+            (intrinsicWidth > getCSSMaxWidth(c) || cssWidth > getCSSMaxWidth(c))) {
+            cssWidth = getCSSMaxWidth(c);
+            usedMaxWidth = true;
+        }
+
+        // Clamp w to min-width if required.
+        if (cssWidth >= 0 &&
+            minWidth > 0 &&
+            cssWidth < minWidth) {
+            cssWidth = minWidth;
+            usedMinWidth = true;
+        }
+        
+        // Clamp h to max-height if required.
+        if (!getStyle().isMaxHeightNone() &&
+            (intrinsicHeight > getCSSMaxHeight(c) || cssHeight > getCSSMaxHeight(c))) {
+            cssHeight = getCSSMaxHeight(c);
+            usedMaxHeight = true;
+        }
+
+        // Clamp h to min-height if required.
+        if (cssHeight >= 0 &&
+            minHeight > 0 && 
+            cssHeight < minHeight) {
+            cssHeight = minHeight;
+            usedMinHeight = true;
+        }
                           
         if (getStyle().isBorderBox()) {
             BorderPropertySet border = getBorder(c);
@@ -770,9 +796,13 @@ public class BlockBox extends Box implements InlinePaintable {
         int nw;
         int nh;
         
+        boolean useExact = 
+                (haveExactDims && !usedMaxHeight && !usedMaxWidth && !usedMinWidth && !usedMinHeight);
+        
         if (cssWidth > 0 && cssHeight > 0) {
-            if (haveExactDims) {
-                // We only warp the aspect ratio if we have explicit width and height values.
+            if (useExact) {
+                // We can warp the aspect ratio if we have explicit width and height values
+                // and the max/min values have not taken precedence.
                 nw = cssWidth;
                 nh = cssHeight;
             } else if (intrinsicWidth > cssWidth || intrinsicHeight > cssHeight) {

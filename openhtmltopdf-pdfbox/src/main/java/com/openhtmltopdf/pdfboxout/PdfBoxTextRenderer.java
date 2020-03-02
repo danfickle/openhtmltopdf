@@ -19,14 +19,12 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import java.awt.Rectangle;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
-import com.openhtmltopdf.extend.FSGlyphVector;
 import com.openhtmltopdf.extend.FontContext;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.TextRenderer;
@@ -362,22 +360,6 @@ public class PdfBoxTextRenderer implements TextRenderer {
     }
 
     public void setSmoothingLevel(int level) {
-    }
-
-    public Rectangle getGlyphBounds(OutputDevice outputDevice, FSFont font, FSGlyphVector fsGlyphVector, int index, float x, float y) {
-        throw new UnsupportedOperationException();
-    }
-
-    public float[] getGlyphPositions(OutputDevice outputDevice, FSFont font, FSGlyphVector fsGlyphVector) {
-        throw new UnsupportedOperationException();
-    }
-
-    public FSGlyphVector getGlyphVector(OutputDevice outputDevice, FSFont font, String string) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void drawGlyphVector(OutputDevice outputDevice, FSGlyphVector vector, float x, float y) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

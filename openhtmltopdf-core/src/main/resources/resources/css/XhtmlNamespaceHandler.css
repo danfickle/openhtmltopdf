@@ -1,12 +1,28 @@
 html, address,
+article,
+aside,
 blockquote,
-body, dd, div,
-dl, dt, fieldset, form,
+body,
+details,
+dialog,
+dd, div,
+dl, dt, fieldset,
+figcaption,
+figure,
+footer,
+form,
 frame, frameset,
 h1, h2, h3, h4,
-h5, h6, noframes,
+h5, h6,
+header,
+hgroup,
+main,
+nav,
+noframes,
 ol, p, ul, center,
-dir, hr, menu, pre, object, svg { display: block }
+dir, hr, menu, pre,
+section,
+object, svg { display: block }
 math { display: inline-block; }
 li              { display: list-item }
 head, script    { display: none }
