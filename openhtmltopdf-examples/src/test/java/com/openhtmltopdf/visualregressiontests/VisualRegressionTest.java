@@ -12,13 +12,12 @@ import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartBarDiagramObjectDrawer;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartPieDiagramObjectDrawer;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgExternalResourceMode;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgScriptMode;
+import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester;
-import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
 public class VisualRegressionTest {
     private VisualTester vt;
@@ -30,20 +29,12 @@ public class VisualRegressionTest {
         outputDirectory.mkdirs();
         
         vt = new VisualTester(
-                "/visualtest/html/", /* Resource path. */
+                "/visualtest/html/",     /* Resource path. */
                 "/visualtest/expected/", /* Expected resource path */
                 outputDirectory
                 );
     }
     
-    private static class WithSvg implements BuilderConfig {
-        @Override
-        public void configure(PdfRendererBuilder builder) {
-            builder.useSVGDrawer(new BatikSVGDrawer());
-        }
-    }
-    
-    private static final BuilderConfig WITH_SVG = new WithSvg();
     
     /**
      * Tests z-index property with absolute positioned elements. 
@@ -320,7 +311,7 @@ public class VisualRegressionTest {
      */
     @Test
     public void testReplacedSvgPageBreakInsideAvoid() throws IOException {
-        assertTrue(vt.runTest("replaced-svg-page-break-inside-avoid", WITH_SVG));
+        assertTrue(vt.runTest("replaced-svg-page-break-inside-avoid", TestSupport.WITH_SVG));
     }
 
     /**
@@ -328,7 +319,7 @@ public class VisualRegressionTest {
      */
     @Test
     public void testReplacedSvgPageBreakInsideAllow() throws IOException {
-        assertTrue(vt.runTest("replaced-svg-page-break-inside-allow", WITH_SVG));
+        assertTrue(vt.runTest("replaced-svg-page-break-inside-allow", TestSupport.WITH_SVG));
     }
     
     /**
@@ -732,7 +723,7 @@ public class VisualRegressionTest {
      */
     @Test
     public void testSvgInWrapperWithNamedPage() throws IOException {
-        assertTrue(vt.runTest("svg-in-wrapper-with-named-page", WITH_SVG));
+        assertTrue(vt.runTest("svg-in-wrapper-with-named-page", TestSupport.WITH_SVG));
     }
     
     /**
@@ -776,7 +767,7 @@ public class VisualRegressionTest {
      */
     @Test
     public void testReplacedSizingSvg() throws IOException {
-        assertTrue(vt.runTest("replaced-sizing-svg", WITH_SVG));
+        assertTrue(vt.runTest("replaced-sizing-svg", TestSupport.WITH_SVG));
     }
     
     /**
@@ -786,7 +777,7 @@ public class VisualRegressionTest {
      */
     @Test
     public void testReplacedSizingSvgNonCss() throws IOException {
-        assertTrue(vt.runTest("replaced-sizing-svg-non-css", WITH_SVG));
+        assertTrue(vt.runTest("replaced-sizing-svg-non-css", TestSupport.WITH_SVG));
     }
     
     /**
@@ -807,7 +798,7 @@ public class VisualRegressionTest {
      */
     @Test
     public void testMaliciousSvgSecureMode() throws IOException {
-        assertTrue(vt.runTest("malicious-svg-secure-mode", WITH_SVG));
+        assertTrue(vt.runTest("malicious-svg-secure-mode", TestSupport.WITH_SVG));
     }
 
     /**
@@ -857,7 +848,7 @@ public class VisualRegressionTest {
      */
     @Test
     public void testSvgLinkedFromImgTag() throws IOException {
-        assertTrue(vt.runTest("svg-linked-from-img-tag", WITH_SVG));
+        assertTrue(vt.runTest("svg-linked-from-img-tag", TestSupport.WITH_SVG));
     }
     
     /**
@@ -1076,5 +1067,4 @@ public class VisualRegressionTest {
     // + content property (page counters, etc)
     // + Inline layers.
     // + vertical page overflow, page-break-inside, etc.
-    // + CSS columns.
 }

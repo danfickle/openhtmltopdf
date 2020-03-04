@@ -3,8 +3,6 @@ package com.openhtmltopdf.java2d.api;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class is an internal implementation detail. This class is only public
@@ -17,5 +15,5 @@ public class Java2DRendererBuilderState extends BaseRendererBuilder.BaseRenderer
 
 	public Graphics2D _layoutGraphics;
 	public FSPageProcessor _pageProcessor;
-	public final List<Java2DRendererBuilder.AddedFont> _fonts = new ArrayList<Java2DRendererBuilder.AddedFont>();
+    public boolean _useEnvironmentFonts = false;
 }

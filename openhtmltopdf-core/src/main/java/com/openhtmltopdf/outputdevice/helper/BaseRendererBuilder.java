@@ -9,6 +9,7 @@ import com.openhtmltopdf.swing.NaiveUserAgent;
 import org.w3c.dom.Document;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,8 +30,9 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	 * This is internal, please don't use directly.
 	 */
 	public abstract static class BaseRendererBuilderState {
-		public final List<FSDOMMutator> _domMutators = new ArrayList<FSDOMMutator>();
-		public Map<String, FSStreamFactory> _streamFactoryMap = new HashMap<String, FSStreamFactory>();
+        public final List<AddedFont> _fonts = new ArrayList<>(); 
+        public final List<FSDOMMutator> _domMutators = new ArrayList<>();
+        public final Map<String, FSStreamFactory> _streamFactoryMap = new HashMap<>();
 		public FSUriResolver _resolver;
 		public String _html;
 		public String _baseUri;
@@ -433,6 +435,67 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	    state._useFastRenderer = true;
 	    return (TFinalClass) this;
 	}
+	
+    /**
+     * Like {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}, but
+     * allows to supply a font file. If the font file is a .ttc file it is handled
+     * as TrueTypeCollection (PDF only). If you have the font in file form you should use this
+     * API.
+     */
+    public TFinalClass useFont(File fontFile, String fontFamily, Integer fontWeight, FontStyle fontStyle,
+            boolean subset) {
+        state._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle));
+        return (TFinalClass) this;
+    }
+
+    /**
+     * Simpler overload for
+     * {@link #useFont(File, String, Integer, FontStyle, boolean)}
+     *
+     * @param fontFile
+     * @param fontFamily
+     * @return this for method chaining
+     */
+    public TFinalClass useFont(File fontFile, String fontFamily) {
+        return this.useFont(fontFile, fontFamily, 400, FontStyle.NORMAL, true);
+    }
+    
+    /**
+     * Add a font programmatically. If the font is NOT subset, it will be downloaded
+     * when the renderer is run, otherwise, assuming a font-metrics cache has been configured,
+     * the font will only be downloaded if required. Therefore, the user could add many fonts,
+     * confident that only those that are needed will be downloaded and processed.
+     *
+     * The InputStream returned by the supplier will be closed by the caller. Fonts
+     * should generally be subset (Java2D rendered ignores this argument),
+     * except when used in form controls. FSSupplier is a lambda compatible interface.
+     *
+     * Fonts can also be added using a font-face at-rule in the CSS.
+     *
+     * @param supplier
+     * @param fontFamily
+     * @param fontWeight
+     * @param fontStyle
+     * @param subset
+     * @return
+     */
+    public TFinalClass useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
+            FontStyle fontStyle, boolean subset) {
+        state._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle));
+        return (TFinalClass) this;
+    }
+
+    /**
+     * Simpler overload for
+     * {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}
+     *
+     * @param supplier
+     * @param fontFamily
+     * @return
+     */
+    public TFinalClass useFont(FSSupplier<InputStream> supplier, String fontFamily) {
+        return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
+    }
 
 	public enum TextDirection {
 		RTL, LTR

@@ -4,11 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -40,6 +37,7 @@ import com.openhtmltopdf.util.XRLogger;
  */
 
 public class VisualTester {
+    @FunctionalInterface
     public interface BuilderConfig {
         public void configure(PdfRendererBuilder builder);
     }
@@ -75,40 +73,14 @@ public class VisualTester {
     }
     
     public boolean runTest(String resource) throws IOException {
-        return runTest(resource, new BuilderConfig() {
-            @Override
-            public void configure(PdfRendererBuilder builder) {
-            }
-        });
+        return runTest(resource, builder -> {});
     }
     
     private StringBuilder logToStringBuilder() {
         final XRLogger delegate = new JDKXRLogger();
-        final StringBuilder sb = new StringBuilder();   
-            XRLog.setLoggerImpl(new XRLogger() {
-                @Override
-                public void setLevel(String logger, Level level) {
-                }
-
-                @Override
-                public void log(String where, Level level, String msg, Throwable th) {
-                    if (th == null) {
-                        log(where, level, msg);
-                        return;
-                    }
-                    StringWriter sw = new StringWriter();
-                    th.printStackTrace(new PrintWriter(sw, true));
-                    sb.append(where + ": " + level + ":\n" + msg + sw.toString() + "\n");
-                    delegate.log(where, level, msg, th);
-                }
-
-                @Override
-                public void log(String where, Level level, String msg) {
-                    sb.append(where + ": " + level + ": " + msg + "\n");
-                    delegate.log(where, level, msg);
-                }
-            });
-            return sb;
+        final StringBuilder sb = new StringBuilder();
+        XRLog.setLoggerImpl(new TestSupport.StringBuilderLogger(sb, delegate));
+        return sb;
     }
 
     public boolean runTest(String resource, BuilderConfig additionalBuilderConfiguration) throws IOException {

@@ -9,9 +9,7 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,7 +20,6 @@ public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBui
 	PdfRendererBuilderState() {
 	}
 
-	public final List<PdfRendererBuilder.AddedFont> _fonts = new ArrayList<PdfRendererBuilder.AddedFont>();
 	public OutputStream _os;
 	public float _pdfVersion = 1.7f;
 	public String _producer;

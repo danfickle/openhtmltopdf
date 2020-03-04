@@ -2,11 +2,6 @@ package com.openhtmltopdf.java2d.api;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.java2d.Java2DRenderer;
 import com.openhtmltopdf.layout.Layer;
@@ -40,37 +35,6 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	}
 
 	/**
-	 * Add a font programmatically. The font will only be downloaded if needed.
-	 *
-	 * The InputStream returned by the supplier will be closed by the caller.
-	 * FSSupplier is a lambda compatible interface.
-	 *
-	 * Fonts can also be added using a font-face at-rule in the CSS.
-	 *
-	 * @param supplier
-	 * @param fontFamily
-	 * @param fontWeight
-	 * @param fontStyle
-	 * @return this for method chaining
-	 */
-	public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
-			FontStyle fontStyle) {
-		state._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, fontStyle));
-		return this;
-	}
-
-	/**
-	 * Simpler overload for {@link #useFont(FSSupplier, String, Integer, FontStyle)}
-	 *
-	 * @param supplier
-	 * @param fontFamily
-	 * @return this for method chaining
-	 */
-	public Java2DRendererBuilder useFont(FSSupplier<InputStream> supplier, String fontFamily) {
-		return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL);
-	}
-
-	/**
 	 * Used to set an initial page number for use with page counters, etc.
 	 *
 	 * @param pageNumberInitial
@@ -80,6 +44,15 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 		state._initialPageNumber = pageNumberInitial;
 		return this;
 	}
+
+    /**
+     * Whether to use fonts available in the environment. Enabling environment fonts may mean different text
+     * rendering behavior across different environments. The default is not to use environment fonts.
+     */
+    public Java2DRendererBuilder useEnvironmentFonts(boolean useEnvironmentFonts) {
+        state._useEnvironmentFonts = useEnvironmentFonts;
+        return this;
+    }
 
 	/**
 	 * Render everything to a single page. I.e. only one big page is genereated, no
@@ -158,20 +131,6 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 		}
 
 		return new Java2DRenderer(doc, unicode,  pageSize, state);
-	}
-
-	static class AddedFont {
-		private final FSSupplier<InputStream> supplier;
-		private final Integer weight;
-		private final String family;
-		private final FontStyle style;
-
-		private AddedFont(FSSupplier<InputStream> supplier, Integer weight, String family, FontStyle style) {
-			this.supplier = supplier;
-			this.weight = weight;
-			this.family = family;
-			this.style = style;
-		}
 	}
 
 	/**
