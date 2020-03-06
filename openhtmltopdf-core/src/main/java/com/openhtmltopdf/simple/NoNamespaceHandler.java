@@ -66,7 +66,8 @@ public class NoNamespaceHandler implements NamespaceHandler {
                 int l = attrs.getLength();
                 for (int i = 0; i < l; i++) {
                     Attr attr = (Attr)attrs.item(i);
-                    if (attrName.equals(attr.getLocalName())) {
+                    if (attrName.equals(attr.getLocalName()) ||
+                        (attr.getLocalName() == null && attrName.equals(attr.getNodeName()))) {
                         return attr.getValue();
                     }
                 }
