@@ -62,7 +62,8 @@ public class ContentPropertyBuilder extends AbstractPropertyBuilder {
             
             short type = value.getPrimitiveType();
             if (type == CSSPrimitiveValue.CSS_URI) {
-                continue;
+                // We have an image.
+                resultValues.add(value);
             } else if (type == CSSPrimitiveValue.CSS_STRING) {
                 resultValues.add(value);
             } else if (value.getPropertyValueType() == PropertyValue.VALUE_TYPE_FUNCTION) {

@@ -1008,6 +1008,15 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests what the CSS content property is capable of.
+     */
+    @Test
+    @Ignore // Working but with content images behaving as blocks rather than inline-blocks.
+    public void testContentPropertyCapabilities() throws IOException {
+        assertTrue(vt.runTest("content-property-capabilities"));
+    }
+
+    /**
      * Tests that aligned right text doesn't have trailing spaces
      * that cause ragged text on the right.
      */

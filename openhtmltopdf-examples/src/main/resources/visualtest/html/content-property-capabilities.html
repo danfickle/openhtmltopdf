@@ -1,0 +1,44 @@
+<html>
+<head>
+<style>
+@page {
+    size: 400px 400px;
+    margin: 20px;
+    -fs-max-overflow-pages: 10;
+
+    @top-center {
+        content: "Pg " counter(page) " " -fs-if-cut-off("(continued)");
+    }
+}
+@page:first {
+    margin-top: 100px;
+    @top-center {
+        content: url(../../demos/images/flyingsaucer.png);
+    }
+}
+body {
+    margin: 10px;
+    max-width: 340px;
+    line-height: 200%;
+}
+#zero::after {
+    content: "Go to page:" leader(dotted) target-counter(attr(href), page);
+}
+#one::after {
+    content: leader(dotted) "Page " counter(page) " of " counter(pages);
+}
+#two::before {
+    content: attr(data-msg);
+}
+#three::after {
+    content: url(../../demos/images/flyingsaucer.png);
+}
+</style>
+</head>
+<body>
+  <a id="zero" href="#three" style="display: inline-block;width: 100%;"></a>
+  <div id="one">ONE</div>
+  <div id="two" data-msg="HELLO"> WORLD</div>
+  <div id="three" style="page-break-before: always;width: 150%; background-color: black;color: white;">With images: </div>
+</body>
+</html>

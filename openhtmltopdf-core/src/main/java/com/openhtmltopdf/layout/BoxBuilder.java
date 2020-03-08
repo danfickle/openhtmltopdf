@@ -804,6 +804,21 @@ public class BoxBuilder {
             short type = value.getPrimitiveType();
             if (type == CSSPrimitiveValue.CSS_STRING) {
                 content = value.getStringValue();
+            } else if (type == CSSPrimitiveValue.CSS_URI) {
+                Element creator = element != null ? element : c.getRootLayer().getMaster().getElement();
+                Document doc = creator.getOwnerDocument();
+                Element img = doc.createElement("img");
+                img.setAttribute("src", value.getStringValue());
+                creator.appendChild(img);
+
+                BlockBox iB = new BlockBox();
+                iB.setElement(img);
+                iB.setPseudoElementOrClass(peName);
+                iB.setStyle(style.createAnonymousStyle(IdentValue.INLINE_BLOCK));
+
+                info.setContainsBlockLevelContent(true);
+
+                result.add(iB);
             } else if (value.getPropertyValueType() == PropertyValue.VALUE_TYPE_FUNCTION) {
                 if (mode == CONTENT_LIST_DOCUMENT && isAttrFunction(value.getFunction())) {
                     content = getAttributeValue(value.getFunction(), element);
@@ -933,10 +948,46 @@ public class BoxBuilder {
             return Collections.emptyList();
         }
 
+        ChildBoxInfo childInfo = new ChildBoxInfo();
         List<Styleable> inlineBoxes = createGeneratedContentList(
-                c, element, property, peName, style, CONTENT_LIST_DOCUMENT, null);
+                c, element, property, peName, style, CONTENT_LIST_DOCUMENT, childInfo);
 
-        if (style.isInline()) {
+        if (childInfo.isContainsBlockLevelContent()) {
+            List<Styleable> inlines = new ArrayList<>();
+
+            BlockBox result = createBlockBox(style.createAnonymousStyle(IdentValue.INLINE_BLOCK), info, true);
+
+            result.setStyle(style.createAnonymousStyle(IdentValue.INLINE_BLOCK));
+            result.setElement(element);
+            result.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+            result.setPseudoElementOrClass(peName);
+
+            CalculatedStyle anon = style.createAnonymousStyle(IdentValue.INLINE);
+
+            for (Iterator<Styleable> i = inlineBoxes.iterator(); i.hasNext();) {
+               Styleable b = (Styleable) i.next();
+
+               if (b instanceof BlockBox) {
+                   if (!inlines.isEmpty()) {
+                       createAnonymousInlineBlock(c.getSharedContext(), result, inlines, null);
+                       inlines.clear();
+                   }
+                   result.addChild((BlockBox) b);
+               } else {
+                   InlineBox iB = (InlineBox) b;
+
+                   iB.setStyle(anon);
+                   iB.applyTextTransform();
+
+                   inlines.add(iB);
+               }
+            }
+
+            if (!inlines.isEmpty()) {
+                createAnonymousInlineBlock(c.getSharedContext(), result, inlines, null);
+            }
+            return Collections.singletonList(result);
+        } else if (style.isInline()) {
             for (Iterator<Styleable> i = inlineBoxes.iterator(); i.hasNext();) {
                 InlineBox iB = (InlineBox) i.next();
                 iB.setStyle(style);
@@ -1387,11 +1438,19 @@ public class BoxBuilder {
         createAnonymousBlock(c, parent, inline, savedParents);
     }
 
+    private static void createAnonymousInlineBlock(SharedContext c, Box parent, List<Styleable> inline, List<InlineBox> savedParents) {
+        createAnonymousBlock(c, parent, inline, savedParents, IdentValue.INLINE_BLOCK);
+    }
+
     private static void createAnonymousBlock(SharedContext c, Box parent, List<Styleable> inline, List<InlineBox> savedParents) {
+        createAnonymousBlock(c, parent, inline, savedParents, IdentValue.BLOCK);
+    }
+
+    private static void createAnonymousBlock(SharedContext c, Box parent, List<Styleable> inline, List<InlineBox> savedParents, IdentValue display) {
         WhitespaceStripper.stripInlineContent(inline);
         if (inline.size() > 0) {
             AnonymousBlockBox anon = new AnonymousBlockBox(parent.getElement());
-            anon.setStyle(parent.getStyle().createAnonymousStyle(IdentValue.BLOCK));
+            anon.setStyle(parent.getStyle().createAnonymousStyle(display));
             anon.setAnonymous(true);
             if (savedParents != null && savedParents.size() > 0) {
                 anon.setOpenInlineBoxes(savedParents);
