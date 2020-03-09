@@ -813,8 +813,8 @@ public class BoxBuilder {
 
                 BlockBox iB = new BlockBox();
                 iB.setElement(img);
-                iB.setPseudoElementOrClass(peName);
-                iB.setStyle(style.createAnonymousStyle(IdentValue.INLINE_BLOCK));
+                CalculatedStyle anon = new EmptyStyle().createAnonymousStyle(IdentValue.INLINE_BLOCK);
+                iB.setStyle(anon);
 
                 info.setContainsBlockLevelContent(true);
 
@@ -955,36 +955,34 @@ public class BoxBuilder {
         if (childInfo.isContainsBlockLevelContent()) {
             List<Styleable> inlines = new ArrayList<>();
 
-            BlockBox result = createBlockBox(style.createAnonymousStyle(IdentValue.INLINE_BLOCK), info, true);
+            CalculatedStyle anonStyle = style.isInlineBlock() || style.isInline() ?
+                           style : style.createAnonymousStyle(IdentValue.INLINE_BLOCK);
 
-            result.setStyle(style.createAnonymousStyle(IdentValue.INLINE_BLOCK));
+            BlockBox result = createBlockBox(style, info, true);
+            result.setStyle(anonStyle);
             result.setElement(element);
-            result.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+            result.setChildrenContentType(BlockBox.CONTENT_INLINE);
             result.setPseudoElementOrClass(peName);
 
             CalculatedStyle anon = style.createAnonymousStyle(IdentValue.INLINE);
-
             for (Iterator<Styleable> i = inlineBoxes.iterator(); i.hasNext();) {
-               Styleable b = (Styleable) i.next();
+               Styleable b = i.next();
 
                if (b instanceof BlockBox) {
-                   if (!inlines.isEmpty()) {
-                       createAnonymousInlineBlock(c.getSharedContext(), result, inlines, null);
-                       inlines.clear();
-                   }
-                   result.addChild((BlockBox) b);
+                   inlines.add(b);
                } else {
                    InlineBox iB = (InlineBox) b;
 
                    iB.setStyle(anon);
                    iB.applyTextTransform();
+                   iB.setElement(null);
 
                    inlines.add(iB);
                }
             }
 
             if (!inlines.isEmpty()) {
-                createAnonymousInlineBlock(c.getSharedContext(), result, inlines, null);
+                result.setInlineContent(inlines);
             }
             return Collections.singletonList(result);
         } else if (style.isInline()) {

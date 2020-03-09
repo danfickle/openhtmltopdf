@@ -11,9 +11,10 @@
     }
 }
 @page:first {
-    margin-top: 100px;
+    margin-top: 140px;
     @top-center {
-        content: url(../../demos/images/flyingsaucer.png);
+        border: 1px solid blue;
+        content: url(../../demos/images/flyingsaucer.png) "..." url(../../demos/images/flyingsaucer.png);
     }
 }
 body {
@@ -31,7 +32,10 @@ body {
     content: attr(data-msg);
 }
 #three::after {
-    content: url(../../demos/images/flyingsaucer.png);
+    display: inline-block;
+    border: 2px solid pink;
+    background-color: orange;
+    content: url(../../demos/images/flyingsaucer.png) "..." url(../../demos/images/flyingsaucer.png);
 }
 </style>
 </head>
@@ -39,6 +43,6 @@ body {
   <a id="zero" href="#three" style="display: inline-block;width: 100%;"></a>
   <div id="one">ONE</div>
   <div id="two" data-msg="HELLO"> WORLD</div>
-  <div id="three" style="page-break-before: always;width: 150%; background-color: black;color: white;">With images: </div>
+  <div id="three" style="page-break-before: always;width: 150%; background-color: gray;color: white;">With images: </div>
 </body>
 </html>
