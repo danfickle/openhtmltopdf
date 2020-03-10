@@ -324,7 +324,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     public List<Box> getChildren() {
         return _boxes == null ? Collections.<Box>emptyList() : _boxes;
     }
-    
+
     public static class ChildIteratorOfType<T> implements Iterator<T>  {
         private final Iterator<Box> iter;
         private final Class<T> type;

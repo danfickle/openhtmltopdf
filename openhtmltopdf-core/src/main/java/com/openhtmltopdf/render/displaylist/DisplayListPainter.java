@@ -30,17 +30,17 @@ public class DisplayListPainter {
     private void debugOnly(String msg, Object arg) {
         //System.out.println(msg + " : " + arg);
     }
-	
+
 	private void clip(RenderingContext c, OperatorClip clip) {
 	    debugOnly("clipping", clip.getClip());
 		c.getOutputDevice().pushClip(clip.getClip());
 	}
-	
+
 	private void setClip(RenderingContext c, OperatorSetClip setclip) {
 	    debugOnly("popping clip", null);
 		c.getOutputDevice().popClip();
 	}
-	
+
 	/**
 	 * If the container is a table and it is set to <code>paginate</code> then update its header
 	 * and footer position for this page.
@@ -53,7 +53,21 @@ public class DisplayListPainter {
             }
         }
 	}
-	
+
+	/**
+	 * If the container is a table and it is set to <code>paginate</code> then hide its header
+	 * and footer if there is no content between them.
+	 * It is used to fix the bug: danfickle/openhtmltopdf#399
+	 */
+	private void hideTableHeaderFooterIfSiblings(RenderingContext c, BlockBox container) {
+		if (container.getStyle().isTable()) {
+			TableBox table = (TableBox) container;
+			if (table.hasContentLimitContainer()) {
+				table.hideHeaderFooterIfSiblings(c);
+			}
+		}
+	}
+
 	private void paintBackgroundAndBorders(RenderingContext c, List<DisplayListItem> blocks,
 			Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders) {
 
@@ -66,11 +80,12 @@ public class DisplayListPainter {
 				setClip(c, setClip);
 			} else {
 				BlockBox box = (BlockBox) dli;
-				
+
 				Object outerToken = c.getOutputDevice().startStructure(StructureType.BLOCK, box);
 				Object innerToken = c.getOutputDevice().startStructure(StructureType.BACKGROUND, box);
-				
+
 				updateTableHeaderFooterPosition(c, box);
+				hideTableHeaderFooterIfSiblings(c, box);
 				debugOnly("painting bg", box);
 				box.paintBackground(c);
 				box.paintBorder(c);
