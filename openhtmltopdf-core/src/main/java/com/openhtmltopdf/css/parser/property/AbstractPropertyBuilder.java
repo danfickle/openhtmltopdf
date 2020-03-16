@@ -173,6 +173,7 @@ public abstract class AbstractPropertyBuilder implements PropertyBuilder {
                 || unit == CSSPrimitiveValue.CSS_PX || unit == CSSPrimitiveValue.CSS_IN
                 || unit == CSSPrimitiveValue.CSS_CM || unit == CSSPrimitiveValue.CSS_MM
                 || unit == CSSPrimitiveValue.CSS_PT || unit == CSSPrimitiveValue.CSS_PC
+                || unit == CSSPrimitiveValue.CSS_REMS
                 || (unit == CSSPrimitiveValue.CSS_NUMBER && value.getFloatValue(CSSPrimitiveValue.CSS_IN) == 0.0f);
     }
     

@@ -1383,6 +1383,7 @@ public class CSSParser {
                 case Token.URI:
                 case Token.HASH:
                 case Token.FUNCTION:
+                case Token.DIMENSION:
                     PropertyValue term = term(literal);
                     if (operatorToken != null) {
                         term.setOperator(operatorToken);
@@ -1462,7 +1463,19 @@ public class CSSParser {
             case Token.TIME:
             case Token.FREQ:
             case Token.DIMENSION:
-                throw new CSSParseException("Unsupported CSS unit " + extractUnit(t), getCurrentLine());
+                String unitType = extractUnit(t);
+
+                if ("rem".equals(unitType)) {
+                    result = new PropertyValue(
+                          CSSPrimitiveValue.CSS_REMS,
+                          sign*Float.parseFloat(extractNumber(t)),
+                          sign(sign) + getTokenValue(t));
+                    next();
+                    skip_whitespace();
+                } else {
+                    throw new CSSParseException("Unsupported CSS unit " + unitType, getCurrentLine());
+                }
+                break;
             case Token.NUMBER:
                 result = new PropertyValue(
                         CSSPrimitiveValue.CSS_NUMBER,

@@ -151,6 +151,7 @@ public final class ValueConstants {
                 return false;
                 // refer to values known to the DerivedValue instance (tobe)
             case CSSPrimitiveValue.CSS_EMS:
+            case CSSPrimitiveValue.CSS_REMS:
             case CSSPrimitiveValue.CSS_EXS:
                 // length
             case CSSPrimitiveValue.CSS_IN:

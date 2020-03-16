@@ -39,6 +39,7 @@ import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.Stylesheet;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
+import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.extend.UserInterface;
@@ -70,6 +71,17 @@ public class StyleReference {
     public StyleReference(UserAgentCallback userAgent) {
         _uac = userAgent;
         _stylesheetFactory = new StylesheetFactoryImpl(userAgent);
+    }
+
+    /**
+     * Gets the style of the root element, should be html tag.
+     */
+    public CalculatedStyle getRootElementStyle() {
+        if (_context != null && _doc != null) {
+            return _context.getStyle(_doc.getDocumentElement());
+        } else {
+            return null;
+        }
     }
 
     /**

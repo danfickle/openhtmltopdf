@@ -1008,6 +1008,15 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that the rem unit work with a document that has no author
+     * font-size set on the html element (defaults to 16px).
+     */
+    @Test
+    public void testIssue459RemUnitDefault() throws IOException {
+        assertTrue(vt.runTest("issue-459-rem-unit-default"));
+    }
+
+    /**
      * Tests what the CSS content property is capable of.
      */
     @Test

@@ -27,7 +27,10 @@ public interface CSSPrimitiveValue extends CSSValue {
     public static final short CSS_COUNTER = 23;
     public static final short CSS_RECT = 24;
     public static final short CSS_RGBCOLOR = 25;
-    
+
+    /** rems unit, not official, added by danfickle. */
+    public static final short CSS_REMS = 26;
+
     public short getPrimitiveType();
     public float getFloatValue(short unitType);
     public String getStringValue();

@@ -144,6 +144,19 @@ public class LengthValue extends DerivedValue {
                 }
 
                 break;
+            case CSSPrimitiveValue.CSS_REMS: {
+                // The rem unit is the same as em except uses the font-size of the html element
+                // rather than the font-size of current/parent element.
+                CalculatedStyle htmlTagStyle = ctx.getCss().getRootElementStyle();
+                if (htmlTagStyle == null) {
+                    // The default font-size for the html tag is 16px.
+                    absVal = relVal * 16f * ctx.getDotsPerPixel();
+                } else {
+                   FontSpecification htmlTagFontSpecification = htmlTagStyle.getFont(ctx);
+                   absVal = relVal * htmlTagFontSpecification.size;
+                }
+                break;
+            }
             case CSSPrimitiveValue.CSS_EXS:
                 // To convert EMS to pixels, we need the height of the lowercase 'Xx' character in the current
                 // element...
