@@ -11,6 +11,8 @@ import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Level;
 
@@ -30,9 +32,9 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * Run the XHTML/XML to PDF conversion and output to an output stream set by
 	 * toStream.
 	 *
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public void run() throws Exception {
+	public void run() throws IOException {
 		PdfBoxRenderer renderer = null;
 		try {
 			renderer = this.buildPdfRenderer();
