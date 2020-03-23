@@ -27,8 +27,8 @@ import com.openhtmltopdf.layout.LayoutContext;
 public class ContentLimitContainer {
     private ContentLimitContainer _parent;
     
-    private int _initialPageNo;
-    private List _contentLimits = new ArrayList();
+    private final int _initialPageNo;
+    private final List<ContentLimit> _contentLimits = new ArrayList<>();
     
     private PageBox _lastPage;
     
@@ -57,7 +57,7 @@ public class ContentLimitContainer {
         
         int target = pageNo - _initialPageNo;
         if (target >= 0 && target < _contentLimits.size()) {
-            return (ContentLimit)_contentLimits.get(pageNo - _initialPageNo);
+            return _contentLimits.get(pageNo - _initialPageNo);
         } else {
             return null;
         }
@@ -124,7 +124,8 @@ public class ContentLimitContainer {
     public boolean isContainsMultiplePages() {
         return _contentLimits.size() > 1;
     }
-    
+
+    @Override
     public String toString() {
         return "[initialPageNo=" + _initialPageNo + ", limits=" + _contentLimits + "]";
     }
