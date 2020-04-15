@@ -488,7 +488,16 @@ public class TextVisualRegressionTest {
     public void testLetterSpacingBidi() throws IOException {
         assertTrue(vtester.runTest("letter-spacing-bidi", TestSupport.WITH_ARABIC));   
     }
-    
+
+    /**
+     * Tests that the direction CSS property (as opposed to dir attribute)
+     * is honored.
+     */
+    @Test
+    public void testIssue464RtlWithPhoneNumber() throws IOException {
+        assertTrue(vtester.runTest("issue-464-rtl-with-phone-number", TestSupport.WITH_ARABIC));
+    }
+
     /**
      * Tests that letter spacing property works correctly with mutliple fallback fonts.
      * Issue 342.

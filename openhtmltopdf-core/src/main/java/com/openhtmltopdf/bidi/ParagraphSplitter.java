@@ -252,10 +252,15 @@ public class ParagraphSplitter {
             	}
 
             	CalculatedStyle style = c.getSharedContext().getStyle(element);
-                
-            	if (style.isParagraphContainerForBidi() || element.hasAttribute("dir") || element.getNodeName().equals("bdi")) {
-                	// If a element has a dir attribute or is a bdi tag it sits in its own direction isolate.
-                	Paragraph para = new Paragraph(style.getDirection());
+                IdentValue currentCssDirection = style.getDirection(); 
+
+                if (style.isParagraphContainerForBidi() ||
+                    element.hasAttribute("dir") || 
+                    element.getNodeName().equals("bdi") ||
+                    currentCssDirection != nearestBlock.getCSSDirection()) {
+                    // If a element has a dir attribute, is a bdi tag or changes direction
+                    // via CSS it sits in its own direction isolate.
+                    Paragraph para = new Paragraph(currentCssDirection);
                 	allParagraphs.add(para);
               		blocks.put(element, para);
                 	splitParagraphs(c, element, para);
