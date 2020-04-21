@@ -1017,6 +1017,16 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests a reported infinite loop bug with table cells in specific
+     * circumstances.
+     */
+    @Test
+    @Ignore // Infinite loop w memory allocation.
+    public void testIssue466InfiniteLoopTableCellBox() throws IOException {
+         assertTrue(vt.runTest("issue-466-infinite-loop-table-cell-box"));
+    }
+
+    /**
      * Tests what the CSS content property is capable of.
      */
     @Test
