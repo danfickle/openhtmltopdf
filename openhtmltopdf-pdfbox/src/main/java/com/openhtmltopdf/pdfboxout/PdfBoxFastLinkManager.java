@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import java.awt.*;
 import java.awt.geom.*;
 import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
@@ -232,7 +233,7 @@ public class PdfBoxFastLinkManager {
 			} else {
 			    XRLog.general(Level.WARNING, "Could not find valid target for link. Link href = " + uri);
 			}
-		} else if (uri.contains("://")) {
+		} else if (isURI(uri)) {
 			PDActionURI uriAct = new PDActionURI();
 			uriAct.setURI(uri);
 
@@ -246,6 +247,15 @@ public class PdfBoxFastLinkManager {
 				return;
 
 			addLinkToPage(page, annot, box, null);
+		}
+	}
+
+	private static boolean isURI(String uri) {
+		try {
+			return URI.create(uri) != null;
+		} catch (IllegalArgumentException e) {
+			XRLog.general(Level.INFO, "'"+uri+"' in href is not a valid URI, will be skipped");
+			return false;
 		}
 	}
 
