@@ -1019,9 +1019,12 @@ public class VisualRegressionTest {
     /**
      * Tests a reported infinite loop bug with table cells in specific
      * circumstances.
+     * 
+     * Turns out this bug was triggered by zero width table cells
+     * with content and word-wrap: break-word. Therefore, this test
+     * also exercises zero width divs with content (and without).
      */
     @Test
-    @Ignore // Infinite loop w memory allocation.
     public void testIssue466InfiniteLoopTableCellBox() throws IOException {
          assertTrue(vt.runTest("issue-466-infinite-loop-table-cell-box"));
     }

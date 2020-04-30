@@ -280,7 +280,8 @@ public class Breaker {
             nextCharBreak = charIterator.next();
         }
         
-        if (graphicsLength == avail) {
+        if (graphicsLength == avail &&
+            graphicsLength > 0) {
             // Exact fit..
             boolean needNewLine = currentString.length() > left;
             
@@ -314,7 +315,8 @@ public class Breaker {
             graphicsLength += splitWidth;
         }
 
-        if (graphicsLength <= avail) {
+        if (graphicsLength <= avail &&
+            graphicsLength > 0) {
             // The entire word fit.
             context.setWidth(graphicsLength);
             context.setEnd(nextCharBreak + context.getStart());
@@ -361,6 +363,7 @@ public class Breaker {
             // Empty string.
             context.setEnd(context.getStart());
             context.setWidth(0);
+            context.setNeedsNewLine(false);
 
             return LineBreakResult.CHAR_BREAKING_FINISHED;
         }

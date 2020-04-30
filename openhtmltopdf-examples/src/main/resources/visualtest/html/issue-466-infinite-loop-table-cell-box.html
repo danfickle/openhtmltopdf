@@ -1,6 +1,31 @@
+<div>
+
+<!-- Width zero with content -->
+<div style="width: 0;">GHI</div>
+<div style="width: 0; word-wrap: break-word;">DEF</div>
+
+<!-- Width zero with breakable content -->
+<div style="width: 0;">PQR STU</div>
+<div style="width: 0; word-wrap: break-word;">VWX 123</div>
+
+<!-- Width zero with no content -->
+<div style="width: 0;"></div>
+<div style="width: 0; word-wrap: break-word;"></div>
+
+<!-- Negative content width with content -->
+<div style="box-sizing: border-box; width: 5px; padding: 0 5px;">JKL</div>
+<div style="box-sizing: border-box; width: 5px; padding: 0 5px; word-wrap: break-word;">MNO</div>
+
+<!-- Negative content width without content -->
+<div style="box-sizing: border-box; width: 5px; padding: 0 5px;"></div>
+<div style="box-sizing: border-box; width: 5px; padding: 0 5px; word-wrap: break-word;"></div>
+
+<!-- Zero width table cell as result of layout -->
 <table style="width: 3px;table-layout: fixed;">
 <tr>
  <td colspan="2"></td>
  <td style="word-wrap: break-word;">ABC</td>
 </tr>
 </table>
+
+</div>
