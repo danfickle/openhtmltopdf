@@ -1,0 +1,112 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 400px;
+  margin: 80px 50px;
+  @left-top {
+     content: element(left-margin);
+     background-image: linear-gradient(to right, blue, blue 50%, white 50%, white);
+  }
+  @left-middle {
+     content: " ";
+     background-image: linear-gradient(to right, blue, blue 50%, white 50%, white);
+  }
+  @left-bottom {
+     content: " ";
+     background-image: linear-gradient(to right, blue, blue 50%, white 50%, white);
+  }
+
+  @right-top {
+    content: element(right-margin);
+    background-image: linear-gradient(to left, blue, blue 50%, white 50%, white);
+  }
+  @right-middle {
+     content: " ";
+     background-image: linear-gradient(to left, blue, blue 50%, white 50%, white);
+  }
+  @right-bottom {
+     content: " ";
+     background-image: linear-gradient(to left, blue, blue 50%, white 50%, white);
+  }
+
+  @top-left-corner {
+    content: " ";
+    background-image: linear-gradient(to right, blue, blue 50%, white 50%, white);
+  }
+  @bottom-left-corner {
+    content: " ";
+    background-image: linear-gradient(to right, blue, blue 50%, white 50%, white);
+  }
+
+  @top-right-corner {
+    content: " ";
+    background-image: linear-gradient(to left, blue, blue 50%, white 50%, white);
+  }
+  @bottom-right-corner {
+    content: " ";
+    background-image: linear-gradient(to left, blue, blue 50%, white 50%, white);
+  }
+}
+
+div.l-margin {
+  position: running(left-margin);
+}
+div.l-margin-inner {
+  position: absolute;
+  width: 100%;
+}
+div.l-margin-bullet {
+  width: 40px;
+  position: relative;
+  left: 5px;
+  background-color: red;
+  border-radius: 50%;
+  height: 40px;
+}
+
+div.r-margin {
+  position: running(right-margin);
+}
+div.r-margin-inner {
+  position: absolute;
+  width: 100%;
+}
+div.r-margin-bullet {
+  width: 40px;
+  position: relative;
+  right: -5px;
+  background-color: red;
+  border-radius: 50%;
+  height: 40px;
+}
+</style>
+</head>
+<body>
+
+<div class="l-margin">
+ <div class="l-margin-inner">
+  <div class="l-margin-bullet"></div>
+ </div>
+</div>
+
+<div class="r-margin">
+ <div class="r-margin-inner">
+  <div class="r-margin-bullet"></div>
+ </div>
+</div>
+
+<!-- Just to see where the right margin is -->
+<div style="background-color: orange; height: 20px;"></div>
+
+Line<br/>
+Line<br/>
+Line<br/>
+Line<br/>
+Line<br/>
+Line<br/>
+Line<br/>
+Line<br/>
+
+</body>
+</html>

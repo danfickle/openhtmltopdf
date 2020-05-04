@@ -1030,6 +1030,17 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests an interesting layout challeng where the author wanted bullets in
+     * the page margin split over two background colors.
+     * 
+     * This solution uses linear-gradient support and running elements.
+     */
+    @Test
+    public void testIssue473BulletsInPageMargin() throws IOException {
+         assertTrue(vt.runTest("issue-473-bullets-in-page-margin"));
+    }
+
+    /**
      * Tests what the CSS content property is capable of.
      */
     @Test
