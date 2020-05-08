@@ -19,7 +19,6 @@ import org.w3c.dom.Element;
 import com.openhtmltopdf.extend.FSObjectDrawer;
 import com.openhtmltopdf.extend.FSObjectDrawerFactory;
 import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartBarDiagramObjectDrawer;
@@ -1106,6 +1105,16 @@ public class VisualRegressionTest {
          assertTrue(vt.runTest("issue-472-add-semi-transparent-watermark", builder -> {
              builder.useObjectDrawerFactory(new WatermarkDrawerFactory());
          }));
+    }
+
+    /**
+     * Tests whether simple SVG text is rendered as glyphs or vectors in a PDF.
+     */
+    @Test
+    @Ignore // All text is currently rendered as vectors due to outdated
+            // platform test in Batik.
+    public void testIssue475SVGTextAsGlyphs() throws IOException {
+        assertTrue(vt.runTest("issue-475-svg-text-as-glyphs", TestSupport.WITH_SVG));
     }
 
     /**

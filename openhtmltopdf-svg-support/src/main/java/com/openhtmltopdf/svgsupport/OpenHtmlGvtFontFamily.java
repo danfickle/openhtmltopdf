@@ -1,15 +1,15 @@
 package com.openhtmltopdf.svgsupport;
 
+import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.font.TextAttribute;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.AttributedCharacterIterator;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.batik.gvt.font.AWTGVTFont;
 import org.apache.batik.gvt.font.GVTFont;
 import org.apache.batik.gvt.font.GVTFontFace;
 import org.apache.batik.gvt.font.GVTFontFamily;
@@ -47,11 +47,17 @@ public class OpenHtmlGvtFontFamily implements GVTFontFamily {
 			return (size == null ? 0 : size.hashCode()) + (style == null ? 0 : style.hashCode()) + (weight == null ? 0 : weight.hashCode());
 			
 		}
+
+        @Override
+        public String toString() {
+            return "[size=" + size + ", style=" + style + ", weight=" + weight + "]";
+        }
 	}
-	
-	private final Map<FontDescriptor, OpenHtmlGvtFont> fonts = new HashMap<FontDescriptor, OpenHtmlGvtFont>(1);
-	private final String fontFamily;
-	
+
+    private final Map<FontDescriptor, AWTGVTFont> awtFonts = new HashMap<>();
+    private final String fontFamily;
+    private AWTGVTFont defaultFont;
+
 	public OpenHtmlGvtFontFamily(String family) {
 		this.fontFamily = family;
 	}
@@ -61,8 +67,21 @@ public class OpenHtmlGvtFontFamily implements GVTFontFamily {
 		des.size = size;
 		des.style = fontStyle;
 		des.weight = fontWeight;
-		
-		fonts.put(des, new OpenHtmlGvtFont(bytes, this, size, fontWeight, fontStyle));
+        try {
+            Font fnt = Font.createFont(Font.TRUETYPE_FONT, new ByteArrayInputStream(bytes));
+
+            // FIXME: 10 is arbitrary, need to research correct value...
+            AWTGVTFont gvtFont = new AWTGVTFont(fnt, 10);
+
+            if (defaultFont == null) {
+                defaultFont = gvtFont;
+            }
+
+            awtFonts.put(des, gvtFont);
+        } catch (IOException e) {
+            // Shouldn't happen, reading from byte array...
+            XRLog.exception("IOException reading from byte array!", e);
+        }
 	}
 	
 	@Override
@@ -80,12 +99,8 @@ public class OpenHtmlGvtFontFamily implements GVTFontFamily {
 	    des.weight = fontWeight;
 	    des.style = fontStyle;
 	    des.size = sz;
-	    
-	    if (fonts.containsKey(des)) {
-	    	return fonts.get(des);
-	    }
 
-	    return fonts.values().iterator().next().deriveFont(sz);
+        return awtFonts.getOrDefault(des, defaultFont);
 	}
 	
 	@Override
