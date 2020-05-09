@@ -1,31 +1,16 @@
 package com.openhtmltopdf.visualregressiontests;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import static org.junit.Assert.assertTrue;
 import java.io.IOException;
-import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.w3c.dom.Element;
-
-import com.openhtmltopdf.extend.FSObjectDrawer;
-import com.openhtmltopdf.extend.FSObjectDrawerFactory;
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartBarDiagramObjectDrawer;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartPieDiagramObjectDrawer;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
-import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgExternalResourceMode;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgScriptMode;
