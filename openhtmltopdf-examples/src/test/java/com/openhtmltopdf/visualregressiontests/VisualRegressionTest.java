@@ -1107,6 +1107,15 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that position: fixed on multiple pages is correctly positoned
+     * on pages after page one.
+     */
+    @Test
+    public void testIssue472FixedPositionMultiplePages() throws IOException {
+        assertTrue(vt.runTest("issue-472-fixed-position-multiple-pages"));
+    }
+
+    /**
      * Tests adding a transparent watermark using a custom object drawer
      * inside a fixed position object.
      */
