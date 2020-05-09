@@ -1053,59 +1053,6 @@ public class VisualRegressionTest {
          assertTrue(vt.runTest("issue-473-bullets-in-page-margin"));
     }
 
-    private static class WatermarkDrawer implements FSObjectDrawer {
-        @Override
-        public Map<Shape, String> drawObject(Element e, double x, double y, double width, double height,
-                OutputDevice outputDevice, RenderingContext ctx, int dotsPerPixel) {
-            outputDevice.drawWithGraphics((float) x, (float) y, (float) width / dotsPerPixel,
-                (float) height / dotsPerPixel, (Graphics2D g2d) -> {
-
-                double realWidth = width / dotsPerPixel;
-                double realHeight = height / dotsPerPixel;
-
-                Font font = new Font("Arial", Font.BOLD, 20);
-                Rectangle2D bounds = font.getStringBounds("OpenHTMLToPDF", g2d.getFontRenderContext());
-
-                g2d.setFont(font);
-                g2d.setPaint(Color.RED);
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
-
-                g2d.drawString("OpenHTMLToPDF",
-                   (float) ((realWidth - bounds.getWidth()) / 2),
-                   (float) ((realHeight - bounds.getHeight()) / 2));
-
-            });
-
-            return null;
-        }
-    }
-
-    private static class WatermarkDrawerFactory implements FSObjectDrawerFactory {
-        @Override
-        public FSObjectDrawer createDrawer(Element e) {
-           if (isReplacedObject(e)) {
-              return new WatermarkDrawer();
-           }
-           return null;
-        }
-
-        @Override
-        public boolean isReplacedObject(Element e) {
-           return e.getAttribute("type").equals("watermark");
-        }
-    }
-
-    /**
-     * Tests adding a transparent watermark using a custom object drawer
-     * inside a static position object on multiple pages.
-     */
-    @Test
-    public void testIssue472CustomObjectDrawerMultiplePages() throws IOException {
-         assertTrue(vt.runTest("issue-472-custom-object-drawer-multiple-pages", builder -> {
-             builder.useObjectDrawerFactory(new WatermarkDrawerFactory());
-         }));
-    }
-
     /**
      * Tests that position: fixed on multiple pages is correctly positoned
      * on pages after page one.
@@ -1113,19 +1060,6 @@ public class VisualRegressionTest {
     @Test
     public void testIssue472FixedPositionMultiplePages() throws IOException {
         assertTrue(vt.runTest("issue-472-fixed-position-multiple-pages"));
-    }
-
-    /**
-     * Tests adding a transparent watermark using a custom object drawer
-     * inside a fixed position object.
-     */
-    @Test
-    @Ignore // Works well on the first page, but not positioned correctly on
-            // subsequent pages.
-    public void testIssue472AddSemiTransparentWatermark() throws IOException {
-         assertTrue(vt.runTest("issue-472-add-semi-transparent-watermark", builder -> {
-             builder.useObjectDrawerFactory(new WatermarkDrawerFactory());
-         }));
     }
 
     /**
