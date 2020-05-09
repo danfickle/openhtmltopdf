@@ -1,0 +1,41 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+  margin: 10px;
+}
+object[type="watermark"] {
+  display: block;
+  width: 100%;
+  height: 100px;
+  transform: rotate(15deg);
+  border: 1px solid black;
+}
+</style>
+</head>
+<body>
+Line 1<br/>
+Line 2<br/>
+Line 3<br/>
+
+<object type="watermark"></object>
+
+Line 4<br/>
+Line 5<br/>
+Line 6<br/>
+
+<div style="page-break-before: always;"></div>
+
+Line 1<br/>
+Line 2<br/>
+Line 3<br/>
+
+<object type="watermark"></object>
+
+Line 4<br/>
+Line 5<br/>
+Line 6<br/>
+
+</body>
+</html>

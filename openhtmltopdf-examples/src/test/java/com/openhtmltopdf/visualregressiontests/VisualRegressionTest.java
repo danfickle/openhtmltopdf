@@ -1097,6 +1097,17 @@ public class VisualRegressionTest {
 
     /**
      * Tests adding a transparent watermark using a custom object drawer
+     * inside a static position object on multiple pages.
+     */
+    @Test
+    public void testIssue472CustomObjectDrawerMultiplePages() throws IOException {
+         assertTrue(vt.runTest("issue-472-custom-object-drawer-multiple-pages", builder -> {
+             builder.useObjectDrawerFactory(new WatermarkDrawerFactory());
+         }));
+    }
+
+    /**
+     * Tests adding a transparent watermark using a custom object drawer
      * inside a fixed position object.
      */
     @Test
