@@ -271,7 +271,7 @@ public class PdfBoxLinkManager {
 		// We must flip the whole thing upside down
 		transformForQuads.translate(0, targetArea.getHeight());
 		transformForQuads.scale(1, -1);
-		transformForQuads.concatenate(transform);
+		transformForQuads.concatenate(AffineTransform.getScaleInstance(transform.getScaleX(), transform.getScaleX()));
 		Area area = new Area(linkShape);
 		PathIterator pathIterator = area.getPathIterator(transformForQuads, 1.0);
 		double[] vals = new double[6];
