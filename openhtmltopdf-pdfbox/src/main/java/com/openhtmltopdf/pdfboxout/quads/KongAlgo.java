@@ -10,11 +10,11 @@ import java.util.List;
  *         https://www.sunshine2k.de/coding/java/Polygon/Kong/Kong.html
  */
 public class KongAlgo {
-	private static boolean isDebug = false;
+	private static final boolean isDebug = false;
 
-	private List<Point2D.Float> points;
-	private List<Point2D.Float> nonconvexPoints;
-	private List<Triangle> triangles;
+	private final List<Point2D.Float> points;
+	private final List<Point2D.Float> nonconvexPoints;
+	private final List<Triangle> triangles;
 
 	// orientation of polygon - true = clockwise, false = counterclockwise
 	private boolean isCw;

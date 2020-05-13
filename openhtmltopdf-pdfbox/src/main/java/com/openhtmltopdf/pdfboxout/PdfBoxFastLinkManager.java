@@ -318,7 +318,7 @@ public class PdfBoxFastLinkManager {
 		KongAlgo algo = new KongAlgo(points);
 		algo.runKong();
 
-		float ret[] = new float[algo.getTriangles().size() * 8];
+		float[] ret = new float[algo.getTriangles().size() * 8];
 		int i = 0;
 		for (Triangle triangle : algo.getTriangles()) {
 			ret[i++] = triangle.a.x;
@@ -335,6 +335,7 @@ public class PdfBoxFastLinkManager {
 			ret[i++] = triangle.c.y;
 		}
 
+		//noinspection ConstantConditions
 		if (ret.length % 8 != 0)
 			throw new IllegalStateException("Not exact 8xn QuadPoints!");
 		for (; i < ret.length; i += 2) {
