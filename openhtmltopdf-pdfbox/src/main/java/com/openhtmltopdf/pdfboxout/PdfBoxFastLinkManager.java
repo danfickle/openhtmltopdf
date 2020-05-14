@@ -281,7 +281,7 @@ public class PdfBoxFastLinkManager {
 		return true;
 	}
 
-	private float[] mapShapeToQuadPoints(AffineTransform transform, Shape linkShape, Rectangle2D targetArea) {
+	static float[] mapShapeToQuadPoints(AffineTransform transform, Shape linkShape, Rectangle2D targetArea) {
 		List<Point2D.Float> points = new ArrayList<Point2D.Float>();
 		AffineTransform transformForQuads = new AffineTransform();
 		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
