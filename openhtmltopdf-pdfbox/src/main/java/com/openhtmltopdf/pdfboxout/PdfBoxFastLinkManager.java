@@ -14,8 +14,6 @@ import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDObjectReference;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
@@ -270,19 +268,27 @@ public class PdfBoxFastLinkManager {
 		annot.setPrinted(true);
 		
 		if (linkShape != null) {
-			float[] quadPoints = mapShapeToQuadPoints(transform, linkShape, targetArea);
+			QuadPointShape quadPointsResult = mapShapeToQuadPoints(transform, linkShape, targetArea);
 			/*
 			 * Is this not an area shape? Then we can not setup quads - ignore this shape.
 			 */
-			if (quadPoints.length == 0)
+			if (quadPointsResult.quadPoints.length == 0)
 				return false;
-			annot.setQuadPoints(quadPoints);
+			annot.setQuadPoints(quadPointsResult.quadPoints);
+			Rectangle2D reducedTarget = quadPointsResult.boundingBox;
+			annot.setRectangle(new PDRectangle((float) reducedTarget.getMinX(), (float) reducedTarget.getMinY(),
+					(float) reducedTarget.getWidth(), (float) reducedTarget.getHeight()));
 		}
 		return true;
 	}
 
-	static float[] mapShapeToQuadPoints(AffineTransform transform, Shape linkShape, Rectangle2D targetArea) {
-		List<Point2D.Float> points = new ArrayList<Point2D.Float>();
+	static class QuadPointShape {
+		float[] quadPoints;
+		Rectangle2D boundingBox;
+	}
+	
+	static QuadPointShape mapShapeToQuadPoints(AffineTransform transform, Shape linkShape, Rectangle2D targetArea) {
+		List<Point2D.Float> points = new ArrayList<>();
 		AffineTransform transformForQuads = new AffineTransform();
 		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
 		// We must flip the whole thing upside down
@@ -318,6 +324,11 @@ public class PdfBoxFastLinkManager {
 		KongAlgo algo = new KongAlgo(points);
 		algo.runKong();
 
+		float minX = (float) targetArea.getMaxX();
+		float maxX = (float) targetArea.getMinX();
+		float minY = (float) targetArea.getMaxY();
+		float maxY = (float) targetArea.getMinY();
+		
 		float[] ret = new float[algo.getTriangles().size() * 8];
 		int i = 0;
 		for (Triangle triangle : algo.getTriangles()) {
@@ -333,6 +344,17 @@ public class PdfBoxFastLinkManager {
 
 			ret[i++] = triangle.c.x;
 			ret[i++] = triangle.c.y;
+			
+			for (Point2D.Float p : new Point2D.Float[] { triangle.a, triangle.b, triangle.c }) {
+				float x = p.x;
+				float y = p.y;
+
+				minX = Math.min(x, minX);
+				minY = Math.min(y, minY);
+
+				maxX = Math.max(x, maxX);
+				maxY = Math.max(y, maxY);
+			}
 		}
 
 		//noinspection ConstantConditions
@@ -341,10 +363,17 @@ public class PdfBoxFastLinkManager {
 		for (; i < ret.length; i += 2) {
 			if (ret[i] < targetArea.getMinX() || ret[i] > targetArea.getMaxX())
 				throw new IllegalStateException("Invalid rectangle calculation. Map shape is out of bound.");
-			if (ret[i + 1] < targetArea.getMinY() || ret[i + 1] > targetArea.getMaxY())
+			if (ret[i + 1] < targetArea.getMinY() || ret[
+					i + 1] > targetArea.getMaxY())
 				throw new IllegalStateException("Invalid rectangle calculation. Map shape is out of bound.");
 		}
-		return ret;
+
+		QuadPointShape result = new QuadPointShape();
+		result.quadPoints = ret;
+		Rectangle2D.Float boundingRectangle = new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY);
+		Rectangle.intersect(targetArea, boundingRectangle, boundingRectangle);
+		result.boundingBox = boundingRectangle;
+		return result;
 	}
 
 	private void addLinkToPage(PDPage page, PDAnnotationLink annot, Box anchor, Box target) {

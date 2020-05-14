@@ -4,8 +4,6 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.SharedContext;
-import com.openhtmltopdf.pdfboxout.quads.KongAlgo;
-import com.openhtmltopdf.pdfboxout.quads.Triangle;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
@@ -255,13 +253,16 @@ public class PdfBoxLinkManager {
 		annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 				(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 		if (linkShape != null) {
-			float[] quadPoints = mapShapeToQuadPoints(transform, linkShape, targetArea);
+			PdfBoxFastLinkManager.QuadPointShape quadPointsResult = mapShapeToQuadPoints(transform, linkShape, targetArea);
 			/*
 			 * Is this not an area shape? Then we can not setup quads - ignore this shape.
 			 */
-			if (quadPoints.length == 0)
+			if (quadPointsResult.quadPoints.length == 0)
 				return false;
-			annot.setQuadPoints(quadPoints);
+			annot.setQuadPoints(quadPointsResult.quadPoints);
+			Rectangle2D reducedTarget = quadPointsResult.boundingBox;
+			annot.setRectangle(new PDRectangle((float) reducedTarget.getMinX(), (float) reducedTarget.getMinY(),
+					(float) reducedTarget.getWidth(), (float) reducedTarget.getHeight()));
 		}
 		return true;
 	}
