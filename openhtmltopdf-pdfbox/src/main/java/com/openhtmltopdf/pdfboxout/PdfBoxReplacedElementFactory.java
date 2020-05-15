@@ -22,9 +22,15 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
 
+import com.openhtmltopdf.util.ImageUtil;
 import org.w3c.dom.Element;
+
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.StringReader;
 
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
     private final SVGDrawer _svgImpl;
@@ -56,10 +62,10 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
         } else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");
             if (srcAttr != null && srcAttr.length() > 0) {
-
                 //handle the case of linked svg from img tag
-                if (srcAttr.endsWith(".svg") && _svgImpl != null) {
-                    XMLResource xml = uac.getXMLResource(srcAttr);
+                boolean isDataImageSvg = false;
+                if (_svgImpl != null && (srcAttr.endsWith(".svg") || (isDataImageSvg = srcAttr.startsWith("data:image/svg+xml;base64,")))) {
+                    XMLResource xml = isDataImageSvg ? XMLResource.load(new ByteArrayInputStream(ImageUtil.getEmbeddedBase64Image(srcAttr))) : uac.getXMLResource(srcAttr);
                     
                     if (xml != null) {
                         return new PdfBoxSVGReplacedElement(xml.getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, c, c.getSharedContext());    
