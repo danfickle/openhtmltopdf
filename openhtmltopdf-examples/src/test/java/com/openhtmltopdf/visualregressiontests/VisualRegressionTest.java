@@ -1110,6 +1110,14 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("css-font-face-rule-google"));
     }
 
+    /**
+     * Test that img with src="data:image/svg+xml;base64,...." work.
+     */
+    @Test
+    public void testIssue484ImgSrcDataImageSvgBase64() throws IOException {
+        assertTrue(vt.runTest("issue-484-data-image-svg-xml-base64", TestSupport.WITH_SVG));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
