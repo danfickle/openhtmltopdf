@@ -4,8 +4,6 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.SharedContext;
-import com.openhtmltopdf.pdfboxout.quads.KongAlgo;
-import com.openhtmltopdf.pdfboxout.quads.Triangle;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
@@ -28,6 +26,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+
+import static com.openhtmltopdf.pdfboxout.PdfBoxFastLinkManager.mapShapeToQuadPoints;
 
 /**
  * @deprecated Use fast link manager instead.
@@ -253,80 +253,18 @@ public class PdfBoxLinkManager {
 		annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 				(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 		if (linkShape != null) {
-			float[] quadPoints = mapShapeToQuadPoints(transform, linkShape, targetArea);
+			PdfBoxFastLinkManager.QuadPointShape quadPointsResult = mapShapeToQuadPoints(transform, linkShape, targetArea);
 			/*
 			 * Is this not an area shape? Then we can not setup quads - ignore this shape.
 			 */
-			if (quadPoints.length == 0)
+			if (quadPointsResult.quadPoints.length == 0)
 				return false;
-			annot.setQuadPoints(quadPoints);
+			annot.setQuadPoints(quadPointsResult.quadPoints);
+			Rectangle2D reducedTarget = quadPointsResult.boundingBox;
+			annot.setRectangle(new PDRectangle((float) reducedTarget.getMinX(), (float) reducedTarget.getMinY(),
+					(float) reducedTarget.getWidth(), (float) reducedTarget.getHeight()));
 		}
 		return true;
-	}
-
-	private float[] mapShapeToQuadPoints(AffineTransform transform, Shape linkShape, Rectangle2D targetArea) {
-		List<Point2D.Float> points = new ArrayList<Point2D.Float>();
-		AffineTransform transformForQuads = new AffineTransform();
-		transformForQuads.translate(targetArea.getMinX(), targetArea.getMinY());
-		// We must flip the whole thing upside down
-		transformForQuads.translate(0, targetArea.getHeight());
-		transformForQuads.scale(1, -1);
-		transformForQuads.concatenate(transform);
-		Area area = new Area(linkShape);
-		PathIterator pathIterator = area.getPathIterator(transformForQuads, 1.0);
-		double[] vals = new double[6];
-		while (!pathIterator.isDone()) {
-			int type = pathIterator.currentSegment(vals);
-			switch (type) {
-			case PathIterator.SEG_CUBICTO:
-				throw new RuntimeException("Invalid State, Area should never give us a curve here!");
-			case PathIterator.SEG_LINETO:
-				points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
-				break;
-			case PathIterator.SEG_MOVETO:
-				points.add(new Point2D.Float((float) vals[0], (float) vals[1]));
-				break;
-			case PathIterator.SEG_QUADTO:
-				throw new RuntimeException("Invalid State, Area should never give us a curve here!");
-			case PathIterator.SEG_CLOSE:
-				break;
-			default:
-				break;
-			}
-			pathIterator.next();
-		}
-
-		removeDoublicatePoints(points);
-
-		KongAlgo algo = new KongAlgo(points);
-		algo.runKong();
-
-		float ret[] = new float[algo.getTriangles().size() * 8];
-		int i = 0;
-		for (Triangle triangle : algo.getTriangles()) {
-			ret[i++] = triangle.a.x;
-			ret[i++] = triangle.a.y;
-			ret[i++] = triangle.b.x;
-			ret[i++] = triangle.b.y;
-			/*
-			 * To get a quad we add the point between b and c
-			 */
-			ret[i++] = triangle.b.x + (triangle.c.x - triangle.b.x) / 2;
-			ret[i++] = triangle.b.y + (triangle.c.y - triangle.b.y) / 2;
-
-			ret[i++] = triangle.c.x;
-			ret[i++] = triangle.c.y;
-		}
-
-		if (ret.length % 8 != 0)
-			throw new IllegalStateException("Not exact 8xn QuadPoints!");
-		for (; i < ret.length; i += 2) {
-			if (ret[i] < targetArea.getMinX() || ret[i] > targetArea.getMaxX())
-				throw new IllegalStateException("Invalid rectangle calculation. Map shape is out of bound.");
-			if (ret[i + 1] < targetArea.getMinY() || ret[i + 1] > targetArea.getMaxY())
-				throw new IllegalStateException("Invalid rectangle calculation. Map shape is out of bound.");
-		}
-		return ret;
 	}
 
 	private void addLinkToPage(PDPage page, PDAnnotationLink annot) {
