@@ -1,8 +1,13 @@
 package com.openhtmltopdf.visualregressiontests;
 
-import java.io.File;
+import java.io.*;
+
 import static org.junit.Assert.assertTrue;
-import java.io.IOException;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+
+import com.openhtmltopdf.extend.FSStream;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -1116,6 +1121,37 @@ public class VisualRegressionTest {
     @Test
     public void testIssue484ImgSrcDataImageSvgBase64() throws IOException {
         assertTrue(vt.runTest("issue-484-data-image-svg-xml-base64", TestSupport.WITH_SVG));
+    }
+
+
+    @Test
+    public void testSVGLoadBlocked() throws IOException {
+        assertTrue(vt.runTest("svg-external-file-load-blocked", TestSupport.WITH_SVG));
+    }
+
+    @Test
+    public void testSVGLoadWhiteListFileProtocol() throws IOException {
+        assertTrue(vt.runTest("svg-external-file-whitelist-file-protocol",
+                (builder) -> builder.useSVGDrawer(new BatikSVGDrawer(SvgScriptMode.SECURE, Collections.singleton("file")))));
+    }
+
+    @Test
+    public void testSVGLoadCustomProtocol() throws IOException {
+        assertTrue(vt.runTest("svg-custom-protocol", (builder -> {
+            builder.useProtocolsStreamImplementation(url -> new FSStream() {
+
+                @Override
+                public InputStream getStream() {
+                    return new ByteArrayInputStream("<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"10\" width=\"10\"><circle id=\"icon-1\" cx=\"5\" cy=\"5\" r=\"4\" stroke=\"black\" stroke-width=\"1\" fill=\"green\" /></svg>".getBytes(StandardCharsets.UTF_8));
+                }
+
+                @Override
+                public Reader getReader() {
+                    return new InputStreamReader(getStream(), StandardCharsets.UTF_8);
+                }
+            }, "custom");
+            builder.useSVGDrawer(new BatikSVGDrawer(SvgScriptMode.SECURE, Collections.singleton("custom")));
+        })));
     }
 
     // TODO:

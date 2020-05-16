@@ -7,13 +7,16 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.XRLog;
+import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.FontFace;
 import org.apache.batik.bridge.FontFamilyResolver;
+import org.apache.batik.bridge.svg12.SVG12BridgeContext;
 import org.apache.batik.gvt.font.GVTFontFamily;
 import org.apache.batik.transcoder.ErrorHandler;
 import org.apache.batik.transcoder.SVGAbstractTranscoder;
@@ -28,6 +31,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class PDFTranscoder extends SVGAbstractTranscoder {
 	private OpenHtmlFontResolver fontResolver;
@@ -39,6 +43,8 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	private final double dotsPerPixel;
     private boolean allowScripts = false;
     private boolean allowExternalResources = false;
+	private UserAgentCallback userAgentCallback;
+	private Set<String> allowedProtocols;
 
 	public PDFTranscoder(Box box, double dotsPerPixel, double width, double height) {
 	    this.box = box;
@@ -47,12 +53,13 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		this.dotsPerPixel = dotsPerPixel;
 	}
 	
-	public void setRenderingParameters(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver) {
+	public void setRenderingParameters(OutputDevice od, RenderingContext ctx, double x, double y, OpenHtmlFontResolver fontResolver, UserAgentCallback userAgentCallback) {
 	    this.x = x;
             this.y = y;
             this.outputDevice = od;
             this.ctx = ctx;
             this.fontResolver = fontResolver;
+            this.userAgentCallback = userAgentCallback;
 	}
 
 	@Override
@@ -201,18 +208,28 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		    }
 		 }
 	}
-	
-    public void setSecurityOptions(boolean allowScripts, boolean allowExternalResources) {
+
+    public void setSecurityOptions(boolean allowScripts, boolean allowExternalResources, Set<String> allowedProtocols) {
         this.allowScripts = allowScripts;
         this.allowExternalResources = allowExternalResources;
+        this.allowedProtocols = allowedProtocols;
     }
-    
+
+	@Override
+	protected BridgeContext createBridgeContext(String svgVersion) {
+		if ("1.2".equals(svgVersion)) {
+			return new SVG12BridgeContext(userAgent, new OpenHtmlDocumentLoader(userAgent, userAgentCallback));
+		} else {
+			return new BridgeContext(userAgent, new OpenHtmlDocumentLoader(userAgent, userAgentCallback));
+		}
+	}
+
 	@Override
 	protected void transcode(Document svg, String uri, TranscoderOutput out) throws TranscoderException {
 		
 		// Note: We have to initialize user agent here and not in ::createUserAgent() as method
 		// is called before our constructor is called in the super constructor.
-		this.userAgent = new OpenHtmlUserAgent(this.fontResolver, this.allowScripts, this.allowExternalResources);
+		this.userAgent = new OpenHtmlUserAgent(this.fontResolver, this.allowScripts, this.allowExternalResources, this.allowedProtocols);
 		super.transcode(svg, uri, out);
 		
         Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), ctx);

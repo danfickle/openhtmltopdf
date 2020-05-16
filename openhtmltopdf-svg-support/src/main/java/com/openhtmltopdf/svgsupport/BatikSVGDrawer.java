@@ -1,8 +1,11 @@
 package com.openhtmltopdf.svgsupport;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
+import com.openhtmltopdf.extend.UserAgentCallback;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.css.sheet.FontFaceRule;
@@ -14,16 +17,18 @@ import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.svgsupport.PDFTranscoder.OpenHtmlFontResolver;
 
 public class BatikSVGDrawer implements SVGDrawer {
+    private final Set<String> allowedProtocols;
     public OpenHtmlFontResolver fontResolver;
     private final boolean allowScripts;
     private final boolean allowExternalResources;
+    private UserAgentCallback userAgentCallback;
     
-    public static enum SvgScriptMode {
+    public enum SvgScriptMode {
         SECURE,
         INSECURE_ALLOW_SCRIPTS;
     }
     
-    public static enum SvgExternalResourceMode {
+    public enum SvgExternalResourceMode {
         SECURE,
         INSECURE_ALLOW_EXTERNAL_RESOURCE_REQUESTS;
     }
@@ -40,6 +45,20 @@ public class BatikSVGDrawer implements SVGDrawer {
     public BatikSVGDrawer(SvgScriptMode scriptMode, SvgExternalResourceMode externalResourceMode) {
         this.allowScripts = scriptMode == SvgScriptMode.INSECURE_ALLOW_SCRIPTS;
         this.allowExternalResources = externalResourceMode == SvgExternalResourceMode.INSECURE_ALLOW_EXTERNAL_RESOURCE_REQUESTS;
+        this.allowedProtocols = null;
+    }
+
+    /**
+     * Creates a <code>SVGDrawer</code> that can allow arbitary scripts to run and allow the loading of
+     * external resources with the specified protocols.
+     *
+     * @param scriptMode
+     * @param allowedProtocols
+     */
+    public BatikSVGDrawer(SvgScriptMode scriptMode, Set<String> allowedProtocols) {
+        this.allowScripts = scriptMode == SvgScriptMode.INSECURE_ALLOW_SCRIPTS;
+        this.allowExternalResources = false;
+        this.allowedProtocols = Collections.unmodifiableSet(allowedProtocols);
     }
 
     /**
@@ -60,6 +79,11 @@ public class BatikSVGDrawer implements SVGDrawer {
     }
 
     @Override
+    public void withUserAgent(UserAgentCallback userAgentCallback) {
+        this.userAgentCallback = userAgentCallback;
+    }
+
+    @Override
     public SVGImage buildSVGImage(Element svgElement, Box box, CssContext c,
     		double cssWidth, double cssHeight, double dotsPerPixel) {
     	
@@ -69,7 +93,8 @@ public class BatikSVGDrawer implements SVGDrawer {
         BatikSVGImage img = new BatikSVGImage(svgElement, box, cssWidth, cssHeight,
                 cssMaxWidth, cssMaxHeight, dotsPerPixel);
         img.setFontResolver(fontResolver);
-        img.setSecurityOptions(allowScripts, allowExternalResources);
+        img.setUserAgentCallback(userAgentCallback);
+        img.setSecurityOptions(allowScripts, allowExternalResources, allowedProtocols);
         return img;
     }
     

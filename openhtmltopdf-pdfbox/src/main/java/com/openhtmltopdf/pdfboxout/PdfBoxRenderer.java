@@ -163,6 +163,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         
         PdfBoxUserAgent userAgent = new PdfBoxUserAgent(_outputDevice);
 
+        if (_svgImpl != null) {
+            _svgImpl.withUserAgent(userAgent);
+        }
+
         userAgent.setProtocolsStreamFactory(state._streamFactoryMap);
         
         if (state._resolver != null) {
