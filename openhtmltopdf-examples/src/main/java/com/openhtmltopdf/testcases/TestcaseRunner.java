@@ -51,7 +51,7 @@ public class TestcaseRunner {
 	 */
 	public static void main(String[] args) throws Exception {
 
-		runTestCase("oom");
+		runTestCase("soft-hypen-oom");
 
 		/*
 		 * Note: The RepeatedTableSample optionally requires the font file
