@@ -1,21 +1,35 @@
 package com.openhtmltopdf.visualtest;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Element;
+
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.bidi.support.ICUBreakers;
+import com.openhtmltopdf.extend.FSObjectDrawer;
+import com.openhtmltopdf.extend.FSObjectDrawerFactory;
 import com.openhtmltopdf.extend.FSTextBreaker;
+import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.TextDirection;
+import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.util.XRLogger;
 import com.openhtmltopdf.visualtest.Java2DVisualTester.Java2DBuilderConfig;
@@ -158,4 +172,56 @@ public class TestSupport {
      * Configures the builder to use SVG drawer but not font.
      */
     public static final BuilderConfig WITH_SVG = (builder) -> builder.useSVGDrawer(new BatikSVGDrawer());
+
+    public static class ShapesObjectDrawer implements FSObjectDrawer {
+        public Map<Shape, String> drawObject(Element e, double x, double y, double width, double height,
+                OutputDevice outputDevice, RenderingContext ctx, int dotsPerPixel) {
+
+            Map<Shape, String> shapes = new HashMap<>();
+
+            outputDevice.drawWithGraphics((float) x, (float) y, (float) width / dotsPerPixel,
+                (float) height / dotsPerPixel, (Graphics2D g2d) -> {
+
+                double realWidth = width / dotsPerPixel;
+                double realHeight = height / dotsPerPixel;
+
+                Rectangle2D rectUpperLeft = new Rectangle2D.Double(0, 0, realWidth / 4d, realHeight / 4d);
+                Rectangle2D rectLowerRight = new Rectangle2D.Double(realWidth * (3d/4d), realHeight * (3d/4d), realWidth / 4d, realHeight / 4d);
+
+                int[] xpoints = new int[] { (int) (realWidth / 2d), (int) (realWidth * (1d/4d)), (int) (realWidth * (3d/4d)), (int) (realWidth / 2d) }; 
+                int[] ypoints = new int[] { (int) (realHeight * (1d/4d)), (int) (realHeight * (3d/4d)), (int) (realHeight * (3d/4d)), (int) (realHeight * (1d/4d)) }; 
+                Polygon centreTriangle = new Polygon(xpoints, ypoints, xpoints.length);
+
+                g2d.setColor(Color.CYAN);
+
+                g2d.draw(rectUpperLeft);
+                g2d.draw(rectLowerRight);
+                g2d.draw(centreTriangle);
+
+                AffineTransform scale = AffineTransform.getScaleInstance(dotsPerPixel, dotsPerPixel);
+
+                shapes.put(scale.createTransformedShape(rectUpperLeft), "http://example.com/1");
+                shapes.put(scale.createTransformedShape(rectLowerRight), "http://example.com/2");
+                shapes.put(scale.createTransformedShape(centreTriangle), "http://example.com/3");
+            });
+
+            return shapes;
+        }
+    }
+
+    public static class ShapesObjectDrawerFactory implements FSObjectDrawerFactory {
+        public FSObjectDrawer createDrawer(Element e) {
+            if (!isReplacedObject(e)) {
+                return null;
+            }
+
+            return new ShapesObjectDrawer();
+        }
+
+        public boolean isReplacedObject(Element e) {
+            return e.getAttribute("type").equals("shapes");
+        }
+    }
+
+    public static final BuilderConfig WITH_SHAPES_DRAWER = (builder) -> { builder.useObjectDrawerFactory(new ShapesObjectDrawerFactory()); };
 }

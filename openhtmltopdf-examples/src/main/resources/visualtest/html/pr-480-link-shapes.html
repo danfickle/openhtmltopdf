@@ -1,0 +1,30 @@
+<html>
+<head>
+<style>
+@page {
+  size: 700px 600px;
+  margin: 20px 102px 40px 15px;
+  @right-middle {
+    content: element(right-shapes);
+    min-width: 102px;
+    min-height: 102px;
+  }
+}
+object {
+  display: block;
+  width: 400px;
+  height: 400px;
+  border: 1px solid red;
+}
+</style>
+</head>
+<body>
+  <object type="shapes" style="position: running(right-shapes); width: 100px; height: 100px;"></object>
+
+  <object type="shapes"></object>
+
+  <div style="page-break-before: always;"></div>
+
+  <object type="shapes"></object>
+</body>
+</html>
