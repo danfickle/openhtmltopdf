@@ -173,6 +173,14 @@ public class Breaker {
                         context.setEnd(savedEnd);
                         continue LOOP;
                     } else {
+						if (context.getWidth() == 0) {
+							String calculatedSubstring = context.getCalculatedSubstring();
+							if (calculatedSubstring.length() == 1 && calculatedSubstring.charAt(0) == SOFT_HYPHEN) {
+								// Consists only of soft hypen, we have to break here and skip all togheter. We do not
+                                // need to try breaking on the charater level, this will not work.
+								tryToBreakAnywhere = true;
+							}
+						}
                         // Else, retry it on a new line.
                         context.setEnd(savedEnd);
                         break LOOP;
