@@ -373,6 +373,7 @@ public class InlineBoxing {
      * layout box.
      * Otherwise, if there are floats and the current line is otherwise empty, moves below float and trys again.
      * Otherwise, trys again on a new line.
+     * @return true if the line is finished, false if we must continue
      */
     private static boolean startInlineText(
             LayoutContext c, LineBreakContext lbContext, InlineBox inlineBox,

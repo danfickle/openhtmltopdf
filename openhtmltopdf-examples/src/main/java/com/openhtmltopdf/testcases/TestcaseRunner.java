@@ -51,6 +51,8 @@ public class TestcaseRunner {
 	 */
 	public static void main(String[] args) throws Exception {
 
+		runTestCase("soft-hypen-oom");
+
 		/*
 		 * Note: The RepeatedTableSample optionally requires the font file
 		 * NotoSans-Regular.ttf to be placed in the resources directory.
