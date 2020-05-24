@@ -12,18 +12,20 @@ import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 
 public interface SVGDrawer extends Closeable {
-    public void importFontFaceRules(List<FontFaceRule> fontFaces,
+    void importFontFaceRules(List<FontFaceRule> fontFaces,
             SharedContext shared);
 
-    public SVGImage buildSVGImage(Element svgElement, Box box, CssContext cssContext, double cssWidth,
+    SVGImage buildSVGImage(Element svgElement, Box box, CssContext cssContext, double cssWidth,
             double cssHeight, double dotsPerPixel);
 
-    public static interface SVGImage {
-        public int getIntrinsicWidth();
+    default void withUserAgent(UserAgentCallback userAgentCallback) {}
 
-        public int getIntrinsicHeight();
+    interface SVGImage {
+        int getIntrinsicWidth();
 
-        public void drawSVG(OutputDevice outputDevice, RenderingContext ctx,
+        int getIntrinsicHeight();
+
+        void drawSVG(OutputDevice outputDevice, RenderingContext ctx,
                 double x, double y);
     }
 }

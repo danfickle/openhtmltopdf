@@ -1,8 +1,10 @@
 package com.openhtmltopdf.svgsupport;
 
 import java.awt.Point;
+import java.util.Set;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.extend.UserAgentCallback;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
@@ -28,6 +30,7 @@ public class BatikSVGImage implements SVGImage {
     private final double dotsPerPixel;
     private OpenHtmlFontResolver fontResolver;
     private final PDFTranscoder pdfTranscoder;
+    private UserAgentCallback userAgentCallback;
 
     public BatikSVGImage(Element svgElement, Box box, double cssWidth, double cssHeight,
             double cssMaxWidth, double cssMaxHeight, double dotsPerPixel) {
@@ -98,9 +101,13 @@ public class BatikSVGImage implements SVGImage {
         this.fontResolver = fontResolver;
     }
     
-    public void setSecurityOptions(boolean allowScripts, boolean allowExternalResources) {
-        this.pdfTranscoder.setSecurityOptions(allowScripts, allowExternalResources);
+    public void setSecurityOptions(boolean allowScripts, boolean allowExternalResources, Set<String> allowedProtocols) {
+        this.pdfTranscoder.setSecurityOptions(allowScripts, allowExternalResources, allowedProtocols);
         this.pdfTranscoder.addTranscodingHint(SVGAbstractTranscoder.KEY_EXECUTE_ONLOAD, allowScripts);
+    }
+
+    public void setUserAgentCallback(UserAgentCallback userAgentCallback) {
+        this.userAgentCallback = userAgentCallback;
     }
     
     public Integer parseLength(String attrValue) {
@@ -159,7 +166,7 @@ public class BatikSVGImage implements SVGImage {
         }
 
         pdfTranscoder.setRenderingParameters(outputDevice, ctx, x, y,
-                fontResolver);
+                fontResolver, userAgentCallback);
 
         try {
             DOMImplementation impl = SVGDOMImplementation
