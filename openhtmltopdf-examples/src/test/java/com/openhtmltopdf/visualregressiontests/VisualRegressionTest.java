@@ -1167,6 +1167,18 @@ public class VisualRegressionTest {
         }));
     }
 
+    /**
+     * Ensure there is no NPE exception launched if the decoding of an image fail (base64 case).
+     *
+     * See issue https://github.com/danfickle/openhtmltopdf/issues/474
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testIssue474NpeImageDecoding() throws IOException {
+        assertTrue(vt.runTest("issue-474-npe-image-decoding"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
