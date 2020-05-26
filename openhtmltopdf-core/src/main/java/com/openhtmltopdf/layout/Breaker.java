@@ -173,15 +173,9 @@ public class Breaker {
                         context.setEnd(savedEnd);
                         continue LOOP;
                     } else {
-						if (context.getWidth() == 0) {
-							String calculatedSubstring = context.getCalculatedSubstring();
-							if (calculatedSubstring.chars().allMatch(ch -> ch == SOFT_HYPHEN)) {
-								// Consists only of soft hypen, we have to break here and skip all togheter. We do not
-                                // need to try breaking on the charater level, this will not work.
-								tryToBreakAnywhere = true;
-							}
-						}
                         // Else, retry it on a new line.
+                        // FIXME: This is very dangerous and has led to infinite
+                        // loops. Needs review.
                         context.setEnd(savedEnd);
                         break LOOP;
                     }
@@ -501,7 +495,9 @@ public class Breaker {
             context.setEnd(context.getStart() + current.left);
             context.setUnbreakable(true);
 
-            if (current.left == currentString.length()) {
+            if (current.isSoftHyphenBreak) {
+                context.setWidth(current.withHyphenGraphicsLength);
+            } else if (current.left == currentString.length()) {
                 String text = context.getCalculatedSubstring();
                 float extraSpacing = text.length() * letterSpacing;
                 context.setWidth((int) (c.getTextRenderer().getWidth(
@@ -509,7 +505,6 @@ public class Breaker {
             } else {
                 context.setWidth(current.graphicsLength);
             }
-            
             return LineBreakResult.WORD_BREAKING_UNBREAKABLE;
         }
     }

@@ -1154,8 +1154,12 @@ public class VisualRegressionTest {
         })));
     }
 
+    /**
+     * Tests another endless loop bug when the font reports a non-zero width
+     * for soft hyphen and this overflows the width of the box in break-word
+     * mode.
+     */
     @Test
-    @Ignore
     public void testIssue482InfiniteLoopTable() throws IOException {
         assertTrue(vt.runTest("issue-482-infinite-loop-table", builder -> {
             builder.useFont(() -> VisualRegressionTest.class.getClassLoader().getResourceAsStream("org/apache/pdfbox/resources/ttf/LiberationSans-Regular.ttf"),
