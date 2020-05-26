@@ -1154,6 +1154,15 @@ public class VisualRegressionTest {
         })));
     }
 
+    @Test
+    @Ignore
+    public void testIssue482InfiniteLoopTable() throws IOException {
+        assertTrue(vt.runTest("issue-482-infinite-loop-table", builder -> {
+            builder.useFont(() -> VisualRegressionTest.class.getClassLoader().getResourceAsStream("org/apache/pdfbox/resources/ttf/LiberationSans-Regular.ttf"),
+                    "Liberation Sans");
+        }));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
