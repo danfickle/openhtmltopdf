@@ -153,7 +153,7 @@ public class LineBreakContext {
     }
     
     public void setEndsOnSoftHyphen(boolean b) {
-        this._endsOnSoftHyphen = true;
+        this._endsOnSoftHyphen = b;
     }
 
     /**
