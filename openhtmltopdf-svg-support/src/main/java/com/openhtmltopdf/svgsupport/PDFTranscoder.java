@@ -226,10 +226,12 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 
 	@Override
 	protected void transcode(Document svg, String uri, TranscoderOutput out) throws TranscoderException {
-		
+
+		String userStyleSheetURI = (String)hints.get(SVGAbstractTranscoder.KEY_USER_STYLESHEET_URI);
+
 		// Note: We have to initialize user agent here and not in ::createUserAgent() as method
 		// is called before our constructor is called in the super constructor.
-		this.userAgent = new OpenHtmlUserAgent(this.fontResolver, this.allowScripts, this.allowExternalResources, this.allowedProtocols);
+		this.userAgent = new OpenHtmlUserAgent(this.fontResolver, userStyleSheetURI, this.allowScripts, this.allowExternalResources, this.allowedProtocols);
 		super.transcode(svg, uri, out);
 		
         Rectangle contentBounds = box.getContentAreaEdge(box.getAbsX(), box.getAbsY(), ctx);

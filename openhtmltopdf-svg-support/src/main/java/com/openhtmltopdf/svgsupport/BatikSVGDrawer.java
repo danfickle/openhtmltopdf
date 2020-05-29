@@ -22,6 +22,7 @@ public class BatikSVGDrawer implements SVGDrawer {
     private final boolean allowScripts;
     private final boolean allowExternalResources;
     private UserAgentCallback userAgentCallback;
+    private String userStyleSheetURI;
     
     public enum SvgScriptMode {
         SECURE,
@@ -84,6 +85,9 @@ public class BatikSVGDrawer implements SVGDrawer {
     }
 
     @Override
+    public void withUserStyleSheetURI(String userStyleSheetURI) { this.userStyleSheetURI = userStyleSheetURI; }
+
+    @Override
     public SVGImage buildSVGImage(Element svgElement, Box box, CssContext c,
     		double cssWidth, double cssHeight, double dotsPerPixel) {
     	
@@ -91,7 +95,7 @@ public class BatikSVGDrawer implements SVGDrawer {
     	double cssMaxHeight = CalculatedStyle.getCSSMaxHeight(c, box);
     	
         BatikSVGImage img = new BatikSVGImage(svgElement, box, cssWidth, cssHeight,
-                cssMaxWidth, cssMaxHeight, dotsPerPixel);
+                cssMaxWidth, cssMaxHeight, dotsPerPixel, userStyleSheetURI);
         img.setFontResolver(fontResolver);
         img.setUserAgentCallback(userAgentCallback);
         img.setSecurityOptions(allowScripts, allowExternalResources, allowedProtocols);

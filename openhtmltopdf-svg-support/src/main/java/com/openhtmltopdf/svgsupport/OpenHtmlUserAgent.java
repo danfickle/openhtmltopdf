@@ -12,12 +12,14 @@ import java.util.Set;
 public class OpenHtmlUserAgent extends UserAgentAdapter {
 
 	private final OpenHtmlFontResolver resolver;
+    private final String userStyleSheetURI;
     private final boolean allowScripts;
     private final boolean allowExternalResources;
     private final Set<String> allowedProtocols;
 
-    public OpenHtmlUserAgent(OpenHtmlFontResolver resolver, boolean allowScripts, boolean allowExternalResources, Set<String> allowedProtocols) {
+    public OpenHtmlUserAgent(OpenHtmlFontResolver resolver, String userStyleSheetURI, boolean allowScripts, boolean allowExternalResources, Set<String> allowedProtocols) {
 		this.resolver = resolver;
+        this.userStyleSheetURI = userStyleSheetURI;
         this.allowScripts = allowScripts;
         this.allowExternalResources = allowExternalResources;
         this.allowedProtocols = allowedProtocols;
@@ -42,5 +44,10 @@ public class OpenHtmlUserAgent extends UserAgentAdapter {
             XRLog.exception("Tried to fetch external resource from SVG. Refusing. Details: " + resourceURL + ", " + docURL);
             throw new SecurityException("Tried to fetch external resource (" + resourceURL + ") from SVG. Refused!");
         }
+    }
+
+    @Override
+    public String getUserStyleSheetURI() {
+        return userStyleSheetURI;
     }
 }

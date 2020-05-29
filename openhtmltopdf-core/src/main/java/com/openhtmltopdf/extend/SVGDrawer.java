@@ -20,6 +20,8 @@ public interface SVGDrawer extends Closeable {
 
     default void withUserAgent(UserAgentCallback userAgentCallback) {}
 
+    default void withUserStyleSheetURI(String userStyleSheetURI) {}
+
     interface SVGImage {
         int getIntrinsicWidth();
 

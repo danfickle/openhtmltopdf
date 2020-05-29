@@ -33,7 +33,7 @@ public class BatikSVGImage implements SVGImage {
     private UserAgentCallback userAgentCallback;
 
     public BatikSVGImage(Element svgElement, Box box, double cssWidth, double cssHeight,
-            double cssMaxWidth, double cssMaxHeight, double dotsPerPixel) {
+            double cssMaxWidth, double cssMaxHeight, double dotsPerPixel, String userStyleSheetURI) {
         this.svgElement = svgElement;
         this.dotsPerPixel = dotsPerPixel;
 
@@ -57,6 +57,11 @@ public class BatikSVGImage implements SVGImage {
             this.pdfTranscoder.addTranscodingHint(
                     SVGAbstractTranscoder.KEY_MAX_HEIGHT,
                     (float) (cssMaxHeight / dotsPerPixel));
+        }
+        if(userStyleSheetURI != null) {
+            this.pdfTranscoder.addTranscodingHint(
+                    SVGAbstractTranscoder.KEY_USER_STYLESHEET_URI,
+                    userStyleSheetURI);
         }
         
         Point dimensions = parseDimensions(svgElement);
