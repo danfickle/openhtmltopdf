@@ -446,7 +446,8 @@ public class Breaker {
                         extraSpacing + letterSpacing);
                 current.withHyphenGraphicsLength = current.graphicsLength + withTrailingHyphenSplitWidth;
                 
-                if (current.withHyphenGraphicsLength > avail) {
+                if (current.withHyphenGraphicsLength >= avail &&
+                    current.right != currentString.length()) {
                     current.graphicsLength = current.withHyphenGraphicsLength;
                     lastWrap = current.left;
                     current.left = current.right;
