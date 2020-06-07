@@ -1177,6 +1177,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("too-long-words-fall-below-floats"));
     }
 
+    /**
+     * Test for break-word with lots of unreakable words to make sure we don't
+     * trigger the safety valve which is part of the fix for 482.
+     */
+    @Test
+    public void testIssue429BreakWordLotsOfShortAndLong() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-lots-of-short-and-long"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
