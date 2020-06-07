@@ -1,0 +1,37 @@
+<html>
+<head>
+<style>
+@page {
+  size: 160px 350px;
+  margin: 0;
+}
+body {
+  margin: 10px 30px;
+  font-size: 13px;
+  line-height: 16px;
+}
+.floater {
+  background-color: blue;
+}
+</style>
+</head>
+<body>
+  <!-- The third lot of x chars should be pushed below the float. -->
+  <div style="border: 1px solid red;">
+    <div style="float: left; width: 50px; height: 50px;" class="floater"></div>
+    xxx xxxxxx xxxxxxxxxxxxxx xxxxxxxxxxxxxxxxx
+  </div>
+
+  <div style="border: 1px solid red; margin-top: 10px;">
+    <div style="float: right; width: 50px; height: 50px;" class="floater"></div>
+    xxx xxxxxx xxxxxxxxxxxxxx xxxxxxxxxxxxxxxxx
+  </div>
+
+  <div style="border: 1px solid red; margin-top: 10px;">
+    <div style="float: left; width: 20px; height: 50px;" class="floater"></div>
+    <div style="float: right; width: 30px; height: 70px;" class="floater"></div>
+    xxx xxxxxx xxxxxxxxxxxxxx xxxxxxxxxxxxxxxxx
+  </div>
+
+</body>
+</html>

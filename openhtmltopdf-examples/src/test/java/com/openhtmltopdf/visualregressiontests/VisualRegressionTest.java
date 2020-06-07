@@ -1167,6 +1167,16 @@ public class VisualRegressionTest {
         }));
     }
 
+    /**
+     * Tests that too long words fall below floats (left, right, both).
+     * This test is needed to make sure fixes for issue 482 do not prevent
+     * this behavior.
+     */
+    @Test
+    public void testTooLongWordsFallBelowFloats() throws IOException {
+        assertTrue(vt.runTest("too-long-words-fall-below-floats"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
