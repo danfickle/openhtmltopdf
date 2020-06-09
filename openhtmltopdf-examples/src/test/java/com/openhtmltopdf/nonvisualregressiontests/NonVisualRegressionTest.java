@@ -9,7 +9,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.io.IOUtils;
@@ -29,11 +32,11 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.util.Charsets;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.testcases.TestcaseRunner;
+import com.openhtmltopdf.visualregressiontests.VisualRegressionTest;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
@@ -820,6 +823,143 @@ public class NonVisualRegressionTest {
             remove("pr-480-link-shapes", doc);
         }
     }
+
+    /**
+     * Runs a fuzz test, optionally with PDFBOX included font with non-zero-width
+     * soft hyphen.
+     */
+    private static void runFuzzTest(String html, boolean useFont) throws IOException {
+        final String header = useFont ?
+                "<html><body style=\"font-family: 'Liberation Sans'\">" :
+                "<html><body>";
+        final String footer = "</body></html>";
+
+        System.out.println("The test is " + html.length() + " chars long.");
+
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.useFastMode();
+            builder.toStream(os);
+            builder.withHtmlContent(header + html + footer, null);
+            if (useFont) {
+                builder.useFont(() -> VisualRegressionTest.class.getClassLoader().getResourceAsStream("org/apache/pdfbox/resources/ttf/LiberationSans-Regular.ttf"),
+                        "Liberation Sans");
+            }
+            builder.run();
+
+            // Files.write(Paths.get("./target/html.txt"), html.getBytes(StandardCharsets.UTF_8));
+            // Files.write(Paths.get("./target/pdf.pdf"), os.toByteArray());
+
+            System.out.println("The result is " + os.size() + " bytes long.");
+        }
+    }
+
+    /**
+     * Creates a fuzz test with random characters given the styles provided in
+     * arguments.
+     */
+    private static void createCombinationTest(
+            StringBuilder sb, int widthPx, String whiteSpace, String wordWrap, List<char[]> all, Random rndm, int testCharCount) {
+        String start = String.format(Locale.US, "<div style=\"white-space: %s; word-wrap: %s; width: %dpx;\">", 
+                whiteSpace, wordWrap, widthPx);
+        String end = "</div>";
+
+        sb.append(start);
+
+        int len = 0;
+        while (true) {
+            char[] charCombi = all.get(rndm.nextInt(all.size()));
+
+            if (len + charCombi.length > testCharCount) {
+                String combi = String.valueOf(charCombi);
+                sb.append(combi.substring(0, testCharCount - len));
+                break;
+            }
+
+            sb.append(charCombi);
+            len += charCombi.length;
+        }
+
+        sb.append(end);
+    }
+
+    /**
+     * Creates all 5 character combinations from a list of characters
+     * which have special meaning to the line breaking algorithms.
+     */
+    private static List<char[]> createAllCombinations() {
+        char[] chars = new char[] { 'x', '\u00ad', '\n', '\r', ' ' };
+        int[] loopIndices = new int[chars.length];
+        int totalCombinations = (int) Math.pow(loopIndices.length, loopIndices.length);
+
+        List<char[]> ret = new ArrayList<>(totalCombinations);
+
+        for (int i = 0; i < totalCombinations; i++) {
+                char[] result = new char[loopIndices.length];
+
+                for (int k = 0; k < loopIndices.length; k++) {
+                    char ch = chars[loopIndices[k]];
+                    result[k] = ch;
+                }
+
+                ret.add(result);
+
+                boolean carry = true;
+                for (int j = loopIndices.length - 1; j >= 0; j--) {
+                    if (carry) {
+                        loopIndices[j]++;
+                        carry = false;
+                    }
+
+                    if (loopIndices[j] >= chars.length) {
+                        loopIndices[j] = 0;
+                        carry = true;
+                    }
+                }
+        }
+
+        return ret;
+    }
+
+    /**
+     * Tests the line breaking algorithms against infinite loop bugs
+     * by using many combinations of styles and random character sequences.
+     */
+    @Test
+    public void testPr492InfiniteLoopBugsInLineBreakingFuzz() throws IOException {
+        final String[] whiteSpace = new String[] { "normal", "pre", "nowrap", "pre-wrap", "pre-line" };
+        final String[] wordWrap = new String[] { "normal", "break-word" };
+        final List<char[]> all = createAllCombinations();
+        final Random rndm = new Random();
+        long seed = rndm.nextLong();
+
+        System.out.println("For NonVisualRegressionTest::testPr492InfiniteLoopBugsInLineBreakingFuzz " +
+              "using a random seed of " + seed + " for Random instance.");
+        rndm.setSeed(seed);
+
+        List<Integer> lengths = new ArrayList<>();
+        lengths.addAll(Arrays.asList(0, 1, 2, 3, 37, 79));
+
+        for (int i = 0; i < 4; i++) {
+            lengths.add(rndm.nextInt(150));
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < whiteSpace.length; j++) {
+                for (int k = 0; k < wordWrap.length; k++) {
+                    for (Integer len : lengths) {
+                         createCombinationTest(sb, i, whiteSpace[j], wordWrap[k], all, rndm, len);
+                    }
+                }
+            }
+        }
+
+        runFuzzTest(sb.toString(), false);
+        runFuzzTest(sb.toString(), true);
+    }
+
 
     // TODO:
     // + More form controls.
