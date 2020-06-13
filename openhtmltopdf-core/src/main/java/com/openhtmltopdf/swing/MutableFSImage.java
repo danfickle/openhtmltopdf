@@ -22,8 +22,6 @@ package com.openhtmltopdf.swing;
 import com.openhtmltopdf.util.ImageUtil;
 import com.openhtmltopdf.util.XRLog;
 
-import javax.swing.*;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.logging.Level;
