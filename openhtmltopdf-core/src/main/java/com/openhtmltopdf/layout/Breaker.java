@@ -388,7 +388,7 @@ public class Breaker {
             other.isSoftHyphenBreak = isSoftHyphenBreak;
         }
     }
-    
+
     public static LineBreakResult doBreakText(
             LayoutContext c,
             LineBreakContext context,
@@ -402,8 +402,22 @@ public class Breaker {
                 ? style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c)
                 : 0f;
 
+        ToIntFunction<String> measurer = (str) ->
+               c.getTextRenderer().getWidth(c.getFontContext(), font, str);
+
         String currentString = context.getStartSubstring();
-        FSTextBreaker iterator = lineBreaker.getBreaker(currentString, c.getSharedContext());
+        FSTextBreaker lineIterator = lineBreaker.getBreaker(currentString, c.getSharedContext());
+
+        return doBreakTextWords(currentString, context, avail, lineIterator, letterSpacing, measurer);
+    }
+
+    static LineBreakResult doBreakTextWords(
+            String currentString,
+            LineBreakContext context,
+            int avail,
+            FSTextBreaker iterator,
+            float letterSpacing,
+            ToIntFunction<String> measurer) {
 
         int lastWrap = 0;
         
@@ -423,17 +437,17 @@ public class Breaker {
             String subString = currentString.substring(current.left, current.right);
             float extraSpacing = (current.right - current.left) * letterSpacing;
             
-            int normalSplitWidth = (int) (c.getTextRenderer().getWidth(
-                    c.getFontContext(), font, subString) + extraSpacing);
-            
+            int normalSplitWidth = (int) (measurer.applyAsInt(subString) + extraSpacing);
+
             if (currentString.charAt(current.right - 1) == SOFT_HYPHEN) {
                 current.isSoftHyphenBreak = true;
-                int withTrailingHyphenSplitWidth = (int) (c.getTextRenderer().getWidth(
-                        c.getFontContext(), font, subString + '-') + 
+                int withTrailingHyphenSplitWidth = (int)
+                     (measurer.applyAsInt(subString + '-') + 
                         extraSpacing + letterSpacing);
                 current.withHyphenGraphicsLength = current.graphicsLength + withTrailingHyphenSplitWidth;
                 
-                if (current.withHyphenGraphicsLength > avail) {
+                if (current.withHyphenGraphicsLength >= avail &&
+                    current.right != currentString.length()) {
                     current.graphicsLength = current.withHyphenGraphicsLength;
                     lastWrap = current.left;
                     current.left = current.right;
@@ -458,8 +472,8 @@ public class Breaker {
             current.copyTo(prev);
             current.right = currentString.length();
             float extraSpacing = (current.right - current.left) * letterSpacing;
-            int splitWidth = (int) (c.getTextRenderer().getWidth(
-                    c.getFontContext(), font, currentString.substring(current.left)) + extraSpacing);
+            int splitWidth = (int) (measurer.applyAsInt(
+                    currentString.substring(current.left)) + extraSpacing);
             current.graphicsLength += splitWidth;
             nextUnfittableSplitWidth = splitWidth;
         }
@@ -500,8 +514,7 @@ public class Breaker {
             } else if (current.left == currentString.length()) {
                 String text = context.getCalculatedSubstring();
                 float extraSpacing = text.length() * letterSpacing;
-                context.setWidth((int) (c.getTextRenderer().getWidth(
-                        c.getFontContext(), font, text) + extraSpacing));
+                context.setWidth((int) (measurer.applyAsInt(text) + extraSpacing));
             } else {
                 context.setWidth(current.graphicsLength);
             }

@@ -1168,6 +1168,25 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that too long words fall below floats (left, right, both).
+     * This test is needed to make sure fixes for issue 482 do not prevent
+     * this behavior.
+     */
+    @Test
+    public void testTooLongWordsFallBelowFloats() throws IOException {
+        assertTrue(vt.runTest("too-long-words-fall-below-floats"));
+    }
+
+    /**
+     * Test for break-word with lots of unreakable words to make sure we don't
+     * trigger the safety valve which is part of the fix for 482.
+     */
+    @Test
+    public void testIssue429BreakWordLotsOfShortAndLong() throws IOException {
+        assertTrue(vt.runTest("issue-429-break-word-lots-of-short-and-long"));
+    }
+  
+    /**
      * Ensure there is no NPE exception launched if the decoding of an image fail (base64 case).
      *
      * See issue https://github.com/danfickle/openhtmltopdf/issues/474

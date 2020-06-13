@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.w3c.dom.Element;
 
@@ -47,6 +48,7 @@ import com.openhtmltopdf.render.LineBox;
 import com.openhtmltopdf.render.MarkerData;
 import com.openhtmltopdf.render.StrutMetrics;
 import com.openhtmltopdf.render.TextDecoration;
+import com.openhtmltopdf.util.XRLog;
 
 /**
  * This class is responsible for flowing inline content into lines.  Block
@@ -155,7 +157,9 @@ public class InlineBoxing {
                 }
 
                 boolean inCharBreakingMode = false;
-                
+                int troublesomeStartPosition = -1;
+                int troublesomeAttemptCount = 0;
+
                 do {
                     lbContext.reset();
 
@@ -183,14 +187,31 @@ public class InlineBoxing {
                         needFirstLetter = false;
                     } else {
                         if (style.getWordWrap() != IdentValue.BREAK_WORD) {
-                            if (!startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, false)) {
+                            StartInlineTextResult result = startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, false);
+                            if (result == StartInlineTextResult.RECONSUME_BELOW_FLOATS) {
                                 continue;
                             }
                         } else {
-                            boolean shouldContinue = !startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, inCharBreakingMode);
+                            StartInlineTextResult result = startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, inCharBreakingMode);
                             inCharBreakingMode = lbContext.isFinishedInCharBreakingMode();
-                            if (shouldContinue) {
+
+                            if (result == StartInlineTextResult.RECONSUME_BELOW_FLOATS) {
                                 continue;
+                            } else if (result == StartInlineTextResult.RECONSUME_UNBREAKABLE_ON_NEW_LINE) {
+                                if (troublesomeStartPosition == lbContext.getStart()) {
+                                    troublesomeAttemptCount++;
+                                } else {
+                                    troublesomeStartPosition = lbContext.getStart();
+                                    troublesomeAttemptCount = 1;
+                                }
+
+                                if (troublesomeAttemptCount > 5) {
+                                    XRLog.general(Level.SEVERE, 
+                                            "A fatal infinite loop bug was detected in the line breaking " +
+                                            "algorithm for break-word! Start-substring=[" + lbContext.getStartSubstring() + "], " +
+                                            "end=" + lbContext.getEnd());
+                                    throw new RuntimeException("Infinite loop bug in break-word line breaking algorithm!");
+                                }
                             }
                         }
                     }
@@ -368,6 +389,12 @@ public class InlineBoxing {
         space.remainingWidth -= c.getBlockFormattingContext().getFloatDistance(c, current.line, space.remainingWidth);
     }
 
+    private enum StartInlineTextResult {
+        RECONSUME_BELOW_FLOATS,
+        RECONSUME_UNBREAKABLE_ON_NEW_LINE,
+        LINE_FINISHED
+    }
+    
     /**
      * Trys to consume the text in lbContext. If successful it creates an InlineText and adds it to the current inline
      * layout box.
@@ -375,7 +402,7 @@ public class InlineBoxing {
      * Otherwise, trys again on a new line.
      * @return true if the line is finished, false if we must continue
      */
-    private static boolean startInlineText(
+    private static StartInlineTextResult startInlineText(
             LayoutContext c, LineBreakContext lbContext, InlineBox inlineBox,
             SpaceVariables space, StateVariables current, int fit,
             boolean trimmedLeadingSpace, boolean tryToBreakAnywhere) {
@@ -406,9 +433,9 @@ public class InlineBoxing {
                 // Go back to before the troublesome unbreakable content.
                 lbContext.resetEnd();
                 
-                // Return false so that we continue with line breaking with the new remaining width.
+                // Return appropriate ret val so that we continue with line breaking with the new remaining width.
                 // The InlineText we produced above is not used.
-                return false;
+                return StartInlineTextResult.RECONSUME_BELOW_FLOATS;
             }
         }
 
@@ -436,6 +463,9 @@ public class InlineBoxing {
                 space.pendingLeftMBP -= marginBorderPadding;
                 space.remainingWidth -= marginBorderPadding;
             }
+
+            // Line is finsished, consume content afterward on new line.
+            return StartInlineTextResult.LINE_FINISHED;
         } else {
             // We could not fit this text on the current line and it was unbreakable.
             // So rewind to reconsume the troublesome text.
@@ -443,10 +473,8 @@ public class InlineBoxing {
             // of this method in layoutContent).
             // The inline text object is not consumed.
             lbContext.resetEnd();
+            return StartInlineTextResult.RECONSUME_UNBREAKABLE_ON_NEW_LINE;
         }
-        
-        // We should go ahead and create a new line if needed, after this method.
-        return true;
     }
     
     private static void startFirstLetterInlineLayoutBox(LayoutContext c, SpaceVariables space, StateVariables current,

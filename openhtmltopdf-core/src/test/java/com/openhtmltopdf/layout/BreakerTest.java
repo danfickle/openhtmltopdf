@@ -1,7 +1,5 @@
 package com.openhtmltopdf.layout;
 
-import java.util.function.ToIntFunction;
-
 import org.junit.Test;
 
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -9,64 +7,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
-import com.openhtmltopdf.extend.FSTextBreaker;
+import static com.openhtmltopdf.layout.BreakerTestSupport.*;
 
 public class BreakerTest {
-    private static class SimpleCharBreaker implements FSTextBreaker {
-        private String text;
-        private int pos;
-        
-        @Override
-        public int next() {
-            return pos > text.length() ? -1 : pos++;
-        }
-
-        @Override
-        public void setText(String newText) {
-            this.text = newText;
-            this.pos = 0;
-        }
-    }
-    
-    private static class SimpleLineBreaker implements FSTextBreaker {
-        private String text;
-        private int position;
-        
-        @Override
-        public int next() {
-            int ret = text.indexOf(' ', this.position);
-            this.position = ret < 0 ? -1 : ret + 1;
-            return ret;
-        }
-
-        @Override
-        public void setText(String newText) {
-            this.text = newText;
-            this.position = 0;
-        }
-    }
-
-    private FSTextBreaker createLine(String line) {
-        SimpleLineBreaker breaker = new SimpleLineBreaker();
-        breaker.setText(line);
-        return breaker;
-    }
-
-    private FSTextBreaker createChar(String line) {
-        FSTextBreaker breaker = new SimpleCharBreaker();
-        breaker.setText(line);
-        return breaker;
-    }
-
-    private final ToIntFunction<String> MEASURER = (str) -> str.length();
-    private final ToIntFunction<String> MEASURER3 = (str) -> str.length() * 3;
-    
-    private LineBreakContext createContext(String str) {
-        LineBreakContext ctx = new LineBreakContext();
-        ctx.setMaster(str);
-        return ctx;
-    }
-    
     @Test
     public void testCharacterBreakerSingleChar() {
         String whole = "A";
@@ -108,8 +51,8 @@ public class BreakerTest {
         
         assertFalse(context.isUnbreakable());
         assertFalse(context.isNeedsNewLine());
-        assertThat(context.getWidth(), equalTo(4));
-        assertThat(context.getEnd(), equalTo(4));
+        assertThat(context.getWidth(), equalTo(5));
+        assertThat(context.getEnd(), equalTo(5));
     }
 
     @Test
