@@ -1185,6 +1185,18 @@ public class VisualRegressionTest {
     public void testIssue429BreakWordLotsOfShortAndLong() throws IOException {
         assertTrue(vt.runTest("issue-429-break-word-lots-of-short-and-long"));
     }
+  
+    /**
+     * Ensure there is no NPE exception launched if the decoding of an image fail (base64 case).
+     *
+     * See issue https://github.com/danfickle/openhtmltopdf/issues/474
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testIssue474NpeImageDecoding() throws IOException {
+        assertTrue(vt.runTest("issue-474-npe-image-decoding"));
+    }
 
     // TODO:
     // + Elements that appear just on generated overflow pages.
