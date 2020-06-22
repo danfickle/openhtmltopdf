@@ -23,7 +23,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.logging.Level;
 
-import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.util.Configuration;

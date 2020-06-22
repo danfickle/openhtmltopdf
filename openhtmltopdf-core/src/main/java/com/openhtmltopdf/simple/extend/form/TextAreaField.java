@@ -146,7 +146,7 @@ class TextAreaField extends FormField {
     }
 
 
-    private class TextAreaFieldJTextArea extends JTextArea {
+    private static class TextAreaFieldJTextArea extends JTextArea {
         int columnWidth = 0;
 
         public TextAreaFieldJTextArea(int rows, int columns) {

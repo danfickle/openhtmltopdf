@@ -21,7 +21,6 @@ package com.openhtmltopdf.simple.xhtml;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -42,9 +41,9 @@ public class XhtmlForm {
         _method = method;
     }
 
-    protected List<FormControl> _controls = new ArrayList<FormControl>();
+    protected List<FormControl> _controls = new ArrayList<>();
 
-    private List<FormListener> _listeners = new ArrayList<FormListener>();
+    private List<FormListener> _listeners = new ArrayList<>();
 
     public void addFormListener(FormListener listener) {
         _listeners.add(listener);

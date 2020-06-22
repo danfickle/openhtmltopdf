@@ -20,19 +20,15 @@
 package com.openhtmltopdf.render;
 
 import java.awt.BasicStroke;
-import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
 
 import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.BorderRadiusCorner;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
