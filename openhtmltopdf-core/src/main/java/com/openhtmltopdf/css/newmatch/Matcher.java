@@ -34,7 +34,6 @@ import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.StylesheetFactory;
 import com.openhtmltopdf.css.extend.TreeResolver;
 import com.openhtmltopdf.css.sheet.*;
-import com.openhtmltopdf.util.Util;
 import com.openhtmltopdf.util.XRLog;
 
 
@@ -220,6 +219,10 @@ public class Matcher {
         return m;
     }
 
+    private static boolean isNullOrEmpty(String str) {
+        return str == null || str.length() == 0;
+    }
+
     private com.openhtmltopdf.css.sheet.Ruleset getElementStyle(Object e) {
         //synchronized (e) {
             if (_attRes == null || _styleFactory == null) {
@@ -227,7 +230,7 @@ public class Matcher {
             }
             
             String style = _attRes.getElementStyling(e);
-            if (Util.isNullOrEmpty(style)) {
+            if (isNullOrEmpty(style)) {
                 return null;
             }
             
@@ -241,7 +244,7 @@ public class Matcher {
                 return null;
             }
             String style = _attRes.getNonCssStyling(e);
-            if (Util.isNullOrEmpty(style)) {
+            if (isNullOrEmpty(style)) {
                 return null;
             }
             return _styleFactory.parseStyleDeclaration(com.openhtmltopdf.css.sheet.StylesheetInfo.AUTHOR, style);

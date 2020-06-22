@@ -101,22 +101,6 @@ public class URLUTF8Encoder {
     /**
      * Description of the Method
      *
-     * @param chars  PARAM
-     * @return       Returns
-     */
-    public static String encode( char[] chars ) {
-        StringBuilder sbuf = new StringBuilder();
-        int len = chars.length;
-        for ( int i = 0; i < len; i++ ) {
-            int ch = chars[i];
-            append( sbuf, ch );
-        }
-        return sbuf.toString();
-    }
-
-    /**
-     * Description of the Method
-     *
      * @param sbuf  PARAM
      * @param ch    PARAM
      */

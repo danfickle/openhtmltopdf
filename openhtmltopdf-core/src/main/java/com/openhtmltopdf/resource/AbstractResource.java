@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
  * @author Patrick Wright
  */
 public abstract class AbstractResource implements Resource {
-	private static enum StreamType { READER, STREAM, INPUT_SOURCE; }
+	private enum StreamType { READER, STREAM, INPUT_SOURCE; }
 	private final StreamType streamType;
 	
 	private InputSource inputSource;

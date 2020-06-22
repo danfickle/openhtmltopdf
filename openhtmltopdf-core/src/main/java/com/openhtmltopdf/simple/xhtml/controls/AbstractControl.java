@@ -43,7 +43,7 @@ public abstract class AbstractControl implements FormControl {
     private boolean _successful;
     private boolean _enabled;
 
-    private List _listeners = new ArrayList();
+    private List<FormControlListener> _listeners = new ArrayList<>();
 
     public AbstractControl(XhtmlForm form, Element e) {
         _form = form;
