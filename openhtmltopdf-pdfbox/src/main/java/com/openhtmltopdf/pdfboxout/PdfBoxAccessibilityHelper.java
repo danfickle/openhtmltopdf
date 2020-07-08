@@ -1214,7 +1214,7 @@ public class PdfBoxAccessibilityHelper {
         PDAnnotation annotation;
     }
 
-    public void addLink(Box anchor, Box target, PDAnnotationLink annotation, PDPage page) {
+    public void addLink(Box anchor, Box target, PDAnnotation annotation, PDPage page) {
         PDStructureElement struct = getStructualElementForBox(anchor);
         if (struct != null) {
             // We have to append the link annotationobject reference as a kid of its associated structure element.
