@@ -10,7 +10,6 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
-import com.openhtmltopdf.util.Util;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDPage;
