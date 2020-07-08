@@ -14,6 +14,7 @@ import com.openhtmltopdf.util.Util;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
@@ -21,10 +22,7 @@ import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
+import org.apache.pdfbox.pdmodel.interactive.annotation.*;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.w3c.dom.Element;
 
@@ -263,6 +261,15 @@ public class PdfBoxFastLinkManager {
 						fs.setFileUnicode(fileName);
 						PDAnnotationFileAttachment annotationFileAttachment = new PDAnnotationFileAttachment();
 						annotationFileAttachment.setFile(fs);
+
+						// hide the pin icon used by various pdf reader for signaling an embedded file
+						PDAppearanceDictionary appearanceDictionary = new PDAppearanceDictionary();
+						PDAppearanceStream appearanceStream = new PDAppearanceStream(_od.getWriter());
+						appearanceStream.setResources(new PDResources());
+						appearanceDictionary.setNormalAppearance(appearanceStream);
+						annotationFileAttachment.setAppearance(appearanceDictionary);
+						//
+
 						annot = new PDAnnotationFileAttachmentContainer(annotationFileAttachment);
 					} catch (IOException e) {
 						XRLog.exception("Was not able to create an embedded file for embedding with uri " + uri, e);
