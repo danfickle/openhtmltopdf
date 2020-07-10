@@ -31,7 +31,7 @@ public class ButtonControl extends AbstractControl {
 
     private String _type, _label;
     private boolean _extended;
-    private List _listeners = new ArrayList();
+    private List<ButtonControlListener> _listeners = new ArrayList<>();
 
     public ButtonControl(XhtmlForm form, Element e) {
         super(form, e);
@@ -75,8 +75,8 @@ public class ButtonControl extends AbstractControl {
     }
 
     public boolean press() {
-        for (Iterator iter = _listeners.iterator(); iter.hasNext();) {
-            if(!((ButtonControlListener) iter.next()).pressed(this))
+        for (Iterator<ButtonControlListener> iter = _listeners.iterator(); iter.hasNext();) {
+            if(!(iter.next()).pressed(this))
                 return false;
         }
         return true;

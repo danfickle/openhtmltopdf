@@ -31,8 +31,6 @@ import com.openhtmltopdf.util.XRLog;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -1971,14 +1969,6 @@ public class CSSParser {
                 return result;
             default:
                 return _lexer.yytext();
-        }
-    }
-
-    private boolean isRelativeURI(String uri) {
-        try {
-            return uri.length() > 0 && (uri.charAt(0) != '/' && ! new URI(uri).isAbsolute());
-        } catch (URISyntaxException e) {
-            return false;
         }
     }
 

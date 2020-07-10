@@ -196,32 +196,16 @@ public class VerticalAlignContext {
     }
     
     private static final class ChildContextData {
-        private Box _root;
-        private VerticalAlignContext _verticalAlignContext;
-        
-        
-        public ChildContextData() {
-        }
+        private final Box _root;
+        private final VerticalAlignContext _verticalAlignContext;
         
         public ChildContextData(Box root, VerticalAlignContext vaContext) {
             _root = root;
             _verticalAlignContext = vaContext;
         }
         
-        public Box getRoot() {
-            return _root;
-        }
-        
-        public void setRoot(Box root) {
-            _root = root;
-        }
-        
         public VerticalAlignContext getVerticalAlignContext() {
             return _verticalAlignContext;
-        }
-        
-        public void setVerticalAlignContext(VerticalAlignContext verticalAlignContext) {
-            _verticalAlignContext = verticalAlignContext;
         }
         
         private void moveContextContents(int ty) {

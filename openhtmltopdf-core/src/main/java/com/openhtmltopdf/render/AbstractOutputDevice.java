@@ -38,7 +38,7 @@ import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.util.Configuration;
-import com.openhtmltopdf.util.Uu;
+import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -50,14 +50,6 @@ import java.util.List;
  * implementations for many <code>OutputDevice</code> methods.
  */
 public abstract class AbstractOutputDevice implements OutputDevice {
-	
-	public static class ClipInfo {
-		public final List<Object> _ops;
-		
-		public ClipInfo(List<Object> ops) {
-			this._ops = ops;
-		}
-	}
 
     private FontSpecification _fontSpec;
 
@@ -210,8 +202,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             try {
                 return c.getUac().getImageResource(uri).getImage();
             } catch (Exception ex) {
-                ex.printStackTrace();
-                Uu.p(ex);
+                XRLog.exception("Failed to load background image at uri " + uri, ex);
             }
         }
         return null;

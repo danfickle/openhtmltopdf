@@ -432,7 +432,6 @@ public class BlockBoxing {
 
     private static class RelayoutData {
         private LayoutState _layoutState;
-        private int _listIndex;
 
         private boolean _startsRun;
         private boolean _endsRun;
@@ -481,14 +480,6 @@ public class BlockBoxing {
 
         public void setChildOffset(int childOffset) {
             _childOffset = childOffset;
-        }
-
-        public int getListIndex() {
-            return _listIndex;
-        }
-
-        public void setListIndex(int listIndex) {
-            _listIndex = listIndex;
         }
     }
 }
