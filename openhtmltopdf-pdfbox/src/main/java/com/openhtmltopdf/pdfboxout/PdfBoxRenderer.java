@@ -130,12 +130,16 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     private final boolean _useFastMode;
 
     private PageSupplier _pageSupplier;
+
+    private final Closeable diagnosticConsumer;
     
     /**
      * This method is constantly changing as options are added to the builder.
      */
     PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode,
-            PageDimensions pageSize, PdfRendererBuilderState state) {
+            PageDimensions pageSize, PdfRendererBuilderState state, Closeable diagnosticConsumer) {
+
+        this.diagnosticConsumer = diagnosticConsumer;
 
         _pdfDoc = state.pddocument != null ? state.pddocument : new PDDocument();
         _pdfDoc.setVersion(state._pdfVersion);
@@ -1052,6 +1056,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     public void cleanup() {
         _outputDevice.close();
         _sharedContext.removeFromThread();
+        try {
+            diagnosticConsumer.close();
+        } catch (IOException e) {
+        }
         ThreadCtx.cleanup();
 
         // Close all still open font files

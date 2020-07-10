@@ -65,13 +65,16 @@ public class Java2DRenderer implements Closeable {
     private final int _initialPageNo;
     private final short _pagingMode;
 
+    private final Closeable diagnosticConsumer;
+
 
     /**
 	 * Subject to change. Not public API. Used exclusively by the Java2DRendererBuilder class. 
 	 */
 	public Java2DRenderer(BaseDocument doc, UnicodeImplementation unicode, PageDimensions pageSize,
-			Java2DRendererBuilderState state) {
+			Java2DRendererBuilderState state, Closeable diagnosticConsumer) {
 
+	    this.diagnosticConsumer = diagnosticConsumer;
 	    _pagingMode = state._pagingMode;
 		_pageProcessor = state._pageProcessor;
 		_initialPageNo = state._initialPageNumber;		
@@ -439,6 +442,12 @@ public class Java2DRenderer implements Closeable {
     public void close() {
         _sharedContext.removeFromThread();
         ThreadCtx.cleanup();
+
+        try {
+            diagnosticConsumer.close();
+        } catch (IOException e) {
+
+        }
 
         if (_svgImpl != null) {
             try {
