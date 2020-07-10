@@ -253,7 +253,8 @@ public class PdfBoxFastLinkManager {
 					try {
 						PDComplexFileSpecification fs = new PDComplexFileSpecification();
 						PDEmbeddedFile embeddedFile = new PDEmbeddedFile(_od.getWriter(), new ByteArrayInputStream(file));
-						embeddedFile.setSubtype(elem.getAttribute("data-content-type") != null ? elem.getAttribute("data-content-type") : "application/octet-stream");
+						String contentType = "".equals(elem.getAttribute("data-content-type")) ? "application/octet-stream" : elem.getAttribute("data-content-type");
+						embeddedFile.setSubtype(contentType);
 						fs.setEmbeddedFile(embeddedFile);
 						String fileName = Paths.get(uri).getFileName().toString();
 						fs.setFile(fileName);
