@@ -36,6 +36,8 @@ import org.junit.Test;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.testcases.TestcaseRunner;
+import com.openhtmltopdf.util.Diagnostic;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.visualregressiontests.VisualRegressionTest;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
@@ -958,6 +960,36 @@ public class NonVisualRegressionTest {
 
         runFuzzTest(sb.toString(), false);
         runFuzzTest(sb.toString(), true);
+    }
+
+    /**
+     * Tests the diagnostic consumer api added to the builder.
+     */
+    @Test
+    public void testPr489DiagnosticConsumer() throws IOException {
+        List<Diagnostic> logs = new ArrayList<>();
+
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+
+            builder.withDiagnosticConsumer(logs::add);
+            builder.useFastMode();
+            builder.toStream(os);
+            builder.withHtmlContent("<html style=\"invalid-prop: invalid-val\"><body>TEST</body></html>", null);
+            builder.run();
+        }
+
+        Assert.assertTrue(
+             logs.stream()
+                 .noneMatch(diag -> diag.getLogMessageId() == LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI));
+
+        Assert.assertTrue(
+             logs.stream()
+                 .anyMatch(diag -> diag.getLogMessageId() == LogMessageId.LogMessageId2Param.CSS_PARSE_GENERIC_MESSAGE));
+
+        Assert.assertTrue(
+              logs.stream()
+                  .allMatch(diag -> !diag.getFormattedMessage().isEmpty()));
     }
 
 
