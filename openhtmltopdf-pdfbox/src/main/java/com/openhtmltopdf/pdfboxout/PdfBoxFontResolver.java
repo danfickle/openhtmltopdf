@@ -242,12 +242,9 @@ public class PdfBoxFontResolver implements FontResolver {
 	public void addFontCollection(FSSupplier<InputStream> supplier, final String fontFamilyNameOverride,
 			final Integer fontWeightOverride, final IdentValue fontStyleOverride, final boolean subset)
 			throws IOException {
-		InputStream inputStream = supplier.supply();
-		try {
+		try (InputStream inputStream = supplier.supply()){
 			TrueTypeCollection collection = new TrueTypeCollection(inputStream);
 			addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
-		} finally {
-			inputStream.close();
 		}
     }
 

@@ -24,7 +24,6 @@ import java.io.Reader;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.css.extend.StylesheetFactory;
-import com.openhtmltopdf.css.parser.CSSErrorHandler;
 import com.openhtmltopdf.css.parser.CSSParser;
 import com.openhtmltopdf.css.sheet.Ruleset;
 import com.openhtmltopdf.css.sheet.Stylesheet;

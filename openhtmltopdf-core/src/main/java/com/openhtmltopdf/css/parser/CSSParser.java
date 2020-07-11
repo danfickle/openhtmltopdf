@@ -1346,7 +1346,7 @@ public class CSSParser {
 //    ;
     private List<PropertyValue> expr(boolean literal) throws IOException {
         //System.out.println("expr()");
-        List<PropertyValue> result = new ArrayList<PropertyValue>(10);
+        List<PropertyValue> result = new ArrayList<>(10);
         result.add(term(literal));
         LOOP: while (true) {
             Token t = la();

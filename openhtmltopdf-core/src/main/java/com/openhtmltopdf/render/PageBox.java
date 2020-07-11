@@ -462,7 +462,7 @@ public class PageBox {
     
     public int getMarginBorderPadding(CssContext cssCtx, int which) {
         return getStyle().getMarginBorderPadding(
-                cssCtx, (int)getOuterPageWidth(), which);
+                cssCtx, getOuterPageWidth(), which);
     }
 
     public PageInfo getPageInfo() {
@@ -486,11 +486,11 @@ public class PageBox {
     // HACK Would much prefer to do this in ITextRenderer or ITextOutputDevice
     // but given the existing API, this is about the only place it can be done
     private void retrievePageMetadata(LayoutContext c) {
-        List props = getPageInfo().getXMPPropertyList();
+        List<PropertyDeclaration> props = getPageInfo().getXMPPropertyList();
         if (props != null && props.size() > 0)
         {
-            for (Iterator i = props.iterator(); i.hasNext(); ) {
-                PropertyDeclaration decl = (PropertyDeclaration)i.next();
+            for (Iterator<PropertyDeclaration> i = props.iterator(); i.hasNext(); ) {
+                PropertyDeclaration decl = i.next();
                 if (decl.getCSSName() == CSSName.CONTENT) {
                     PropertyValue value = (PropertyValue)decl.getValue();
                     List<PropertyValue> values = value.getValues();
@@ -610,7 +610,6 @@ public class PageBox {
     
     private static abstract class MarginArea {
         private final MarginBoxName[] _marginBoxNames;
-        private TableBox _table;
         
         public abstract Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin);
         public abstract Point getPaintingPosition(
@@ -624,13 +623,6 @@ public class PageBox {
             _marginBoxNames = marginBoxNames;
         }
 
-        public TableBox getTable() {
-            return _table;
-        }
-
-        public void setTable(TableBox table) {
-            _table = table;
-        }
         
         public MarginBoxName[] getMarginBoxNames() {
             return _marginBoxNames;

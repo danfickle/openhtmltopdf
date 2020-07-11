@@ -93,7 +93,7 @@ class SelectField extends FormField {
     }
     
     protected FormFieldState loadOriginalState() {
-        ArrayList list = new ArrayList();
+        List<Integer> list = new ArrayList();
         
         NodeList options = getElement().getElementsByTagName("option");
 
@@ -101,7 +101,7 @@ class SelectField extends FormField {
             Element option = (Element) options.item(i);
 
             if (option.hasAttribute("selected") && option.getAttribute("selected").equalsIgnoreCase("selected")) {
-                list.add(new Integer(i));
+                list.add(Integer.valueOf(i));
             }
         }
 

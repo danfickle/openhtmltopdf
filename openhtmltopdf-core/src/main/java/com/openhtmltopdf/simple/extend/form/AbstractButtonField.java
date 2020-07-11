@@ -74,10 +74,10 @@ public abstract class AbstractButtonField extends InputField {
 
         FSDerivedValue widthValue = style.valueByName(CSSName.WIDTH);
         if (widthValue instanceof LengthValue)
-            intrinsicWidth = new Integer(getBox().getContentWidth());
+            intrinsicWidth = Integer.valueOf(getBox().getContentWidth());
 
         FSDerivedValue heightValue = style.valueByName(CSSName.HEIGHT);
         if (heightValue instanceof LengthValue)
-            intrinsicHeight = new Integer(getBox().getHeight());
+            intrinsicHeight = Integer.valueOf(getBox().getHeight());
     }
 }

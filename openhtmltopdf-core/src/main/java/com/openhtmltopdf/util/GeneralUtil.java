@@ -20,11 +20,6 @@
  */
 package com.openhtmltopdf.util;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 /**
  * Description of the Class
  *

@@ -23,10 +23,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
@@ -39,36 +37,14 @@ import javax.imageio.ImageIO;
  */
 public class ImageUtil {
 
-    private static final Map qual;
+    private static final Map<DownscaleQuality, Scaler> qual;
 
     static {
-        qual = new HashMap();
+        qual = new HashMap<>();
         qual.put(DownscaleQuality.FAST, new OldScaler());
         qual.put(DownscaleQuality.HIGH_QUALITY, new HighQualityScaler());
         qual.put(DownscaleQuality.LOW_QUALITY, new FastScaler());
         qual.put(DownscaleQuality.AREA, new AreaAverageScaler());
-    }
-
-    /**
-     * Sets the background of the image to the specified color
-     *
-     * @param image the image
-     * @param bgColor the color
-     */
-    public static void clearImage(BufferedImage image, Color bgColor) {
-        Graphics2D g2d = (Graphics2D) image.getGraphics();
-        g2d.setColor(bgColor);
-        g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
-        g2d.dispose();
-    }
-
-    /**
-     * Sets the background of the image to white.
-     *
-     * @param image the image
-     */
-    public static void clearImage(BufferedImage image) {
-        clearImage(image, Color.WHITE);
     }
 
     public static BufferedImage makeCompatible(BufferedImage bimg) {
@@ -95,8 +71,7 @@ public class ImageUtil {
      * for best performance. In a headless environment, simply creates a new BufferedImage. For non-headless
      * environments, this just sets up and calls
      * {@link java.awt.GraphicsConfiguration#createCompatibleImage(int,int,int)}. The image will not have anything
-     * drawn to it, not even a white background; you must do this yourself. The {@link #clearImage(BufferedImage)}
-     * method will do this for you if you like.
+     * drawn to it, not even a white background; you must do this yourself.
      *
      * @param width  Target width for the image
      * @param height Target height for the image
@@ -211,31 +186,6 @@ public class ImageUtil {
     }
 
     /**
-     * Scales one image to multiple dimensions, using the same ScalingOptions for each. The method follows the same
-     * process for scaling as {@link #getScaledInstance(ScalingOptions,java.awt.image.BufferedImage)}.
-     *
-     * @param opt		Options to apply to control scaling process.
-     * @param img		The original image to scale
-     * @param dimensions List of dimensions to scale to; one output image will be produced for each dimension. Will
-     *                   not check for duplicate dimensions.
-     * @return List of buffered images in the given dimensions.
-     */
-    public static java.util.List scaleMultiple(ScalingOptions opt, BufferedImage img, java.util.List dimensions) {
-        java.util.List scaledImages = new ArrayList(dimensions.size());
-
-        Iterator iter = dimensions.iterator();
-        while (iter.hasNext()) {
-            Dimension dim = (Dimension) iter.next();
-            opt.setTargetDimensions(dim);
-
-            BufferedImage scaled = getScaledInstance(opt, img);
-
-            scaledImages.add(scaled);
-        }
-        return scaledImages;
-    }
-
-    /**
      * Utility method to convert an AWT Image to a BufferedImage. Size is preserved, BufferedImage is compatible
      * with current display device.
      *
@@ -331,22 +281,8 @@ public class ImageUtil {
          * to be fully loaded (e.g. no need to wait for loading on requesting height or width.
          *
          * @param img		the original image to be scaled
-         * @param imageType	type of image from {@link java.awt.image.BufferedImage} (values starting with TYPE)
-         * @param hint		one of the rendering hints that corresponds to
-         *                      {@code RenderingHints.KEY_INTERPOLATION} (e.g.
-         *                      {@code RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
-         *                      {@code RenderingHints.VALUE_INTERPOLATION_BILINEAR},
-         *                      {@code RenderingHints.VALUE_INTERPOLATION_BICUBIC})
-         * @param higherQuality if true, this method will use a multi-step
-         *                      scaling technique that provides higher quality than the usual
-         *                      one-step technique (only useful in downscaling cases, where
-         *                      {@code targetWidth} or {@code targetHeight} is
-         *                      smaller than the original dimensions, and generally only when
-         *                      the {@code BILINEAR} hint is specified)
-         * @param targetWidth   the desired width of the scaled instance,
-         *                      in pixels
-         * @param targetHeight  the desired height of the scaled instance,
-         *                      in pixels
+         * @param opt       options
+         *
          * @return a scaled version of the original {@code BufferedImage}
          */
         BufferedImage getScaledInstance(BufferedImage img, ScalingOptions opt);

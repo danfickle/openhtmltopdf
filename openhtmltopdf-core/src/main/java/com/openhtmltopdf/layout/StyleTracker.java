@@ -32,7 +32,7 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
  * element.
  */
 public class StyleTracker {
-    private List _styles = new ArrayList();
+    private List<CascadedStyle> _styles = new ArrayList<>();
     
     public void addStyle(CascadedStyle style) {
         _styles.add(style);
@@ -54,8 +54,8 @@ public class StyleTracker {
     
     public CalculatedStyle deriveAll(CalculatedStyle start) {
         CalculatedStyle result = start;
-        for (Iterator i = getStyles().iterator(); i.hasNext(); ) {
-            result = result.deriveStyle((CascadedStyle)i.next());
+        for (Iterator<CascadedStyle> i = getStyles().iterator(); i.hasNext(); ) {
+            result = result.deriveStyle(i.next());
         }
         return result;
     }

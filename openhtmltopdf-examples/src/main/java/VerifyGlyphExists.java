@@ -70,22 +70,14 @@ public class VerifyGlyphExists {
     }
 
     private static List readLines(File file) {
-        List l = new ArrayList();
-        LineNumberReader r = null;
-        try {
-            r = new LineNumberReader(new BufferedReader(new FileReader(file)));
+        List<String> l = new ArrayList<>();
+        try (LineNumberReader r = new LineNumberReader(new BufferedReader(new FileReader(file)))){
             String path;
             while ((path = r.readLine()) != null) {
                 l.add(path);
             }
         } catch (IOException e) {
             error("Can't read list of font paths from " + file.getPath());
-        } finally {
-            try {
-                if (r != null) r.close();
-            } catch (IOException e) {
-                // swallow
-            }
         }
         return l;
     }

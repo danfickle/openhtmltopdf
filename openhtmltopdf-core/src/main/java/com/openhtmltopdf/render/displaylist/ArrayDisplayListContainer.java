@@ -12,7 +12,7 @@ public class ArrayDisplayListContainer extends DisplayListContainer {
     private final int startPage;
     
     public ArrayDisplayListContainer(int startPage, int endPage) {
-        this.pageInstructions = new ArrayList<DisplayListPageContainer>(endPage - startPage + 1);
+        this.pageInstructions = new ArrayList<>(endPage - startPage + 1);
         this.startPage = startPage;
         
         for (int i = 0; i < endPage - startPage + 1; i++) {

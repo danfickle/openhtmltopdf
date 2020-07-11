@@ -523,11 +523,11 @@ public class BoxBuilder {
      * If not, the table is returned.
      */
     private static BlockBox reorderTableContent(LayoutContext c, TableBox table) {
-        List<Box> topCaptions = new ArrayList<Box>();
+        List<Box> topCaptions = new ArrayList<>();
         Box header = null;
-        List<Box> bodies = new ArrayList<Box>();
+        List<Box> bodies = new ArrayList<>();
         Box footer = null;
-        List<Box> bottomCaptions = new ArrayList<Box>();
+        List<Box> bottomCaptions = new ArrayList<>();
 
         for (Box b : table.getChildren()) {
             IdentValue display = b.getStyle().getIdent(CSSName.DISPLAY);
@@ -1150,7 +1150,7 @@ public class BoxBuilder {
 						Node startAttribute = working.getAttributes().getNamedItem("start");
 						if (startAttribute != null) {
 							try {
-								start = new Integer(Integer.parseInt(startAttribute.getNodeValue()) - 1);
+								start = Integer.valueOf(Integer.parseInt(startAttribute.getNodeValue()) - 1);
 							} catch (NumberFormatException e) {
 								// ignore
 							}
@@ -1159,7 +1159,7 @@ public class BoxBuilder {
 						Node valueAttribute = working.getAttributes().getNamedItem("value");
 						if (valueAttribute != null) {
 							try {
-								start = new Integer(Integer.parseInt(valueAttribute.getNodeValue()) - 1);
+								start = Integer.valueOf(Integer.parseInt(valueAttribute.getNodeValue()) - 1);
 							} catch (NumberFormatException e) {
 								// ignore
 							}
@@ -1427,7 +1427,7 @@ public class BoxBuilder {
                 if (inline.size() > 0) {
                     createAnonymousBlock(c, parent, inline, savedParents);
                     inline = new ArrayList<>();
-                    savedParents = new ArrayList<InlineBox>(parents);
+                    savedParents = new ArrayList<>(parents);
                 }
                 parent.addChild((Box) child);
             }

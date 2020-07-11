@@ -140,12 +140,6 @@ public abstract class AbstractPropertyBuilder implements PropertyBuilder {
     	}
     }
     
-    protected void checkStringType(CSSName cssName, CSSPrimitiveValue value) {
-        if (value.getPrimitiveType() != CSSPrimitiveValue.CSS_STRING) {
-            throw new CSSParseException("Value for " + cssName + " must be a string", -1);
-        }
-    }
-    
     protected void checkIdentOrString(CSSName cssName, CSSPrimitiveValue value) {
         short type = value.getPrimitiveType();
         if (type != CSSPrimitiveValue.CSS_STRING && type != CSSPrimitiveValue.CSS_IDENT) {

@@ -113,7 +113,7 @@ public class BreakerTestSupport {
         return ctx;
     }
 
-    static final ToIntFunction<String> MEASURER = (str) -> str.length();
+    static final ToIntFunction<String> MEASURER = String::length;
     static final ToIntFunction<String> MEASURER3 = (str) -> str.length() * 3;
     static final ToIntFunction<String> MEASURER_WITH_ZERO_WIDTH_SOFT_HYPHEN = (str) -> {
         long softHyphenCount = str.chars().filter(ch -> ch == Breaker.SOFT_HYPHEN).count();

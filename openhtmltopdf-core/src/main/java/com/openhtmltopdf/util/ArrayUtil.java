@@ -24,11 +24,11 @@ import java.util.stream.Collectors;
 
 public class ArrayUtil {
     public static String[] cloneOrEmpty(String[] source){
-        return source == null ? Constants.EMPTY_STR_ARR : (String[]) source.clone();
+        return source == null ? Constants.EMPTY_STR_ARR : source.clone();
     }
 
     public static int[] cloneOrEmpty(int[] source) {
-        return source == null ? Constants.EMPTY_INT_ARR : (int[]) source.clone();
+        return source == null ? Constants.EMPTY_INT_ARR : source.clone();
     }
     
     /**

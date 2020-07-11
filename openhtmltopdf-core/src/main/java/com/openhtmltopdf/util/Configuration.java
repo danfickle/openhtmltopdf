@@ -88,7 +88,7 @@ public class Configuration {
      * List of LogRecords for messages from Configuration startup; used to hold these
      * temporarily as we can't use XRLog while starting up, as it depends on Configuration.
      */
-    private List startupLogRecords;
+    private List<LogRecord> startupLogRecords;
 
     /**
      * Logger we use internally related to configuration.
@@ -108,7 +108,7 @@ public class Configuration {
      * for example, if the default configuration file was not readable.
      */
     private Configuration() {
-        startupLogRecords = new ArrayList();
+        startupLogRecords = new ArrayList<>();
 
         try {
             try {
@@ -170,9 +170,9 @@ public class Configuration {
         Configuration config = instance();
         config.configLogger = logger;
         if (config.startupLogRecords != null) {
-            Iterator iter = config.startupLogRecords.iterator();
+            Iterator<LogRecord> iter = config.startupLogRecords.iterator();
             while (iter.hasNext()) {
-                LogRecord lr = (LogRecord) iter.next();
+                LogRecord lr = iter.next();
                 logger.log(lr.getLevel(), lr.getMessage());
             }
             config.startupLogRecords = null;
@@ -281,13 +281,8 @@ public class Configuration {
             Properties temp = new Properties();
             if (f.exists()) {
                 info("Found config override file " + f.getAbsolutePath());
-                try {
-                    InputStream readStream = new BufferedInputStream(new FileInputStream(f));
-                    try {
-                        temp.load(readStream);
-                    } finally {
-                        readStream.close();
-                    }
+                try (InputStream readStream = new BufferedInputStream(new FileInputStream(f))) {
+                    temp.load(readStream);
                 } catch (IOException iex) {
                     warning("Error while loading override properties file; skipping.", iex);
                     return;

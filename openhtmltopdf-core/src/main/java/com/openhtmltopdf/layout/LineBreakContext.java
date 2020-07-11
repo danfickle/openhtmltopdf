@@ -25,7 +25,7 @@ package com.openhtmltopdf.layout;
  * to the layout code.
  */
 public class LineBreakContext {
-    public static enum LineBreakResult {
+    public enum LineBreakResult {
         CHAR_BREAKING_NEED_NEW_LINE,
         WORD_BREAKING_NEED_NEW_LINE,
 

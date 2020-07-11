@@ -1,11 +1,9 @@
 package com.openhtmltopdf.documentation.generator;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
 

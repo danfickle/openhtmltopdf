@@ -27,20 +27,20 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.XRRuntimeException;
 
 public class BoxRangeHelper {
-    private LinkedList<BoxRangeData> _clipRegionStack = new LinkedList<BoxRangeData>();
+    private LinkedList<BoxRangeData> _clipRegionStack = new LinkedList<>();
     
     private OutputDevice _outputDevice;
-    private List _rangeList;
+    private List<BoxRangeData> _rangeList;
     
     private int _rangeIndex = 0;
     private BoxRangeData _current = null;
     
-    public BoxRangeHelper(OutputDevice outputDevice, List rangeList) {
+    public BoxRangeHelper(OutputDevice outputDevice, List<BoxRangeData> rangeList) {
         _outputDevice = outputDevice;
         _rangeList = rangeList;
         
         if (rangeList.size() > 0) {
-            _current = (BoxRangeData)rangeList.get(0);
+            _current = rangeList.get(0);
         }
     }
     
@@ -60,7 +60,7 @@ public class BoxRangeHelper {
             if (_rangeIndex == _rangeList.size() - 1) {
                 _current = null;
             } else {
-                _current = (BoxRangeData)_rangeList.get(++_rangeIndex);
+                _current = _rangeList.get(++_rangeIndex);
             }
         }
     }

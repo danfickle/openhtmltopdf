@@ -841,11 +841,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                 oi.setRegistryName("http://www.color.org");
                 catalog.addOutputIntent(oi);
             }
-        } catch (BadFieldValueException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (TransformerException e) {
+        } catch (BadFieldValueException | IOException | TransformerException e) {
             throw new RuntimeException(e);
         }
     }
@@ -966,11 +962,9 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             transformer.transform(new DOMSource(target), new StreamResult(output));
 
             return output.toString();
-        } catch (TransformerConfigurationException e) {
+        } catch (TransformerException e) {
             // Things must be in pretty bad shape to get here so
             // rethrow as runtime exception
-            throw new RuntimeException(e);
-        } catch (TransformerException e) {
             throw new RuntimeException(e);
         }
     }

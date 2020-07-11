@@ -12,7 +12,7 @@ public class BufferedImagePageProcessor implements FSPageProcessor {
 	private final double _scale;
 	private final int _imageType;
 
-	private List<BufferedImagePage> _pages = new ArrayList<BufferedImagePage>();
+	private List<BufferedImagePage> _pages = new ArrayList<>();
 
 	private class BufferedImagePage implements FSPage {
 		BufferedImage _image;
@@ -68,7 +68,7 @@ public class BufferedImagePageProcessor implements FSPageProcessor {
 	}
 
 	public List<BufferedImage> getPageImages() {
-		List<BufferedImage> images = new ArrayList<BufferedImage>();
+		List<BufferedImage> images = new ArrayList<>();
 		for (BufferedImagePage page : _pages) {
 			images.add(page._image);
 		}

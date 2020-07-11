@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,22 +54,18 @@ public class MergeBackgroundPdfDrawer implements FSObjectDrawer {
 		if (mapWeakReference != null)
 			map = mapWeakReference.get();
 		if (map == null) {
-			map = new HashMap<String, PDFormXObject>();
-			formMap.put(new PDFBoxDeviceReference(pdfBoxOutputDevice),
-					new SoftReference<Map<String, PDFormXObject>>(map));
+			map = new HashMap<>();
+			formMap.put(new PDFBoxDeviceReference(pdfBoxOutputDevice), new SoftReference<>(map));
 		}
 		try {
 			PDFormXObject pdFormXObject = map.get(url);
 			LayerUtility layerUtility = new LayerUtility(pdfBoxOutputDevice.getWriter());
 			if (pdFormXObject == null) {
-				InputStream inputStream = new URL(url).openStream();
-				try {
+				try (InputStream inputStream = new URL(url).openStream()){
 					PDFParser pdfParser = new PDFParser(new RandomAccessBuffer(inputStream));
 					pdfParser.parse();
 					pdFormXObject = layerUtility.importPageAsForm(pdfParser.getPDDocument(), pdfpage - 1);
 					pdfParser.getPDDocument().close();
-				} finally {
-					inputStream.close();
 				}
 				map.put(url, pdFormXObject);
 			}
@@ -94,8 +89,6 @@ public class MergeBackgroundPdfDrawer implements FSObjectDrawer {
 			saveAndPlaceStream.write("q\n".getBytes(Charsets.US_ASCII));
 			saveAndPlaceStream.close();
 
-		} catch (MalformedURLException e1) {
-			e1.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}

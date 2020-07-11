@@ -1985,7 +1985,7 @@ public class BlockBox extends Box implements InlinePaintable {
     // FIXME Should be expanded into generic restyle facility
     public void styleText(LayoutContext c, CalculatedStyle style) {
         if (getChildrenContentType() == CONTENT_INLINE) {
-            LinkedList<CalculatedStyle> styles = new LinkedList<CalculatedStyle>();
+            LinkedList<CalculatedStyle> styles = new LinkedList<>();
             styles.add(style);
             for (Object a_inlineContent : _inlineContent) {
                 Styleable child = (Styleable) a_inlineContent;

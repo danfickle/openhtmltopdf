@@ -1863,6 +1863,6 @@ public class TableBox extends BlockBox {
             public void setCalcWidth(long i) {
                 _calcWidth = i;
             }
-        };
+        }
     }
 }

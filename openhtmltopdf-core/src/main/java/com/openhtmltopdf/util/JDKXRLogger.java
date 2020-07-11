@@ -21,7 +21,6 @@
  */
 package com.openhtmltopdf.util;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -100,8 +99,6 @@ public class JDKXRLogger implements XRLogger {
                 Configuration.setConfigLogger(Logger.getLogger(XRLog.CONFIG));
             } catch (SecurityException e) {
                 // may happen in a sandbox environment
-            } catch (FileNotFoundException e) {
-                throw new XRRuntimeException("Could not initialize logs. " + e.getLocalizedMessage(), e);
             } catch (IOException e) {
                 throw new XRRuntimeException("Could not initialize logs. " + e.getLocalizedMessage(), e);
             }
@@ -130,7 +127,7 @@ public class JDKXRLogger implements XRLogger {
 
         // load our properties into our log manager
         Enumeration keys = fsLoggingProperties.keys();
-        Map<String, Logger> handlers = new HashMap<>();
+        Map<String, Handler> handlers = new HashMap<>();
         Map<String, String> handlerFormatterMap = new HashMap<>();
         while (keys.hasMoreElements()) {
             String key = (String) keys.nextElement();
@@ -160,8 +157,8 @@ public class JDKXRLogger implements XRLogger {
         loggers.forEach(l -> l.setUseParentHandlers(flag));
     }
 
-    private static void assignFormatter(Map handlers, String handlerClassName, String formatterClassName) {
-        Handler handler = (Handler) handlers.get(handlerClassName);
+    private static void assignFormatter(Map<String, Handler> handlers, String handlerClassName, String formatterClassName) {
+        Handler handler = handlers.get(handlerClassName);
         if (handler != null) {
             try {
                 Class fclass = Class.forName(formatterClassName);
@@ -205,13 +202,12 @@ public class JDKXRLogger implements XRLogger {
      *
      * @return Map of handler class names to handler instances.
      */
-    private static Map configureLogHandlers(List loggers, final String handlerClassList) {
+    private static Map<String, Handler> configureLogHandlers(List<Logger> loggers, final String handlerClassList) {
         final String[] names = handlerClassList.split(" ");
-        final Map handlers = new HashMap(names.length);
-        for (int i = 0; i < names.length; i++) {
-            final String name = names[i];
+        final Map<String, Handler> handlers = new HashMap(names.length);
+        for (String name : names) {
             try {
-                Class handlerClass = Class.forName(name);
+                Class<?> handlerClass = Class.forName(name);
                 Handler handler = (Handler) handlerClass.newInstance();
                 handlers.put(name, handler);
                 String hl = Configuration.valueFor("xr.util-logging." + name + ".level", "INFO");
@@ -229,8 +225,8 @@ public class JDKXRLogger implements XRLogger {
         }
 
         // now assign each handler to each FS logger
-        for (Iterator iterator = loggers.iterator(); iterator.hasNext();) {
-            Logger logger = (Logger) iterator.next();
+        for (Iterator<Logger> iterator = loggers.iterator(); iterator.hasNext();) {
+            Logger logger = iterator.next();
             for (Iterator ith = handlers.values().iterator(); ith.hasNext();) {
                 Handler handler = (Handler) ith.next();
                 logger.addHandler(handler);

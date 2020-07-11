@@ -19,7 +19,6 @@ import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
@@ -87,7 +86,7 @@ public class NonVisualRegressionTest {
         });
     }
     
-    private static PDDocument load(String filename) throws InvalidPasswordException, IOException {
+    private static PDDocument load(String filename) throws IOException {
         return PDDocument.load(new File(OUT_PATH, filename + ".pdf"));
     }
     

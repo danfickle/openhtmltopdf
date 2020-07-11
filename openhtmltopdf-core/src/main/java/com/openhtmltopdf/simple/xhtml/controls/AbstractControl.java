@@ -20,7 +20,6 @@
 package com.openhtmltopdf.simple.xhtml.controls;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -34,8 +33,8 @@ import com.openhtmltopdf.simple.xhtml.XhtmlForm;
 
 public abstract class AbstractControl implements FormControl {
 
-    private XhtmlForm _form;
-    private Element _element;
+    private final XhtmlForm _form;
+    private final Element _element;
     private String _name;
 
     private String _initialValue;
@@ -70,21 +69,15 @@ public abstract class AbstractControl implements FormControl {
     }
 
     protected void fireChanged() {
-        for (Iterator iter = _listeners.iterator(); iter.hasNext();) {
-            ((FormControlListener) iter.next()).changed(this);
-        }
+        _listeners.forEach(l -> l.changed(this));
     }
 
     protected void fireSuccessful() {
-        for (Iterator iter = _listeners.iterator(); iter.hasNext();) {
-            ((FormControlListener) iter.next()).successful(this);
-        }
+        _listeners.forEach(l -> l.successful(this));
     }
 
     protected void fireEnabled() {
-        for (Iterator iter = _listeners.iterator(); iter.hasNext();) {
-            ((FormControlListener) iter.next()).enabled(this);
-        }
+        _listeners.forEach(l -> l.enabled(this));
     }
 
     public void addFormControlListener(FormControlListener listener) {

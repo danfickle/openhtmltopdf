@@ -62,13 +62,13 @@ public class FormFieldState {
         return stateObject;
     }
     
-    public static FormFieldState fromList(List list) {
+    public static FormFieldState fromList(List<Integer> list) {
         FormFieldState stateObject = new FormFieldState();
         
         int [] indices = new int [list.size()];
         
         for (int i = 0; i < list.size(); i++) {
-            indices[i] = ((Integer) list.get(i)).intValue();
+            indices[i] = list.get(i).intValue();
         }
         
         stateObject._selected = indices;
