@@ -35,6 +35,7 @@ import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
@@ -616,11 +617,11 @@ public class Layer {
 								params.get(2).getFloatValue(), params.get(3).getFloatValue(),
 								params.get(4).getFloatValue(), params.get(5).getFloatValue()));
 			} else if ("translate".equalsIgnoreCase(fName)) {
-				XRLog.layout(Level.WARNING, "translate function not implemented at this time");
+			    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LAYOUT_FUNCTION_NOT_IMPLEMENTED, "translate");
 			} else if ("translateX".equalsIgnoreCase(fName)) {
-				XRLog.layout(Level.WARNING, "translateX function not implemented at this time");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LAYOUT_FUNCTION_NOT_IMPLEMENTED, "translateX");
 			} else if ("translateY".equalsIgnoreCase(fName)) {
-				XRLog.layout(Level.WARNING, "translateY function not implemented at this time");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LAYOUT_FUNCTION_NOT_IMPLEMENTED, "translateY");
 			}
 		}
 	}

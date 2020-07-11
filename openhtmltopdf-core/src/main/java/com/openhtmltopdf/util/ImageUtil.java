@@ -296,7 +296,7 @@ public class ImageUtil {
             String b64encoded = imageDataUri.substring(b64Index + "base64,".length());
             return Base64.getMimeDecoder().decode(b64encoded);
         } else {
-            XRLog.load(Level.SEVERE, "Embedded data uris must be encoded in base 64.");
+            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_EMBEDDED_DATA_URI_MUST_BE_ENCODED_IN_BASE64);
         }
         return null;
     }
@@ -318,7 +318,7 @@ public class ImageUtil {
                 return ImageIO.read(new ByteArrayInputStream(buffer));
             }
         } catch (IOException ex) {
-            XRLog.exception("Can't read XHTML embedded image", ex);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_CANT_READ_XHTML_EMBEDDED_IMAGE, ex);
         }
         return null;
     }

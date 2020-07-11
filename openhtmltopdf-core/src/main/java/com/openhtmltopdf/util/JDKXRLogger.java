@@ -40,7 +40,12 @@ import java.util.ArrayList;
  */
 public class JDKXRLogger implements XRLogger {
     private static boolean initPending = true;
-    
+
+    @Override
+    public boolean isLogLevelEnabled(Diagnostic diagnostic) {
+        return getLogger(diagnostic.getLogMessageId().getWhere()).isLoggable(diagnostic.getLevel());
+    }
+
     /* {@inheritdoc} */
     public void log(String where, Level level, String msg) {
         if (initPending) {
@@ -119,14 +124,14 @@ public class JDKXRLogger implements XRLogger {
     }
 
     private static void initializeJDKLogManager(final Properties fsLoggingProperties) throws IOException {
-        final List loggers = retrieveLoggers();
+        final List<Logger> loggers = retrieveLoggers();
 
         configureLoggerHandlerForwarding(fsLoggingProperties, loggers);
 
         // load our properties into our log manager
         Enumeration keys = fsLoggingProperties.keys();
-        Map handlers = new HashMap();
-        Map handlerFormatterMap = new HashMap();
+        Map<String, Logger> handlers = new HashMap<>();
+        Map<String, String> handlerFormatterMap = new HashMap<>();
         while (keys.hasMoreElements()) {
             String key = (String) keys.nextElement();
             String prop = fsLoggingProperties.getProperty(key);
@@ -149,14 +154,10 @@ public class JDKXRLogger implements XRLogger {
         }
     }
 
-    private static void configureLoggerHandlerForwarding(Properties fsLoggingProperties, List loggers) {
+    private static void configureLoggerHandlerForwarding(Properties fsLoggingProperties, List<Logger> loggers) {
         String val = fsLoggingProperties.getProperty("use-parent-handler");
-
         boolean flag = val == null ? false : Boolean.valueOf(val).booleanValue();
-        for (Iterator it = loggers.iterator(); it.hasNext();) {
-            Logger logger = (Logger) it.next();
-            logger.setUseParentHandlers(flag);
-        }
+        loggers.forEach(l -> l.setUseParentHandlers(flag));
     }
 
     private static void assignFormatter(Map handlers, String handlerClassName, String formatterClassName) {
@@ -183,12 +184,12 @@ public class JDKXRLogger implements XRLogger {
      * Returns a List of all Logger instances used by Flying Saucer from the JDK LogManager; these will
      * be automatically created if they aren't already available.
      */
-    private static List retrieveLoggers() {
-        List loggerNames = XRLog.listRegisteredLoggers();
-        List loggers = new ArrayList(loggerNames.size());
-        Iterator it = loggerNames.iterator();
+    private static List<Logger> retrieveLoggers() {
+        List<String> loggerNames = XRLog.listRegisteredLoggers();
+        List<Logger> loggers = new ArrayList<>(loggerNames.size());
+        Iterator<String> it = loggerNames.iterator();
         while (it.hasNext()) {
-            final String ln = (String) it.next();
+            final String ln = it.next();
             loggers.add(Logger.getLogger(ln));
         }
         return loggers;

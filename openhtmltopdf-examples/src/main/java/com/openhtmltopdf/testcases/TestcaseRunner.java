@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
+import com.openhtmltopdf.util.Diagnostic;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.util.Charsets;
 import org.w3c.dom.Element;
@@ -157,6 +158,11 @@ public class TestcaseRunner {
 		XRLog.setLoggerImpl(new XRLogger() {
 			@Override
 			public void setLevel(String logger, Level level) {
+			}
+
+			@Override
+			public boolean isLogLevelEnabled(Diagnostic diagnostic) {
+				return true;
 			}
 
 			@Override

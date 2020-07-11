@@ -25,6 +25,7 @@ import com.openhtmltopdf.css.extend.TreeResolver;
 import com.openhtmltopdf.css.newmatch.Selector;
 import com.openhtmltopdf.css.parser.property.PropertyBuilder;
 import com.openhtmltopdf.css.sheet.*;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
@@ -257,7 +258,7 @@ public class CSSParser {
                     	String resolved = ThreadCtx.get().sharedContext().getUserAgentCallback().resolveUri(baseUri, uri);
                     	
                     	if (resolved == null) {
-                    		XRLog.load(Level.INFO, "URI resolver rejected resolving CSS import at (" + uri + ")");
+                    	    XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_URI_RESOLVER_REJECTED_RESOLVING_CSS_IMPORT_AT_URI, uri);
                     	}
                     	
                     	info.setUri(resolved);
@@ -1950,7 +1951,7 @@ public class CSSParser {
                 String uriResolved = ThreadCtx.get().sharedContext().getUserAgentCallback().resolveUri(_URI, uriResult);
 
                 if (uriResolved == null) {
-                	XRLog.load(Level.INFO, "URI resolver rejected resolving URI at (" + uriResult + ") in CSS stylehseet");
+                    XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_URI_RESOLVER_REJECTED_RESOLVING_URI_AT_URI_IN_CSS_STYLESHEET, uriResult);
                 }
                 
                 return uriResolved == null ? "" : uriResolved;

@@ -13,21 +13,14 @@ import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.resource.ImageResource;
-import com.openhtmltopdf.util.Configuration;
-import com.openhtmltopdf.util.ImageUtil;
-import com.openhtmltopdf.util.StreamResource;
-import com.openhtmltopdf.util.XRLog;
+import com.openhtmltopdf.util.*;
 
 
 /**
  *
  */
 public class ImageResourceLoader {
-    public static final RepaintListener NO_OP_REPAINT_LISTENER = new RepaintListener() {
-        public void repaintRequested(boolean doLayout) {
-            XRLog.general(Level.FINE, "No-op repaint requested");
-        }
-    };
+    public static final RepaintListener NO_OP_REPAINT_LISTENER = doLayout -> XRLog.log(Level.FINE, LogMessageId.LogMessageId0Param.GENERAL_NO_OP_REPAINT_REQUESTED);
     private final Map _imageCache;
 
     private final ImageLoadQueue _loadQueue;
@@ -81,15 +74,15 @@ public class ImageResourceLoader {
                     }
                     ir = createImageResource(uri, img);
                 } catch (FileNotFoundException e) {
-                    XRLog.exception("Can't read image file; image at URI '" + uri + "' not found");
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND, uri);
                 } catch (IOException e) {
-                    XRLog.exception("Can't read image file; unexpected problem for URI '" + uri + "'", e);
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uri, e);
                 } finally {
                     sr.close();
                 }
             } catch (IOException e) {
                 // couldnt open stream at URI...
-                XRLog.exception("Can't open stream for URI '" + uri + "': " + e.getMessage());
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.EXCEPTION_CANT_OPEN_STREAM_FOR_URI, uri, e.getMessage());
             }
             if (ir == null) {
                 ir = createImageResource(uri, null);
@@ -142,19 +135,19 @@ public class ImageResourceLoader {
                 // no: loaded
                 if (ir == null) {
                     if (isImmediateLoadUri(uri)) {
-                        XRLog.load(Level.FINE, "Load immediate: " + uri);
+                        XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.LOAD_LOAD_IMMEDIATE_URI, uri);
                         ir = loadImageResourceFromUri(uri);
                         FSImage awtfsImage = ir.getImage();
                         BufferedImage newImg = ((AWTFSImage) awtfsImage).getImage();
                         loaded(ir, -1, -1);
                         if (width > -1 && height > -1) {
-                            XRLog.load(Level.FINE, this + ", scaling " + uri + " to " + width + ", " + height);
+                            XRLog.log(Level.FINE, LogMessageId.LogMessageId4Param.LOAD_IMAGE_LOADER_SCALING_URI_TO, this, uri, width, height);
                             newImg = ImageUtil.getScaledInstance(newImg, width, height);
                             ir = new ImageResource(ir.getImageUri(), AWTFSImage.createImage(newImg));
                             loaded(ir, width, height);
                         }
                     } else {
-                        XRLog.load(Level.FINE, "Image cache miss, URI not yet loaded, queueing: " + uri);
+                        XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.LOAD_IMAGE_CACHE_MISS_QUEUEING, uri);
                         MutableFSImage mfsi = new MutableFSImage(_repaintListener);
                         ir = new ImageResource(uri, mfsi);
                         _loadQueue.addToQueue(this, uri, mfsi, width, height);
@@ -163,7 +156,7 @@ public class ImageResourceLoader {
                     _imageCache.put(key, ir);
                 } else {
                     // loaded at base size, need to scale
-                    XRLog.load(Level.FINE, this + ", scaling " + uri + " to " + width + ", " + height);
+                    XRLog.log(Level.FINE, LogMessageId.LogMessageId4Param.LOAD_IMAGE_LOADER_SCALING_URI_TO, this, uri, width, height);
                     FSImage awtfsImage = ir.getImage();
                     BufferedImage newImg = ((AWTFSImage) awtfsImage).getImage();
 
@@ -201,7 +194,7 @@ public class ImageResourceLoader {
 
     public void stopLoading() {
         if (_loadQueue != null) {
-            XRLog.load("By request, clearing pending items from load queue: " + _loadQueue.size());
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_CLEARING_PENDING_ITEMS_FROM_LOAD_QUEUE, _loadQueue.size());
             _loadQueue.reset();
         }
     }

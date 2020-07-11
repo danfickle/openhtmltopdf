@@ -4,7 +4,10 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.List;
+import java.util.logging.Level;
+
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilderState;
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -62,13 +65,16 @@ public class Java2DRenderer implements Closeable {
     private final int _initialPageNo;
     private final short _pagingMode;
 
+    private final Closeable diagnosticConsumer;
+
 
     /**
 	 * Subject to change. Not public API. Used exclusively by the Java2DRendererBuilder class. 
 	 */
 	public Java2DRenderer(BaseDocument doc, UnicodeImplementation unicode, PageDimensions pageSize,
-			Java2DRendererBuilderState state) {
+			Java2DRendererBuilderState state, Closeable diagnosticConsumer) {
 
+	    this.diagnosticConsumer = diagnosticConsumer;
 	    _pagingMode = state._pagingMode;
 		_pageProcessor = state._pageProcessor;
 		_initialPageNo = state._initialPageNumber;		
@@ -181,7 +187,7 @@ public class Java2DRenderer implements Closeable {
             try {
                 this.setDocument(doc.file);
             } catch (IOException e) {
-                XRLog.exception("Problem trying to read input XHTML file", e);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_PROBLEM_TRYING_TO_READ_INPUT_XHTML_FILE, e);
                 throw new RuntimeException("File IO problem", e);
             }
         }
@@ -436,6 +442,12 @@ public class Java2DRenderer implements Closeable {
     public void close() {
         _sharedContext.removeFromThread();
         ThreadCtx.cleanup();
+
+        try {
+            diagnosticConsumer.close();
+        } catch (IOException e) {
+
+        }
 
         if (_svgImpl != null) {
             try {

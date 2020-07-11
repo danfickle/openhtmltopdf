@@ -38,12 +38,14 @@ import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.util.Configuration;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
 import java.awt.geom.Area;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * An abstract implementation of an {@link OutputDevice}.  It provides complete
@@ -202,7 +204,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             try {
                 return c.getUac().getImageResource(uri).getImage();
             } catch (Exception ex) {
-                XRLog.exception("Failed to load background image at uri " + uri, ex);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_FAILED_TO_LOAD_BACKGROUND_IMAGE_AT_URI, uri, ex);
             }
         }
         return null;

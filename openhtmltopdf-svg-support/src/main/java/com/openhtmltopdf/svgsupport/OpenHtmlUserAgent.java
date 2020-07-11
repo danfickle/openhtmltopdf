@@ -1,5 +1,6 @@
 package com.openhtmltopdf.svgsupport;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.apache.batik.bridge.FontFamilyResolver;
 import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.util.ParsedURL;
@@ -8,6 +9,7 @@ import com.openhtmltopdf.svgsupport.PDFTranscoder.OpenHtmlFontResolver;
 import com.openhtmltopdf.util.XRLog;
 
 import java.util.Set;
+import java.util.logging.Level;
 
 public class OpenHtmlUserAgent extends UserAgentAdapter {
 
@@ -31,7 +33,7 @@ public class OpenHtmlUserAgent extends UserAgentAdapter {
     @Override
     public void checkLoadScript(String scriptType, ParsedURL scriptURL, ParsedURL docURL) throws SecurityException {
         if (!this.allowScripts) {
-            XRLog.exception("Tried to run script inside SVG. Refusing. Details: " + scriptType + ", " + scriptURL + ", " + docURL);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId3Param.EXCEPTION_SVG_SCRIPT_NOT_ALLOWED, scriptType, scriptURL, docURL);
             throw new SecurityException("Tried to run script inside SVG!");
         }
     }
@@ -39,7 +41,7 @@ public class OpenHtmlUserAgent extends UserAgentAdapter {
     @Override
     public void checkLoadExternalResource(ParsedURL resourceURL, ParsedURL docURL) throws SecurityException {
         if (!this.allowExternalResources && (allowedProtocols == null || !allowedProtocols.contains(resourceURL.getProtocol()))) {
-            XRLog.exception("Tried to fetch external resource from SVG. Refusing. Details: " + resourceURL + ", " + docURL);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.EXCEPTION_SVG_EXTERNAL_RESOURCE_NOT_ALLOWED,resourceURL, docURL);
             throw new SecurityException("Tried to fetch external resource (" + resourceURL + ") from SVG. Refused!");
         }
     }

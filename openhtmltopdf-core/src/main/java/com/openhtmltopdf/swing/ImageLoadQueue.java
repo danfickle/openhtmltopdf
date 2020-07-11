@@ -19,6 +19,7 @@
  */
 package com.openhtmltopdf.swing;
 
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.util.LinkedList;
@@ -66,7 +67,7 @@ class ImageLoadQueue {
      *            the URI is a proper URL before calling this method.
      */
     public synchronized void addToQueue(final ImageResourceLoader imageResourceLoader, final String uri, final MutableFSImage mfsi, final int width, final int height) {
-        XRLog.general(Level.FINE, "Queueing load for image uri " + uri);
+        XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.GENERAL_QUEUEING_LOAD_FOR_IMAGE_URI, uri);
         _loadQueue.addLast(new ImageLoadItem(imageResourceLoader, uri, mfsi, width, height));
         notifyAll();
     }
@@ -83,14 +84,12 @@ class ImageLoadQueue {
             wait();
         }
         if (_loadQueue.getLast() == KILL_SWITCH) {
-            XRLog.general(Level.FINE, "Thread " + Thread.currentThread().getName() +
-                    " requested item, but queue is shutting down; returning kill switch.");
+            XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.GENERAL_THREAD_REQUESTED_ITEM_BUT_QUEUE_IS_SHUTTING_DOWN, Thread.currentThread().getName());
             return KILL_SWITCH;
         } else {
             ImageLoadItem item = (ImageLoadItem) _loadQueue.removeLast();
 
-            XRLog.general(Level.FINE, "Thread " + Thread.currentThread().getName() +
-                    " pulled item " + item._uri + " from queue, " + (_loadQueue.size() - 1) + " remaining");
+            XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_THREAD_PULLED_ITEM_FROM_QUEUE, Thread.currentThread().getName(), item._uri, _loadQueue.size() - 1);
             return item;
         }
     }

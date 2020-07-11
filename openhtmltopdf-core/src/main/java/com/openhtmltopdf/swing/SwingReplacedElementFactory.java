@@ -19,6 +19,7 @@
  */
 package com.openhtmltopdf.swing;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -145,7 +146,7 @@ public abstract class SwingReplacedElementFactory implements ReplacedElementFact
         String imageSrc = context.getNamespaceHandler().getImageSourceURI(elem);
         
         if (imageSrc == null || imageSrc.length() == 0) {
-            XRLog.layout(Level.WARNING, "No source provided for img element.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LAYOUT_NO_SOURCE_PROVIDED_FOR_IMG_ELEMENT);
             re = newIrreplaceableImageElement(cssWidth, cssHeight);
         } else if (ImageUtil.isEmbeddedBase64Image(imageSrc)) {
             BufferedImage image = ImageUtil.loadEmbeddedBase64Image(imageSrc);
@@ -158,7 +159,7 @@ public abstract class SwingReplacedElementFactory implements ReplacedElementFact
 
             re = lookupImageReplacedElement(elem, ruri, cssWidth, cssHeight);
             if (re == null) {
-                XRLog.load(Level.FINE, "Swing: Image " + ruri + " requested at "+ " to " + cssWidth + ", " + cssHeight);
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.LOAD_SWING_IMAGE_REQUESTED_AT_URI, ruri, cssWidth, cssHeight);
                 ImageResource imageResource = imageResourceLoader.get(ruri, cssWidth, cssHeight);
                 if (imageResource.isLoaded()) {
                     re = new ImageReplacedElement(((AWTFSImage) imageResource.getImage()).getImage(), cssWidth, cssHeight);

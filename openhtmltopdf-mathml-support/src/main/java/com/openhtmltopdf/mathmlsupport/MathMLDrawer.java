@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
 import net.sourceforge.jeuclid.font.DefaultFontFactory;
 import net.sourceforge.jeuclid.font.FontFactory;
 
@@ -81,23 +82,21 @@ public class MathMLDrawer implements SVGDrawer {
 		}
 		
 		if (!_availabelFontFamilies.containsKey(family)) {
-			XRLog.general(Level.WARNING, "Could not find font (" + family + ") specifed for MathML object in font-face rules");
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_COULD_NOT_FIND_FONT_SPECIFIED_FOR_MATHML_OBJECT_IN_FONT_FACE_RULES,family);
 			return;
 		}
 		
 		for (String src : _availabelFontFamilies.get(family)) {
 			byte[] font1 = _sharedCtx.getUserAgentCallback().getBinaryResource(src);
 			if (font1 == null) {
-				XRLog.exception("Could not load font " + src);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, src);
 				continue;
 			}
 		
 			try {
 				_fontFactory.registerFont(Font.TRUETYPE_FONT, new ByteArrayInputStream(font1));
-			} catch (IOException e) {
-				XRLog.exception("Couldn't read memory!", e);
-			} catch (FontFormatException e) {
-				XRLog.exception("Could not read font correctly", e);
+			} catch (IOException | FontFormatException e) {
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_MATHML_COULD_NOT_REGISTER_FONT, e);
 			}
 		}
 

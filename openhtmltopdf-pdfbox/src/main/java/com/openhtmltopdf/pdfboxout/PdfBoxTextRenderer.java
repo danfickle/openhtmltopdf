@@ -33,6 +33,7 @@ import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.FontRun;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
@@ -74,7 +75,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
                 PdfBoxRawPDFontMetrics metrics = des.getFontMetrics();
 
                 if (metrics == null) {
-                    XRLog.exception("Font metrics not available. Probably a bug.");
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_FONT_METRICS_NOT_AVAILABLE);
                     continue;
                 }
                 
@@ -172,7 +173,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
         }
     
         // Really?, no font support for either replacement text or space!
-        XRLog.general("Specified fonts don't contain a space character!");
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId0Param.GENERAL_PDF_SPECIFIED_FONTS_DONT_CONTAIN_A_SPACE_CHARACTER);
         ReplacementChar replace = new ReplacementChar();
         replace.replacement = "";
         replace.fontDescription = descriptions.get(0);
@@ -302,7 +303,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
             try {
                 strWidth += run.des.getFont().getStringWidth(run.str);
             } catch (Exception e) {
-                XRLog.render(Level.WARNING, "BUG. Font didn't contain expected character.", e);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_BUG_FONT_DIDNT_CONTAIN_EXPECTED_CHARACTER, e);
             }
         }
 
@@ -316,7 +317,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
         try {
             if (((PdfBoxFSFont) font).getFontDescription() == null 
                     || ((PdfBoxFSFont) font).getFontDescription().isEmpty()) {
-              XRLog.render(Level.WARNING, "Font list is empty.");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_FONT_LIST_IS_EMPTY);
             } else {
               // Go through the list of font descriptions
               for (FontDescription fd : ((PdfBoxFSFont) font).getFontDescription()) {
@@ -324,7 +325,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
                    result = fd.getFont().getStringWidth(string) / 1000f * font.getSize2D();
                    break;
                  } else {
-                   XRLog.render(Level.WARNING, "Font is null.");
+                     XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_FONT_IS_NULL);
                  }
               }
             }

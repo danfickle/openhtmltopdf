@@ -23,6 +23,7 @@ package com.openhtmltopdf.css.constants;
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.util.GeneralUtil;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRRuntimeException;
 
@@ -120,8 +121,7 @@ public final class ValueConstants {
             case CSSPrimitiveValue.CSS_STRING:
                 return true;
             case CSSPrimitiveValue.CSS_UNKNOWN:
-                XRLog.cascade(Level.WARNING, "Asked whether type was absolute, given CSS_UNKNOWN as the type. " +
-                        "Might be one of those funny values like background-position.");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.CASCADE_IS_ABSOLUTE_CSS_UNKNOWN_GIVEN);
                 GeneralUtil.dumpShortException(new Exception());
                 // fall-through
             default:

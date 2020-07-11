@@ -20,14 +20,14 @@
 package com.openhtmltopdf.simple.extend.form;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.plaf.basic.BasicButtonUI;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -91,12 +91,9 @@ class ImageField extends InputField {
             intrinsicHeight = new Integer(getBox().getHeight());
         }
 
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent event) {
-                XRLog.layout("Image pressed: Submit");
-
-                getParentForm().submit(getComponent());
-            }
+        button.addActionListener(event -> {
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LAYOUT_FORM_ACTION_PERFORMED, "Image", "Submit");
+            getParentForm().submit(getComponent());
         });
 
         return button;

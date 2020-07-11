@@ -25,8 +25,24 @@ import java.util.logging.Level;
  * An interface whose implementations log Flying Saucer log messages.
  */
 public interface XRLogger {
-    public void log(String where, Level level, String msg);
-    public void log(String where, Level level, String msg, Throwable th);
-    
-    public void setLevel(String logger, Level level);
+    void log(String where, Level level, String msg);
+    void log(String where, Level level, String msg, Throwable th);
+    void setLevel(String logger, Level level);
+
+    boolean isLogLevelEnabled(Diagnostic diagnostic);
+
+    /**
+     * Default slow (!) implementation for logging a Diagnostic object.
+     *
+     * Concrete implementation must/should override it.
+     *
+     * @param diagnostic
+     */
+    default void log(Diagnostic diagnostic) {
+        if (diagnostic.hasError()) {
+            log(diagnostic.getLogMessageId().getWhere(), diagnostic.getLevel(), diagnostic.getFormattedMessage(), diagnostic.getError());
+        } else {
+            log(diagnostic.getLogMessageId().getWhere(), diagnostic.getLevel(), diagnostic.getFormattedMessage());
+        }
+    }
 }

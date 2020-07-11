@@ -1,5 +1,6 @@
 package com.openhtmltopdf.pdfboxout;
 
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.cos.COSDictionary;
@@ -16,6 +17,7 @@ import org.apache.pdfbox.util.Matrix;
 
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
+import java.util.logging.Level;
 
 public class PdfContentStreamAdapter {
     private final PDPageContentStream cs;
@@ -30,7 +32,7 @@ public class PdfContentStreamAdapter {
     }
 
     private void logAndThrow(String method, IOException e) {
-        XRLog.exception("Exception in PDF writing method: " + method, e);
+        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_PDF_IN_WRITING_METHOD, method, e);
         throw new PdfException(method, e);
     }
 

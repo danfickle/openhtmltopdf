@@ -36,6 +36,7 @@ import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.outputdevice.helper.MinimalFontDescription;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import com.openhtmltopdf.render.FSFont;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.fontbox.ttf.TrueTypeCollection;
@@ -148,7 +149,7 @@ public class PdfBoxFontResolver implements FontResolver {
             if (rule.hasFontFamily()) {
                 fontFamily = style.valueByName(CSSName.FONT_FAMILY).asString();
             } else {
-                XRLog.cssParse(Level.WARNING, "Must provide at least a font-family and src in @font-face rule");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.CSS_PARSE_MUST_PROVIDE_AT_LEAST_A_FONT_FAMILY_AND_SRC_IN_FONT_FACE_RULE);
                 continue;
             }
 
@@ -297,7 +298,7 @@ public class PdfBoxFontResolver implements FontResolver {
 			try {
 				return PDType0Font.load(_doc, _fontFile);
 			} catch (IOException e) {
-			    XRLog.exception("Couldn't load font (" + _fontFile.getAbsolutePath() + "). Please check that it is a valid truetype font.", e);                                                        
+			    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, _fontFile.getAbsoluteFile(), e);
 			    return null;
 			}
 		}
@@ -701,7 +702,7 @@ public class PdfBoxFontResolver implements FontResolver {
             try {
                 _metrics = PdfBoxRawPDFontMetrics.fromPdfBox(font, descriptor);
             } catch (IOException e) {
-                XRLog.exception("Couldn't load font metrics.", e);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_COULD_NOT_LOAD_FONT_METRICS, e);
             }
         }
 
@@ -745,16 +746,15 @@ public class PdfBoxFontResolver implements FontResolver {
                 putFontMetricsInCache(_family, _weight, _style, _metrics);
                 return true;
             } catch (IOException e) {
-                XRLog.exception(
-                        "Couldn't load font. Please check that it is a valid truetype font.");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, _family);
                 return false;
             }
         }
 
         private boolean realizeFont() {
             if (_font == null && _fontSupplier != null) {
-                XRLog.load(Level.INFO, "Loading font(" + _family + ") from PDFont supplier now.");
-                
+                XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_LOADING_FONT_FROM_SUPPLIER, _family, "PDFont");
+
                 _font = _fontSupplier.supply();
 		_fontSupplier = null;
 		
@@ -765,8 +765,8 @@ public class PdfBoxFontResolver implements FontResolver {
 	    }
             
             if (_font == null && _supplier != null) {
-                XRLog.load(Level.INFO, "Loading font(" + _family + ") from InputStream supplier now.");
-                
+                XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_LOADING_FONT_FROM_SUPPLIER, _family, "InputStream");
+
                 InputStream is = _supplier.supply();
                 _supplier = null; // We only try once.
                 
@@ -781,7 +781,7 @@ public class PdfBoxFontResolver implements FontResolver {
                         return loadMetrics();
                     }
                 } catch (IOException e) {
-                    XRLog.exception("Couldn't load font. Please check that it is a valid truetype font.");
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, _family);
                     return false;
                 } finally {
                     try {

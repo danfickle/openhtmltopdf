@@ -20,6 +20,7 @@ package com.openhtmltopdf.swing;
  */
 
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -71,7 +72,7 @@ public class ImageMapParser {
 				}
 			}
 			if (null == map) {
-				XRLog.layout(Level.INFO, "No map named: '" + mapName + "'");
+				XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LAYOUT_NO_MAP_NAMED, mapName);
 				return null;
 			}
 		}
@@ -124,7 +125,7 @@ public class ImageMapParser {
 							}
 						} else {
 							if (XRLog.isLoggingEnabled()) {
-								XRLog.layout(Level.INFO, "Unsupported shape: '" + shapeAttr + "'");
+								XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LAYOUT_UNSUPPORTED_SHAPE, shapeAttr);
 							}
 						}
 					}
@@ -149,7 +150,7 @@ public class ImageMapParser {
 				try {
 					coords[i++] = Float.parseFloat(coord.trim());
 				} catch (NumberFormatException e) {
-					XRLog.layout(Level.WARNING, "Error while parsing shape coords", e);
+					XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LAYOUT_ERROR_PARSING_SHAPE_COORDS, e);
 					return null;
 				}
 			}
@@ -168,7 +169,7 @@ public class ImageMapParser {
 				}
 				return new Polygon(xpoints, ypoints, npoints);
 			} else {
-				XRLog.layout(Level.INFO, "Unsupported shape: '" + length + "'");
+				XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LAYOUT_UNSUPPORTED_SHAPE, length);
 				return null;
 			}
 		} else {

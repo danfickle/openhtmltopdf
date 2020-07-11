@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.css.sheet.FontFaceRule;
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -99,8 +100,8 @@ public class StyleReference {
         AttributeResolver attRes = new StandardAttributeResolver(_nsh, _uac, ui);
 
         List<StylesheetInfo> infos = getStylesheets();
-        
-        XRLog.match("media = " + _context.getMedia());
+
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.MATCH_MEDIA_IS, _context.getMedia());
         
         _matcher = new com.openhtmltopdf.css.newmatch.Matcher(
                 new DOMTreeResolver(), 
@@ -128,7 +129,7 @@ public class StyleReference {
                     
                     result.add(sheet);
                 } else {
-                    XRLog.load(Level.WARNING, "Unable to load CSS from "+info.getUri());
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_UNABLE_TO_LOAD_CSS_FROM_URI, info.getUri());
                 }
             }
         }
@@ -212,10 +213,9 @@ public class StyleReference {
         info.setOrigin(StylesheetInfo.AUTHOR);
         if (_stylesheetFactory.containsStylesheet(uri)) {
             _stylesheetFactory.removeCachedStylesheet(uri);
-            XRLog.cssParse("Removing stylesheet '" + uri + "' from cache by request.");
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.CSS_PARSE_REMOVING_STYLESHEET_URI_FROM_CACHE_BY_REQUEST, uri);
         } else {
-            XRLog.cssParse("Requested removing stylesheet '" + uri + "', but it's not in cache.");
-
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.CSS_PARSE_REQUESTED_REMOVING_STYLESHEET_URI_NOT_IN_CACHE, uri);
         }
     }
     
@@ -264,7 +264,7 @@ public class StyleReference {
         // TODO: here we should also get user stylesheet from userAgent
 
         long el = System.currentTimeMillis() - st;
-        XRLog.load("TIME: parse stylesheets  " + el + "ms");
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_PARSE_STYLESHEETS_TIME, el);
 
         return infos;
     }

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -194,8 +195,7 @@ public class PdfBoxPerDocumentFormState {
             return forms.get(frmElement);
         }
 
-        XRLog.general(Level.WARNING, "Found form control ("
-                + e.getNodeName() + ") with no enclosing form. Ignoring.");
+        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_PDF_FOUND_FORM_CONTROL_WITH_NO_ENCLOSING_FORM, e.getNodeName());
         return null;
     }
 }

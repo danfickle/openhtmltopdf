@@ -2,6 +2,8 @@ package com.openhtmltopdf.java2d.api;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.Closeable;
+
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.java2d.Java2DRenderer;
 import com.openhtmltopdf.layout.Layer;
@@ -87,12 +89,13 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @throws Exception
 	 */
 	public void runPaged() throws Exception {
-		Java2DRenderer renderer = this.buildJava2DRenderer();
-		renderer.layout();
-		if (state._pagingMode == Layer.PAGED_MODE_PRINT)
-			renderer.writePages();
-		else
-			renderer.writeSinglePage();
+		try (Closeable d = this.applyDiagnosticConsumer(); Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
+			renderer.layout();
+			if (state._pagingMode == Layer.PAGED_MODE_PRINT)
+				renderer.writePages();
+			else
+				renderer.writeSinglePage();
+		}
 	}
 
 	/**
@@ -104,15 +107,20 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * @throws Exception
 	 */
 	public void runFirstPage() throws Exception {
-		Java2DRenderer renderer = this.buildJava2DRenderer();
-		renderer.layout();
-		if (state._pagingMode == Layer.PAGED_MODE_PRINT)
-			renderer.writePage(0);
-		else
-			renderer.writeSinglePage();
+		try (Closeable d = this.applyDiagnosticConsumer(); Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
+			renderer.layout();
+			if (state._pagingMode == Layer.PAGED_MODE_PRINT)
+				renderer.writePage(0);
+			else
+				renderer.writeSinglePage();
+		}
 	}
 
 	public Java2DRenderer buildJava2DRenderer() {
+		return buildJava2DRenderer(this.applyDiagnosticConsumer());
+	}
+
+	public Java2DRenderer buildJava2DRenderer(Closeable diagnosticConsumer) {
 
 		UnicodeImplementation unicode = new UnicodeImplementation(state._reorderer, state._splitter, state._lineBreaker,
 				state._unicodeToLowerTransformer, state._unicodeToUpperTransformer, state._unicodeToTitleTransformer, state._textDirection,
@@ -130,7 +138,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 			state._layoutGraphics = bf.createGraphics();
 		}
 
-		return new Java2DRenderer(doc, unicode,  pageSize, state);
+		return new Java2DRenderer(doc, unicode,  pageSize, state, diagnosticConsumer);
 	}
 
 	/**

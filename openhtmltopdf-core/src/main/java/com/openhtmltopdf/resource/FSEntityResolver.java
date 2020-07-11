@@ -20,6 +20,7 @@
  */
 package com.openhtmltopdf.resource;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -88,20 +89,13 @@ public class FSEntityResolver implements EntityResolver {
             }
 
             if (is == null) {
-                XRLog.xmlEntities(Level.WARNING,
-                        "Can't find a local reference for Entity for public ID: " + publicID +
-                        " and expected to. The local URL should be: " + url + ". Not finding " +
-                        "this probably means a CLASSPATH configuration problem; this resource " +
-                        "should be included with the renderer and so not finding it means it is " +
-                        "not on the CLASSPATH, and should be. Will let parser use the default in " +
-                        "this case.");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.XML_ENTITIES_ENTITY_CANT_FIND_LOCAL_REFERENCE, publicID, url);
             }
             local = new InputSource(is);
             local.setSystemId(realUrl.toExternalForm());
-            XRLog.xmlEntities(Level.FINE, "Entity public: " + publicID + " -> " + url +
-                    (local == null ? ", NOT FOUND" : " (local)"));
+            XRLog.log(Level.FINE, LogMessageId.LogMessageId2Param.XML_ENTITIES_ENTITY_PUBLIC_NOT_FOUND_OR_LOCAL, publicID, url + (local == null ? ", NOT FOUND" : " (local)"));
         } else {
-            XRLog.xmlEntities("Entity public: " + publicID + ", no local mapping. Returning empty entity to avoid pulling from network.");
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.XML_ENTITIES_ENTITY_PUBLIC_NO_LOCAL_MAPPING, publicID);
             local = new InputSource(new StringReader(""));
         }
         return local;

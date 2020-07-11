@@ -21,6 +21,8 @@
 package com.openhtmltopdf.util;
 
 
+import java.util.logging.Level;
+
 /**
  * General runtime exception used in XHTMLRenderer. Auto-logs messages to
  * plumbing.exception hierarchy.
@@ -58,7 +60,7 @@ public class XRRuntimeException extends RuntimeException {
      * @param msg  Message for the log.
      */
     private void log( String msg ) {
-        XRLog.exception( "Unhandled exception. " + msg );
+        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_UNHANDLED, msg);
     }
 
     /**
@@ -70,7 +72,7 @@ public class XRRuntimeException extends RuntimeException {
      *      IOException.
      */
     private void log( String msg, Throwable cause ) {
-        XRLog.exception( "Unhandled exception. " + msg, cause );
+        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_UNHANDLED, msg, cause);
     }
 }
 

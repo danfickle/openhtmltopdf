@@ -24,6 +24,7 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.FSLinearGradient;
 import com.openhtmltopdf.render.*;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
@@ -90,7 +91,7 @@ public interface OutputDevice {
     public void drawImage(FSImage image, int x, int y, boolean interpolate);
 
     default public void drawLinearGradient(FSLinearGradient backgroundLinearGradient, Shape bounds) {
-        XRLog.render(Level.WARNING, "linear-gradient(...) is not supported in this output device");
+    	XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_LINEAR_GRADIENT_IS_NOT_SUPPORTED);
     }
 
     public void draw(Shape s);

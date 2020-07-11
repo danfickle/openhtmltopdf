@@ -482,8 +482,7 @@ public class Configuration {
         try {
             bval = Byte.valueOf(val).byteValue();
         } catch (NumberFormatException nex) {
-            XRLog.exception("Property '" + key + "' was requested as a byte, but " +
-                    "value of '" + val + "' is not a byte. Check configuration.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId4Param.EXCEPTION_CONFIGURATION_WRONG_TYPE, key, "byte", val, "byte");
             bval = defaultVal;
         }
         return bval;
@@ -509,8 +508,7 @@ public class Configuration {
         try {
             sval = Short.valueOf(val).shortValue();
         } catch (NumberFormatException nex) {
-            XRLog.exception("Property '" + key + "' was requested as a short, but " +
-                    "value of '" + val + "' is not a short. Check configuration.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId4Param.EXCEPTION_CONFIGURATION_WRONG_TYPE, key, "short", val, "short");
             sval = defaultVal;
         }
         return sval;
@@ -536,36 +534,10 @@ public class Configuration {
         try {
             ival = Integer.valueOf(val).intValue();
         } catch (NumberFormatException nex) {
-            XRLog.exception("Property '" + key + "' was requested as an integer, but " +
-                    "value of '" + val + "' is not an integer. Check configuration.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId4Param.EXCEPTION_CONFIGURATION_WRONG_TYPE, key, "integer", val, "integer");
             ival = defaultVal;
         }
         return ival;
-    }
-
-    /**
-     * Returns the value for key in the Configuration as a character, or a
-     * default value if not found. A warning is issued to the log if the
-     * property is not defined, or if the configuration value is too long
-     * to be a char. If the configuration value is longer than a single
-     * character, only the first character is returned.
-     *
-     * @param key Name of the property
-     * @param defaultVal PARAM
-     * @return Value assigned to the key, as a character
-     */
-    public static char valueAsChar(String key, char defaultVal) {
-        String val = valueFor(key);
-        if (val == null) {
-            return defaultVal;
-        }
-
-        if(val.length() > 1) {
-            XRLog.exception("Property '" + key + "' was requested as a character. The value of '" +
-                    val + "' is too long to be a char. Returning only the first character.");
-        }
-
-        return val.charAt(0);
     }
 
     /**
@@ -588,8 +560,7 @@ public class Configuration {
         try {
             lval = Long.valueOf(val).longValue();
         } catch (NumberFormatException nex) {
-            XRLog.exception("Property '" + key + "' was requested as a long, but " +
-                    "value of '" + val + "' is not a long. Check configuration.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId4Param.EXCEPTION_CONFIGURATION_WRONG_TYPE, key, "long", val, "long");
             lval = defaultVal;
         }
         return lval;
@@ -615,8 +586,7 @@ public class Configuration {
         try {
             fval = Float.valueOf(val).floatValue();
         } catch (NumberFormatException nex) {
-            XRLog.exception("Property '" + key + "' was requested as a float, but " +
-                    "value of '" + val + "' is not a float. Check configuration.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId4Param.EXCEPTION_CONFIGURATION_WRONG_TYPE, key, "float", val, "float");
             fval = defaultVal;
         }
         return fval;
@@ -642,8 +612,7 @@ public class Configuration {
         try {
             dval = Double.valueOf(val).doubleValue();
         } catch (NumberFormatException nex) {
-            XRLog.exception("Property '" + key + "' was requested as a double, but " +
-                    "value of '" + val + "' is not a double. Check configuration.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId4Param.EXCEPTION_CONFIGURATION_WRONG_TYPE, key, "double", val, "double");
             dval = defaultVal;
         }
         return dval;
@@ -688,26 +657,6 @@ public class Configuration {
         return l.iterator();
     }
 
-
-    /**
-     * Command-line execution for testing. No arguments.
-     *
-     * @param args Ignored
-     */
-    public static void main(String args[]) {
-        try {
-            System.out.println("byte: " + String.valueOf(Configuration.valueAsByte("xr.test-config-byte", (byte) 15)));
-            System.out.println("short: " + String.valueOf(Configuration.valueAsShort("xr.test-config-short", (short) 20)));
-            System.out.println("int: " + String.valueOf(Configuration.valueAsInt("xr.test-config-int", 25)));
-            System.out.println("long: " + String.valueOf(Configuration.valueAsLong("xr.test-config-long", 30L)));
-            System.out.println("float: " + String.valueOf(Configuration.valueAsFloat("xr.test-config-float", 45.5F)));
-            System.out.println("double: " + String.valueOf(Configuration.valueAsDouble("xr.test-config-double", 50.75D)));
-            System.out.println("boolean: " + String.valueOf(Configuration.isTrue("xr.test-config-boolean", false)));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
     /**
      * Returns true if the value is "true" (ignores case), or the default
      * provided value if not found or if the value is not a valid boolean (true
@@ -725,8 +674,7 @@ public class Configuration {
         }
 
         if ("true|false".indexOf(val) == -1) {
-            XRLog.exception("Property '" + key + "' was requested as a boolean, but " +
-                    "value of '" + val + "' is not a boolean. Check configuration.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId4Param.EXCEPTION_CONFIGURATION_WRONG_TYPE, key, "boolean", val, "boolean");
             return defaultVal;
         } else {
             return Boolean.valueOf(val).booleanValue();

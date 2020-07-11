@@ -20,6 +20,7 @@
  */
 package com.openhtmltopdf.resource;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -69,7 +70,7 @@ public class FSCatalog {
         try (InputStream in = FSCatalog.class.getResourceAsStream(catalogURI)){
             map = parseCatalog(new InputSource(new BufferedInputStream(in)));
         } catch (Exception ex) {
-            XRLog.xmlEntities(Level.WARNING, "Could not open XML catalog from URI '" + catalogURI + "'", ex);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.XML_ENTITIES_COULD_NOT_OPEN_XML_CATALOG_FROM_URI, catalogURI, ex);
             map = Collections.emptyMap();
         }
         return map;
@@ -107,19 +108,19 @@ public class FSCatalog {
             xmlReader.setErrorHandler(new ErrorHandler() {
                 public void error(SAXParseException ex) {
                     if (XRLog.isLoggingEnabled()) {
-                        XRLog.xmlEntities(Level.WARNING, ex.getMessage());
+                        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.XML_ENTITIES_EXCEPTION_MESSAGE, ex.getMessage());
                     }
                 }
 
                 public void fatalError(SAXParseException ex) {
                     if (XRLog.isLoggingEnabled()) {
-                        XRLog.xmlEntities(Level.WARNING, ex.getMessage());
+                        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.XML_ENTITIES_EXCEPTION_MESSAGE, ex.getMessage());
                     }
                 }
 
                 public void warning(SAXParseException ex) {
                     if (XRLog.isLoggingEnabled()) {
-                        XRLog.xmlEntities(Level.WARNING, ex.getMessage());
+                        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.XML_ENTITIES_EXCEPTION_MESSAGE, ex.getMessage());
                     }
                 }
             });
@@ -167,18 +168,11 @@ public class FSCatalog {
     private void setFeature(XMLReader xmlReader, String featureUri, boolean value) {
         try {
             xmlReader.setFeature(featureUri, value);
-
-            XRLog.xmlEntities(Level.FINE, "SAX Parser feature: " +
-                    featureUri.substring(featureUri.lastIndexOf("/")) +
-                    " set to " +
-                    xmlReader.getFeature(featureUri));
+            XRLog.log(Level.FINE, LogMessageId.LogMessageId2Param.XML_ENTITIES_SAX_FEATURE_SET, featureUri.substring(featureUri.lastIndexOf("/")), Boolean.toString(xmlReader.getFeature(featureUri)));
         } catch (SAXNotSupportedException ex) {
-            XRLog.xmlEntities(Level.WARNING,
-                    "SAX feature not supported on this XMLReader: " + featureUri);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.XML_ENTITIES_SAX_FEATURE_NOT_SUPPORTED, featureUri);
         } catch (SAXNotRecognizedException ex) {
-            XRLog.xmlEntities(Level.WARNING,
-                    "SAX feature not recognized on this XMLReader: " +
-                    featureUri + ". Feature may be properly named, but not recognized by this parser.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.XML_ENTITIES_SAX_FEATURE_NOT_RECOGNIZED, featureUri);
         }
     }
 }

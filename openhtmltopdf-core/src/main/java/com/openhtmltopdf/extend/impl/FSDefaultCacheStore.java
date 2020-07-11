@@ -7,6 +7,7 @@ import java.util.logging.Level;
 
 import com.openhtmltopdf.extend.FSCacheEx;
 import com.openhtmltopdf.extend.FSCacheValue;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 
@@ -20,7 +21,7 @@ public class FSDefaultCacheStore implements FSCacheEx<String, FSCacheValue> {
     
     @Override
     public void put(String key, FSCacheValue value) {
-        XRLog.load(Level.INFO, "Putting key(" + key + ") in cache.");
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_PUTTING_KEY_IN_CACHE, key);
         _store.put(key, value);
     }
 
@@ -38,18 +39,18 @@ public class FSDefaultCacheStore implements FSCacheEx<String, FSCacheValue> {
                 _store.put(key, value);
             }
         } catch (Exception e) {
-            XRLog.exception("Could not load cache value for key(" + key + ")", e);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_CACHE_VALUE_FOR_KEY, key, e);
             value = null;
         }
-        
-        XRLog.load(Level.INFO, (value == null ? "Missed" : "Hit") + " key(" + key + ") from cache.");
+
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_CACHE_HIT_STATUS, (value == null ? "Missed" : "Hit"), key);
         return value;
     }
 
     @Override
     public FSCacheValue get(String key) {
         FSCacheValue value = _store.get(key);
-        XRLog.load(Level.INFO, (value == null ? "Missed" : "Hit") + " key(" + key + ") from cache.");
+        XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_CACHE_HIT_STATUS, (value == null ? "Missed" : "Hit"), key);
         return value;
     }
 }

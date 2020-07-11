@@ -6,6 +6,7 @@ import com.ibm.icu.text.ArabicShaping;
 import com.ibm.icu.text.ArabicShapingException;
 import com.ibm.icu.text.Bidi;
 import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 public class ICUBidiReorderer implements BidiReorderer {
@@ -22,7 +23,7 @@ public class ICUBidiReorderer implements BidiReorderer {
 		try {
 			return shaper.shape(text);
 		} catch (ArabicShapingException e) {
-			XRLog.general(Level.WARNING, "Exception while shaping text", e);
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_EXCEPTION_SHAPING_TEXT, e);
 			return text;
 		}
 	}
@@ -32,7 +33,7 @@ public class ICUBidiReorderer implements BidiReorderer {
 		try {
 			return deshaper.shape(text);
 		} catch (ArabicShapingException e) {
-			XRLog.general(Level.WARNING, "Exception while deshaping text", e);
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_EXCEPTION_DESHAPING_TEXT, e);
 			return text;
 		}
 	}

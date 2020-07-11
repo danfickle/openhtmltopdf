@@ -20,6 +20,7 @@ package com.openhtmltopdf.simple.extend;
 
 import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -127,8 +128,7 @@ public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
             sb.append(viewBoxHeight);
             sb.append("px;");
         } catch (NumberFormatException ex) {
-            XRLog.general(Level.WARNING,
-                    "Invalid integer passed in viewBox attribute for SVG: " + viewBoxAttr);
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_INVALID_INTEGER_PASSED_IN_VIEWBOX_ATTRIBUTE_FOR_SVG, viewBoxAttr);
             /* FALL-THRU */
         }
         

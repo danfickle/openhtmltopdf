@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.BidiSplitter;
@@ -206,10 +207,8 @@ public class InlineBoxing {
                                 }
 
                                 if (troublesomeAttemptCount > 5) {
-                                    XRLog.general(Level.SEVERE, 
-                                            "A fatal infinite loop bug was detected in the line breaking " +
-                                            "algorithm for break-word! Start-substring=[" + lbContext.getStartSubstring() + "], " +
-                                            "end=" + lbContext.getEnd());
+                                    XRLog.log(Level.SEVERE, LogMessageId.LogMessageId2Param.GENERAL_FATAL_INFINITE_LOOP_BUG_IN_LINE_BREAKING_ALGO,
+                                            lbContext.getStartSubstring(), lbContext.getEnd());
                                     throw new RuntimeException("Infinite loop bug in break-word line breaking algorithm!");
                                 }
                             }

@@ -47,6 +47,7 @@ import com.openhtmltopdf.resource.CSSResource;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.util.ImageUtil;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 /**
@@ -101,11 +102,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	        try {
 	            is = new URL(uri).openStream();
 	        } catch (java.net.MalformedURLException e) {
-	            XRLog.exception("bad URL given: " + uri, e);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_MALFORMED_URL, uri, e);
 	        } catch (java.io.FileNotFoundException e) {
-	            XRLog.exception("item at URI " + uri + " not found");
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_ITEM_AT_URI_NOT_FOUND, uri, e);
 	        } catch (java.io.IOException e) {
-	            XRLog.exception("IO problem for " + uri, e);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_IO_PROBLEM_FOR_URI, uri, e);
 	        }
 	        return new DefaultHttpStream(is);
 		}
@@ -162,15 +163,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		        try {
 		            is = new URL(uri).openStream();
 		        } catch (java.net.MalformedURLException e) {
-		            XRLog.exception("bad URL given: " + uri, e);
+		        	XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_MALFORMED_URL, uri, e);
 		        } catch (java.io.FileNotFoundException e) {
-		            XRLog.exception("item at URI " + uri + " not found", e);
+		        	XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_ITEM_AT_URI_NOT_FOUND, uri, e);
 		        } catch (java.io.IOException e) {
-		            XRLog.exception("IO problem for " + uri, e);
+		        	XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_IO_PROBLEM_FOR_URI, uri, e);
 		        }
 			}
         } catch (URISyntaxException e1) {
-        	XRLog.exception("bad URL given: " + uri, e1);
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_MALFORMED_URL, uri, e1);
 		}
 
         return is;
@@ -193,15 +194,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		        try {
 		            is = new URL(uri).openStream();
 		        } catch (java.net.MalformedURLException e) {
-		            XRLog.exception("bad URL given: " + uri, e);
+					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_MALFORMED_URL, uri, e);
 		        } catch (java.io.FileNotFoundException e) {
-		            XRLog.exception("item at URI " + uri + " not found");
+					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_ITEM_AT_URI_NOT_FOUND, uri, e);
 		        } catch (java.io.IOException e) {
-		            XRLog.exception("IO problem for " + uri, e);
+					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_IO_PROBLEM_FOR_URI, uri, e);
 		        }
 			}
         } catch (URISyntaxException e1) {
-        	XRLog.exception("bad URL given: " + uri, e1);
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_MALFORMED_URL, uri, e1);
 		}
 
 		return is == null ? null : new InputStreamReader(is, StandardCharsets.UTF_8);
@@ -230,7 +231,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
     	
     	if (resolved == null) {
-    		XRLog.load(Level.INFO, "URI resolver rejected loading CSS resource at (" + uri + ")");
+    		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "CSS resource", uri);
     		return null;
     	}
     	
@@ -256,7 +257,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             String resolved = _resolver.resolveURI(this._baseUri, uri);
             
             if (resolved == null) {
-        		XRLog.load(Level.INFO, "URI resolver rejected loading image resource at (" + uri + ")");
+            	XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
         		return null;
         	}
             
@@ -283,9 +284,9 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
                         
                         return ir;
                     } catch (FileNotFoundException e) {
-                        XRLog.exception("Can't read image file; image at URI '" + resolved + "' not found");
+                    	XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND, resolved);
                     } catch (IOException e) {
-                        XRLog.exception("Can't read image file; unexpected problem for URI '" + resolved + "'", e);
+						XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uri, e);
                     } finally {
                         try {
                             is.close();
@@ -312,7 +313,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
     	
     	if (resolved == null) {
-    		XRLog.load(Level.INFO, "URI resolver rejected loading XML resource at (" + uri + ")");
+    		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "XML resource", uri);
     		return null;
     	}
     	
@@ -334,7 +335,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         String resolved = _resolver.resolveURI(this._baseUri, uri);
     	
     	if (resolved == null) {
-    		XRLog.load(Level.INFO, "URI resolver rejected loading binary resource at (" + uri + ")");
+			XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "binary resource", uri);
     		return null;
     	}
     	
@@ -413,8 +414,8 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 				} else {
 					if (baseUri == null) {
 						// If user hasn't provided base URI, just reject resolving relative URIs.
-						XRLog.load(Level.WARNING, "Couldn't resolve relative URI(" + uri + ") because no base URI was provided.");
-					    return null;	
+						XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_COULD_NOT_RESOLVE_RELATIVE_URI_BECAUSE_NO_BASE_URI_WAS_PROVIDED, uri);
+					    return null;
 					} else if (baseUri.startsWith("jar")) {
 				    	// Fix for OpenHTMLtoPDF issue-#125, URI class doesn't resolve jar: scheme urls and so returns only
 				    	// the relative part on calling base.resolve(relative) so we use the URL class instead which does
@@ -429,10 +430,10 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 				    }
 				}
 			} catch (URISyntaxException e) {
-				XRLog.exception("When trying to load uri(" + uri + ") with base URI(" + baseUri + "), one or both were invalid URIs.", e);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId3Param.EXCEPTION_URI_WITH_BASE_URI_INVALID, uri, "", baseUri, e);
 				return null;
 			} catch (MalformedURLException e) {
-				XRLog.exception("When trying to load uri(" + uri + ") with base jar scheme URI(" + baseUri + "), one or both were invalid URIs.", e);
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId3Param.EXCEPTION_URI_WITH_BASE_URI_INVALID, uri, "jar scheme", baseUri, e);
 				return null;
 			}
 		}

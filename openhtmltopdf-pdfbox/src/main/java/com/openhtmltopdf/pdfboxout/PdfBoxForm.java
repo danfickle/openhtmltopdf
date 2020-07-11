@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -266,7 +267,7 @@ public class PdfBoxForm {
     private String populateOptions(Element e, List<String> labels, List<String> values, List<Integer> selectedIndices) {
         List<Element> opts = DOMUtil.getChildren(e, "option");
         if (opts == null) {
-            XRLog.general(Level.WARNING, "A <"+e.getTagName() + "> element does not have <option> children");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_PDF_A_ELEMENT_DOES_NOT_HAVE_OPTION_CHILDREN, e.getTagName());
             return "";
         }
         String selected = "";
@@ -449,7 +450,7 @@ public class PdfBoxForm {
         } else if (ctrl.box.getElement().getAttribute("type").equals("password")) {
             field.setPassword(true);
         } else if (ctrl.box.getElement().getAttribute("type").equals("file")) {
-            XRLog.general(Level.WARNING, "Acrobat Reader does not support forms with file input controls");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_ACROBAT_READER_DOES_NOT_SUPPORT_FORMS_WITH_FILE_INPUT);
             field.setFileSelect(true);
         }
         
@@ -745,7 +746,7 @@ public class PdfBoxForm {
 
             if (!element.getAttribute("method").equalsIgnoreCase("post")) {
                 // Default method is get.
-                XRLog.general(Level.WARNING, "Using GET request method for form. You probably meant to add a method=\"post\" attribute to your form");
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_USING_GET_REQUEST_FOR_FORM);
                 submit.setFlags(FLAG_USE_GET | FLAG_USE_HTML_SUBMIT);
             } else {
                 submit.setFlags(FLAG_USE_HTML_SUBMIT);
@@ -776,7 +777,7 @@ public class PdfBoxForm {
                 Node item = attributes.item(i);
                 sb.append(' ').append(item.getNodeName()).append("=\"").append(item.getNodeValue()).append('"');
             }
-            XRLog.general(Level.WARNING, "found a <" + element.getTagName() + sb.toString() +"> element without attribute name, the element will not work without this attribute");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.GENERAL_PDF_FOUND_ELEMENT_WITHOUT_ATTRIBUTE_NAME, element.getTagName(), sb.toString());
         }
     }
     

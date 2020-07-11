@@ -1,5 +1,6 @@
 package com.openhtmltopdf.swing;
 
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import java.net.URL;
@@ -14,7 +15,7 @@ public class UriResolver {
         if (uri == null) return null;
         String ret = null;
         if (_baseUri == null) {//first try to set a base URL
-            XRLog.load(Level.WARNING, "Base url is null, trying to configure one now.");
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LOAD_BASE_URL_IS_NULL_TRYING_TO_CONFIGURE_ONE);
         	try {
                 URL result = new URL(uri);
                 setBaseUri(result.toExternalForm());
@@ -22,7 +23,7 @@ public class UriResolver {
                 try {
                     setBaseUri(new File(".").toURI().toURL().toExternalForm());
                 } catch (Exception e1) {
-                    XRLog.exception("The default NaiveUserAgent doesn't know how to resolve the base URL for " + uri);
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_DEFAULT_USERAGENT_IS_NOT_ABLE_TO_RESOLVE_BASE_URL_FOR, uri);
                     return null;
                 }
             }
@@ -31,13 +32,13 @@ public class UriResolver {
         try {
             return new URL(uri).toString();
         } catch (MalformedURLException e) {
-            XRLog.load(Level.FINE, "Could not read " + uri + " as a URL; may be relative. Testing using parent URL " + _baseUri);
+            XRLog.log(Level.FINE, LogMessageId.LogMessageId2Param.LOAD_COULD_NOT_READ_URI_AT_URL_MAY_BE_RELATIVE, uri, _baseUri);
             try {
                 URL result = new URL(new URL(_baseUri), uri);
                 ret = result.toString();
-                XRLog.load(Level.FINE, "Was able to read from " + uri + " using parent URL " + _baseUri);
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId2Param.LOAD_WAS_ABLE_TO_READ_FROM_URI_USING_PARENT_URL, uri, _baseUri);
             } catch (MalformedURLException e1) {
-                XRLog.exception("The default NaiveUserAgent cannot resolve the URL " + uri + " with base URL " + _baseUri);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.EXCEPTION_DEFAULT_USERAGENT_IS_NOT_ABLE_TO_RESOLVE_URL_WITH_BASE_URL, uri, _baseUri);
             }
         }
 

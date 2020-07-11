@@ -24,12 +24,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JRadioButton;
 
+import com.openhtmltopdf.util.LogMessageId;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -114,8 +116,7 @@ public class XhtmlForm {
             field = FormFieldFactory.create(this, context, box);
     
             if (field == null) {
-                XRLog.layout("Unknown field type: " + e.getNodeName());
-
+                XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LAYOUT_UNKNOWN_FIELD_TYPE, e.getNodeName());
                 return null;
             }
             
