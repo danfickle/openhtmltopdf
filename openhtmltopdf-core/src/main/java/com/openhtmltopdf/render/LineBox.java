@@ -186,15 +186,22 @@ public class LineBox extends Box implements InlinePaintable {
     
     public void align(boolean dynamic, CssContext c) {
         IdentValue align = getParent().getStyle().getIdent(CSSName.TEXT_ALIGN);
-        
+
         int calcX = 0;
         byte dir = -1;
-        
+
         if (align == IdentValue.START) {
-        	dir = direction == BidiSplitter.RTL ? BidiSplitter.RTL : BidiSplitter.LTR; 
+            dir = direction == BidiSplitter.RTL ? BidiSplitter.RTL : BidiSplitter.LTR; 
         }
-        
-        if (align == IdentValue.LEFT || align == IdentValue.JUSTIFY || dir == BidiSplitter.LTR) {
+
+        if (align == IdentValue.JUSTIFY && direction == BidiSplitter.RTL) {
+            int floatDistance = getFloatDistances().getRightFloatDistance();
+            calcX = getParent().getContentWidth() - floatDistance - getContentWidth();
+
+            if (align == IdentValue.JUSTIFY && dynamic) {
+                justify(c);
+            }
+        } else if (align == IdentValue.LEFT || align == IdentValue.JUSTIFY || dir == BidiSplitter.LTR) {
             int floatDistance = getFloatDistances().getLeftFloatDistance();
             calcX = getContentStart() + floatDistance;
             if (align == IdentValue.JUSTIFY && dynamic) {
@@ -235,7 +242,7 @@ public class LineBox extends Box implements InlinePaintable {
                 float maxInterWord = getParent().getStyle().getFloatPropertyProportionalWidth(CSSName.FS_MAX_JUSTIFICATION_INTER_WORD, getParent().getWidth(), c);
                 
                 int toAdd = available - getContentWidth();
-                
+
                 CharCounts counts = countJustifiableChars();
                 
                 JustificationInfo info = new JustificationInfo();
@@ -259,27 +266,45 @@ public class LineBox extends Box implements InlinePaintable {
                     info.setSpaceAdjust(0f);
                     info.setNonSpaceAdjust(0f);
                 }
-                
+
                 adjustChildren(info);
-                
                 setJustificationInfo(info);
             }
         }
     }
-    
+
     private void adjustChildren(JustificationInfo info) {
+        if (isLayedOutRTL()) {
+            adjustChildrenRTL(info);
+            return;
+        }
+
         float adjust = 0.0f;
         for (Box b : getChildren()) {
             b.setX(b.getX() + Math.round(adjust));
-            
+
             if (b instanceof InlineLayoutBox) {
                 adjust += ((InlineLayoutBox)b).adjustHorizontalPosition(info, adjust);
             }
         }
-        
+
         calcChildLocations();
     }
-    
+
+    private void adjustChildrenRTL(JustificationInfo info) {
+        float adjust = 0.0f;
+        for (Box b : getChildren()) {
+            b.setX(b.getX() - Math.round(adjust));
+
+            if (b instanceof InlineLayoutBox) {
+                adjust += ((InlineLayoutBox)b).adjustHorizontalPositionRTL(info, adjust);
+            }
+        }
+
+        setContentWidth(getContentWidth() + Math.round(adjust));
+        calcChildLocations();
+    }
+
     private boolean isLastLineWithContent() {
         LineBox current = (LineBox)getNextSibling();
         while (current != null) {
@@ -393,9 +418,8 @@ public class LineBox extends Box implements InlinePaintable {
     public void setPaintingTop(int paintingTop) {
         _paintingTop = paintingTop;
     }
-    
-    // NOTE: Will be List of DisplayListItem when we delete the old renderer.
-    public void addAllChildren(List list, Layer layer) {
+
+    public void addAllChildren(List<? super Box> list, Layer layer) {
         for (int i = 0; i < getChildCount(); i++) {
             Box child = getChild(i);
             if (getContainingLayer() == layer) {
@@ -430,17 +454,18 @@ public class LineBox extends Box implements InlinePaintable {
         }
         super.reset(c);
     }
-    
+
     @Override
     public void calcCanvasLocation() {
         Box parent = getParent();
         if (parent == null) {
             throw new XRRuntimeException("calcCanvasLocation() called with no parent");
         }
+
         setAbsX(parent.getAbsX() + parent.getTx() + getX());
         setAbsY(parent.getAbsY() + parent.getTy() + getY());        
     }
-    
+
     @Override
     public void calcChildLocations() {
         super.calcChildLocations();
