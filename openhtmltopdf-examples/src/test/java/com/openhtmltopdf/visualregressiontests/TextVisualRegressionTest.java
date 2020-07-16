@@ -494,7 +494,16 @@ public class TextVisualRegressionTest {
     public void testArabicBiDi() throws IOException {
         assertTrue(vtester.runTest("arabic-bidi", TestSupport.WITH_ARABIC));
     }
-    
+
+    /**
+     * Tests that rtl and bidi with text-align: justify works correctly.
+     */
+    @Test
+    @Ignore // RTL/LTR text runs together and the last line is incorrectly left justified.
+    public void testIssue514JustifyRtl() throws IOException {
+        assertTrue(vtester.runTest("rtl-justify", TestSupport.WITH_ARABIC));
+    }
+
     /**
      * Tests that letter-spacing property works correctly with bi-directional text.
      * Semi-related to issue 342.
