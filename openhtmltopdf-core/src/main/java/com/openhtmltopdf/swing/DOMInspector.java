@@ -297,7 +297,7 @@ class ElementPropertiesPanel extends JPanel {
             Toolkit.getDefaultToolkit().beep();
             return _defaultTableModel;
         }
-        Map props = _sr.getCascadedPropertiesMap((Element) node);
+        Map<String, CSSPrimitiveValue> props = _sr.getCascadedPropertiesMap((Element) node);
         return new PropertiesTableModel(props);
     }
 
@@ -367,19 +367,19 @@ class ElementPropertiesPanel extends JPanel {
          * Description of the Field
          */
         //String _colNames[] = {"Property Name", "Text", "Value", "Important-Inherit"};
-        String _colNames[] = {"Property Name", "Text", "Value"};
+        String[] _colNames = {"Property Name", "Text", "Value"};
 
         /**
          * Description of the Field
          */
-        Map _properties;
+        Map<String, CSSPrimitiveValue> _properties;
 
         /**
          * Constructor for the PropertiesTableModel object
          *
          * @param cssProperties PARAM
          */
-        PropertiesTableModel(Map cssProperties) {
+        PropertiesTableModel(Map<String, CSSPrimitiveValue> cssProperties) {
             _properties = cssProperties;
         }
 
@@ -433,7 +433,7 @@ class ElementPropertiesPanel extends JPanel {
                     break;
                 case 2:
                     if (ValueConstants.isNumber(cpv.getPrimitiveType())) {
-                        val = new Float(cpv.getFloatValue(cpv.getPrimitiveType()));
+                        val = Float.valueOf(cpv.getFloatValue(cpv.getPrimitiveType()));
                     } else {
                         val = "";//actual.cssValue().getCssText();
                     }
@@ -537,7 +537,7 @@ class DOMTreeModel implements TreeModel {
     /**
      * Description of the Field
      */
-    List listeners = new ArrayList();
+    List<TreeModelListener> listeners = new ArrayList<>();
 
     /**
      * Constructor for the DOMTreeModel object

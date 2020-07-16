@@ -527,7 +527,7 @@ abstract class Condition {
         if (s.indexOf(ch) == -1) {
             return new String[] { s };
         } else {
-            List<String> result = new ArrayList<String>();
+            List<String> result = new ArrayList<>();
             
             int last = 0;
             int next = 0;

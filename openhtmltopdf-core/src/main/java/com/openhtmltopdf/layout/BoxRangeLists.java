@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BoxRangeLists {
-    private final List<BoxRangeData> _block = new ArrayList<BoxRangeData>();
-    private final List<BoxRangeData> _inline = new ArrayList<BoxRangeData>();
+    private final List<BoxRangeData> _block = new ArrayList<>();
+    private final List<BoxRangeData> _inline = new ArrayList<>();
     
     public List<BoxRangeData> getBlock() {
         return _block;

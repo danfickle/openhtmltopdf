@@ -531,20 +531,11 @@ public class PdfBoxForm {
     public static PDAppearanceStream createCheckboxAppearance(String appear, PDDocument doc, PDResources resources) {
         PDAppearanceStream s = new PDAppearanceStream(doc);
         s.setBBox(new PDRectangle(100f, 100f));
-        OutputStream os = null;
-        try {
-            os = s.getContentStream().createOutputStream();
+        try (OutputStream os = s.getContentStream().createOutputStream()){
             os.write(appear.getBytes(StandardCharsets.US_ASCII));
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("createCheckboxAppearance", e);
-        } finally {
-            try {
-                if (os != null)
-                    os.close();
-            } catch (IOException e) {
-            }
         }
-        
         s.setResources(resources);
         return s;
     }

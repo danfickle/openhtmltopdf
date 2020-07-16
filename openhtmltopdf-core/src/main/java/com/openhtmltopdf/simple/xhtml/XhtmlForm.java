@@ -125,8 +125,8 @@ public class XhtmlForm {
     public void submit() {
         // TODO other encodings than urlencode?
         StringBuilder data = new StringBuilder();
-        for (Iterator iter = getControls(); iter.hasNext();) {
-            FormControl control = (FormControl) iter.next();
+        for (Iterator<FormControl> iter = getControls(); iter.hasNext();) {
+            FormControl control = iter.next();
             if (control.isSuccessful()) {
                 if (control.isMultiple()) {
                     String[] values = control.getMultipleValues();

@@ -35,41 +35,25 @@ public class LoggerUtil {
      * @param cls  PARAM
      * @return     The debugLogger value
      */
-    public static Logger getDebugLogger( Class cls ) {
+    public static Logger getDebugLogger( Class<?> cls ) {
         Logger l = Logger.getLogger( cls.getName() );
         l.setLevel( Level.ALL );
         return l;
     }
 
     public static Level parseLogLevel(String val, Level defaultLogLevel) {
-        if ("ALL".equals(val)) {
-            return Level.ALL;
+        switch (val) {
+            case "ALL": return Level.ALL;
+            case "CONFIG": return Level.CONFIG;
+            case "FINE": return Level.FINE;
+            case "FINER": return Level.FINER;
+            case "FINEST": return Level.FINEST;
+            case "INFO": return Level.INFO;
+            case "OFF": return Level.OFF;
+            case "SEVERE": return Level.SEVERE;
+            case "WARNING": return Level.WARNING;
+            default: return defaultLogLevel;
         }
-        if ("CONFIG".equals(val)) {
-            return Level.CONFIG;
-        }
-        if ("FINE".equals(val)) {
-            return Level.FINE;
-        }
-        if ("FINER".equals(val)) {
-            return Level.FINER;
-        }
-        if ("FINEST".equals(val)) {
-            return Level.FINEST;
-        }
-        if ("INFO".equals(val)) {
-            return Level.INFO;
-        }
-        if ("OFF".equals(val)) {
-            return Level.OFF;
-        }
-        if ("SEVERE".equals(val)) {
-            return Level.SEVERE;
-        }
-        if ("WARNING".equals(val)) {
-            return Level.WARNING;
-        }
-        return defaultLogLevel;
     }
 }
 

@@ -30,6 +30,7 @@ import java.awt.GraphicsEnvironment;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -42,13 +43,13 @@ public class AWTFontResolver implements FontResolver {
 	/**
      * Map of concrete instances of fonts including size, weight, etc.
      */
-    private final HashMap<String, Font> instanceHash = new HashMap<String, Font>();
+    private final Map<String, Font> instanceHash = new HashMap<>();
 
     /**
      * Map of base fonts, from which we can derive a concrete instance at the correct size, weight, etc.
      * Note: The value is initially null until we need the given base font.
      */
-    private final HashMap<String, Font> availableFontsHash = new HashMap<String, Font>();
+    private final Map<String, Font> availableFontsHash = new HashMap<>();
 
     /**
      * Constructor
@@ -85,7 +86,7 @@ public class AWTFontResolver implements FontResolver {
      * Resolves a list of font families.
      */
     public FSFont resolveFont(SharedContext ctx, String[] families, float size, IdentValue weight, IdentValue style, IdentValue variant) {
-    	List<Font> fonts = new ArrayList<Font>(3);
+    	List<Font> fonts = new ArrayList<>(3);
     	
         // for each font family
         if (families != null) {

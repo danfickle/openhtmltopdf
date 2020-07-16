@@ -33,22 +33,11 @@ public class MakeTokens {
     
     public static final void main(String[] args) throws IOException {
         List<String> tokens = new ArrayList<>();
-        
-        BufferedReader reader = null; 
-        try {
-            reader = new BufferedReader(new InputStreamReader(
-                        new FileInputStream(INPUT)));
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(INPUT)))){
             String s;
             while ( (s = reader.readLine()) != null) {
                 tokens.add(s);
-            }
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    // ignore
-                }
             }
         }
 

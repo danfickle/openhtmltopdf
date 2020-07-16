@@ -32,7 +32,7 @@ import java.util.HashMap;
 // made a separate class only to reduce size of ImageUtil
 public class DownscaleQuality {
 	/** Internal map string type to DQ instance */
-	private static Map constList;
+	private static Map<String, DownscaleQuality> constList;
 
 	/**
 	 * Highest-quality downscaling; probably slowest as well.
@@ -67,7 +67,7 @@ public class DownscaleQuality {
 	}
 
 	private static void init() {
-		if ( constList == null ) constList = new HashMap();
+		if ( constList == null ) constList = new HashMap<>();
 	}
 
 	private DownscaleQuality(String type) {
@@ -86,7 +86,7 @@ public class DownscaleQuality {
 	 * @return The constant quality instance for the type, or the default if not found.
 	 */
 	public static DownscaleQuality forString(String type, DownscaleQuality dflt) {
-		DownscaleQuality q = (DownscaleQuality) constList.get(type);
+		DownscaleQuality q = constList.get(type);
 
 		return q == null ? dflt : q;
 	}

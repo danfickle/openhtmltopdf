@@ -29,7 +29,6 @@ import java.util.logging.Level;
 
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.resource.ImageResource;
-import com.openhtmltopdf.swing.FSCacheKey;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 import com.openhtmltopdf.util.ImageUtil;
 import com.openhtmltopdf.util.LogMessageId;

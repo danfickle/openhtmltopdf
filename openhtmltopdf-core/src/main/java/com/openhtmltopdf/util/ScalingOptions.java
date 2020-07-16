@@ -109,8 +109,8 @@ public class ScalingOptions {
 	 *
 	 * @return Map of rendering hints.
 	 */
-	protected Map getRenderingHints() {
-		HashMap map = new HashMap();
+	protected Map<RenderingHints.Key, Object> getRenderingHints() {
+		HashMap<RenderingHints.Key, Object> map = new HashMap<>();
 		map.put(RenderingHints.KEY_INTERPOLATION, getRenderingHint());
 		return map;
 	}

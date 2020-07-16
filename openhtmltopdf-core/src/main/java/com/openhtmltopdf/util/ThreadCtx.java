@@ -4,7 +4,6 @@ import com.openhtmltopdf.layout.SharedContext;
 
 import java.io.Closeable;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 
 /**
  * Because OpenHTMLtoPDF is designed to run in a single thread at all times for one invocation,
@@ -13,8 +12,8 @@ import java.util.logging.Level;
  */
 public class ThreadCtx {
 
-	private static final ThreadLocal<ThreadData> data = ThreadLocal.withInitial(() -> new ThreadData());
-	private static final ThreadLocal<Consumer<Diagnostic>> diagnosticConsumer = new ThreadLocal();
+	private static final ThreadLocal<ThreadData> data = ThreadLocal.withInitial(ThreadData::new);
+	private static final ThreadLocal<Consumer<Diagnostic>> diagnosticConsumer = new ThreadLocal<>();
 
 
 
@@ -35,7 +34,7 @@ public class ThreadCtx {
 
 	public static Closeable applyDiagnosticConsumer(Consumer<Diagnostic> consumer) {
 		diagnosticConsumer.set(consumer);
-		return () -> diagnosticConsumer.remove();
+		return diagnosticConsumer::remove;
 	}
 
 	public static class ThreadData {

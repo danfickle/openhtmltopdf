@@ -30,12 +30,9 @@ public class PdfBoxImage implements FSImage {
         _bytes = image;
         _uri = uri;
 
-        ImageInputStream in = null;
         ImageReader reader = null;
         
-        try {
-            in = ImageIO
-                    .createImageInputStream(new ByteArrayInputStream(_bytes));
+        try (ImageInputStream in = ImageIO.createImageInputStream(new ByteArrayInputStream(_bytes))){
             Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
 
             if (readers.hasNext()) {
@@ -55,8 +52,6 @@ public class PdfBoxImage implements FSImage {
                 throw new IOException("Unrecognized Image format");
             }
         } finally {
-            if (in != null)
-                in.close();
             if (reader != null)
                 reader.dispose();
         }

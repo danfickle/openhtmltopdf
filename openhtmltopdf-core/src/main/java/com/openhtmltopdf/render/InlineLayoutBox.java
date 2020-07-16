@@ -609,7 +609,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     }
     
     // NOTE: Will be List of DisplayListItem when we delete the old renderer.
-    public void addAllChildren(List list, Layer layer) {
+    public void addAllChildren(List<? super Box> list, Layer layer) {
         for (int i = 0; i < getInlineChildCount(); i++) {
             Object child = getInlineChild(i);
             if (child instanceof Box) {

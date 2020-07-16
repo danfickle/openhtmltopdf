@@ -68,7 +68,7 @@ public class XRSimpleLogFormatter extends Formatter {
             thName = th.getClass().getName();
             thMessage = th.getMessage();
         }
-        String args[] = {
+        String[] args = {
                 String.valueOf( record.getMillis() ),
                 record.getLoggerName(),
                 record.getLevel().toString(),

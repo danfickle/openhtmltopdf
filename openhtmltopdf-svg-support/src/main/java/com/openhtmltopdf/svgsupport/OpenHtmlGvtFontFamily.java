@@ -2,10 +2,6 @@ package com.openhtmltopdf.svgsupport;
 
 import java.awt.FontFormatException;
 import java.awt.font.TextAttribute;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.AttributedCharacterIterator;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,8 +9,6 @@ import java.util.Map;
 import org.apache.batik.gvt.font.GVTFont;
 import org.apache.batik.gvt.font.GVTFontFace;
 import org.apache.batik.gvt.font.GVTFontFamily;
-
-import com.openhtmltopdf.util.XRLog;
 
 public class OpenHtmlGvtFontFamily implements GVTFontFamily {
 

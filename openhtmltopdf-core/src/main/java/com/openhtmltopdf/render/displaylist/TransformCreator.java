@@ -21,7 +21,7 @@ import com.openhtmltopdf.render.RenderingContext;
  */
 public class TransformCreator {
 	
-	private static enum TransformYOrigin {
+	private enum TransformYOrigin {
 		DOCUMENT_TOP,
 		PAGE_TOP,
 		PAGE_BOTTOM;

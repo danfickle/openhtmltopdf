@@ -22,15 +22,12 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
-import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
 
 import com.openhtmltopdf.util.ImageUtil;
 import org.w3c.dom.Element;
 
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.StringReader;
 
 public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
     private final SVGDrawer _svgImpl;

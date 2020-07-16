@@ -22,7 +22,6 @@ public class OpenHtmlGvtFont implements GVTFont {
 
 	private final Font baseFont;
 	private final GVTFontFamily fontFamily;
-	private final float size;
 	
     private static int toFontWeight(Float weight) {
         if (weight == null) {
@@ -56,13 +55,11 @@ public class OpenHtmlGvtFont implements GVTFont {
 
 		this.baseFont = font;
 		this.fontFamily = family;
-		this.size = size;
 	}
 	
 	private OpenHtmlGvtFont(Font font, GVTFontFamily family, float size) {
 		this.baseFont = font;
 		this.fontFamily = family;
-		this.size = size;
 	}
 	
 	@Override

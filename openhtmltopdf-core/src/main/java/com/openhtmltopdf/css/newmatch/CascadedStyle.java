@@ -123,7 +123,7 @@ public class CascadedStyle {
     }
 
     private CascadedStyle(CascadedStyle startingPoint, Iterator<PropertyDeclaration> props) {
-        cascadedProperties = new TreeMap<CSSName, PropertyDeclaration>(startingPoint.cascadedProperties);
+        cascadedProperties = new TreeMap<>(startingPoint.cascadedProperties);
 
         addProperties(props);
     }
@@ -134,7 +134,7 @@ public class CascadedStyle {
      * properties.
      */
     private CascadedStyle() {
-        cascadedProperties = new TreeMap<CSSName, PropertyDeclaration>();
+        cascadedProperties = new TreeMap<>();
     }
     /**
      * Creates a <code>CascadedStyle</code>, setting the display property to
@@ -162,7 +162,7 @@ public class CascadedStyle {
             PropertyDeclaration prop = iter.next();
             List<PropertyDeclaration> bucket = buckets[prop.getImportanceAndOrigin()];
 			if (bucket == null) {
-				bucket = new ArrayList<PropertyDeclaration>();
+				bucket = new ArrayList<>();
 				buckets[prop.getImportanceAndOrigin()]  = bucket;
 			}
             bucket.add(prop);

@@ -47,9 +47,9 @@ public class CheckControl extends AbstractControl {
             if (form == null) {
                 return;
             }
-            for (Iterator iter = form.getAllControls(getName()).iterator(); iter
+            for (Iterator<FormControl> iter = form.getAllControls(getName()).iterator(); iter
                 .hasNext();) {
-                FormControl control = (FormControl) iter.next();
+                FormControl control = iter.next();
                 if (control instanceof CheckControl) {
                     CheckControl check = (CheckControl) control;
                     if (check.isRadio() && check != this) {

@@ -31,10 +31,7 @@ public class ListFontFamilyNames {
             Font awtf = null;
             try {
                 awtf = Font.createFont(Font.TRUETYPE_FONT, f);
-            } catch (FontFormatException e) {
-                System.err.println("Trying to load font via AWT: " + e.getMessage());
-                System.exit(1);
-            } catch (IOException e) {
+            } catch (FontFormatException | IOException e) {
                 System.err.println("Trying to load font via AWT: " + e.getMessage());
                 System.exit(1);
             }

@@ -21,7 +21,6 @@
 package com.openhtmltopdf.css.constants;
 
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
-import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.util.GeneralUtil;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
@@ -163,7 +162,7 @@ public final class ValueConstants {
         SortedMap<Short, String> map = new TreeMap<>();
         TYPE_DESCRIPTIONS = new ArrayList<>();
         try {
-            Field fields[] = CSSPrimitiveValue.class.getFields();
+            Field[] fields = CSSPrimitiveValue.class.getFields();
             for (int i = 0; i < fields.length; i++) {
                 Field f = fields[i];
                 int mod = f.getModifiers();

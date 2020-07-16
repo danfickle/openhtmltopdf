@@ -233,7 +233,7 @@ public abstract class Box implements Styleable, DisplayListItem {
 
     public void addChild(Box child) {
         if (_boxes == null) {
-            _boxes = new ArrayList<Box>();
+            _boxes = new ArrayList<>();
         }
         if (child == null) {
             throw new NullPointerException("trying to add null child");
@@ -682,7 +682,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public List<Box> getElementBoxes(Element elem) {
-        List<Box> result = new ArrayList<Box>();
+        List<Box> result = new ArrayList<>();
         for (int i = 0; i < getChildCount(); i++) {
             Box child = getChild(i);
             if (child.getElement() == elem) {

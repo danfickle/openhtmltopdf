@@ -109,9 +109,9 @@ public abstract class FormField {
         
         if (_component != null) {
             if (intrinsicWidth == null)
-                intrinsicWidth = new Integer(_component.getPreferredSize().width);
+                intrinsicWidth = Integer.valueOf(_component.getPreferredSize().width);
             if (intrinsicHeight == null)
-                intrinsicHeight = new Integer(_component.getPreferredSize().height);
+                intrinsicHeight = Integer.valueOf(_component.getPreferredSize().height);
 
             _component.setSize(getIntrinsicSize());
 
@@ -220,7 +220,7 @@ public abstract class FormField {
     protected static Integer getLengthValue(CalculatedStyle style, CSSName cssName) {
         FSDerivedValue widthValue = style.valueByName(cssName);
         if (widthValue instanceof LengthValue) {
-            return new Integer((int)widthValue.asFloat());
+            return Integer.valueOf((int)widthValue.asFloat());
         }
 
         return null;

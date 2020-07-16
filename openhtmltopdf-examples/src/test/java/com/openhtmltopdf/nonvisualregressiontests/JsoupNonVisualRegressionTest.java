@@ -7,7 +7,6 @@ import java.io.InputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
 import org.junit.Ignore;
@@ -49,7 +48,7 @@ public class JsoupNonVisualRegressionTest {
         }
     }
 
-    private static PDDocument load(String filename) throws InvalidPasswordException, IOException {
+    private static PDDocument load(String filename) throws IOException {
         return PDDocument.load(new File(OUT_PATH, filename + ".pdf"));
     }
     

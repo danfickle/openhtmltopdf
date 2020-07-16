@@ -24,7 +24,7 @@ import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageInfo;
 import com.openhtmltopdf.render.displaylist.PagedBoxCollector.PageResult;
 
 public class DisplayListCollector {
-    protected static enum CollectFlags {
+    protected enum CollectFlags {
     }
     
  	private final List<PageBox> _pages;
