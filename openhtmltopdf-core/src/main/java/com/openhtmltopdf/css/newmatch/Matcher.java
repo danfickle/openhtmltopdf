@@ -21,6 +21,7 @@
 package com.openhtmltopdf.css.newmatch;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -260,16 +261,25 @@ public class Matcher {
      * @author Torbjoern Gannholm
      */
     class Mapper {
-        java.util.List<Selector> axes;
-        private HashMap<String,List<Selector>> pseudoSelectors;
-        private List<Selector> mappedSelectors;
-        private Map<String,Mapper> children;
+        private final List<Selector> axes;
+        private final Map<String, List<Selector>> pseudoSelectors;
+        private final List<Selector> mappedSelectors;
 
-        Mapper(java.util.Collection<Selector> selectors) {
-            axes = new java.util.ArrayList<Selector>(selectors);
+        private Map<String, Mapper> children;
+
+        Mapper(Collection<Selector> selectors) {
+            this.axes = new ArrayList<>(selectors);
+            this.pseudoSelectors = Collections.emptyMap();
+            this.mappedSelectors = Collections.emptyList();
         }
 
-        private Mapper() {
+        private Mapper(
+                List<Selector> axes, 
+                List<Selector> mappedSelectors,
+                Map<String,List<Selector>> pseudoSelectors) {
+            this.axes = axes;
+            this.mappedSelectors = mappedSelectors;
+            this.pseudoSelectors = pseudoSelectors;
         }
 
         /**
@@ -280,33 +290,44 @@ public class Matcher {
          *         (more correct: preserves the sort order from Matcher creation)
          */
         Mapper mapChild(Object e) {
-            //Mapper childMapper = new Mapper();
-            java.util.List<Selector> childAxes = new ArrayList<Selector>(axes.size() + 10);
-            java.util.HashMap<String,List<Selector>> pseudoSelectors = new java.util.HashMap<String,List<Selector>>();
-            java.util.List<Selector> mappedSelectors = new java.util.ArrayList<Selector>();
+            List<Selector> childAxes = null;
+            List<Selector> mappedSelectors = null;
+            Map<String, List<Selector>> pseudoSelectors = null;
+
             StringBuilder key = new StringBuilder();
+
             for (Selector sel : axes) {
                 if (sel.getAxis() == Selector.DESCENDANT_AXIS) {
-                    //carry it forward to other descendants
+                    if (childAxes == null) {
+                        childAxes = new ArrayList<>();
+                    }
+
+                    // Carry it forward to other descendants
                     childAxes.add(sel);
                 } else if (sel.getAxis() == Selector.IMMEDIATE_SIBLING_AXIS) {
                     throw new RuntimeException();
                 }
+
                 if (!sel.matches(e, _attRes, _treeRes)) {
                     continue;
                 }
-                //Assumption: if it is a pseudo-element, it does not also have dynamic pseudo-class
+
+                // Assumption: if it is a pseudo-element, it does not also have dynamic pseudo-class
                 String pseudoElement = sel.getPseudoElement();
+
                 if (pseudoElement != null) {
-                    List<Selector> l = pseudoSelectors.get(pseudoElement);
-                    if (l == null) {
-                        l = new ArrayList<Selector>();
-                        pseudoSelectors.put(pseudoElement, l);
+                    if (pseudoSelectors == null) {
+                        pseudoSelectors = new HashMap<>();
                     }
+
+                    List<Selector> l = pseudoSelectors.computeIfAbsent(pseudoElement, kee -> new ArrayList<>());
                     l.add(sel);
+
                     key.append(sel.getSelectorID()).append(":");
+
                     continue;
                 }
+
                 if (sel.isPseudoClass(Selector.VISITED_PSEUDOCLASS)) {
                     _visitElements.add(e);
                 }
@@ -319,60 +340,78 @@ public class Matcher {
                 if (sel.isPseudoClass(Selector.FOCUS_PSEUDOCLASS)) {
                     _focusElements.add(e);
                 }
+
                 if (!sel.matchesDynamic(e, _attRes, _treeRes)) {
                     continue;
                 }
+
                 key.append(sel.getSelectorID()).append(":");
+
                 Selector chain = sel.getChainedSelector();
+
                 if (chain == null) {
+                    if (mappedSelectors == null) {
+                        mappedSelectors = new ArrayList<>();
+                    }
+
                     mappedSelectors.add(sel);
                 } else if (chain.getAxis() == Selector.IMMEDIATE_SIBLING_AXIS) {
                     throw new RuntimeException();
                 } else {
+                    if (childAxes == null) {
+                        childAxes = new ArrayList<>();
+                    }
+
                     childAxes.add(chain);
                 }
             }
-            if (children == null) children = new HashMap<String,Mapper>();
-            Mapper childMapper = children.get(key.toString());
-            if (childMapper == null) {
-                childMapper = new Mapper();
-                childMapper.axes = childAxes;
-                childMapper.pseudoSelectors = pseudoSelectors;
-                childMapper.mappedSelectors = mappedSelectors;
-                children.put(key.toString(), childMapper);
+
+            if (children == null) {
+                children = new HashMap<>();
             }
+
+            List<Selector> normalisedChildAxes = childAxes == null ? Collections.emptyList() : childAxes;
+            List<Selector> normalisedMappedSelectors = mappedSelectors == null ? Collections.emptyList() : mappedSelectors;
+            Map<String, List<Selector>> normalisedPseudoSelectors = pseudoSelectors == null ? Collections.emptyMap() : pseudoSelectors;
+
+            Mapper childMapper = children.computeIfAbsent(
+                    key.toString(),
+                    kee -> new Mapper(
+                        normalisedChildAxes,
+                        normalisedMappedSelectors,
+                        normalisedPseudoSelectors));
+
             link(e, childMapper);
+
             return childMapper;
         }
 
         CascadedStyle getCascadedStyle(Object e) {
-            CascadedStyle result;
+            Ruleset elementStyling = getElementStyle(e);
+            Ruleset nonCssStyling = getNonCssStyle(e);
 
-                CascadedStyle cs = null;
-                com.openhtmltopdf.css.sheet.Ruleset elementStyling = getElementStyle(e);
-                com.openhtmltopdf.css.sheet.Ruleset nonCssStyling = getNonCssStyle(e);
-                List<PropertyDeclaration> propList = new ArrayList<PropertyDeclaration>();
-                //specificity 0,0,0,0
-                if (nonCssStyling != null) {
-                    propList.addAll(nonCssStyling.getPropertyDeclarations());
-                }
-                //these should have been returned in order of specificity
-                for (Selector sel : mappedSelectors) {
-                    propList.addAll(sel.getRuleset().getPropertyDeclarations());
-                }
-                //specificity 1,0,0,0
-                if (elementStyling != null) {
-                    propList.addAll(elementStyling.getPropertyDeclarations());
-                }
-                if (propList.size() == 0)
-                    cs = CascadedStyle.emptyCascadedStyle;
-                else {
-                    cs = new CascadedStyle(propList.iterator());
-                }
+            List<PropertyDeclaration> propList = new ArrayList<PropertyDeclaration>();
 
-                result = cs;
+            // Specificity 0,0,0,0
+            if (nonCssStyling != null) {
+                propList.addAll(nonCssStyling.getPropertyDeclarations());
+            }
 
-            return result;
+            // These should have been returned in order of specificity
+            for (Selector sel : mappedSelectors) {
+                propList.addAll(sel.getRuleset().getPropertyDeclarations());
+            }
+
+            // Specificity 1,0,0,0
+            if (elementStyling != null) {
+                propList.addAll(elementStyling.getPropertyDeclarations());
+            }
+
+            if (propList.isEmpty()) {
+                return CascadedStyle.emptyCascadedStyle;
+            } else {
+                return new CascadedStyle(propList.iterator());
+            }
         }
 
         /**
@@ -380,24 +419,27 @@ public class Matcher {
          * We assume that restyle has already been done by a getCascadedStyle if necessary.
          */
         public CascadedStyle getPECascadedStyle(Object e, String pseudoElement) {
-            java.util.Iterator<Map.Entry<String,List<Selector>>> si = pseudoSelectors.entrySet().iterator();
-            if (!si.hasNext()) {
+            if (pseudoSelectors.isEmpty()) {
                 return null;
             }
-            CascadedStyle cs = null;
-            java.util.List<Selector> pe = pseudoSelectors.get(pseudoElement);
-            if (pe == null) return null;
 
-            java.util.List<PropertyDeclaration> propList = new java.util.ArrayList<PropertyDeclaration>();
+            List<Selector> pe = pseudoSelectors.get(pseudoElement);
+
+            if (pe == null) {
+                return null;
+            }
+
+            List<PropertyDeclaration> propList = new ArrayList<>();
+
             for (Selector sel : pe) {
                 propList.addAll(sel.getRuleset().getPropertyDeclarations());
             }
-            if (propList.size() == 0)
-                cs = CascadedStyle.emptyCascadedStyle;//already internalized
-            else {
-                cs = new CascadedStyle(propList.iterator());
+
+            if (propList.isEmpty()) {
+                return CascadedStyle.emptyCascadedStyle;
+            } else {
+                return new CascadedStyle(propList.iterator());
             }
-            return cs;
         }
     }
 }
