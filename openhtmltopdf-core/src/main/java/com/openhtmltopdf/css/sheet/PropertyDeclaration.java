@@ -231,6 +231,19 @@ public class PropertyDeclaration {
     public int getOrigin() {
         return origin;
     }
+
+    public void toCSS(StringBuilder sb) {
+        sb.append(getPropertyName());
+        sb.append(':');
+        sb.append(' ');
+        sb.append(getValue().toString());
+
+        if (isImportant()) {
+            sb.append(" !important;");
+        } else {
+            sb.append(';');
+        }
+    }
 }// end class
 
 /*

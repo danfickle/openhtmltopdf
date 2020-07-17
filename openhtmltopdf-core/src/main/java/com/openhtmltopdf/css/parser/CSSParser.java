@@ -854,6 +854,7 @@ public class CSSParser {
                     result = first;
                 }
                 first.setChainedSelector(second);
+                second.setAncestorSelector(first);
             } else {
                 second.setSiblingSelector(first);
                 if (result == null || result == first) {

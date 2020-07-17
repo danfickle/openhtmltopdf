@@ -36,6 +36,7 @@ import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.lib.DOMTreeResolver;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
 import com.openhtmltopdf.css.newmatch.PageInfo;
+import com.openhtmltopdf.css.newmatch.Selector;
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.Stylesheet;
@@ -196,7 +197,16 @@ public class StyleReference {
         if (e == null) return CascadedStyle.emptyCascadedStyle;
         return _matcher.getCascadedStyle(e, restyle);
     }
-    
+
+    /**
+     * Given an element, returns all selectors and their rulesets
+     * for its descendants. Useful for getting the styles that should be
+     * applied to SVG, etc.
+     */
+    public String getCSSForAllDescendants(Element e) {
+        return _matcher.getCSSForAllDescendants(e);
+    }
+
     public PageInfo getPageStyle(String pageName, String pseudoPage) {
         return _matcher.getPageCascadedStyle(pageName, pseudoPage);
     }
@@ -268,14 +278,7 @@ public class StyleReference {
 
         return infos;
     }
-    
-    @Deprecated
-    public void removeStyle(Element e) {
-        if (_matcher != null) {
-            _matcher.removeStyle(e);
-        }
-    }
-    
+
     public List<FontFaceRule> getFontFaceRules() {
         return _matcher.getFontFaceRules();
     }

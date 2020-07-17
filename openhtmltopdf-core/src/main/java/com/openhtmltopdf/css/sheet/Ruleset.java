@@ -71,6 +71,17 @@ public class Ruleset {
         return _origin;
     }
 
+    public void toCSS(StringBuilder sb) {
+        sb.append('{');
+        sb.append('\n');
+        for (PropertyDeclaration decl : _props) {
+            decl.toCSS(sb);
+            sb.append('\n');
+        }
+        sb.append('}');
+        sb.append('\n');
+    }
+
 }// end class
 
 /*

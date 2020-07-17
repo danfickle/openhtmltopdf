@@ -1,6 +1,7 @@
 package com.openhtmltopdf.svgsupport;
 
 import java.awt.Point;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -14,7 +15,10 @@ import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
+import com.openhtmltopdf.css.newmatch.Selector;
+import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
 import com.openhtmltopdf.render.Box;
@@ -166,11 +170,21 @@ public class BatikSVGImage implements SVGImage {
         pdfTranscoder.setRenderingParameters(outputDevice, ctx, x, y,
                 fontResolver, userAgentCallback);
 
+
+        String styles = ctx.getCss().getCSSForAllDescendants(svgElement);
+
         try {
             DOMImplementation impl = SVGDOMImplementation
                     .getDOMImplementation();
             Document newDocument = impl.createDocument(
                     SVGDOMImplementation.SVG_NAMESPACE_URI, "svg", null);
+
+            if (styles != null) {
+                Element styleElem = newDocument.createElementNS(SVGDOMImplementation.SVG_NAMESPACE_URI, "style");
+                Text styleText = newDocument.createTextNode(styles);
+                styleElem.appendChild(styleText);
+                newDocument.getDocumentElement().appendChild(styleElem);
+            }
 
             for (int i = 0; i < svgElement.getChildNodes().getLength(); i++) {
                 Node importedNode = newDocument

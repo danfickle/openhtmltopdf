@@ -25,6 +25,8 @@ import com.openhtmltopdf.css.sheet.Ruleset;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 
@@ -52,7 +54,7 @@ public class Selector {
 
     private int _pos;//to distinguish between selectors of same specificity
 
-    private java.util.List<Condition> conditions;
+    private List<Condition> conditions;
 
     public final static int DESCENDANT_AXIS = 0;
     public final static int CHILD_AXIS = 1;
@@ -67,6 +69,7 @@ public class Selector {
      * Give each a unique ID to be able to create a key to internalize Matcher.Mappers
      */
     private int selectorID;
+    private Selector _ancestorSelector;
     private static int selectorCount = 0;
 
     public Selector() {
@@ -430,6 +433,62 @@ public class Selector {
         conditions.add(c);
     }
 
+    public void toCSS(StringBuilder sb, Set<Selector> stopAt) {
+        if (stopAt.contains(this)) {
+            return;
+        }
+
+        Selector ancestor = this;
+
+        while (ancestor != null) {
+            Selector current = ancestor.getAncestorSelector();
+
+            if (current == null || stopAt.contains(current)) {
+                break;
+            }
+
+            ancestor = current;
+        }
+
+        Selector chained = ancestor == null ? this : ancestor;
+
+        if (chained._name != null) {
+            sb.append(chained._name);
+        }
+
+        if (chained.conditions != null) {
+            for (Condition condition : chained.conditions) {
+                condition.toCSS(sb);
+            }
+        }
+
+        sb.append(' ');
+
+        Selector next = chained.getChainedSelector();
+
+        while (next != null) {
+            if (next.getAxis() == Selector.CHILD_AXIS) {
+                sb.append('>');
+                sb.append(' ');
+            } else if (next.getAxis() == Selector.DESCENDANT_AXIS) {
+                // Do nothing, already have a space.
+            }
+
+            if (next._name != null) {
+                sb.append(next._name);
+            }
+
+            if (next.conditions != null) {
+                for (Condition condition : next.conditions) {
+                    condition.toCSS(sb);
+                }
+            }
+            sb.append(' ');
+
+            next = next.getChainedSelector();
+        }
+    }
+
     /**
      * Gets the elementStylingOrder attribute of the Selector class
      *
@@ -488,6 +547,14 @@ public class Selector {
     
     public void setNamespaceURI(String namespaceURI) {
         _namespaceURI = namespaceURI;
+    }
+
+    public void setAncestorSelector(Selector ancestor) {
+        _ancestorSelector = ancestor;
+    }
+
+    public Selector getAncestorSelector() {
+        return _ancestorSelector;
     }
 }
 

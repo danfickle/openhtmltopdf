@@ -20,11 +20,14 @@
  */
 package com.openhtmltopdf.css.newmatch;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,35 +47,28 @@ import com.openhtmltopdf.util.XRLog;
  * @author Torbjoern Gannholm
  */
 public class Matcher {
+    private final Mapper docMapper;
+    private final AttributeResolver _attRes;
+    private final TreeResolver _treeRes;
+    private final StylesheetFactory _styleFactory;
 
-    private Mapper docMapper;
-    private com.openhtmltopdf.css.extend.AttributeResolver _attRes;
-    private com.openhtmltopdf.css.extend.TreeResolver _treeRes;
-    private com.openhtmltopdf.css.extend.StylesheetFactory _styleFactory;
+    private final Map<Object, Mapper> _map = new HashMap<>();
 
-    private java.util.Map<Object, Mapper> _map;
+    private final Set<Object> _hoverElements = new HashSet<>();
+    private final Set<Object> _activeElements = new HashSet<>();
+    private final Set<Object> _focusElements = new HashSet<>();
+    private final Set<Object> _visitElements = new HashSet<>();
 
-    //handle dynamic
-    private Set<Object> _hoverElements;
-    private Set<Object> _activeElements;
-    private Set<Object> _focusElements;
-    private Set<Object> _visitElements;
-    
-    private final List<PageRule> _pageRules = new ArrayList<PageRule>();
-    private final List<FontFaceRule> _fontFaceRules = new ArrayList<FontFaceRule>();
-    
+    private final List<PageRule> _pageRules = new ArrayList<>();
+    private final List<FontFaceRule> _fontFaceRules = new ArrayList<>();
+
     public Matcher(
             TreeResolver tr, AttributeResolver ar, StylesheetFactory factory, List<Stylesheet> stylesheets, String medium) {
-        newMaps();
         _treeRes = tr;
         _attRes = ar;
         _styleFactory = factory;
 
         docMapper = createDocumentMapper(stylesheets, medium);
-    }
-    
-    public void removeStyle(Object e) {
-        _map.remove(e);
     }
 
     public CascadedStyle getCascadedStyle(Object e, boolean restyle) {
@@ -83,6 +79,15 @@ public class Matcher {
                 em = matchElement(e);
             }
             return em.getCascadedStyle(e);
+    }
+
+    public String getCSSForAllDescendants(Object e) {
+        Mapper child = getMapper(e);
+
+        AllDescendantMapper descendants = new AllDescendantMapper(child.axes, _attRes, _treeRes);
+        descendants.map(e);
+
+        return descendants.toCSS();
     }
 
     /**
@@ -203,14 +208,6 @@ public class Matcher {
 
     private void link(Object e, Mapper m) {
         _map.put(e, m);
-    }
-
-    private void newMaps() {
-        _map = new java.util.HashMap<Object, Mapper>();
-        _hoverElements = new java.util.HashSet<Object>();
-        _activeElements = new java.util.HashSet<Object>();
-        _focusElements = new java.util.HashSet<Object>();
-        _visitElements = new java.util.HashSet<Object>();
     }
 
     private Mapper getMapper(Object e) {
@@ -439,6 +436,57 @@ public class Matcher {
                 return CascadedStyle.emptyCascadedStyle;
             } else {
                 return new CascadedStyle(propList.iterator());
+            }
+        }
+    }
+
+    public static class AllDescendantMapper {
+        private final List<Selector> axes;
+        private final List<Selector> mappedSelectors = new ArrayList<>();
+        private final Set<Selector> topSelectors = new HashSet<>();
+        private final AttributeResolver attRes;
+        private final TreeResolver treeRes;
+
+        AllDescendantMapper(List<Selector> axes, AttributeResolver attRes, TreeResolver treeRes) {
+            this.axes = axes;
+            this.attRes = attRes;
+            this.treeRes = treeRes;
+        }
+
+        public String toCSS() {
+            StringBuilder sb = new StringBuilder();
+
+            for (Selector sel : mappedSelectors) {
+                sel.toCSS(sb, topSelectors);
+                sel.getRuleset().toCSS(sb);
+            }
+
+            return sb.toString();
+        }
+
+        void map(Object e) {
+            Deque<Selector> queue = new ArrayDeque<>();
+
+            for (Selector sel : axes) {
+                if (!sel.matches(e, attRes, treeRes) ||
+                    sel.getChainedSelector() == null) {
+                    continue;
+                }
+
+                queue.addLast(sel);
+                this.topSelectors.add(sel);
+            }
+
+            while (!queue.isEmpty()) {
+                Selector current = queue.removeFirst();
+
+                Selector chain = current.getChainedSelector();
+
+                if (chain == null) {
+                    this.mappedSelectors.add(current);
+                } else {
+                    queue.addLast(chain);
+                }
             }
         }
     }
