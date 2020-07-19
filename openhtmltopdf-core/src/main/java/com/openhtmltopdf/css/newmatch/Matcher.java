@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
-
 import com.openhtmltopdf.css.constants.MarginBoxName;
 import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.StylesheetFactory;
@@ -81,8 +80,18 @@ public class Matcher {
             return em.getCascadedStyle(e);
     }
 
+    /**
+     * Returns CSS rulesets for descendants of e.
+     * For example, if e is an svg element and we have the ruleset
+     * 'svg rect { .. }' then the string returned will be 'rect { .. }'.
+     * 
+     * FIXME: Does not correctly handle sibling selectors.
+     */
     public String getCSSForAllDescendants(Object e) {
-        Mapper child = getMapper(e);
+        // We must use the parent mapper as a starting point
+        // to correctly handle direct child selectors such as 'body > svg rect'.
+        Object parent = _treeRes.getParentElement(e);
+        Mapper child = parent != null ? getMapper(parent) : docMapper;
 
         AllDescendantMapper descendants = new AllDescendantMapper(child.axes, _attRes, _treeRes);
         descendants.map(e);
@@ -321,7 +330,6 @@ public class Matcher {
                     l.add(sel);
 
                     key.append(sel.getSelectorID()).append(":");
-
                     continue;
                 }
 
@@ -453,7 +461,7 @@ public class Matcher {
             this.treeRes = treeRes;
         }
 
-        public String toCSS() {
+        String toCSS() {
             StringBuilder sb = new StringBuilder();
 
             for (Selector sel : mappedSelectors) {

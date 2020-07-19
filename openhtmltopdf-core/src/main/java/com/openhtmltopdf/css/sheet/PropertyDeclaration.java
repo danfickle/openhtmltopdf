@@ -41,11 +41,6 @@ public class PropertyDeclaration {
     /**
      * Description of the Field
      */
-    private String propName;
-
-    /**
-     * Description of the Field
-     */
     private CSSName cssName;
     /**
      * Description of the Field
@@ -122,7 +117,6 @@ public class PropertyDeclaration {
                                CSSPrimitiveValue value,
                                boolean imp,
                                int orig) {
-        this.propName = cssName.toString();
         this.cssName = cssName;
         this.cssPrimitiveValue = value;
         this.important = imp;
@@ -200,7 +194,7 @@ public class PropertyDeclaration {
      * @return See desc.
      */
     public String getPropertyName() {
-        return propName;
+        return this.cssName.toString();
     }
 
     /**

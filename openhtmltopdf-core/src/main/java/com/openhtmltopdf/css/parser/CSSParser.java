@@ -766,7 +766,8 @@ public class CSSParser {
                         t, new Token[] { Token.TK_COMMA, Token.TK_LBRACE }, getCurrentLine());
             }
 
-            if (ruleset.getPropertyDeclarations().size() > 0) {
+            if (!ruleset.getPropertyDeclarations().isEmpty() ||
+                !ruleset.getInvalidPropertyDeclarations().isEmpty()) {
                 container.addContent(ruleset);
             }
         } catch (CSSParseException e) {
@@ -1314,6 +1315,12 @@ public class CSSParser {
                             e.setLine(getCurrentLine());
                             error(e, "declaration", true);
                         }
+                    } else {
+                        // We need to keep invalid properties in case they are used by SVG, etc.
+                        ruleset.addInvalidProperty(
+                           new InvalidPropertyDeclaration(
+                                propertyName, values, ruleset.getOrigin(), important,
+                                ruleset.getPropertyDeclarations().size() + ruleset.getInvalidPropertyDeclarations().size()));
                     }
                 } else {
                     push(t);

@@ -22,6 +22,11 @@ svg .highlight, /* To all SVGs. */
 .hl rect {      /* To SVGs with class hl. */
   fill: rgb(255,0,0);
 }
+body > svg.hl > rect {
+  stroke: black;
+  stroke-width: 4px;
+  stroke-dasharray: 10 5;
+}
 div {
   height: 20px;
   background-color: orange;
@@ -45,11 +50,12 @@ div {
   <rect width="150" height="100" class="highlight" rx="15" />
 </svg>
 
-<!-- Should have red rect -->
+<!-- Should have red rect with dashed border -->
 <svg class="hl" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 100px;">
   <rect width="150" height="100" rx="15" />
 </svg>
 
+<!-- Should be orange -->
 <div></div>
 
 </body>

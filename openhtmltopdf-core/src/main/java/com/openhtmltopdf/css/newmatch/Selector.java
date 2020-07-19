@@ -433,6 +433,18 @@ public class Selector {
         conditions.add(c);
     }
 
+    /**
+     * Prints the selector chain to a StringBuilder, stopping
+     * when it hits a selector in the stopAt set.
+     * 
+     * For example, given the selector 'body svg rect' and the stop
+     * set contains 'svg' then this will print 'rect' to the builder.
+     * 
+     * This method is used to recreate CSS selectors to pass to SVG or
+     * other plugins.
+     * 
+     * FIXME: Does not handle sibling selector.
+     */
     public void toCSS(StringBuilder sb, Set<Selector> stopAt) {
         if (stopAt.contains(this)) {
             return;
@@ -450,7 +462,12 @@ public class Selector {
             ancestor = current;
         }
 
-        Selector chained = ancestor == null ? this : ancestor;
+        Selector chained = ancestor;
+
+        if (chained.getAxis() == Selector.CHILD_AXIS) {
+            sb.append('>');
+            sb.append(' ');
+        }
 
         if (chained._name != null) {
             sb.append(chained._name);
@@ -555,6 +572,48 @@ public class Selector {
 
     public Selector getAncestorSelector() {
         return _ancestorSelector;
+    }
+
+    /**
+     * For debugging, prints the entire selector chain.
+     * FIXME: Does not handle sibling selectors.
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        Selector current = this;
+        Selector ancestor = this;
+
+        while (current != null) {
+            current = current.getAncestorSelector();
+            if (current != null) {
+                ancestor = current;
+            }
+        }
+
+        current = ancestor;
+
+        while (current != null) {
+            if (current.getAxis() == Selector.CHILD_AXIS) {
+                sb.append(" > ");
+            } else {
+                sb.append(' ');
+            }
+
+            if (current._name != null) {
+                sb.append(current._name);
+            }
+
+            if (current.conditions != null) {
+                for (Condition cond : current.conditions) {
+                    cond.toCSS(sb);
+                }
+            }
+
+            current = current.getChainedSelector();
+        }
+
+        return sb.toString();
     }
 }
 

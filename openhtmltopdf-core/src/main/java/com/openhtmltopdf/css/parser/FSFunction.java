@@ -22,9 +22,9 @@ package com.openhtmltopdf.css.parser;
 import java.util.List;
 
 public class FSFunction {
-    private String _name;
-    private List<PropertyValue> _parameters;
-    
+    private final String _name;
+    private final List<PropertyValue> _parameters;
+
     public FSFunction(String name, List<PropertyValue> parameters) {
         _name = name;
         _parameters = parameters;
@@ -43,9 +43,11 @@ public class FSFunction {
         StringBuilder result = new StringBuilder();
         result.append(_name);
         result.append('(');
-        for (PropertyValue _parameter : _parameters) {
-            result.append(_parameter);  // HACK
-            result.append(',');
+        for (int i = 0; i < getParameters().size(); i++) {
+            result.append(getParameters().get(i));
+            if (i < getParameters().size() - 1) {
+                result.append(',');
+            }
         }
         result.append(')');
         return result.toString();
