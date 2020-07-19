@@ -21,6 +21,7 @@ package com.openhtmltopdf.css.parser;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.MarginBoxName;
+import com.openhtmltopdf.css.constants.SVGProperty;
 import com.openhtmltopdf.css.extend.TreeResolver;
 import com.openhtmltopdf.css.newmatch.Selector;
 import com.openhtmltopdf.css.parser.property.PropertyBuilder;
@@ -1242,10 +1243,12 @@ public class CSSParser {
 
     private boolean checkCSSName(CSSName cssName, String propertyName) {
         if (cssName == null) {
-            _errorHandler.error(
+            if (!SVGProperty.properties().contains(propertyName)) {
+                _errorHandler.error(
                     _URI,
                     propertyName + " is an unrecognized CSS property at line "
                         + getCurrentLine() + ". Ignoring declaration.");
+            }
             return false;
         }
 
