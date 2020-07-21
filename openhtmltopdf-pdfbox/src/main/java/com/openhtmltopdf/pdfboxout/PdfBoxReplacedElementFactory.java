@@ -63,11 +63,18 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                 boolean isDataImageSvg = false;
                 if (_svgImpl != null && (srcAttr.endsWith(".svg") || (isDataImageSvg = srcAttr.startsWith("data:image/svg+xml;base64,")))) {
                     XMLResource xml = isDataImageSvg ? XMLResource.load(new ByteArrayInputStream(ImageUtil.getEmbeddedBase64Image(srcAttr))) : uac.getXMLResource(srcAttr);
-                    
+
                     if (xml != null) {
-                        return new PdfBoxSVGReplacedElement(xml.getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, c, c.getSharedContext());    
+                        Element svg = xml.getDocument().getDocumentElement();
+
+                        // Copy across the class attribute so it can be targetted with CSS.
+                        if (!e.getAttribute("class").isEmpty()) {
+                            svg.setAttribute("class", e.getAttribute("class"));
+                        }
+
+                        return new PdfBoxSVGReplacedElement(svg, _svgImpl, cssWidth, cssHeight, box, c, c.getSharedContext());    
                     }
-                    
+
                     return null;
                 } else if (srcAttr.endsWith(".pdf")) {
                     byte[] pdfBytes = uac.getBinaryResource(srcAttr);

@@ -1,0 +1,29 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 500px;
+  margin: 0;
+}
+img {
+  display: block;
+}
+svg.redish circle {
+  fill: rgb(255,0,0) !important;
+}
+.greenish > circle {
+  fill: rgb(0,255,0) !important;
+}
+</style>
+</head>
+<body>
+ <!-- Reference blue circle -->
+ <img src="../../demos/images/circle.svg" alt="Circle" />
+
+ <!-- Red circle -->
+ <img class="redish" src="../../demos/images/circle.svg" alt="Circle" />
+ 
+ <!-- Small green circle -->
+ <img height="80" class="greenish" src="../../demos/images/circle.svg" alt="Circle" />
+</body>
+</html>
