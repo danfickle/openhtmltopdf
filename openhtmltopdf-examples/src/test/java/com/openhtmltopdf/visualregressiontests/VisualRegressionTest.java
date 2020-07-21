@@ -728,7 +728,25 @@ public class VisualRegressionTest {
     public void testSvgInWrapperWithNamedPage() throws IOException {
         assertTrue(vt.runTest("svg-in-wrapper-with-named-page", TestSupport.WITH_SVG));
     }
-    
+
+    /**
+     * Tests that styles applying to internal SVG objects such as rect
+     * are passed to Batik for rendering.
+     */
+    @Test
+    public void testIssue493SVGStyles() throws IOException {
+        assertTrue(vt.runTest("issue-493-svg-styles", TestSupport.WITH_SVG));
+    }
+
+    /**
+     * Tests that styles applying to internal svg objects such as circle
+     * in a linked img tag are applied and passed to Batik for rendering.
+     */
+    @Test
+    public void testIssue493SVGStylesLinkedImage() throws IOException {
+        assertTrue(vt.runTest("issue-493-svg-styles-linked-image", TestSupport.WITH_SVG));
+    }
+
     /**
      * Tests that a broken image inside a table cell renders with a zero sized image rather
      * than crashing with a NPE. See issue 336.

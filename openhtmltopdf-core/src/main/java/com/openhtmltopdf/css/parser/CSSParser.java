@@ -21,6 +21,7 @@ package com.openhtmltopdf.css.parser;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.MarginBoxName;
+import com.openhtmltopdf.css.constants.SVGProperty;
 import com.openhtmltopdf.css.extend.TreeResolver;
 import com.openhtmltopdf.css.newmatch.Selector;
 import com.openhtmltopdf.css.parser.property.PropertyBuilder;
@@ -766,7 +767,8 @@ public class CSSParser {
                         t, new Token[] { Token.TK_COMMA, Token.TK_LBRACE }, getCurrentLine());
             }
 
-            if (ruleset.getPropertyDeclarations().size() > 0) {
+            if (!ruleset.getPropertyDeclarations().isEmpty() ||
+                !ruleset.getInvalidPropertyDeclarations().isEmpty()) {
                 container.addContent(ruleset);
             }
         } catch (CSSParseException e) {
@@ -854,6 +856,7 @@ public class CSSParser {
                     result = first;
                 }
                 first.setChainedSelector(second);
+                second.setAncestorSelector(first);
             } else {
                 second.setSiblingSelector(first);
                 if (result == null || result == first) {
@@ -1240,10 +1243,12 @@ public class CSSParser {
 
     private boolean checkCSSName(CSSName cssName, String propertyName) {
         if (cssName == null) {
-            _errorHandler.error(
+            if (!SVGProperty.properties().contains(propertyName)) {
+                _errorHandler.error(
                     _URI,
                     propertyName + " is an unrecognized CSS property at line "
                         + getCurrentLine() + ". Ignoring declaration.");
+            }
             return false;
         }
 
@@ -1313,6 +1318,12 @@ public class CSSParser {
                             e.setLine(getCurrentLine());
                             error(e, "declaration", true);
                         }
+                    } else {
+                        // We need to keep invalid properties in case they are used by SVG, etc.
+                        ruleset.addInvalidProperty(
+                           new InvalidPropertyDeclaration(
+                                propertyName, values, ruleset.getOrigin(), important,
+                                ruleset.getPropertyDeclarations().size() + ruleset.getInvalidPropertyDeclarations().size()));
                     }
                 } else {
                     push(t);

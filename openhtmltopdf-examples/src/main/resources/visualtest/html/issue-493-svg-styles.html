@@ -1,0 +1,62 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 400px;
+  margin: 0;
+}
+body {
+  margin: 0;
+}
+svg {
+  display: block;
+  border: 2px solid red;
+  margin: 2px;
+}
+svg rect {
+  /* Ruleset should be passed to all SVGs. */
+  fill: rgb(0,0,255);
+  visibility: visible; /* Property valid in both HTML and SVG. */
+}
+svg .highlight, /* To all SVGs. */
+.hl rect {      /* To SVGs with class hl. */
+  fill: rgb(255,0,0);
+}
+body > svg.hl > rect {
+  stroke: black;
+  stroke-width: 4px;
+  stroke-dasharray: 10 5;
+}
+div {
+  height: 20px;
+  background-color: orange;
+  background-color: #000000000; /* Invalid value should not override valid value. */
+}
+</style>
+</head>
+<body>
+<!-- Reference -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 100px;">
+  <rect width="150" height="100" style="fill:rgb(0,0,255);" rx="15" />
+</svg>
+
+<!-- Should look the same -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 100px;">
+  <rect width="150" height="100" rx="15" />
+</svg>
+
+<!-- Should have red rect -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 100px;">
+  <rect width="150" height="100" class="highlight" rx="15" />
+</svg>
+
+<!-- Should have red rect with dashed border -->
+<svg class="hl" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" style="width: 100px;">
+  <rect width="150" height="100" rx="15" />
+</svg>
+
+<!-- Should be orange -->
+<div></div>
+
+</body>
+</html>
