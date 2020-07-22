@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>openhtmltopdf-core</artifactId>
-  <description>Open HTML to PDF is a CSS 2.1 renderer written in Java.  This artifact contains the core rendering and layout code as well as Java2D output.</description>
+  <description>Open HTML to PDF is a CSS 2.1 renderer written in Java.  This artifact contains the core rendering and layout code.</description>
 
   <licenses>
     <license>
@@ -51,5 +51,41 @@
         </includes>
       </resource>
     </resources>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${open.jar.plugin.version}</version>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive> 
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>${open.bundle.plugin.version}</version>
+        <configuration>
+          <instructions>
+            <Export-Package>*</Export-Package>
+          </instructions>
+        </configuration>
+
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+              <goals>
+                <goal>manifest</goal>
+              </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
   </build>
 </project>
