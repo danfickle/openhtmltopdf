@@ -60,11 +60,15 @@ public class XRLog {
     /**
      * Returns a list of all loggers that will be accessed by XRLog. Each entry is a String with a logger
      * name, which can be used to retrieve the logger using the corresponding Logging API; example name might be
-     * "org.xhtmlrenderer.config"
+     * "com.openhtmltopdf.render"
      *
      * @return List of loggers, never null.
      */
     public static List<String> listRegisteredLoggers() {
+        if (initPending) {
+            init();
+        }
+
         // defensive copy
         return new ArrayList<>(LOGGER_NAMES);
     }

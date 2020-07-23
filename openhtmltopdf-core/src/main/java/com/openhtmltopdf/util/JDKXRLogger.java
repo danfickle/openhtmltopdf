@@ -21,49 +21,71 @@
  */
 package com.openhtmltopdf.util;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.logging.Handler;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
-import java.util.Properties;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
 
 /**
  * An {@link XRLogger} interface that uses <code>java.util.logging</code>.
+ * https://github.com/danfickle/openhtmltopdf/wiki/Logging
  */
 public class JDKXRLogger implements XRLogger {
-    private static boolean initPending = true;
+    private boolean initPending = true;
+
+    // Keep a list of Loggers so they are not garbage collected
+    // which makes them lose their settings we have applied.
+    private List<Logger> loggers;
+
+    private final boolean useParent;
+    private final Level level;
+    private final Handler handler;
+    private final Formatter formatter;
+
+    public JDKXRLogger() {
+        // Note: We MUST NOT call retrieveLoggers via this constructor
+        // as XRLog.listRegisteredLoggers may call this constructor
+        // leading to a stack overflow!
+        this(false, Level.INFO, new ConsoleHandler(), new XRSimpleLogFormatter());
+    }
+
+    public JDKXRLogger(boolean useParent, Level level, Handler handler, Formatter formatter) {
+        this.useParent = false;
+        this.level = level;
+        this.handler = handler;
+        this.formatter = formatter;
+    }
+
+    private void checkInitPending() {
+        if (!initPending) {
+            return;
+        }
+
+        synchronized (this) {
+            init(useParent, level, handler, formatter);
+        }
+    }
 
     @Override
     public boolean isLogLevelEnabled(Diagnostic diagnostic) {
         return getLogger(diagnostic.getLogMessageId().getWhere()).isLoggable(diagnostic.getLevel());
     }
 
-    /* {@inheritdoc} */
+    @Override
     public void log(String where, Level level, String msg) {
-        if (initPending) {
-            init();
-        }
-
         getLogger(where).log(level, msg);
     }
 
-    /* {@inheritdoc} */
+    @Override
     public void log(String where, Level level, String msg, Throwable th) {
-        if (initPending) {
-            init();
-        }
-
         getLogger(where).log(level, msg, th);
     }
 
-    /* {@inheritdoc} */
+    @Override
     public void setLevel(String logger, Level level) {
         getLogger(logger).setLevel(level);
     }
@@ -76,172 +98,51 @@ public class JDKXRLogger implements XRLogger {
      * @param log PARAM
      * @return The logger value
      */
-    private static Logger getLogger(String log) {
+    private Logger getLogger(String log) {
+        checkInitPending();
         return Logger.getLogger(log);
     }
 
-    private static void init() {
-        synchronized (JDKXRLogger.class) {
+    private void init(boolean useParent, Level level, Handler handler, Formatter formatter) {
             if (!initPending) {
                 return;
             }
             //now change this immediately, in case something fails
             initPending = false;
-            try {
-                Properties props = retrieveLoggingProperties();
 
-                if(!XRLog.isLoggingEnabled()) {
-                    Configuration.setConfigLogger(Logger.getLogger(XRLog.CONFIG));
-                    return;
-                }
-                initializeJDKLogManager(props);
-
-                Configuration.setConfigLogger(Logger.getLogger(XRLog.CONFIG));
-            } catch (SecurityException e) {
-                // may happen in a sandbox environment
-            } catch (IOException e) {
-                throw new XRRuntimeException("Could not initialize logs. " + e.getLocalizedMessage(), e);
-            }
-        }
+            initializeJDKLogManager(useParent, level, handler, formatter);
     }
 
-    private static Properties retrieveLoggingProperties() {
-        // pull logging properties from configuration
-        // they are all prefixed as shown
-        String prefix = "xr.util-logging.";
-        Iterator iter = Configuration.keysByPrefix(prefix);
-        Properties props = new Properties();
-        while (iter.hasNext()) {
-            String fullkey = (String) iter.next();
-            String lmkey = fullkey.substring(prefix.length());
-            String value = Configuration.valueFor(fullkey);
-            props.setProperty(lmkey, value);
-        }
-        return props;
+    private void initializeJDKLogManager(boolean useParent, Level level, Handler handler, Formatter formatter) {
+        loggers = retrieveLoggers();
+
+        configureLoggerHandlerForwarding(useParent);
+        configureLogLevels(level);
+        configureLogHandlers(handler, formatter);
     }
 
-    private static void initializeJDKLogManager(final Properties fsLoggingProperties) throws IOException {
-        final List<Logger> loggers = retrieveLoggers();
-
-        configureLoggerHandlerForwarding(fsLoggingProperties, loggers);
-
-        // load our properties into our log manager
-        Enumeration keys = fsLoggingProperties.keys();
-        Map<String, Handler> handlers = new HashMap<>();
-        Map<String, String> handlerFormatterMap = new HashMap<>();
-        while (keys.hasMoreElements()) {
-            String key = (String) keys.nextElement();
-            String prop = fsLoggingProperties.getProperty(key);
-            if (key.endsWith("level")) {
-                configureLogLevel(key.substring(0, key.lastIndexOf(".")), prop);
-            } else if (key.endsWith("handlers")) {
-                handlers = configureLogHandlers(loggers, prop);
-            } else if (key.endsWith("formatter")) {
-                String k2 = key.substring(0, key.length() - ".formatter".length());
-                handlerFormatterMap.put(k2, prop);
-            }
-        }
-
-        // formatters apply to a specific handler we have initialized previously,
-        // hence we need to wait until we've parsed the handler class
-        for (Iterator it = handlerFormatterMap.keySet().iterator(); it.hasNext();) {
-            String handlerClassName = (String) it.next();
-            String formatterClassName = (String) handlerFormatterMap.get(handlerClassName);
-            assignFormatter(handlers, handlerClassName, formatterClassName);
-        }
-    }
-
-    private static void configureLoggerHandlerForwarding(Properties fsLoggingProperties, List<Logger> loggers) {
-        String val = fsLoggingProperties.getProperty("use-parent-handler");
-        boolean flag = val == null ? false : Boolean.valueOf(val).booleanValue();
-        loggers.forEach(l -> l.setUseParentHandlers(flag));
-    }
-
-    private static void assignFormatter(Map<String, Handler> handlers, String handlerClassName, String formatterClassName) {
-        Handler handler = handlers.get(handlerClassName);
-        if (handler != null) {
-            try {
-                Class fclass = Class.forName(formatterClassName);
-                Formatter f = (Formatter) fclass.newInstance();
-                handler.setFormatter(f);
-            } catch (ClassNotFoundException e) {
-                throw new XRRuntimeException("Could not initialize logging properties; " +
-                        "Formatter class not found: " + formatterClassName);
-            } catch (IllegalAccessException e) {
-                throw new XRRuntimeException("Could not initialize logging properties; " +
-                        "Can't instantiate Formatter class (IllegalAccessException): " + formatterClassName);
-            } catch (InstantiationException e) {
-                throw new XRRuntimeException("Could not initialize logging properties; " +
-                        "Can't instantiate Formatter class (InstantiationException): " + formatterClassName);
-            }
-        }
+    private void configureLoggerHandlerForwarding(boolean useParentHandlers) {
+        loggers.forEach(logger -> logger.setUseParentHandlers(useParentHandlers));
     }
 
     /**
-     * Returns a List of all Logger instances used by Flying Saucer from the JDK LogManager; these will
+     * Returns a List of all Logger instances used by this project from the JDK LogManager; these will
      * be automatically created if they aren't already available.
      */
-    private static List<Logger> retrieveLoggers() {
-        List<String> loggerNames = XRLog.listRegisteredLoggers();
-        List<Logger> loggers = new ArrayList<>(loggerNames.size());
-        Iterator<String> it = loggerNames.iterator();
-        while (it.hasNext()) {
-            final String ln = it.next();
-            loggers.add(Logger.getLogger(ln));
-        }
-        return loggers;
+    private List<Logger> retrieveLoggers() {
+        return XRLog.listRegisteredLoggers().stream()
+                .map(Logger::getLogger).collect(Collectors.toList());
     }
 
-    /**
-     * For each logger provided, assigns the logger an instance of the named log output handlers. Will attempt
-     * to instantiate each handler; any which can't be instantiated will cause the method to throw a RuntimeException.
-     *
-     * @param loggers List of Logger instances.
-     * @param handlerClassList A space-separated string (following the configuration convention for JDK logging
-     * configuration files, for handlers) of FQN of log handlers.
-     *
-     * @return Map of handler class names to handler instances.
-     */
-    private static Map<String, Handler> configureLogHandlers(List<Logger> loggers, final String handlerClassList) {
-        final String[] names = handlerClassList.split(" ");
-        final Map<String, Handler> handlers = new HashMap(names.length);
-        for (String name : names) {
-            try {
-                Class<?> handlerClass = Class.forName(name);
-                Handler handler = (Handler) handlerClass.newInstance();
-                handlers.put(name, handler);
-                String hl = Configuration.valueFor("xr.util-logging." + name + ".level", "INFO");
-                handler.setLevel(LoggerUtil.parseLogLevel(hl, Level.INFO));
-            } catch (ClassNotFoundException e) {
-                throw new XRRuntimeException("Could not initialize logging properties; " +
-                        "Handler class not found: " + name);
-            } catch (IllegalAccessException e) {
-                throw new XRRuntimeException("Could not initialize logging properties; " +
-                        "Can't instantiate Handler class (IllegalAccessException): " + name);
-            } catch (InstantiationException e) {
-                throw new XRRuntimeException("Could not initialize logging properties; " +
-                        "Can't instantiate Handler class (InstantiationException): " + name);
-            }
-        }
-
-        // now assign each handler to each FS logger
-        for (Iterator<Logger> iterator = loggers.iterator(); iterator.hasNext();) {
-            Logger logger = iterator.next();
-            for (Iterator ith = handlers.values().iterator(); ith.hasNext();) {
-                Handler handler = (Handler) ith.next();
-                logger.addHandler(handler);
-            }
-        }
-        return handlers;
+    private void configureLogHandlers(Handler handler, Formatter formatter) {
+        handler.setFormatter(formatter);
+        // Note Logger::removeLogger doesn't throw if the handler isn't found
+        // so there are no sync issues here.
+        loggers.forEach(logger -> Arrays.stream(logger.getHandlers()).forEach(logger::removeHandler));
+        loggers.forEach(logger -> logger.addHandler(handler));
     }
 
-    /**
-     * Parses the levelValue into a Level instance and assigns to the Logger instance named by loggerName; if the
-     * the levelValue is invalid (e.g. misspelled), assigns Level.OFF to the logger.
-     */
-    private static void configureLogLevel(String loggerName, String levelValue) {
-        final Level level = LoggerUtil.parseLogLevel(levelValue, Level.OFF);
-        final Logger logger = Logger.getLogger(loggerName);
-        logger.setLevel(level);
+    private void configureLogLevels(Level level) {
+        loggers.forEach(logger -> logger.setLevel(level));
     }
 }
