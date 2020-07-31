@@ -35,6 +35,11 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
+import com.openhtmltopdf.render.displaylist.DisplayListCollector;
+import com.openhtmltopdf.render.displaylist.DisplayListContainer;
+import com.openhtmltopdf.render.displaylist.DisplayListPainter;
+import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
+import com.openhtmltopdf.render.simplepainter.SimplePainter;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.swing.NaiveUserAgent;
@@ -308,7 +313,7 @@ public class Java2DRenderer implements Closeable {
 
         RenderingContext c = newRenderingContext();
         c.setInitialPageNo(_initialPageNo);
-        
+
         PageBox firstPage = pages.get(0);
         Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
                 firstPage.getWidth(c) / DEFAULT_DOTS_PER_PIXEL,
@@ -326,7 +331,7 @@ public class Java2DRenderer implements Closeable {
     	
     	RenderingContext c = newRenderingContext();
         c.setInitialPageNo(_initialPageNo);
-    	
+
     	PageBox page = pages.get(zeroBasedPageNumber);
     	
         Rectangle2D pageSize = new Rectangle2D.Float(0, 0,
@@ -342,9 +347,13 @@ public class Java2DRenderer implements Closeable {
 
         c.setPageCount(pages.size());
         c.setPage(zeroBasedPageNumber, page);
-        paintPage(c, page);
+
+        DisplayListCollector boxCollector = new DisplayListCollector(pages);
+        DisplayListContainer displayList = boxCollector.collectRoot(c, _root.getLayer());
+
+        paintPage(c, page, displayList.getPageInstructions(zeroBasedPageNumber));
         _pageProcessor.finishPage(pg);
-        
+
         _outputDevice.finish(c, _root);
     }
 
@@ -375,7 +384,8 @@ public class Java2DRenderer implements Closeable {
 
         Shape working = _outputDevice.getClip();
 
-        _root.getLayer().paint(c);
+        SimplePainter painter = new SimplePainter(0, 0);
+        painter.paintLayer(c, _root.getLayer());
 
         _outputDevice.setClip(working);
         _pageProcessor.finishPage(pg);
@@ -387,7 +397,10 @@ public class Java2DRenderer implements Closeable {
     	return _root.getLayer().getPages().size();
     }
     
-    private void writePageImages(List<PageBox> pages, RenderingContext c, Rectangle2D firstPageSize) throws IOException {
+    private void writePageImages(
+            List<PageBox> pages,
+            RenderingContext c,
+            Rectangle2D firstPageSize) throws IOException {
         _outputDevice.setRoot(_root);
         
         FSPage pg = _pageProcessor.createPage(0, (int) firstPageSize.getWidth(), (int) firstPageSize.getHeight());
@@ -397,12 +410,15 @@ public class Java2DRenderer implements Closeable {
 
         int pageCount = _root.getLayer().getPages().size();
         c.setPageCount(pageCount);
-        
+
+        DisplayListCollector boxCollector = new DisplayListCollector(pages);
+        DisplayListContainer displayList = boxCollector.collectRoot(c, _root.getLayer());
+
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
             
             c.setPage(i, currentPage);
-            paintPage(c, currentPage);
+            paintPage(c, currentPage, displayList.getPageInstructions(i));
             _pageProcessor.finishPage(pg);
             
             if (i != pageCount - 1) {
@@ -418,7 +434,7 @@ public class Java2DRenderer implements Closeable {
         _outputDevice.finish(c, _root);
     }
     
-    private void paintPage(RenderingContext c, PageBox page) {
+    private void paintPage(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations) {
         page.paintBackground(c, 0, _pagingMode);
         page.paintMarginAreas(c, 0, _pagingMode);
         page.paintBorder(c, 0, _pagingMode);
@@ -432,7 +448,8 @@ public class Java2DRenderer implements Closeable {
         int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
 
         _outputDevice.translate(left, top);
-        _root.getLayer().paint(c);
+        DisplayListPainter painter = new DisplayListPainter();
+        painter.paint(c, pageOperations);
         _outputDevice.translate(-left, -top);
 
         _outputDevice.setClip(working);
