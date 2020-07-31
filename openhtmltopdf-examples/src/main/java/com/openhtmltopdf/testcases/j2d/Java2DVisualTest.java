@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.openhtmltopdf.visualtest.Java2DVisualTester;
 import com.openhtmltopdf.visualtest.Java2DVisualTester.Java2DBuilderConfig;
@@ -19,6 +20,7 @@ public class Java2DVisualTest {
        vtester = new Java2DVisualTester(
                     "/visualtest/j2d/html/",     /* Resource path. */
                     "/visualtest/j2d/expected/", /* Expected resource path */
+                    "/visualtest/j2d/expected-single-page/", /* Single page expected */
                     outputDirectory
                     );
     }
@@ -26,6 +28,9 @@ public class Java2DVisualTest {
     private void run(String resource, Java2DBuilderConfig config) throws IOException {
         if (!vtester.runTest(resource, config)) {
             failed.add(resource);
+        }
+        if (!vtester.runSinglePageTest(resource, config)) {
+            failed.add(resource + " (single-page mode)");
         }
     }
     
@@ -54,11 +59,11 @@ public class Java2DVisualTest {
     // for Java2D output. Rather they are manual tests meant to be run before a release.
     public static void main(String[] args) throws Exception {
         Java2DVisualTest test = new Java2DVisualTest();
-        
+
         test.runOneTest();
         test.runAllTests();
 
-        System.out.println("The failed tests were:");
-        System.out.println(test.failed);
+        System.out.println("\nThe failed tests were:\n");
+        System.out.println(test.failed.stream().collect(Collectors.joining("\n")));
     }
 }
