@@ -41,8 +41,8 @@ public class Java2DVisualTest {
     private void runAllTests() throws IOException {
         run("simple-blocks");
         run("simple-text");
-        
-        
+        run("margins-clipping-transforms");
+
         // If you add a test here, please remember to also
         // add it to runOneTest (commented out).
     }
@@ -50,11 +50,12 @@ public class Java2DVisualTest {
     private void runOneTest() throws IOException {
         // run("simple-blocks");
         // run("simple-text");
-        
+        // run("margins-clipping-transforms");
+
         // If you add a test here, please remember to also add
         // it to runAllTests.
     }
-    
+
     // These are not automated tests due to the slight differences between JDK versions
     // for Java2D output. Rather they are manual tests meant to be run before a release.
     public static void main(String[] args) throws Exception {

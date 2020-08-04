@@ -31,20 +31,17 @@ import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.swing.AWTFSImage;
 import com.openhtmltopdf.swing.ImageReplacedElement;
-import com.openhtmltopdf.util.LogMessageId;
-import com.openhtmltopdf.util.XRLog;
-
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
-import java.util.logging.Level;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
+    private final Deque<Shape> _clipStack = new ArrayDeque<>();
+    private final Deque<AffineTransform> _transformStack = new ArrayDeque<>();
+
     private Graphics2D _graphics;
     private Java2DFont _font;
 
@@ -59,7 +56,7 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     @Override
     public void drawBorderLine(
             Shape bounds, int side, int lineWidth, boolean solid) {
-    	draw(bounds);
+        draw(bounds);
     }
 
     @Override
@@ -87,42 +84,43 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
             throw new RuntimeException("internal error: unsupported color class " + color.getClass().getName());
         }
     }
-    
+
     @Override
     protected void drawLine(int x1, int y1, int x2, int y2) {
         _graphics.drawLine(x1, y1, x2, y2);
     }
-    
+
     @Override
     public void drawRect(int x, int y, int width, int height) {
         _graphics.drawRect(x, y, width, height);
     }
-    
+
     @Override
     public void fillRect(int x, int y, int width, int height) {
         _graphics.fillRect(x, y, width, height);
     }
-    
+
+    @Deprecated
     @Override
     public void setClip(Shape s) {
-        _graphics.setClip(s);
     }
-    
+
+    @Deprecated
     @Override
     public Shape getClip() {
-        return _graphics.getClip();
+        return null;
     }
-    
+
+    @Deprecated
     @Override
     public void clip(Shape s) {
-        _graphics.clip(s);
     }
-    
+
     @Override
     public void translate(double tx, double ty) {
         _graphics.translate(tx, ty);
     }
-    
+
     public Graphics2D getGraphics() {
         return _graphics;
     }
@@ -190,12 +188,13 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 		if (oldInterpolation != null)
 			_graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, oldInterpolation);
     }
-    
+
+    @Deprecated
     @Override
     public boolean isSupportsSelection() {
         return false;
     }
-    
+
     @Override
     public boolean isSupportsCMYKColors() {
         return false;
@@ -208,104 +207,92 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 		graphics.dispose();
 	}
 
-	private Stack<AffineTransform> transformStack = new Stack<AffineTransform>();
-    private Stack<Shape> clipStack= new Stack<Shape>();
+    @Override
+    public void setPaint(Paint paint) {
+        _graphics.setPaint(paint);
+    }
 
+    @Override
+    @Deprecated
+    public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
+        return null;
+    }
 
-	@Override
-	public void setPaint(Paint paint) {
-		_graphics.setPaint(paint);
-	}
+    @Override
+    @Deprecated
+    public void popTransforms(List<AffineTransform> inverse) {
+    }
 
-	@Override
-	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
-		List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
-		AffineTransform gfxTransform = _graphics.getTransform();
-		try {
-			for (AffineTransform transform : transforms) {
-				inverse.add(transform.createInverse());
-				transformStack.push(transform);
-				gfxTransform.concatenate(transform);
-			}
-		} catch (NoninvertibleTransformException e) {
-		    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_TRIED_TO_SET_NON_INVERTIBLE_CSS_TRANSFORM);
-		}
-		_graphics.setTransform(gfxTransform);
-		return inverse;
-	}
+	@Deprecated
+    @Override
+    public float getAbsoluteTransformOriginX() {
+        return 0;
+    }
 
-	@Override
-	public void popTransforms(List<AffineTransform> inverse) {
-		AffineTransform gfxTransform = _graphics.getTransform();
-		Collections.reverse(inverse);
-		for (AffineTransform transform : inverse) {
-			gfxTransform.concatenate(transform);
-			transformStack.pop();
-		}
-		_graphics.setTransform(gfxTransform);
-	}
+	@Deprecated
+    @Override
+    public float getAbsoluteTransformOriginY() {
+        return 0;
+    }
 
-	@Override
-	public float getAbsoluteTransformOriginX() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    public void setBidiReorderer(BidiReorderer _reorderer) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public float getAbsoluteTransformOriginY() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    }
 
-	public void setBidiReorderer(BidiReorderer _reorderer) {
-		// TODO Auto-generated method stub
-		
-	}
+    public void setRenderingContext(RenderingContext result) {
+    }
 
-	public void setRenderingContext(RenderingContext result) {
-		// TODO Auto-generated method stub
-		
-	}
+    public void setRoot(BlockBox _root) {
+    }
 
-	public void setRoot(BlockBox _root) {
-		// TODO Auto-generated method stub
-		
-	}
+    public void initializePage(Graphics2D pageGraphics) {
+        _graphics = pageGraphics;
 
-	public void initializePage(Graphics2D pageGraphics) {
-		_graphics = pageGraphics;
-	}
+        if (_graphics.getClip() != null) {
+            _clipStack.push(_graphics.getClip());
+        }
+
+        if (_graphics.getTransform() != null) {
+            _transformStack.push(_graphics.getTransform());
+        } else {
+            _transformStack.push(new AffineTransform());
+        }
+    }
 
 	public void finish(RenderingContext c, BlockBox _root) {
 	}
 
-	@Override
-	public void pushTransformLayer(AffineTransform transform) {
-		// TODO Auto-generated method stub
-	}
+    @Override
+    public void pushTransformLayer(AffineTransform transform) {
+        _graphics.transform(transform);
+        _transformStack.push(_graphics.getTransform());
+    }
 
-	@Override
-	public void popTransformLayer() {
-		// TODO Auto-generated method stub
-	}
+    @Override
+    public void popTransformLayer() {
+        _transformStack.pop();
+        AffineTransform transform = _transformStack.peek();
+        _graphics.setTransform(transform);
+    }
 
-	@Override
-	public void popClip() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void popClip() {
+        _clipStack.pop();
+        Shape previous = _clipStack.peek();
+        _graphics.setClip(previous);
+    }
 
-	@Override
-	public void pushClip(Shape s) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void pushClip(Shape s) {
+        _graphics.clip(s);
+        _clipStack.push(_graphics.getClip());
+    }
 
-	@Override
-	public boolean isFastRenderer() {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean isFastRenderer() {
+        return true;
+    }
 
     @Override
     public Object startStructure(StructureType type, Box box) {

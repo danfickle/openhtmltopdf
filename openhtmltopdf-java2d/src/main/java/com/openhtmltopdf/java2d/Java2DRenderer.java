@@ -1,6 +1,7 @@
 package com.openhtmltopdf.java2d;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.List;
@@ -359,6 +360,7 @@ public class Java2DRenderer implements Closeable {
 
     public void writeSinglePage(){
         List<PageBox> pages = _root.getLayer().getPages();
+        int rootHeight = _root.getHeight();
 
         RenderingContext c = newRenderingContext();
         c.setInitialPageNo(_initialPageNo);
@@ -366,14 +368,20 @@ public class Java2DRenderer implements Closeable {
         PageBox page = pages.get(0);
         Rectangle2D pageSize = new Rectangle2D.Float(0, 0,
                 page.getWidth(c) / DEFAULT_DOTS_PER_PIXEL,
-                 _root.getHeight()/ DEFAULT_DOTS_PER_PIXEL);
+                rootHeight / DEFAULT_DOTS_PER_PIXEL);
 
         _outputDevice.setRoot(_root);
 
-        FSPage pg = _pageProcessor.createPage(0, (int) pageSize.getWidth(), _root.getHeight());
+        int top = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
+        int bottom = page.getMarginBorderPadding(c, CalculatedStyle.BOTTOM);
+        int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
+        int right = page.getMarginBorderPadding(c, CalculatedStyle.RIGHT);
+
+        FSPage pg = _pageProcessor.createPage(0, (int) pageSize.getWidth(), rootHeight + top + bottom);
 
         _outputDevice.initializePage(pg.getGraphics());
         _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
+        page.setPaintingBottom(rootHeight + top + bottom);
 
         c.setPageCount(pages.size());
         c.setPage(0, page);
@@ -382,21 +390,29 @@ public class Java2DRenderer implements Closeable {
         page.paintMarginAreas(c, 0, _pagingMode);
         page.paintBorder(c, 0, _pagingMode);
 
-        Shape working = _outputDevice.getClip();
+        Rectangle printClip = page.getPrintClippingBounds(c);
+        Rectangle pageClip = new Rectangle(0, 0, printClip.width, rootHeight);
+
+        //_outputDevice.translate(left, top);
+        _outputDevice.pushClip(pageClip);
+        _outputDevice.pushTransformLayer(AffineTransform.getTranslateInstance(left, top));
+        
 
         SimplePainter painter = new SimplePainter(0, 0);
         painter.paintLayer(c, _root.getLayer());
 
-        _outputDevice.setClip(working);
+        
+        //_outputDevice.translate(-left, -top);
+        _outputDevice.popTransformLayer();
+        _outputDevice.popClip();
         _pageProcessor.finishPage(pg);
-
         _outputDevice.finish(c, _root);
     }
-    
+
     public int getPageCount() {
-    	return _root.getLayer().getPages().size();
+        return _root.getLayer().getPages().size();
     }
-    
+
     private void writePageImages(
             List<PageBox> pages,
             RenderingContext c,
@@ -433,26 +449,28 @@ public class Java2DRenderer implements Closeable {
 
         _outputDevice.finish(c, _root);
     }
-    
+
     private void paintPage(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations) {
         page.paintBackground(c, 0, _pagingMode);
         page.paintMarginAreas(c, 0, _pagingMode);
         page.paintBorder(c, 0, _pagingMode);
 
-        Shape working = _outputDevice.getClip();
-
         Rectangle content = page.getPrintClippingBounds(c);
-        _outputDevice.clip(content);
 
         int top = -page.getPaintingTop() + page.getMarginBorderPadding(c, CalculatedStyle.TOP);
         int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
 
-        _outputDevice.translate(left, top);
+        // FIXME: Not fully understanding why this is needed.
+        content.setLocation(0, c.getPageNo() == 0 ? 0 : page.getMarginBorderPadding(c, CalculatedStyle.TOP));
+
+        _outputDevice.pushClip(content);
+        _outputDevice.pushTransformLayer(AffineTransform.getTranslateInstance(left, top));
+
         DisplayListPainter painter = new DisplayListPainter();
         painter.paint(c, pageOperations);
-        _outputDevice.translate(-left, -top);
 
-        _outputDevice.setClip(working);
+        _outputDevice.popTransformLayer();
+        _outputDevice.popClip();
     }
 
     @Override

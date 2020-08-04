@@ -32,7 +32,7 @@ public class TransformCreator {
 	 * This transform can be applied on top of other tranforms already in effect on the page.
 	 */
 	public static AffineTransform createPageCoordinatesTranform(RenderingContext c, Box box, PageBox page, int shadowPageNumber) {
-		TransformYOrigin yOrigin = c.getOutputDevice().isPDF() ? TransformYOrigin.PAGE_BOTTOM : TransformYOrigin.PAGE_TOP;
+		TransformYOrigin yOrigin = c.getOutputDevice().isPDF() ? TransformYOrigin.PAGE_BOTTOM : TransformYOrigin.DOCUMENT_TOP;
 		
 		AffineTransform start = new AffineTransform();
 		
