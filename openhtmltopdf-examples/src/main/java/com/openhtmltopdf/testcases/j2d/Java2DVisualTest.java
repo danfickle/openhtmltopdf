@@ -42,6 +42,8 @@ public class Java2DVisualTest {
         run("simple-blocks");
         run("simple-text");
         run("margins-clipping-transforms");
+        run("clip-inside-transform");
+        run("linear-gradient");
 
         // If you add a test here, please remember to also
         // add it to runOneTest (commented out).
@@ -51,6 +53,8 @@ public class Java2DVisualTest {
         // run("simple-blocks");
         // run("simple-text");
         // run("margins-clipping-transforms");
+        // run("clip-inside-transform");
+        // run("linear-gradient");
 
         // If you add a test here, please remember to also add
         // it to runAllTests.

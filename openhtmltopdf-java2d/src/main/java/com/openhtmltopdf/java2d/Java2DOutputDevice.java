@@ -22,6 +22,8 @@ package com.openhtmltopdf.java2d;
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
+import com.openhtmltopdf.css.style.derived.FSLinearGradient;
+import com.openhtmltopdf.css.style.derived.FSLinearGradient.StopPoint;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
@@ -34,6 +36,7 @@ import com.openhtmltopdf.swing.ImageReplacedElement;
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -237,7 +240,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 
     public void setBidiReorderer(BidiReorderer _reorderer) {
         // TODO Auto-generated method stub
-
     }
 
     public void setRenderingContext(RenderingContext result) {
@@ -301,5 +303,38 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 
     @Override
     public void endStructure(Object token) {
+    }
+
+    @Override
+    public void drawLinearGradient(FSLinearGradient lg, Shape bounds) {
+        if (lg.getStopPoints().size() < 2) {
+            return;
+        }
+
+        Color[] colors = new Color[lg.getStopPoints().size()];
+        float[] fractions = new float[lg.getStopPoints().size()];
+
+        float maxLength = lg.getStopPoints().get(lg.getStopPoints().size() - 1).getLength();
+
+        if (maxLength == 0f) {
+            return;
+        }
+
+        for (int i = 0; i < lg.getStopPoints().size(); i++) {
+            StopPoint sp = lg.getStopPoints().get(i);
+            FSRGBColor col = (FSRGBColor) sp.getColor();
+
+            colors[i] = new Color(col.getRed() / 255f, col.getGreen() / 255f, col.getBlue() / 255f);
+            fractions[i] = sp.getLength() / maxLength;
+        }
+
+        Rectangle rect = bounds.getBounds();
+        Point2D pt1 = new Point2D.Double(lg.getX1() + rect.getMinX(), lg.getY1() + rect.getMinY());
+        Point2D pt2 = new Point2D.Double(lg.getX2() + rect.getMinX(), lg.getY2() + rect.getMinY());
+
+        Paint oldPaint = _graphics.getPaint();
+        _graphics.setPaint(new LinearGradientPaint(pt1, pt2, fractions, colors));
+        _graphics.fill(bounds);
+        _graphics.setPaint(oldPaint);
     }
 }
