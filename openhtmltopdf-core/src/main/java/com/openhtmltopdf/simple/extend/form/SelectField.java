@@ -50,11 +50,11 @@ class SelectField extends FormField {
     }
 
     public JComponent create() {
-        List optionList = createList();
+        List<NameValuePair> optionList = createList();
 
         // Either a select list or a drop down/combobox
         if (shouldRenderAsList()) {
-            JList select = new JList(optionList.toArray());
+            JList<NameValuePair> select = new JList<>(optionList.toArray(new NameValuePair[]{}));
             applyComponentStyle(select);
 
             select.setCellRenderer(new CellRenderer());
@@ -81,7 +81,7 @@ class SelectField extends FormField {
 
             return new JScrollPane(select);
         } else {
-            JComboBox select = new JComboBox(optionList.toArray());
+            JComboBox<NameValuePair> select = new JComboBox<>(optionList.toArray(new NameValuePair[optionList.size()]));
             applyComponentStyle(select);
 
             select.setEditable(false);
@@ -93,7 +93,7 @@ class SelectField extends FormField {
     }
     
     protected FormFieldState loadOriginalState() {
-        List<Integer> list = new ArrayList();
+        List<Integer> list = new ArrayList<>();
         
         NodeList options = getElement().getElementsByTagName("option");
 
@@ -110,11 +110,11 @@ class SelectField extends FormField {
     
     protected void applyOriginalState() {
         if (shouldRenderAsList()) {
-            JList select = (JList) ((JScrollPane) getComponent()).getViewport().getView();
+            JList<?> select = (JList<?>) ((JScrollPane) getComponent()).getViewport().getView();
 
             select.setSelectedIndices(getOriginalState().getSelectedIndices());
         } else {
-            JComboBox select = (JComboBox) getComponent();
+            JComboBox<?> select = (JComboBox<?>) getComponent();
             
             // This looks strange, but basically since this is a single select, and
             // someone might have put selected="selected" on more than a single option
@@ -132,7 +132,7 @@ class SelectField extends FormField {
 
     protected String[] getFieldValues() {
         if (shouldRenderAsList()) {
-            JList select = (JList) ((JScrollPane) getComponent()).getViewport().getView();
+            JList<?> select = (JList<?>) ((JScrollPane) getComponent()).getViewport().getView();
             
             Object [] selectedValues = select.getSelectedValues();
             String [] submitValues = new String [selectedValues.length];
@@ -145,7 +145,7 @@ class SelectField extends FormField {
             
             return submitValues;
         } else {
-            JComboBox select = (JComboBox) getComponent();
+            JComboBox<?> select = (JComboBox<?>) getComponent();
             
             NameValuePair selectedValue = (NameValuePair) select.getSelectedItem();
             
@@ -158,13 +158,13 @@ class SelectField extends FormField {
         return new String [] {};
     }
 
-    private List createList() {
-        List list = new ArrayList();        
+    private List<NameValuePair> createList() {
+        List<NameValuePair> list = new ArrayList<>();
         addChildren(list, getElement(), 0);
         return list;
     }
 
-    private void addChildren(List list, Element e, int indent) {
+    private void addChildren(List<NameValuePair> list, Element e, int indent) {
         NodeList children = e.getChildNodes();
         
         for (int i = 0; i < children.getLength(); i++) {
@@ -288,7 +288,7 @@ class SelectField extends FormField {
             // only for comboboxes
             if (! (e.getSource() instanceof JComboBox) )
                 return;
-            JComboBox combo = (JComboBox)e.getSource();
+            JComboBox<?> combo = (JComboBox<?>)e.getSource();
             
             if (((NameValuePair)e.getItem()).getValue() == null) {
                 // header selected: revert to old selection
@@ -303,13 +303,13 @@ class SelectField extends FormField {
             // only for lists
             if (! (e.getSource() instanceof JList) )
                 return;
-            JList list = (JList)e.getSource();
-            ListModel model = list.getModel();
+            JList<NameValuePair> list = (JList<NameValuePair>)e.getSource();
+            ListModel<NameValuePair> model = list.getModel();
             
             // deselect all headings
             for (int i = e.getFirstIndex(); i <= e.getLastIndex(); i++) {
                 if (!list.isSelectedIndex(i)) continue;
-                NameValuePair pair = (NameValuePair) model.getElementAt(i);
+                NameValuePair pair = model.getElementAt(i);
                 if ( pair!=null && pair.getValue() == null) {
                     // We have a heading, remove it. As this handler is called
                     // as a result of the resulting removal and we do process

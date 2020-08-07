@@ -20,10 +20,7 @@
 package com.openhtmltopdf.newtable;
 
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -1072,9 +1069,7 @@ public class TableBox extends BlockBox {
             int nEffCols = _table.numEffCols();
 
             long[] calcWidth = new long[nEffCols];
-            for (int i = 0; i < calcWidth.length; i++) {
-                calcWidth[i] = -1;
-            }
+            Arrays.fill(calcWidth, -1);
 
             // first assign fixed width
             for ( int i = 0; i < nEffCols; i++ ) {

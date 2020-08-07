@@ -43,7 +43,7 @@ public class OpenHtmlGvtFontFamily implements GVTFontFamily {
 		}
 	}
 	
-	private final Map<FontDescriptor, OpenHtmlGvtFont> fonts = new HashMap<FontDescriptor, OpenHtmlGvtFont>(1);
+	private final Map<FontDescriptor, OpenHtmlGvtFont> fonts = new HashMap<>(1);
 	private final String fontFamily;
 	
 	public OpenHtmlGvtFontFamily(String family) {

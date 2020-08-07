@@ -43,13 +43,13 @@ public class Stylesheet implements RulesetContainer {
      */
     private final int _origin;
 
-    private final List<FontFaceRule> _fontFaceRules = new ArrayList<FontFaceRule>();
-    private final List<StylesheetInfo> _importRules = new ArrayList<StylesheetInfo>();
+    private final List<FontFaceRule> _fontFaceRules = new ArrayList<>();
+    private final List<StylesheetInfo> _importRules = new ArrayList<>();
     
     /**
      *  May contain page rules, media rules or rulesets.
      */
-    private final List<Object> _contents = new ArrayList<Object>();
+    private final List<Object> _contents = new ArrayList<>();
 
     /**
      * Creates a new instance of Stylesheet

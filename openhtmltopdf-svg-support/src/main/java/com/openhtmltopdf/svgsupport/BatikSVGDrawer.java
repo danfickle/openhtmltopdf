@@ -1,6 +1,5 @@
 package com.openhtmltopdf.svgsupport;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -99,6 +98,6 @@ public class BatikSVGDrawer implements SVGDrawer {
     }
     
     @Override
-    public void close() throws IOException {
+    public void close() {
     }
 }

@@ -44,7 +44,7 @@ public class ParagraphSplitter {
         private final TreeMap<Integer, BidiTextRun> splitPoints;
         
         // A map from Text nodes to their first index in the paragraph.
-        protected final Map<Text, Integer> textRuns = new HashMap<Text, Integer>();
+        protected final Map<Text, Integer> textRuns = new HashMap<>();
 
         // One of LTR, RTL or AUTO.
         protected final IdentValue cssDirection;
@@ -57,7 +57,7 @@ public class ParagraphSplitter {
         
         private Paragraph(IdentValue direction, boolean isLiveImplementation) {
         	this.builder = isLiveImplementation ? new StringBuilder() : null;
-        	this.splitPoints = isLiveImplementation ? new TreeMap<Integer, BidiTextRun>() : null;
+        	this.splitPoints = isLiveImplementation ? new TreeMap<>() : null;
         	this.cssDirection = direction;
         }
         
@@ -203,9 +203,9 @@ public class ParagraphSplitter {
         Paragraph parent = isLiveImplementation ? new Paragraph(direction) : new FakeParagraph(direction);
         
         if (isLiveImplementation) {
-        	allParagraphs = new ArrayList<Paragraph>();
-        	paragraphs = new HashMap<Text, Paragraph>();
-        	blocks = new HashMap<Element, Paragraph>();
+        	allParagraphs = new ArrayList<>();
+        	paragraphs = new HashMap<>();
+        	blocks = new HashMap<>();
         	
         	splitParagraphs(c, doc, parent);
         } else {

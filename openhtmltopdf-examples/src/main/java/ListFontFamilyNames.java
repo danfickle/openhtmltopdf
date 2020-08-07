@@ -14,7 +14,7 @@ public class ListFontFamilyNames {
             System.exit(1);
         }
         File fod = new File(args[0]);
-        List fontFiles = new ArrayList();
+        List<File> fontFiles = new ArrayList<>();
         if (fod.isDirectory()) {
             fontFiles.addAll(Arrays.asList(fod.listFiles(new FilenameFilter() {
                 public boolean accept(File file, String s) {
@@ -25,9 +25,9 @@ public class ListFontFamilyNames {
             fontFiles.add(fod);
         }
         //System.out.println("font files " + fontFiles);
-        List errors = new ArrayList();
-        for (Iterator fit = fontFiles.iterator(); fit.hasNext();) {
-            File f = (File) fit.next();
+        List<String> errors = new ArrayList<>();
+        for (Iterator<File> fit = fontFiles.iterator(); fit.hasNext();) {
+            File f = fit.next();
             Font awtf = null;
             try {
                 awtf = Font.createFont(Font.TRUETYPE_FONT, f);
@@ -35,9 +35,9 @@ public class ListFontFamilyNames {
                 System.err.println("Trying to load font via AWT: " + e.getMessage());
                 System.exit(1);
             }
-            Set set;
+            Set<String> set;
             try {
-                set = null; // TODO ITextFontResolver.getDistinctFontFamilyNames(f.getAbsolutePath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                set = Collections.emptySet(); // TODO ITextFontResolver.getDistinctFontFamilyNames(f.getAbsolutePath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
                 System.out.println(
                         "Font located at " + f.getPath() + "\n" +
                                 "  family name (reported by AWT): " + awtf.getFamily() + "\n" +
@@ -58,8 +58,8 @@ public class ListFontFamilyNames {
         if (errors.size() > 0) {
             if (args.length == 2 && args[1].equals("-e")) {
                 System.err.println("Errors were reported on reading some font files.");
-                for (Iterator eit = errors.iterator(); eit.hasNext();) {
-                    System.err.println((String) eit.next());
+                for (Iterator<String> eit = errors.iterator(); eit.hasNext();) {
+                    System.err.println(eit.next());
                 }
             } else {
                 System.err.println("Errors were reported on reading some font files. Pass -e as argument to show them, and re-run.");

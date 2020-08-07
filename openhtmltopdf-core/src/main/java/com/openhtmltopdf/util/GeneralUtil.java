@@ -28,25 +28,6 @@ package com.openhtmltopdf.util;
 public class GeneralUtil {
 
     /**
-     * Dumps an exception to the console, only the last 5 lines of the stack
-     * trace.
-     *
-     * @param ex PARAM
-     */
-    public static void dumpShortException(Exception ex) {
-        String s = ex.getMessage();
-        if (s == null || s.trim().equals("null")) {
-            s = "{no ex. message}";
-        }
-        System.out.println(s + ", " + ex.getClass());
-        StackTraceElement[] stes = ex.getStackTrace();
-        for (int i = 0; i < stes.length && i < 5; i++) {
-            StackTraceElement ste = stes[i];
-            System.out.println("  " + ste.getClassName() + "." + ste.getMethodName() + "(ln " + ste.getLineNumber() + ")");
-        }
-    }
-
-    /**
      * Parses an integer from a string using less restrictive rules about which
      * characters we won't accept.  This scavenges the supplied string for any
      * numeric character, while dropping all others.

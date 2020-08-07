@@ -60,7 +60,7 @@ public class StyleTracker {
         return result;
     }
 
-    public List getStyles() {
+    public List<CascadedStyle> getStyles() {
         return _styles;
     }
     

@@ -13,7 +13,7 @@ public class MapDisplayListContainer extends DisplayListContainer {
     
     public MapDisplayListContainer(int pageCount, int expectedCapacity) {
         this.pageCount = pageCount;
-        this.pages = new HashMap<Integer, DisplayListContainer.DisplayListPageContainer>(expectedCapacity);
+        this.pages = new HashMap<>(expectedCapacity);
     }
     
     @Override

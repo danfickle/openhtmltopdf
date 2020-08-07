@@ -309,15 +309,15 @@ public class Configuration {
                 }
             }
 
-            Enumeration elem = this.properties.keys();
-            List lp = Collections.list(elem);
+            Enumeration<?> elem = this.properties.keys();
+            List<String> lp = (List<String>) Collections.list(elem);
             Collections.sort(lp);
-            Iterator iter = lp.iterator();
+            Iterator<String> iter = lp.iterator();
 
             // override existing properties
             int cnt = 0;
             while (iter.hasNext()) {
-                String key = (String) iter.next();
+                String key = iter.next();
                 String val = temp.getProperty(key);
                 if (val != null) {
                     this.properties.setProperty(key, val);
@@ -328,13 +328,13 @@ public class Configuration {
             finer("Configuration: " + cnt + " properties overridden from secondary properties file.");
             // and add any new properties we don't already know about (needed for custom logging
             // configuration)
-            Enumeration allRead = temp.keys();
-            List ap = Collections.list(allRead);
+            Enumeration<?> allRead = temp.keys();
+            List<String> ap = (List<String>) Collections.list(allRead);
             Collections.sort(ap);
             iter = ap.iterator();
             cnt = 0;
             while (iter.hasNext()) {
-                String key = (String) iter.next();
+                String key = iter.next();
                 String val = temp.getProperty(key);
                 if (val != null) {
                     this.properties.setProperty(key, val);
@@ -372,14 +372,14 @@ public class Configuration {
      * optional. See class documentation.
      */
     private void loadSystemProperties() {
-        Enumeration elem = properties.keys();
-        List lp = Collections.list(elem);
+        Enumeration<?> elem = properties.keys();
+        List<String> lp = (List<String>) Collections.list(elem);
         Collections.sort(lp);
-        Iterator iter = lp.iterator();
+        Iterator<String> iter = lp.iterator();
         fine("Overriding loaded configuration from System properties.");
         int cnt = 0;
         while (iter.hasNext()) {
-            String key = (String) iter.next();
+            String key = iter.next();
             if (!key.startsWith("xr.")) {
                 continue;
             }
@@ -400,7 +400,7 @@ public class Configuration {
         // add any additional properties we don't already know about (e.g. used for extended logging properties)
         try {
             final Properties sysProps = System.getProperties();
-            final Enumeration keys = sysProps.keys();
+            final Enumeration<?> keys = sysProps.keys();
             cnt = 0;
             while (keys.hasMoreElements()) {
                 String key = (String) keys.nextElement();
@@ -421,14 +421,14 @@ public class Configuration {
      * Writes a log of loaded properties to the plumbing.init Logger.
      */
     private void logAfterLoad() {
-        Enumeration elem = properties.keys();
-        List lp = Collections.list(elem);
+        Enumeration<?> elem = properties.keys();
+        List<String> lp = (List<String>) Collections.list(elem);
         Collections.sort(lp);
-        Iterator iter = lp.iterator();
+        Iterator<String> iter = lp.iterator();
         finer("Configuration contains " + properties.size() + " keys.");
         finer("List of configuration properties, after override:");
         while (iter.hasNext()) {
-            String key = (String) iter.next();
+            String key = iter.next();
             String val = properties.getProperty(key);
             finer("  " + key + " = " + val);
         }
@@ -639,10 +639,10 @@ public class Configuration {
      * @param prefix Prefix to filter on. No regex.
      * @return Returns Iterator, see description.
      */
-    public static Iterator keysByPrefix(String prefix) {
+    public static Iterator<String> keysByPrefix(String prefix) {
         Configuration conf = instance();
-        Iterator iter = conf.properties.keySet().iterator();
-        List l = new ArrayList();
+        Iterator<?> iter = conf.properties.keySet().iterator();
+        List<String> l = new ArrayList<>();
         while (iter.hasNext()) {
             String key = (String) iter.next();
             if (key.startsWith(prefix)) {
@@ -727,7 +727,7 @@ public class Configuration {
                     "should be FQN<dot>constant, is " + val);
             return defaultValue;
         }
-        Class klass;
+        Class<?> klass;
         try {
             klass = Class.forName(klassname);
         } catch (ClassNotFoundException e) {

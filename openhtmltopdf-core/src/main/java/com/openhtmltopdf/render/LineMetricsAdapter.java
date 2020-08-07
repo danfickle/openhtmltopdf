@@ -38,7 +38,7 @@ public class LineMetricsAdapter implements FSFontMetrics {
     private final List<LineMetrics> _lineMetrics;
     
     public LineMetricsAdapter(List<Font> fonts, String str, FontRenderContext ctx) {
-        _lineMetrics = new ArrayList<LineMetrics>(fonts.size());
+        _lineMetrics = new ArrayList<>(fonts.size());
     	for (Font fnt : fonts) {
         	_lineMetrics.add(fnt.getLineMetrics(str, ctx));
         }

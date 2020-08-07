@@ -43,7 +43,7 @@ public class StylesheetInfo {
     private String uri;
     private int origin = USER_AGENT;
     private String type;
-    private List<String> mediaTypes = new ArrayList<String>();
+    private List<String> mediaTypes = new ArrayList<>();
     private String content;
 
     /** Origin of stylesheet - user agent  */

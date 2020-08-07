@@ -122,7 +122,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     
     public void addInlineChild(LayoutContext c, Object child, boolean callUnmarkPending) {
         if (_inlineChildren == null) {
-            _inlineChildren = new ArrayList<Object>();
+            _inlineChildren = new ArrayList<>();
         }
         
         _inlineChildren.add(child);
@@ -483,7 +483,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     }
 
     public List<TextDecoration> getTextDecorations() {
-        return _textDecorations == null ? Collections.<TextDecoration>emptyList() : _textDecorations;
+        return _textDecorations == null ? Collections.emptyList() : _textDecorations;
     }
 
     public void setTextDecorations(List<TextDecoration> textDecoration) {
@@ -510,7 +510,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     public List<Box> getElementWithContent() {
         // inefficient, but the lists in question shouldn't be very long
         
-        List<Box> result = new ArrayList<Box>();
+        List<Box> result = new ArrayList<>();
         
         BlockBox container = (BlockBox)getLineBox().getParent();
         while (true) {

@@ -432,7 +432,7 @@ public class LineBox extends Box implements InlinePaintable {
     }
     
     public List<Box> getNonFlowContent() {
-        return _nonFlowContent == null ? Collections.<Box>emptyList() : _nonFlowContent;
+        return _nonFlowContent == null ? Collections.emptyList() : _nonFlowContent;
     }
     
     public void addNonFlowContent(BlockBox box) {

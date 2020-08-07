@@ -68,13 +68,13 @@ public class PdfBoxForm {
     private final Element element;
     
     // All controls, with a font name if needed.
-    private final List<ControlFontPair> controls = new ArrayList<PdfBoxForm.ControlFontPair>();
+    private final List<ControlFontPair> controls = new ArrayList<>();
 
     // The submits have to be done after all other controls are processed.
-    private final List<Control> submits = new ArrayList<PdfBoxForm.Control>(2);
+    private final List<Control> submits = new ArrayList<>(2);
 
     // We've got to find all the radio button controls that belong to a group (common name).
-    private final Map<String, List<PdfBoxForm.Control>> radioGroups = new LinkedHashMap<String, List<Control>>();
+    private final Map<String, List<PdfBoxForm.Control>> radioGroups = new LinkedHashMap<>();
     
     // Contains a tree of fields in the form:
     // person
@@ -82,7 +82,7 @@ public class PdfBoxForm {
     // person.details.name
     // person.details.phone
     // etc.
-    private final Map<String, Field> allFieldMap = new HashMap<String, PdfBoxForm.Field>();
+    private final Map<String, Field> allFieldMap = new HashMap<>();
     
     // A link in the tree of fields. We have this so that each field can look up
     // its parent field.
@@ -308,9 +308,9 @@ public class PdfBoxForm {
 
         field.setMultiSelect(true);
         
-        List<String> labels = new ArrayList<String>();
-        List<String> values = new ArrayList<String>();
-        List<Integer> selected = new ArrayList<Integer>();
+        List<String> labels = new ArrayList<>();
+        List<String> values = new ArrayList<>();
+        List<Integer> selected = new ArrayList<>();
         populateOptions(ctrl.box.getElement(), labels, values, selected);
         
         field.setOptions(values, labels);
@@ -354,8 +354,8 @@ public class PdfBoxForm {
 
         setPartialNameToField(ctrl, field);
         
-        List<String> labels = new ArrayList<String>();
-        List<String> values = new ArrayList<String>();
+        List<String> labels = new ArrayList<>();
+        List<String> values = new ArrayList<>();
         String selectedLabel = populateOptions(ctrl.box.getElement(), labels, values, null);
         
         field.setOptions(values, labels);
@@ -470,7 +470,7 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widget);
     }
 
-    public static enum CheckboxStyle {
+    public enum CheckboxStyle {
         CHECK(52),
 
         CROSS(53),
@@ -485,7 +485,7 @@ public class PdfBoxForm {
         
         private final int caption;
         
-        private CheckboxStyle(int caption) {
+        CheckboxStyle(int caption) {
             this.caption = caption;
         }
         
@@ -628,13 +628,13 @@ public class PdfBoxForm {
         Field fObj = allFieldMap.get(groupName);
         setPartialNameToField(group.get(0).box.getElement(), fObj, field);
         
-        List<String> values = new ArrayList<String>(group.size());
+        List<String> values = new ArrayList<>(group.size());
         for (Control ctrl : group) {
             values.add(ctrl.box.getElement().getAttribute("value"));
         }
         field.setExportValues(values);
         
-        List<PDAnnotationWidget> widgets = new ArrayList<PDAnnotationWidget>(group.size());
+        List<PDAnnotationWidget> widgets = new ArrayList<>(group.size());
         
         int radioCnt = 0;
         
@@ -717,7 +717,7 @@ public class PdfBoxForm {
         widget.setRectangle(rect);
         widget.setPage(ctrl.page);
 
-        COSArrayList<String> fieldsToInclude = new COSArrayList<String>();
+        COSArrayList<String> fieldsToInclude = new COSArrayList<>();
         for (Field f : allFieldMap.values()) {
             if (f.isTerminal) {
                 fieldsToInclude.add(f.qualifiedName);
@@ -816,7 +816,7 @@ public class PdfBoxForm {
                 List<Control> radioGroup = radioGroups.get(e.getAttribute("name"));
                 
                 if (radioGroup == null) {
-                    radioGroup = new ArrayList<PdfBoxForm.Control>();
+                    radioGroup = new ArrayList<>();
                     radioGroups.put(e.getAttribute("name"), radioGroup);
                 }
 

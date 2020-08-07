@@ -61,10 +61,10 @@ import java.util.logging.Level;
  */
 public class PdfBoxFontResolver implements FontResolver {
     private Map<String, FontFamily<FontDescription>> _fontFamilies;
-    private Map<String, FontDescription> _fontCache = new HashMap<String, FontDescription>();
+    private Map<String, FontDescription> _fontCache = new HashMap<>();
     private final PDDocument _doc;
     private final SharedContext _sharedContext;
-    private final List<TrueTypeCollection> _collectionsToClose = new ArrayList<TrueTypeCollection>();
+    private final List<TrueTypeCollection> _collectionsToClose = new ArrayList<>();
     private final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
     private final PdfAConformance _pdfAConformance;
     private final boolean _pdfUaConform;
@@ -77,7 +77,7 @@ public class PdfBoxFontResolver implements FontResolver {
         _pdfUaConform = pdfUaConform;
  
         // All fonts are required to be embedded in PDF/A documents, so we don't add the built-in fonts, if conformance is required.
-        _fontFamilies = (_pdfAConformance == PdfAConformance.NONE && !pdfUaConform) ? createInitialFontMap() : new HashMap<String, FontFamily<FontDescription>>();
+        _fontFamilies = (_pdfAConformance == PdfAConformance.NONE && !pdfUaConform) ? createInitialFontMap() : new HashMap<>();
     }
 
     @Override
@@ -108,12 +108,12 @@ public class PdfBoxFontResolver implements FontResolver {
     public void flushCache() {
         _fontFamilies = createInitialFontMap();
         close();
-        _fontCache = new HashMap<String, FontDescription>();
+        _fontCache = new HashMap<>();
     }
 
     @Deprecated
     public void flushFontFaceFonts() {
-        _fontCache = new HashMap<String, FontDescription>();
+        _fontCache = new HashMap<>();
 
         for (Iterator<FontFamily<FontDescription>> i = _fontFamilies.values().iterator(); i.hasNext(); ) {
             FontFamily<FontDescription> family = i.next();
@@ -396,7 +396,7 @@ public class PdfBoxFontResolver implements FontResolver {
     private FontFamily<FontDescription> getFontFamily(String fontFamilyName) {
         FontFamily<FontDescription> fontFamily = _fontFamilies.get(fontFamilyName);
         if (fontFamily == null) {
-            fontFamily = new FontFamily<FontDescription>();
+            fontFamily = new FontFamily<>();
             _fontFamilies.put(fontFamilyName, fontFamily);
         }
         return fontFamily;
@@ -407,7 +407,7 @@ public class PdfBoxFontResolver implements FontResolver {
             style = IdentValue.NORMAL;
         }
 
-        List<FontDescription> fonts = new ArrayList<FontDescription>(3);
+        List<FontDescription> fonts = new ArrayList<>(3);
         
         if (families != null) {
             for (int i = 0; i < families.length; i++) {
@@ -485,7 +485,7 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     private static Map<String, FontFamily<FontDescription>> createInitialFontMap() {
-        HashMap<String, FontFamily<FontDescription>> result = new HashMap<String, FontFamily<FontDescription>>();
+        HashMap<String, FontFamily<FontDescription>> result = new HashMap<>();
 
         try {
             addCourier(result);
@@ -510,7 +510,7 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     private static void addCourier(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
-        FontFamily<FontDescription> courier = new FontFamily<FontDescription>();
+        FontFamily<FontDescription> courier = new FontFamily<>();
         courier.setName("Courier");
 
         courier.addFontDescription(new FontDescription(
@@ -528,7 +528,7 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     private static void addTimes(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
-        FontFamily<FontDescription> times = new FontFamily<FontDescription>();
+        FontFamily<FontDescription> times = new FontFamily<>();
         times.setName("Times");
 
         times.addFontDescription(new FontDescription(
@@ -545,7 +545,7 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     private static void addHelvetica(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
-        FontFamily<FontDescription> helvetica = new FontFamily<FontDescription>();
+        FontFamily<FontDescription> helvetica = new FontFamily<>();
         helvetica.setName("Helvetica");
 
         helvetica.addFontDescription(new FontDescription(
@@ -563,7 +563,7 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     private static void addSymbol(Map<String, FontFamily<FontDescription>> result) throws IOException {
-        FontFamily<FontDescription> fontFamily = new FontFamily<FontDescription>();
+        FontFamily<FontDescription> fontFamily = new FontFamily<>();
         fontFamily.setName("Symbol");
 
         fontFamily.addFontDescription(new FontDescription(createFont(PDType1Font.SYMBOL), IdentValue.NORMAL, 400));
@@ -572,7 +572,7 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 
     private static void addZapfDingbats(Map<String, FontFamily<FontDescription>> result) throws IOException {
-        FontFamily<FontDescription> fontFamily = new FontFamily<FontDescription>();
+        FontFamily<FontDescription> fontFamily = new FontFamily<>();
         fontFamily.setName("ZapfDingbats");
 
         fontFamily.addFontDescription(new FontDescription(createFont(PDType1Font.ZAPF_DINGBATS), IdentValue.NORMAL, 400));

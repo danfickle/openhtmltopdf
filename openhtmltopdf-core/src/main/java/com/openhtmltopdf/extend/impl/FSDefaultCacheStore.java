@@ -17,7 +17,7 @@ import com.openhtmltopdf.util.XRLog;
  * Specifically, the {@link #get(String, Callable)} may call the loader multiple times if called in close succession.
  */
 public class FSDefaultCacheStore implements FSCacheEx<String, FSCacheValue> {
-    private final Map<String, FSCacheValue> _store = new ConcurrentHashMap<String, FSCacheValue>();
+    private final Map<String, FSCacheValue> _store = new ConcurrentHashMap<>();
     
     @Override
     public void put(String key, FSCacheValue value) {

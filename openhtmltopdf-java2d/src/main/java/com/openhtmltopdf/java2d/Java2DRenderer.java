@@ -317,7 +317,7 @@ public class Java2DRenderer implements Closeable {
         writePageImages(pages, c, firstPageSize);
     }
     
-    public void writePage(int zeroBasedPageNumber) throws IOException {
+    public void writePage(int zeroBasedPageNumber) {
     	List<PageBox> pages = _root.getLayer().getPages();
     	
     	if (zeroBasedPageNumber >= pages.size()) {
@@ -387,7 +387,7 @@ public class Java2DRenderer implements Closeable {
     	return _root.getLayer().getPages().size();
     }
     
-    private void writePageImages(List<PageBox> pages, RenderingContext c, Rectangle2D firstPageSize) throws IOException {
+    private void writePageImages(List<PageBox> pages, RenderingContext c, Rectangle2D firstPageSize) {
         _outputDevice.setRoot(_root);
         
         FSPage pg = _pageProcessor.createPage(0, (int) firstPageSize.getWidth(), (int) firstPageSize.getHeight());

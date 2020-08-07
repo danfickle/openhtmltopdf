@@ -34,12 +34,12 @@ public class SelectControl extends AbstractControl {
 
     private int _size;
     private boolean _multiple;
-    private List _values;
+    private List<String> _values;
 
     private String _initialValue;
     private String[] _initialValues;
 
-    private Map _options;
+    private Map<String, String> _options;
 
     public SelectControl(XhtmlForm form, Element e) {
         super(form, e);
@@ -47,12 +47,12 @@ public class SelectControl extends AbstractControl {
         _size = getIntAttribute(e, "size", 1);
         _multiple = e.getAttribute("multiple").length() != 0;
         if (_multiple) {
-            _values = new ArrayList();
+            _values = new ArrayList<>();
         }
         super.setValue(null);
         setSuccessful(false);
 
-        _options = new LinkedHashMap();
+        _options = new LinkedHashMap<>();
         traverseOptions(e, "");
 
         if (_multiple) {
@@ -111,8 +111,8 @@ public class SelectControl extends AbstractControl {
         return _multiple;
     }
 
-    public Map getOptions() {
-        return new LinkedHashMap(_options);
+    public Map<String, String> getOptions() {
+        return new LinkedHashMap<>(_options);
     }
 
     public void setValue(String value) {
@@ -129,7 +129,7 @@ public class SelectControl extends AbstractControl {
 
     public String[] getMultipleValues() {
         if (isMultiple()) {
-            return (String[]) _values.toArray(new String[_values.size()]);
+            return _values.toArray(new String[_values.size()]);
         } else {
             return null;
         }

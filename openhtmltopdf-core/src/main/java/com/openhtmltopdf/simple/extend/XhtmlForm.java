@@ -55,15 +55,15 @@ public class XhtmlForm {
     private static int _defaultGroupCount = 1;
 
     private UserAgentCallback _userAgentCallback;
-    private Map _componentCache;
-    private Map _buttonGroups;
+    private Map<Element, FormField> _componentCache;
+    private Map<String, ButtonGroupWrapper> _buttonGroups;
     private Element _parentFormElement;
     private FormSubmissionListener _formSubmissionListener;
 
     public XhtmlForm(UserAgentCallback uac, Element e, FormSubmissionListener fsListener) {
         _userAgentCallback = uac;
-        _buttonGroups = new HashMap();
-        _componentCache = new LinkedHashMap();
+        _buttonGroups = new HashMap<>();
+        _componentCache = new LinkedHashMap<>();
         _parentFormElement = e;
         _formSubmissionListener = fsListener;
     }
@@ -81,7 +81,7 @@ public class XhtmlForm {
             groupName = createNewDefaultGroupName();
         }
 
-        ButtonGroupWrapper group = (ButtonGroupWrapper) _buttonGroups.get(groupName);
+        ButtonGroupWrapper group = _buttonGroups.get(groupName);
         
         if (group == null) {
             group = new ButtonGroupWrapper();
@@ -107,7 +107,7 @@ public class XhtmlForm {
         FormField field = null;
 
         if (_componentCache.containsKey(e)) {
-            field = (FormField) _componentCache.get(e);
+            field = _componentCache.get(e);
         } else {
             if (!isFormField(e)) {
                 return null;
@@ -127,14 +127,14 @@ public class XhtmlForm {
     }
     
     public void reset() {
-        Iterator buttonGroups = _buttonGroups.values().iterator();
+        Iterator<ButtonGroupWrapper> buttonGroups = _buttonGroups.values().iterator();
         while (buttonGroups.hasNext()) {
-            ((ButtonGroupWrapper) buttonGroups.next()).clearSelection();
+            buttonGroups.next().clearSelection();
         }
 
-        Iterator fields = _componentCache.values().iterator();
+        Iterator<FormField> fields = _componentCache.values().iterator();
         while (fields.hasNext()) {
-            ((FormField) fields.next()).reset();
+            fields.next().reset();
         }
     }
     public static String collectText(Element e) {
@@ -161,12 +161,12 @@ public class XhtmlForm {
         StringBuilder data = new StringBuilder();
         String action = _parentFormElement.getAttribute("action");
         data.append(action).append("?");
-        Iterator fields = _componentCache.entrySet().iterator();
+        Iterator<Map.Entry<Element, FormField>> fields = _componentCache.entrySet().iterator();
         boolean first=true;
         while (fields.hasNext()) {
-            Map.Entry entry = (Map.Entry) fields.next();
+            Map.Entry<Element, FormField> entry = fields.next();
 
-            FormField field = (FormField) entry.getValue();
+            FormField field = entry.getValue();
 
             if (field.includeInSubmission(source)) {
                 String [] dataStrings = field.getFormDataStrings();
