@@ -324,25 +324,25 @@ public class Java2DRenderer implements Closeable {
     }
     
     public void writePage(int zeroBasedPageNumber) throws IOException {
-    	List<PageBox> pages = _root.getLayer().getPages();
-    	
-    	if (zeroBasedPageNumber >= pages.size()) {
-    		throw new IndexOutOfBoundsException();
-    	}
-    	
-    	RenderingContext c = newRenderingContext();
+        List<PageBox> pages = _root.getLayer().getPages();
+
+        if (zeroBasedPageNumber >= pages.size()) {
+            throw new IndexOutOfBoundsException();
+        }
+
+        RenderingContext c = newRenderingContext();
         c.setInitialPageNo(_initialPageNo);
 
-    	PageBox page = pages.get(zeroBasedPageNumber);
-    	
+        PageBox page = pages.get(zeroBasedPageNumber);
+
         Rectangle2D pageSize = new Rectangle2D.Float(0, 0,
                 page.getWidth(c) / DEFAULT_DOTS_PER_PIXEL,
                 page.getHeight(c) / DEFAULT_DOTS_PER_PIXEL);
-        
+
         _outputDevice.setRoot(_root);
-        
+
         FSPage pg = _pageProcessor.createPage(zeroBasedPageNumber, (int) pageSize.getWidth(), (int) pageSize.getHeight());
-        
+
         _outputDevice.initializePage(pg.getGraphics());
         _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
 
@@ -375,7 +375,7 @@ public class Java2DRenderer implements Closeable {
         int top = page.getMarginBorderPadding(c, CalculatedStyle.TOP);
         int bottom = page.getMarginBorderPadding(c, CalculatedStyle.BOTTOM);
         int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
-        int right = page.getMarginBorderPadding(c, CalculatedStyle.RIGHT);
+        // int right = page.getMarginBorderPadding(c, CalculatedStyle.RIGHT);
 
         FSPage pg = _pageProcessor.createPage(0, (int) pageSize.getWidth(), rootHeight + top + bottom);
 
@@ -393,18 +393,15 @@ public class Java2DRenderer implements Closeable {
         Rectangle printClip = page.getPrintClippingBounds(c);
         Rectangle pageClip = new Rectangle(0, 0, printClip.width, rootHeight);
 
-        //_outputDevice.translate(left, top);
-        _outputDevice.pushClip(pageClip);
         _outputDevice.pushTransformLayer(AffineTransform.getTranslateInstance(left, top));
-        
+        _outputDevice.pushClip(pageClip);
 
         SimplePainter painter = new SimplePainter(0, 0);
         painter.paintLayer(c, _root.getLayer());
 
-        
-        //_outputDevice.translate(-left, -top);
-        _outputDevice.popTransformLayer();
         _outputDevice.popClip();
+        _outputDevice.popTransformLayer();
+
         _pageProcessor.finishPage(pg);
         _outputDevice.finish(c, _root);
     }
@@ -455,22 +452,19 @@ public class Java2DRenderer implements Closeable {
         page.paintMarginAreas(c, 0, _pagingMode);
         page.paintBorder(c, 0, _pagingMode);
 
-        Rectangle content = page.getPrintClippingBounds(c);
-
         int top = -page.getPaintingTop() + page.getMarginBorderPadding(c, CalculatedStyle.TOP);
         int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
 
-        // FIXME: Not fully understanding why this is needed.
-        content.setLocation(0, c.getPageNo() == 0 ? 0 : page.getMarginBorderPadding(c, CalculatedStyle.TOP));
+        Rectangle content = new Rectangle(0, page.getPaintingTop(), page.getContentWidth(c), page.getContentHeight(c));
 
-        _outputDevice.pushClip(content);
         _outputDevice.pushTransformLayer(AffineTransform.getTranslateInstance(left, top));
+        _outputDevice.pushClip(content);
 
         DisplayListPainter painter = new DisplayListPainter();
         painter.paint(c, pageOperations);
 
-        _outputDevice.popTransformLayer();
         _outputDevice.popClip();
+        _outputDevice.popTransformLayer();
     }
 
     @Override
