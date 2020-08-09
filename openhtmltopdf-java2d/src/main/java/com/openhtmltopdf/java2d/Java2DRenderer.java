@@ -314,6 +314,7 @@ public class Java2DRenderer implements Closeable {
 
         RenderingContext c = newRenderingContext();
         c.setInitialPageNo(_initialPageNo);
+        c.setFastRenderer(true);
 
         PageBox firstPage = pages.get(0);
         Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
@@ -332,6 +333,7 @@ public class Java2DRenderer implements Closeable {
 
         RenderingContext c = newRenderingContext();
         c.setInitialPageNo(_initialPageNo);
+        c.setFastRenderer(true);
 
         PageBox page = pages.get(zeroBasedPageNumber);
 
@@ -364,6 +366,7 @@ public class Java2DRenderer implements Closeable {
 
         RenderingContext c = newRenderingContext();
         c.setInitialPageNo(_initialPageNo);
+        c.setFastRenderer(true);
 
         PageBox page = pages.get(0);
         Rectangle2D pageSize = new Rectangle2D.Float(0, 0,

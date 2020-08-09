@@ -1,0 +1,27 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 25px;
+}
+</style>
+</head>
+<body style="max-width: 150px; border: 1px solid red; font-family: 'TestFont'; margin: 0;">
+  <div style="position:fixed; top: 45px; left: 0; overflow:hidden; width: 60px; height: 20px; border: 1px solid purple;">
+    Fixed position element which also has hidden overflow
+  </div>
+
+  <div style="position: absolute; top: 20px; height: 20px; left: 0; border: 1px solid pink;">
+   Absolute position
+  </div>
+
+  <div style="position: relative; top: 70px; height: 30px; left: 0; border: 1px solid orange;">
+    <div style="position: absolute; bottom: 0; right: 0; width: 30px; height: 20px; background-color: blue;">ABS</div>
+  </div>
+
+  <div style="page-break-before: always;"></div>
+
+  <div>Page two</div>
+</body>
+</html>
