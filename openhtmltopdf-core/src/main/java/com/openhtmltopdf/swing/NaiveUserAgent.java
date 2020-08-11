@@ -263,7 +263,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         } else {
             String resolved = _resolver.resolveURI(this._baseUri, uri);
 
-            if (!isAllowed(type, uri)) {
+            if (!isAllowed(type, resolved)) {
             	// FIXME
 			}
             
@@ -324,7 +324,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     public XMLResource getXMLResource(String uri, ExternalResourceType type) {
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
 
-		if (!isAllowed(type, uri)) {
+		if (!isAllowed(type, resolved)) {
 			//FIXME
 		}
     	
