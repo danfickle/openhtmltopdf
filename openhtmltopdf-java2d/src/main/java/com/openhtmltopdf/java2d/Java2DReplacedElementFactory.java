@@ -40,21 +40,17 @@ public class Java2DReplacedElementFactory extends SwingReplacedElementFactory {
 				return new Java2DObjectDrawerReplacedElement(e, drawer, cssWidth, cssHeight,
 						context.getSharedContext().getDotsPerPixel());
 			}
-		} else if (nodeName.equals("img") && _svgImpl != null) {
-			String srcAttr = e.getAttribute("src");
-			if (srcAttr != null && srcAttr.endsWith(".svg")) {
-				return new Java2DSVGReplacedElement(uac.getXMLResource(srcAttr).getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, context);
-			}
-		}else if (context.getNamespaceHandler().isImageElement(e)) {
-            return replaceImage(uac, context, e, cssWidth, cssHeight);
+        } else if (nodeName.equals("img")) {
+            String srcAttr = e.getAttribute("src");
+            if (!srcAttr.isEmpty() && srcAttr.endsWith(".svg") && _svgImpl != null) {
+                return new Java2DSVGReplacedElement(uac.getXMLResource(srcAttr).getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, context);
+            } else if (!srcAttr.isEmpty()) {
+                return replaceImage(uac, context, e, cssWidth, cssHeight);
+            }
         }
 
-		return null; // We no longer handle form controls.
-		/*
-		 * Default: Just let the base class handle everything
-		 */
-		//return super.createReplacedElement(context, box, uac, cssWidth, cssHeight);
-	}
+        return null;
+    }
 
     @Override
     public boolean isReplacedElement(Element e) {

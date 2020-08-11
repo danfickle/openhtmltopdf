@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.visualtest.Java2DVisualTester;
 import com.openhtmltopdf.visualtest.Java2DVisualTester.Java2DBuilderConfig;
 import com.openhtmltopdf.visualtest.TestSupport;
@@ -45,6 +46,7 @@ public class Java2DVisualTest {
         run("clip-inside-transform");
         run("linear-gradient");
         run("positioned-elements");
+        run("images", builder -> builder.useSVGDrawer(new BatikSVGDrawer()));
 
         // If you add a test here, please remember to also
         // add it to runOneTest (commented out).
@@ -57,6 +59,7 @@ public class Java2DVisualTest {
         // run("clip-inside-transform");
         // run("linear-gradient");
         // run("positioned-elements");
+        // run("images", builder -> builder.useSVGDrawer(new BatikSVGDrawer()));
 
         // If you add a test here, please remember to also add
         // it to runAllTests.
