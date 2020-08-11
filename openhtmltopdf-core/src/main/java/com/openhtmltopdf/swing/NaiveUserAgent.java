@@ -65,12 +65,12 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * a (simple) cache
      * This is only useful for the one run.
      */
-    protected final LinkedHashMap<String, ImageResource> _imageCache = new LinkedHashMap<String, ImageResource>();
+    protected final LinkedHashMap<String, ImageResource> _imageCache = new LinkedHashMap<>();
     protected final FSUriResolver DEFAULT_URI_RESOLVER = new DefaultUriResolver(); 
 
     protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
     protected String _baseUri;
-	protected Map<String, FSStreamFactory> _protocolsStreamFactory = new HashMap<String, FSStreamFactory>(2);
+	protected Map<String, FSStreamFactory> _protocolsStreamFactory = new HashMap<>(2);
     
     public static class DefaultHttpStream implements FSStream {
     	private InputStream strm;

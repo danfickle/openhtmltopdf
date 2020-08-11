@@ -43,42 +43,42 @@ public class PagedBoxCollector {
 
         private void addShadowPage(PageResult shadowPage) {
             if (_shadowPages == null) {
-                _shadowPages = new ArrayList<PageResult>();
+                _shadowPages = new ArrayList<>();
             }
             _shadowPages.add(shadowPage);
         }
 		
 		private void addFloat(BlockBox floater) {
 		    if (_floats == null) {
-		        _floats = new ArrayList<BlockBox>();
+		        _floats = new ArrayList<>();
 		    }
 		    _floats.add(floater);
 		}
 		
 		private void addBlock(DisplayListItem block) {
 			if (_blocks == null) {
-				_blocks = new ArrayList<DisplayListItem>();
+				_blocks = new ArrayList<>();
 			}
 			_blocks.add(block);
 		}
 		
 		private void addInline(DisplayListItem inline) {
 			if (_inlines == null) {
-				_inlines = new ArrayList<DisplayListItem>();
+				_inlines = new ArrayList<>();
 			}
 			_inlines.add(inline);
 		}
 		
 		private void addTableCell(TableCellBox tcell) {
 			if (_tcells == null) {
-				_tcells = new ArrayList<TableCellBox>();
+				_tcells = new ArrayList<>();
 			}
 			_tcells.add(tcell);
 		}
 		
 		private void addReplaced(DisplayListItem replaced) {
 			if (_replaceds == null) {
-				_replaceds = new ArrayList<DisplayListItem>();
+				_replaceds = new ArrayList<>();
 			}
 			_replaceds.add(replaced);
 			
@@ -90,7 +90,7 @@ public class PagedBoxCollector {
 		
 		private void addListItem(DisplayListItem listItem) {
 			if (_listItems == null) {
-				_listItems = new ArrayList<DisplayListItem>();
+				_listItems = new ArrayList<>();
 			}
 			_listItems.add(listItem);
 			
@@ -257,7 +257,7 @@ public class PagedBoxCollector {
 	 */
 	public PagedBoxCollector(List<PageBox> pages, int minPage, int maxPage) {
 	    this.pages = pages;
-	    this.result = new ArrayList<PageResult>(maxPage - minPage + 1);
+	    this.result = new ArrayList<>(maxPage - minPage + 1);
 	    this.finder = new PageFinder(pages);
 	    this.startPage = minPage;
 	    
@@ -399,7 +399,7 @@ public class PagedBoxCollector {
             		if (block.isNeedsClipOnPaint(c)) {
             			// A box with overflow set to hidden.
             			ourClip = block.getChildrenClipEdge(c);
-            			clipPages = new ArrayList<PagedBoxCollector.PageResult>();
+            			clipPages = new ArrayList<>();
              		}
             	}
             	
@@ -1047,7 +1047,7 @@ public class PagedBoxCollector {
         int firstPage = finder.findPageAdjusted(c, (int) bounds.getMinY());
         int lastPage = finder.findPageAdjusted(c, (int) bounds.getMaxY());
         
-        List<PageInfo> result = new ArrayList<PageInfo>();
+        List<PageInfo> result = new ArrayList<>();
         
         for (int i = firstPage; i <= lastPage; i++) {
             result.add(new PageInfo(i, PageInfo.BASE_PAGE));

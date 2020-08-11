@@ -28,28 +28,28 @@ public class SimpleBoxCollector {
     
     private void addBlock(DisplayListItem block) {
         if (_blocks == null) {
-            _blocks = new ArrayList<DisplayListItem>();
+            _blocks = new ArrayList<>();
         }
         _blocks.add(block);
     }
     
     private void addInline(DisplayListItem inline) {
         if (_inlines == null) {
-            _inlines = new ArrayList<DisplayListItem>();
+            _inlines = new ArrayList<>();
         }
         _inlines.add(inline);
     }
     
     private void addTableCell(TableCellBox tcell) {
         if (_tcells == null) {
-            _tcells = new ArrayList<TableCellBox>();
+            _tcells = new ArrayList<>();
         }
         _tcells.add(tcell);
     }
     
     private void addReplaced(DisplayListItem replaced) {
         if (_replaceds == null) {
-            _replaceds = new ArrayList<DisplayListItem>();
+            _replaceds = new ArrayList<>();
         }
         _replaceds.add(replaced);
         
@@ -61,7 +61,7 @@ public class SimpleBoxCollector {
     
     private void addListItem(DisplayListItem listItem) {
         if (_listItems == null) {
-            _listItems = new ArrayList<DisplayListItem>();
+            _listItems = new ArrayList<>();
         }
         _listItems.add(listItem);
         

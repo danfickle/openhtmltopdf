@@ -93,7 +93,7 @@ public class ImageMapParser {
 		} else if (map.hasChildNodes()) {
 			AffineTransform scaleInstance = AffineTransform.getScaleInstance(c.getDotsPerPixel(), c.getDotsPerPixel());
 			final NodeList children = map.getChildNodes();
-			final Map<Shape, String> areas = new HashMap<Shape, String>(children.getLength());
+			final Map<Shape, String> areas = new HashMap<>(children.getLength());
 			for (int i = 0; i < children.getLength(); i++) {
 				final Node area = children.item(i);
 				if (areEqualIgnoreCase(AREA_ELT, area.getNodeName())) {

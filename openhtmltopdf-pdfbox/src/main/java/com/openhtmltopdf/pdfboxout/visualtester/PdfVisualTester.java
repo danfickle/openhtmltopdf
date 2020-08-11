@@ -93,7 +93,7 @@ public class PdfVisualTester {
         }
     }
     
-    public static enum ProblemType { 
+    public enum ProblemType {
         PAGE_GOOD,
         NO_EXPECTED_DOCUMENT_PROVIDED,
         NO_ACTUAL_DOCUMENT_PROVIDED,

@@ -52,7 +52,7 @@ public class FloatManager {
     
     private List<BoxOffset> getAddableFloats(int direction) {
         if (getFloats(direction).isEmpty()) {
-            setFloats(direction, new ArrayList<BoxOffset>());
+            setFloats(direction, new ArrayList<>());
         }
 
         return getFloats(direction);

@@ -252,14 +252,14 @@ public class SharedContext {
 
     public void addBoxId(String id, Box box) {
         if (idMap == null) {
-            idMap = new HashMap<String, Box>();
+            idMap = new HashMap<>();
         }
         idMap.put(id, box);
     }
 
     public Box getBoxById(String id) {
         if (idMap == null) {
-            idMap = new HashMap<String, Box>();
+            idMap = new HashMap<>();
         }
         return idMap.get(id);
     }
@@ -486,7 +486,7 @@ public class SharedContext {
 
     public CalculatedStyle getStyle(Element e, boolean restyle) {
         if (styleMap == null) {
-            styleMap = new HashMap<Element, CalculatedStyle>(1024, 0.75f);
+            styleMap = new HashMap<>(1024, 0.75f);
         }
 
         CalculatedStyle result = null;

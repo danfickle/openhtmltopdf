@@ -113,7 +113,7 @@ public class StyleReference {
     }
     
     private List<Stylesheet> readAndParseAll(List<StylesheetInfo> infos, String medium) {
-        List<Stylesheet> result = new ArrayList<Stylesheet>(infos.size() + 15);
+        List<Stylesheet> result = new ArrayList<>(infos.size() + 15);
         
         for (StylesheetInfo info : infos) {
             if (info.appliesToMedia(medium)) {
@@ -243,7 +243,7 @@ public class StyleReference {
      * @return The stylesheets value
      */
     private List<StylesheetInfo> getStylesheets() {
-        List<StylesheetInfo> infos = new ArrayList<StylesheetInfo>();
+        List<StylesheetInfo> infos = new ArrayList<>();
         long st = System.currentTimeMillis();
 
         StylesheetInfo defaultStylesheet = _nsh.getDefaultStylesheet(_stylesheetFactory);

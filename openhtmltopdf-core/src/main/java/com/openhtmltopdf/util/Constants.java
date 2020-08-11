@@ -21,6 +21,5 @@ package com.openhtmltopdf.util;
 
 public class Constants {
     public static final String[] EMPTY_STR_ARR = new String[]{};
-    public static final byte[] EMPTY_BYTE_ARR = new byte[]{};
     public static final int[] EMPTY_INT_ARR = new int[]{};
 }

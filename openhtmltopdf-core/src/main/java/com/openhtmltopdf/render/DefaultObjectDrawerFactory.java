@@ -16,7 +16,7 @@ public class DefaultObjectDrawerFactory implements FSObjectDrawerFactory {
 	/**
 	 * Maps content type => Drawer
 	 */
-	private final Map<String, FSObjectDrawer> drawerMap = new HashMap<String, FSObjectDrawer>();
+	private final Map<String, FSObjectDrawer> drawerMap = new HashMap<>();
 
 	@Override
 	public FSObjectDrawer createDrawer(Element e) {

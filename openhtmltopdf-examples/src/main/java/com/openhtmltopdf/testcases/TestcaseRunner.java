@@ -154,7 +154,7 @@ public class TestcaseRunner {
 
 		// We wan't to throw if we get a warning or severe log message.
 		final XRLogger delegate = new JDKXRLogger();
-		final java.util.List<RuntimeException> warnings = new ArrayList<RuntimeException>();
+		final java.util.List<RuntimeException> warnings = new ArrayList<>();
 		XRLog.setLoggerImpl(new XRLogger() {
 			@Override
 			public void setLevel(String logger, Level level) {

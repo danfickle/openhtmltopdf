@@ -33,8 +33,8 @@ import com.openhtmltopdf.util.XRLog;
 public class MathMLDrawer implements SVGDrawer {
 	private final FontFactory _fontFactory;
 	private SharedContext _sharedCtx;
-	private final Set<String> _loadedFontFamilies = new HashSet<String>();
-	private final Map<String, List<String>> _availabelFontFamilies = new HashMap<String, List<String>>();
+	private final Set<String> _loadedFontFamilies = new HashSet<>();
+	private final Map<String, List<String>> _availabelFontFamilies = new HashMap<>();
 
 	public MathMLDrawer() {
 		this._fontFactory = new DefaultFontFactory();
@@ -65,7 +65,7 @@ public class MathMLDrawer implements SVGDrawer {
 			if (_availabelFontFamilies.containsKey(family)) {
 				_availabelFontFamilies.get(family).add(src.asString());
 			} else {
-				_availabelFontFamilies.put(family, new ArrayList<String>());
+				_availabelFontFamilies.put(family, new ArrayList<>());
 				_availabelFontFamilies.get(family).add(src.asString());
 			}
 		}

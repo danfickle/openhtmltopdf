@@ -21,12 +21,12 @@ public class KongAlgo {
 
 	public KongAlgo(List<Point2D.Float> points) {
 		// we have to copy the point vector as we modify it
-		this.points = new ArrayList<Point2D.Float>();
+		this.points = new ArrayList<>();
 		for (Point2D.Float point : points)
 			this.points.add(new Point2D.Float(point.x, point.y));
 
-		nonconvexPoints = new ArrayList<Point2D.Float>();
-		triangles = new ArrayList<Triangle>();
+		nonconvexPoints = new ArrayList<>();
+		triangles = new ArrayList<>();
 
 		calcPolyOrientation();
 		calcNonConvexPoints();

@@ -345,7 +345,7 @@ class ElementPropertiesPanel extends JPanel {
                 label.setFont(propLabelFont);
             } else if (col == 2) {
                 PropertiesTableModel pmodel = (PropertiesTableModel) this.getModel();
-                Map.Entry me = (Map.Entry) pmodel._properties.entrySet().toArray()[row];
+                Map.Entry<String, CSSPrimitiveValue> me = (Map.Entry<String, CSSPrimitiveValue>) pmodel._properties.entrySet().toArray()[row];
 //                CSSPrimitiveValue cpv = (CSSPrimitiveValue) me.getValue();
 //                if (cpv.getCssText().startsWith("rgb")) {
 //                    label.setBackground(com.openhtmltopdf.css.util.ConversionUtil.rgbToColor(cpv.getRGBColorValue()));
@@ -419,8 +419,8 @@ class ElementPropertiesPanel extends JPanel {
          * @return The valueAt value
          */
         public Object getValueAt(int row, int col) {
-            Map.Entry me = (Map.Entry) _properties.entrySet().toArray()[row];
-            CSSPrimitiveValue cpv = (CSSPrimitiveValue) me.getValue();
+            Map.Entry<String, CSSPrimitiveValue> me = (Map.Entry<String, CSSPrimitiveValue>) _properties.entrySet().toArray()[row];
+            CSSPrimitiveValue cpv = me.getValue();
 
             Object val = null;
             switch (col) {
@@ -532,7 +532,7 @@ class DOMTreeModel implements TreeModel {
     /**
      * Description of the Field
      */
-    HashMap displayableNodes;
+    HashMap<Node, List<Node>> displayableNodes;
 
     /**
      * Description of the Field
@@ -545,7 +545,7 @@ class DOMTreeModel implements TreeModel {
      * @param doc PARAM
      */
     public DOMTreeModel(Document doc) {
-        this.displayableNodes = new HashMap();
+        this.displayableNodes = new HashMap<>();
         this.doc = doc;
         setRoot("body");
     }
@@ -618,16 +618,16 @@ class DOMTreeModel implements TreeModel {
      * @param index  PARAM
      * @return The child value
      */
-    public Object getChild(Object parent, int index) {
+    public Node getChild(Object parent, int index) {
 
         Node node = (Node) parent;
 
-        List children = (List) this.displayableNodes.get(parent);
+        List<Node> children = this.displayableNodes.get(parent);
         if (children == null) {
             children = addDisplayable(node);
         }
 
-        return (Node) children.get(index);
+        return children.get(index);
     }
 
 
@@ -642,7 +642,7 @@ class DOMTreeModel implements TreeModel {
     public int getChildCount(Object parent) {
 
         Node node = (Node) parent;
-        List children = (List) this.displayableNodes.get(parent);
+        List<Node> children = this.displayableNodes.get(parent);
         if (children == null) {
             children = addDisplayable(node);
         }
@@ -663,7 +663,7 @@ class DOMTreeModel implements TreeModel {
     public int getIndexOfChild(Object parent, Object child) {
 
         Node node = (Node) parent;
-        List children = (List) this.displayableNodes.get(parent);
+        List<Node> children = this.displayableNodes.get(parent);
         if (children == null) {
             children = addDisplayable(node);
         }
@@ -710,10 +710,10 @@ class DOMTreeModel implements TreeModel {
      * @param parent The feature to be added to the Displayable attribute
      * @return Returns
      */
-    private List addDisplayable(Node parent) {
-        List children = (List) this.displayableNodes.get(parent);
+    private List<Node> addDisplayable(Node parent) {
+        List<Node> children = this.displayableNodes.get(parent);
         if (children == null) {
-            children = new ArrayList();
+            children = new ArrayList<>();
             this.displayableNodes.put(parent, children);
             NodeList nl = parent.getChildNodes();
             for (int i = 0, len = nl.getLength(); i < len; i++) {
@@ -726,7 +726,7 @@ class DOMTreeModel implements TreeModel {
             }
             return children;
         } else {
-            return new ArrayList();
+            return new ArrayList<>();
         }
     }
 

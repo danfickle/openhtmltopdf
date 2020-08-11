@@ -184,7 +184,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
         StringBuilder sb = new StringBuilder();
         ReplacementChar replace = PdfBoxTextRenderer.getReplacementChar(font);
         List<FontDescription> fonts = ((PdfBoxFSFont) font).getFontDescription();
-        List<FontRun> runs = new ArrayList<FontRun>();
+        List<FontRun> runs = new ArrayList<>();
         FontRun current = new FontRun();
         
         for (int i = 0; i < str.length(); ) {

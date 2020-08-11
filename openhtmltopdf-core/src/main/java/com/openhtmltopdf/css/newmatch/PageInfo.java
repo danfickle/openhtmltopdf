@@ -66,10 +66,10 @@ public class PageInfo {
         
         List<PropertyDeclaration> all;
         if (marginProps != null) {
-            all = new ArrayList<PropertyDeclaration>(marginProps.size() + 3);
+            all = new ArrayList<>(marginProps.size() + 3);
             all.addAll(marginProps);    
         } else {
-            all = new ArrayList<PropertyDeclaration>(3);
+            all = new ArrayList<>(3);
         }
         
         all.add(CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.TABLE_CELL));

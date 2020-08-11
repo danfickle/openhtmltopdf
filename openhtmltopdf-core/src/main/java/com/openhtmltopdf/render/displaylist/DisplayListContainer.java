@@ -24,7 +24,7 @@ public abstract class DisplayListContainer {
 		
 		public void addOp(DisplayListOperation dlo) {
 			if (this.ops == null) {
-				this.ops = new ArrayList<DisplayListOperation>();
+				this.ops = new ArrayList<>();
 			}
 			this.ops.add(dlo);
 		}
@@ -41,7 +41,7 @@ public abstract class DisplayListContainer {
 		    }
 		    
 		    if (this.shadowPages == null) {
-		        this.shadowPages = new ArrayList<DisplayListPageContainer>();
+		        this.shadowPages = new ArrayList<>();
 		    }
 		    addShadowsUntil(shadowNumber);
 		    
@@ -53,11 +53,11 @@ public abstract class DisplayListContainer {
 		        return this.basePage.shadowPages();
 		    }
 
-		    return this.shadowPages == null ? Collections.<DisplayListPageContainer>emptyList() : this.shadowPages;
+		    return this.shadowPages == null ? Collections.emptyList() : this.shadowPages;
 		}
 		
 		public List<DisplayListOperation> getOperations() {
-			return this.ops == null ? Collections.<DisplayListOperation>emptyList() : this.ops;
+			return this.ops == null ? Collections.emptyList() : this.ops;
 		}
 	}
 	

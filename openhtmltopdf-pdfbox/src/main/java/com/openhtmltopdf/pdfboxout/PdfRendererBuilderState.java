@@ -24,7 +24,7 @@ public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBui
 	public float _pdfVersion = 1.7f;
 	public String _producer;
 	public PDDocument pddocument;
-        public final Map<CacheStore, FSCacheEx<String, FSCacheValue>> _caches = new EnumMap<CacheStore, FSCacheEx<String, FSCacheValue>>(CacheStore.class);
+        public final Map<CacheStore, FSCacheEx<String, FSCacheValue>> _caches = new EnumMap<>(CacheStore.class);
 	public PdfAConformance _pdfAConformance = PdfAConformance.NONE;
 	public boolean _pdfUaConform = false;
 	public byte[] _colorProfile;

@@ -934,8 +934,8 @@ public class PrimitivePropertyBuilders {
             // [Century Gothic], [Arial sans-serif] (i.e. the comma is assumed
             // after a string).  Seems wrong per the spec, but FF (at least)
             // does it in standards mode so we do too.
-            List<String> consecutiveIdents = new ArrayList<String>();
-            List<String> normalized = new ArrayList<String>(values.size());
+            List<String> consecutiveIdents = new ArrayList<>();
+            List<String> normalized = new ArrayList<>(values.size());
             for (Iterator<PropertyValue> i = values.iterator(); i.hasNext(); ) {
                 PropertyValue value = i.next();
 

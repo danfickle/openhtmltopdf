@@ -36,7 +36,7 @@ public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 			String url = chartEntity.getURLText();
 			if (url != null) {
 				if (linkShapes == null)
-					linkShapes = new HashMap<Shape, String>();
+					linkShapes = new HashMap<>();
 				linkShapes.put(scaleTransform.createTransformedShape(shape), url);
 			}
 		}
@@ -48,7 +48,7 @@ public class JFreeChartBarDiagramObjectDrawer implements FSObjectDrawer {
 			final double height, OutputDevice outputDevice, RenderingContext ctx, final int dotsPerPixel) {
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		NodeList childNodes = e.getChildNodes();
-		final Map<String, String> urls = new HashMap<String, String>();
+		final Map<String, String> urls = new HashMap<>();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node item = childNodes.item(i);
 			if (!(item instanceof Element))

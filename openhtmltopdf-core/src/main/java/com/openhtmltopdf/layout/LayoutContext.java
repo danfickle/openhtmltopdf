@@ -77,7 +77,7 @@ public class LayoutContext implements CssContext {
     private int _extraSpaceTop;
     private int _extraSpaceBottom;
 
-    private final Map<CalculatedStyle, CounterContext> _counterContextMap = new HashMap<CalculatedStyle, CounterContext>();
+    private final Map<CalculatedStyle, CounterContext> _counterContextMap = new HashMap<>();
 
     private String _pendingPageName;
     private String _pageName;
@@ -168,8 +168,8 @@ public class LayoutContext implements CssContext {
     LayoutContext(SharedContext sharedContext) {
         _sharedContext = sharedContext;
         
-        _bfcs = new LinkedList<BlockFormattingContext>();
-        _layers = new LinkedList<Layer>();
+        _bfcs = new LinkedList<>();
+        _layers = new LinkedList<>();
 
         _firstLines = new StyleTracker();
         _firstLetters = new StyleTracker();
@@ -180,11 +180,11 @@ public class LayoutContext implements CssContext {
         _firstLetters = new StyleTracker();
         _currentMarkerData = null;
 
-        _bfcs = new LinkedList<BlockFormattingContext>();
+        _bfcs = new LinkedList<>();
 
         if (! keepLayers) {
             _rootLayer = null;
-            _layers = new LinkedList<Layer>();
+            _layers = new LinkedList<>();
         }
 
         _extraSpaceTop = 0;
@@ -428,7 +428,7 @@ public class LayoutContext implements CssContext {
     }
 
     public class CounterContext {
-        private Map<String, Integer> _counters = new HashMap<String, Integer>();
+        private Map<String, Integer> _counters = new HashMap<>();
         /**
          * This is different because it needs to work even when the counter- properties cascade
          * and it should also logically be redefined on each level (think list-items within list-items)

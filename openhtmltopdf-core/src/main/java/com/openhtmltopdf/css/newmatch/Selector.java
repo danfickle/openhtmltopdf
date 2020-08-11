@@ -424,7 +424,7 @@ public class Selector {
      */
     private void addCondition(Condition c) {
         if (conditions == null) {
-            conditions = new java.util.ArrayList<Condition>();
+            conditions = new java.util.ArrayList<>();
         }
         if (_pe != null) {
             conditions.add(Condition.createUnsupportedCondition());

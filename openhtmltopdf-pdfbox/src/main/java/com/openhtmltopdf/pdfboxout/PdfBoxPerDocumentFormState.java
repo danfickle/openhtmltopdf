@@ -36,20 +36,20 @@ import com.openhtmltopdf.util.XRLog;
  */
 public class PdfBoxPerDocumentFormState {
     // We keep a map of forms for the document so we can add controls to the correct form as they are seen.
-    private final Map<Element, PdfBoxForm> forms = new HashMap<Element, PdfBoxForm>();
+    private final Map<Element, PdfBoxForm> forms = new HashMap<>();
 
     // The list of controls in the document. Control class contains all the info we need to output a control.
-    private final List<PdfBoxForm.Control> controls = new ArrayList<PdfBoxForm.Control>();
+    private final List<PdfBoxForm.Control> controls = new ArrayList<>();
 
     // A set of controls, so we don't double process a control.
-    private final Set<Element> seenControls = new HashSet<Element>();
+    private final Set<Element> seenControls = new HashSet<>();
 
     // We keep a map of fonts to font resource name so we don't double add fonts needed for form controls.
-    private final Map<PDFont, String> controlFonts = new HashMap<PDFont, String>();
+    private final Map<PDFont, String> controlFonts = new HashMap<>();
     
     // The checkbox style to appearance stream map. We only create appearance streams on demand and once for a specific
     // style so we store appearance streams created here.
-    private final Map<CheckboxStyle, PDAppearanceStream> checkboxAppearances = new EnumMap<CheckboxStyle, PDAppearanceStream>(CheckboxStyle.class);
+    private final Map<CheckboxStyle, PDAppearanceStream> checkboxAppearances = new EnumMap<>(CheckboxStyle.class);
 
     // Again, we only create these appearance streams as needed.
     private PDAppearanceStream checkboxOffAppearance;

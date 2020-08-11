@@ -85,7 +85,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     //   Theoretically, this is all configurable, but not tested at all with other values.
     //
     
-    private static enum GraphicsOperation {
+    private enum GraphicsOperation {
         FILL,
         STROKE,
         CLIP;
@@ -136,7 +136,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private final PageState _desiredPageState = new PageState();
     
     // The page state stack
-    private final Deque<PageState> _pageStateStack = new ArrayDeque<PageState>();
+    private final Deque<PageState> _pageStateStack = new ArrayDeque<>();
 
     // The currently set stroke. This will not yet be set on the PDF graphics stream.
     // This is already transformed to PDF points units.
@@ -166,7 +166,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private PdfBoxBookmarkManager _bmManager;
 
     // Contains a list of metadata items for the document.
-    private final List<Metadata> _metadata = new ArrayList<Metadata>();
+    private final List<Metadata> _metadata = new ArrayList<>();
 
     // Contains all the state needed to manage form controls
     private final PdfBoxPerDocumentFormState _formState = new PdfBoxPerDocumentFormState();
@@ -483,7 +483,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
     
     private Object[] makeJustificationArray(String s, JustificationInfo info) {
-        List<Object> data = new ArrayList<Object>(s.length() * 2);
+        List<Object> data = new ArrayList<>(s.length() * 2);
 
         int len = s.length();
         for (int i = 0; i < len; i++) {
@@ -704,7 +704,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             makeDash = true;
         }
         if (makeDash) {
-            float dash[] = nStroke.getDashArray();
+            float[] dash = nStroke.getDashArray();
             if (dash == null)
                 _cp.setLineDash(new float[] {}, 0);
             else {
@@ -723,7 +723,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             return stroke;
         BasicStroke st = (BasicStroke) stroke;
         float scale = (float) Math.sqrt(Math.abs(_transform.getDeterminant()));
-        float dash[] = st.getDashArray();
+        float[] dash = st.getDashArray();
         if (dash != null) {
             for (int k = 0; k < dash.length; ++k)
                 dash[k] *= scale;
@@ -971,7 +971,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      *         list.
      */
     public List<String> getMetadataListByName(String name) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         if (name != null) {
             for (Metadata m : _metadata) {
                 if ((m != null) && m.getName().equalsIgnoreCase(name)) {
@@ -1190,7 +1190,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             return Collections.emptyList();
         }
 
-        List<PagePosition> result = new ArrayList<PagePosition>();
+        List<PagePosition> result = new ArrayList<>();
         for (Entry<String, Box> entry : idMap.entrySet()) {
             String id = (String) entry.getKey();
             if (pattern.matcher(id).find()) {

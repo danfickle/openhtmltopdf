@@ -19,7 +19,7 @@ public class FontFamily<T extends MinimalFontDescription> {
 
     public void addFontDescription(T descr) {
         if (_fontDescriptions == null) {
-            _fontDescriptions = new ArrayList<T>();
+            _fontDescriptions = new ArrayList<>();
         }
         _fontDescriptions.add(descr);
         Collections.sort(_fontDescriptions,
@@ -38,7 +38,7 @@ public class FontFamily<T extends MinimalFontDescription> {
             throw new RuntimeException("fontDescriptions is null");
         }
 
-        List<T> candidates = new ArrayList<T>();
+        List<T> candidates = new ArrayList<>();
 
         for (T description : _fontDescriptions) {
             if (description.getStyle() == style) {

@@ -120,7 +120,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     // NOTE: Transforms are cumulative and order is important.
     // After the graphics state is restored in setClip we must appropriately reapply the transforms
     // that should be in effect.
-    private final Deque<AffineTransform> transformStack = new ArrayDeque<AffineTransform>();
+    private final Deque<AffineTransform> transformStack = new ArrayDeque<>();
 
     // An index into the transformStack. When we save state we set this to the length of transformStack
     // then we know we have to reapply those transforms set after saving state upon restoring state.
@@ -168,10 +168,10 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     private PDDestination _defaultDestination;
 
     // Contains a list of bookmarks for the document.
-    private final List<Bookmark> _bookmarks = new ArrayList<Bookmark>();
+    private final List<Bookmark> _bookmarks = new ArrayList<>();
 
     // Contains a list of metadata items for the document.
-    private final List<Metadata> _metadata = new ArrayList<Metadata>();
+    private final List<Metadata> _metadata = new ArrayList<>();
 
     // Contains all the state needed to manage form controls
     private final PdfBoxPerDocumentFormState _formState = new PdfBoxPerDocumentFormState();
@@ -469,7 +469,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     }
     
     private Object[] makeJustificationArray(String s, JustificationInfo info) {
-        List<Object> data = new ArrayList<Object>(s.length() * 2);
+        List<Object> data = new ArrayList<>(s.length() * 2);
 
         int len = s.length();
         for (int i = 0; i < len; i++) {
@@ -688,7 +688,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
             makeDash = true;
         }
         if (makeDash) {
-            float dash[] = nStroke.getDashArray();
+            float[] dash = nStroke.getDashArray();
             if (dash == null)
                 _cp.setLineDash(new float[] {}, 0);
             else {
@@ -707,7 +707,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
             return stroke;
         BasicStroke st = (BasicStroke) stroke;
         float scale = (float) Math.sqrt(Math.abs(_transform.getDeterminant()));
-        float dash[] = st.getDashArray();
+        float[] dash = st.getDashArray();
         if (dash != null) {
             for (int k = 0; k < dash.length; ++k)
                 dash[k] *= scale;
@@ -1029,7 +1029,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
         public void addChild(Bookmark child) {
             if (_children == null) {
-                _children = new ArrayList<Bookmark>();
+                _children = new ArrayList<>();
             }
             _children.add(child);
         }
@@ -1089,7 +1089,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
      *         list.
      */
     public List<String> getMetadataListByName(String name) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         if (name != null) {
             for (Metadata m : _metadata) {
                 if ((m != null) && m.getName().equalsIgnoreCase(name)) {
@@ -1339,7 +1339,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
             return Collections.emptyList();
         }
 
-        List<PagePosition> result = new ArrayList<PagePosition>();
+        List<PagePosition> result = new ArrayList<>();
         for (Entry<String, Box> entry : idMap.entrySet()) {
             String id = (String) entry.getKey();
             if (pattern.matcher(id).find()) {
@@ -1404,7 +1404,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 		if (transforms.size() == 0)
 			return Collections.emptyList();
         // We simply do a saveGraphics here, so we don't have to apply the inverse later to restore
-        List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
+        List<AffineTransform> inverse = new ArrayList<>(transforms.size());
         try {
             for (AffineTransform transform : transforms) {
                 double[] mx = new double[6];
