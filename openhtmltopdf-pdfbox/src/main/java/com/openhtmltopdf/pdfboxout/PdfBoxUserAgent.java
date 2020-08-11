@@ -28,6 +28,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.resource.ExternalResourceType;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 import com.openhtmltopdf.util.ImageUtil;
@@ -54,9 +55,14 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
         out.close();
         return out.toByteArray();
     }
-    
-    public ImageResource getImageResource(String uriStr) {
+
+    @Override
+    public ImageResource getImageResource(String uriStr, ExternalResourceType type) {
         String uriResolved = resolveURI(uriStr);
+
+        if (!isAllowed(type, uriResolved)) {
+            //FIXME
+        }
         
         if (uriResolved == null) {
             XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image", uriStr);

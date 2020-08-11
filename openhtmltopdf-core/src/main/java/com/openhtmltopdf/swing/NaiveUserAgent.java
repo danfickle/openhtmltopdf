@@ -44,6 +44,7 @@ import com.openhtmltopdf.extend.FSStreamFactory;
 import com.openhtmltopdf.extend.FSStream;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.resource.CSSResource;
+import com.openhtmltopdf.resource.ExternalResourceType;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.util.ImageUtil;
@@ -224,11 +225,16 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * The result is packed up into an CSSResource for later consumption.
      *
      * @param uri Location of the CSS source.
+	 * @param type External resource type
      * @return A CSSResource containing the CSS reader or null if not available.
      */
     @Override
-    public CSSResource getCSSResource(String uri) {
+    public CSSResource getCSSResource(String uri, ExternalResourceType type) {
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
+
+    	if (!isAllowed(type, resolved)) {
+    		//FIXME
+		}
     	
     	if (resolved == null) {
     		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "CSS resource", uri);
@@ -244,10 +250,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * The result is packed up into an ImageResource for later consumption.
      *
      * @param uri Location of the image source.
+	 * @param type External resource type.
      * @return An ImageResource containing the image.
      */
     @Override
-    public ImageResource getImageResource(String uri) {
+    public ImageResource getImageResource(String uri, ExternalResourceType type) {
         ImageResource ir;
         
         if (ImageUtil.isEmbeddedBase64Image(uri)) {
@@ -255,6 +262,10 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             return new ImageResource(null, AWTFSImage.createImage(image));
         } else {
             String resolved = _resolver.resolveURI(this._baseUri, uri);
+
+            if (!isAllowed(type, uri)) {
+            	// FIXME
+			}
             
             if (resolved == null) {
             	XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
@@ -306,11 +317,16 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * configured for Flying Saucer. The result is packed up into an XMLResource for later consumption.
      *
      * @param uri Location of the XML source.
+	 * @param type External resource type
      * @return An XMLResource containing the image.
      */
     @Override
-    public XMLResource getXMLResource(String uri) {
+    public XMLResource getXMLResource(String uri, ExternalResourceType type) {
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
+
+		if (!isAllowed(type, uri)) {
+			//FIXME
+		}
     	
     	if (resolved == null) {
     		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "XML resource", uri);
@@ -318,8 +334,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	}
     	
         try (Reader inputReader = openReader(resolved)) {
-            return inputReader == null ? null :
-                        XMLResource.load(inputReader);
+            return inputReader == null ? null : XMLResource.load(inputReader);
         } catch (IOException e) {
             // On auto close, swallow.
             return null;
@@ -327,12 +342,16 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
 
     @Override
-    public byte[] getBinaryResource(String uri) {
+    public byte[] getBinaryResource(String uri, ExternalResourceType type) {
         if (ImageUtil.isDataUri(uri)) {
             return ImageUtil.getEmbeddedDataUri(uri);
         }
 
         String resolved = _resolver.resolveURI(this._baseUri, uri);
+
+		if (! isAllowed(type, uri)) {
+			//FIXME
+		}
     	
     	if (resolved == null) {
 			XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "binary resource", uri);
