@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.resource.ExternalResourceType;
 import com.openhtmltopdf.util.LogMessageId;
 import net.sourceforge.jeuclid.font.DefaultFontFactory;
 import net.sourceforge.jeuclid.font.FontFactory;
@@ -87,7 +88,7 @@ public class MathMLDrawer implements SVGDrawer {
 		}
 		
 		for (String src : _availabelFontFamilies.get(family)) {
-			byte[] font1 = _sharedCtx.getUserAgentCallback().getBinaryResource(src);
+			byte[] font1 = _sharedCtx.getUserAgentCallback().getBinaryResource(src, ExternalResourceType.FONT);
 			if (font1 == null) {
 				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, src);
 				continue;

@@ -11,6 +11,7 @@ import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.resource.ExternalResourceType;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
@@ -179,7 +180,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		            continue;
 		         }
 
-		         byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src.asString());
+		         byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src.asString(), ExternalResourceType.FONT);
 		         if (font1 == null) {
 		         	XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, src.asString());
 		             continue;
