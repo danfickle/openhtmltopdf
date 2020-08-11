@@ -139,7 +139,7 @@ public class FSCatalog {
         private final Map<String, String> entityMap;
 
         public CatalogContentHandler() {
-            this.entityMap = new HashMap<String, String>();
+            this.entityMap = new HashMap<>();
         }
 
         /**

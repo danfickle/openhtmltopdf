@@ -208,8 +208,8 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 		graphics.dispose();
 	}
 
-	private Stack<AffineTransform> transformStack = new Stack<AffineTransform>();
-    private Stack<Shape> clipStack= new Stack<Shape>();
+	private Stack<AffineTransform> transformStack = new Stack<>();
+    private Stack<Shape> clipStack= new Stack<>();
 
 
 	@Override
@@ -219,7 +219,7 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
 
 	@Override
 	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
-		List<AffineTransform> inverse = new ArrayList<AffineTransform>(transforms.size());
+		List<AffineTransform> inverse = new ArrayList<>(transforms.size());
 		AffineTransform gfxTransform = _graphics.getTransform();
 		try {
 			for (AffineTransform transform : transforms) {

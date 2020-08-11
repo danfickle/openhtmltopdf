@@ -111,8 +111,8 @@ public class Matcher {
     }
     
     public PageInfo getPageCascadedStyle(String pageName, String pseudoPage) {
-        List<PropertyDeclaration>  props = new ArrayList<PropertyDeclaration> ();
-        Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes = new HashMap<MarginBoxName, List<PropertyDeclaration>>();
+        List<PropertyDeclaration>  props = new ArrayList<>();
+        Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes = new HashMap<>();
 
         for (PageRule pageRule : _pageRules) {
             if (pageRule.applies(pageName, pseudoPage)) {
@@ -164,7 +164,7 @@ public class Matcher {
     }
 
     Mapper createDocumentMapper(List<Stylesheet> stylesheets, String medium) {
-        java.util.TreeMap<String,Selector> sorter = new java.util.TreeMap<String,Selector>();
+        java.util.TreeMap<String,Selector> sorter = new java.util.TreeMap<>();
         addAllStylesheets(stylesheets, sorter, medium);
         XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.MATCH_MATCHER_CREATED_WITH_SELECTOR, sorter.size());
         return new Mapper(sorter.values());
@@ -395,7 +395,7 @@ public class Matcher {
             Ruleset elementStyling = getElementStyle(e);
             Ruleset nonCssStyling = getNonCssStyle(e);
 
-            List<PropertyDeclaration> propList = new ArrayList<PropertyDeclaration>();
+            List<PropertyDeclaration> propList = new ArrayList<>();
 
             // Specificity 0,0,0,0
             if (nonCssStyling != null) {

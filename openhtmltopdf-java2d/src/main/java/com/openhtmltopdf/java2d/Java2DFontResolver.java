@@ -144,17 +144,17 @@ public class Java2DFontResolver implements FontResolver {
     /**
      * Map of concrete instances of fonts including size, weight, etc.
      */
-    private final HashMap<String, Font> instanceHash = new HashMap<String, Font>();
+    private final HashMap<String, Font> instanceHash = new HashMap<>();
 
     /**
      * Map of base fonts, from which we can derive a concrete instance at the correct size, weight, etc.
      * Note: The value is initially null until we need the given base font.
      */
-    private final HashMap<String, Font> availableFontsHash = new HashMap<String, Font>();
+    private final HashMap<String, Font> availableFontsHash = new HashMap<>();
     
     private final SharedContext _sharedContext;
 
-    private final HashMap<String, FontFamily<FontDescription>> _fontFamilies = new HashMap<String, FontFamily<FontDescription>>();
+    private final HashMap<String, FontFamily<FontDescription>> _fontFamilies = new HashMap<>();
     
     public Java2DFontResolver(SharedContext sharedCtx, boolean useEnvironmentFonts) {
         _sharedContext = sharedCtx;
@@ -266,7 +266,7 @@ public class Java2DFontResolver implements FontResolver {
     private FontFamily<FontDescription> getFontFamily(String fontFamilyName) {
         FontFamily<FontDescription> fontFamily = _fontFamilies.get(fontFamilyName);
         if (fontFamily == null) {
-            fontFamily = new FontFamily<FontDescription>();
+            fontFamily = new FontFamily<>();
             _fontFamilies.put(fontFamilyName, fontFamily);
         }
         return fontFamily;
@@ -321,7 +321,7 @@ public class Java2DFontResolver implements FontResolver {
      */
     public FSFont resolveFont(SharedContext ctx, String[] families, float size, IdentValue weight, IdentValue style,
             IdentValue variant) {
-        List<Font> fonts = new ArrayList<Font>(3);
+        List<Font> fonts = new ArrayList<>(3);
 
         if (families != null) {
             for (int i = 0; i < families.length; i++) {

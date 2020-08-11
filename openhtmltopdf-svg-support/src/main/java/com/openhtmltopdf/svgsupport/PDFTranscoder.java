@@ -78,7 +78,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	}
 
     public static class OpenHtmlFontResolver implements FontFamilyResolver {
-		private final Map<String, OpenHtmlGvtFontFamily> families = new HashMap<String, OpenHtmlGvtFontFamily>(4);
+		private final Map<String, OpenHtmlGvtFontFamily> families = new HashMap<>(4);
 
 		@Override
 		public GVTFontFamily resolve(String arg0, FontFace arg1) {

@@ -31,7 +31,7 @@ public class PageRule implements RulesetContainer {
     private Ruleset _ruleset;
     private int _origin;
     
-    private final Map<MarginBoxName,List<PropertyDeclaration>> _marginBoxes = new HashMap<MarginBoxName,List<PropertyDeclaration>>();
+    private final Map<MarginBoxName,List<PropertyDeclaration>> _marginBoxes = new HashMap<>();
     
     private int _pos;
     

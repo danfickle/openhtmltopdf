@@ -27,7 +27,7 @@ import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
 import com.openhtmltopdf.util.XRLog;
 
 public class PdfBoxBookmarkManager {
-    private final List<Bookmark> _bookmarks = new ArrayList<Bookmark>();
+    private final List<Bookmark> _bookmarks = new ArrayList<>();
     private final PDDocument _writer;
     private final SharedContext _sharedContext;
     private final float _dotsPerPoint;
@@ -182,7 +182,7 @@ public class PdfBoxBookmarkManager {
 
         public void addChild(Bookmark child) {
             if (_children == null) {
-                _children = new ArrayList<Bookmark>();
+                _children = new ArrayList<>();
             }
             _children.add(child);
         }

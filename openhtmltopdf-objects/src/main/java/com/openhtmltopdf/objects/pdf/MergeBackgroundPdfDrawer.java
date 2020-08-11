@@ -27,7 +27,7 @@ import com.openhtmltopdf.pdfboxout.PdfBoxOutputDevice;
 import com.openhtmltopdf.render.RenderingContext;
 
 public class MergeBackgroundPdfDrawer implements FSObjectDrawer {
-	private final Map<PDFBoxDeviceReference, SoftReference<Map<String, PDFormXObject>>> formMap = new HashMap<PDFBoxDeviceReference, SoftReference<Map<String, PDFormXObject>>>();
+	private final Map<PDFBoxDeviceReference, SoftReference<Map<String, PDFormXObject>>> formMap = new HashMap<>();
 
 	@Override
 	public Map<Shape, String> drawObject(Element e, double x, double y, double width, double height,

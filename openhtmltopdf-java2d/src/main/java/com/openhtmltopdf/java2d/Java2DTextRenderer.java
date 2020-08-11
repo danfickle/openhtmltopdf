@@ -64,12 +64,12 @@ public class Java2DTextRenderer implements TextRenderer {
         Object aaHint = Configuration.valueFromClassConstant("xr.text.aa-rendering-hint", dummy);        
         if (aaHint == dummy) {
             try {
-                Map map;
+                Map<RenderingHints.Key, ?> map;
                 // we should be able to look up the "recommended" AA settings (that correspond to the user's
                 // desktop preferences and machine capabilities
                 // see: http://java.sun.com/javase/6/docs/api/java/awt/doc-files/DesktopProperties.html
                 Toolkit tk = Toolkit.getDefaultToolkit();
-                map = (Map) (tk.getDesktopProperty("awt.font.desktophints"));
+                map = (Map<RenderingHints.Key, ?>) (tk.getDesktopProperty("awt.font.desktophints"));
                 antiAliasRenderingHint = map.get(RenderingHints.KEY_TEXT_ANTIALIASING);
             } catch (Exception e) {
                 // conceivably could get an exception in a webstart environment? not sure
@@ -230,7 +230,7 @@ public class Java2DTextRenderer implements TextRenderer {
     
     private List<FontRun> divideIntoFontRuns(List<Font> fonts, String string) {
     	
-    	List<FontRun> fontRuns = new ArrayList<FontRun>();
+    	List<FontRun> fontRuns = new ArrayList<>();
     	int length = string.length();
     	FontRun current = null;
     	

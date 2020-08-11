@@ -63,7 +63,7 @@ public class XhtmlForm {
     }
 
     public List<FormControl> getAllControls(String name) {
-        List<FormControl> result = new ArrayList<FormControl>();
+        List<FormControl> result = new ArrayList<>();
         for (FormControl control : _controls) {
             if (control.getName().equals(name)) {
                 result.add(control);

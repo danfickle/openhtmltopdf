@@ -54,8 +54,8 @@ public class PdfBoxLinkManager {
 		this._dotsPerPoint = dotsPerPoint;
 		this._root = root;
 		this._od = od;
-		this._linkTargetAreas = new HashMap<PDPage, Set<String>>();
-		this._links = new ArrayList<LinkDetails>();
+		this._linkTargetAreas = new HashMap<>();
+		this._links = new ArrayList<>();
 	}
 
 	private Rectangle2D calcTotalLinkArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform) {
@@ -130,7 +130,7 @@ public class PdfBoxLinkManager {
 		String key = createRectKey(targetArea, linkShape, transform);
 		Set<String> keys = _linkTargetAreas.get(page);
 		if (keys == null) {
-			keys = new HashSet<String>();
+			keys = new HashSet<>();
 			_linkTargetAreas.put(page, keys);
 		}
 		if (keys.contains(key)) {
@@ -277,7 +277,7 @@ public class PdfBoxLinkManager {
 			List<PDAnnotation> annots = page.getAnnotations();
 
 			if (annots == null) {
-				annots = new ArrayList<PDAnnotation>();
+				annots = new ArrayList<>();
 				page.setAnnotations(annots);
 			}
 

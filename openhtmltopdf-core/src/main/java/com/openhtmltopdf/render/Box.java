@@ -319,11 +319,11 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public Iterator<Box> getChildIterator() {
-        return (_boxes == null ? Collections.<Box>emptyIterator() : _boxes.iterator());
+        return (_boxes == null ? Collections.emptyIterator() : _boxes.iterator());
     }
 
     public List<Box> getChildren() {
-        return _boxes == null ? Collections.<Box>emptyList() : _boxes;
+        return _boxes == null ? Collections.emptyList() : _boxes;
     }
     
     public static class ChildIteratorOfType<T> implements Iterator<T>  {

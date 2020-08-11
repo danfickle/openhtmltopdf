@@ -32,6 +32,8 @@ import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
+import com.openhtmltopdf.newtable.CollapsedBorderValue;
+import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
@@ -195,7 +197,7 @@ public class Layer {
 
     public void addChild(Layer layer) {
         if (_children == null) {
-            _children = new ArrayList<Layer>();
+            _children = new ArrayList<>();
         }
         _children.add(layer);
     }
@@ -254,7 +256,7 @@ public class Layer {
 
     public void addFloat(BlockBox floater, BlockFormattingContext bfc) {
         if (_floats == null) {
-            _floats = new ArrayList<BlockBox>();
+            _floats = new ArrayList<>();
         }
 
         _floats.add(floater);
@@ -269,7 +271,7 @@ public class Layer {
      * @return
      */
     public List<Layer> collectLayers(int which) {
-        List<Layer> result = new ArrayList<Layer>();
+        List<Layer> result = new ArrayList<>();
         List<Layer> children = getChildren();
 
         result.addAll(getStackingContextLayers(which));
@@ -295,7 +297,7 @@ public class Layer {
     }
 
     private List<Layer> getStackingContextLayers(int which) {
-        List<Layer> result = new ArrayList<Layer>();
+        List<Layer> result = new ArrayList<>();
         List<Layer> children = getChildren();
 
         for (Layer target : children) {
@@ -331,7 +333,7 @@ public class Layer {
     @Deprecated
     private void paintBackgroundsAndBorders(
             RenderingContext c, List<Box> blocks,
-            Map collapsedTableBorders, BoxRangeLists rangeLists) {
+            Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
 
         for (int i = 0; i < blocks.size(); i++) {
@@ -348,7 +350,7 @@ public class Layer {
             if (collapsedTableBorders != null && box instanceof TableCellBox) {
                 TableCellBox cell = (TableCellBox)box;
                 if (cell.hasCollapsedPaintingBorder()) {
-                    List borders = (List)collapsedTableBorders.get(cell);
+                    List<CollapsedBorderSide> borders = collapsedTableBorders.get(cell);
                     if (borders != null) {
                         paintCollapsedTableBorders(c, borders);
                     }
@@ -362,12 +364,12 @@ public class Layer {
     }
 
     @Deprecated // We no longer support interactive or selection.
-    private void paintSelection(RenderingContext c, List lines) {
+    private void paintSelection(RenderingContext c, List<Box> lines) {
         if (c.getOutputDevice().isSupportsSelection()) {
-            for (Iterator i = lines.iterator(); i.hasNext();) {
-                InlinePaintable paintable = (InlinePaintable) i.next();
-                if (paintable instanceof InlineLayoutBox) {
-                    ((InlineLayoutBox)paintable).paintSelection(c);
+            for (Iterator<Box> i = lines.iterator(); i.hasNext();) {
+                Box box = i.next();
+                if (box instanceof InlineLayoutBox) {
+                    ((InlineLayoutBox)box).paintSelection(c);
                 }
             }
         }
@@ -378,7 +380,7 @@ public class Layer {
     }
 
     @Deprecated
-    private void paintInlineContent(RenderingContext c, List lines, BoxRangeLists rangeLists) {
+    private void paintInlineContent(RenderingContext c, List<Box> lines, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(
                 c.getOutputDevice(), rangeLists.getInline());
 
@@ -386,8 +388,9 @@ public class Layer {
             helper.popClipRegions(c, i);
             helper.pushClipRegion(c, i);
 
-            InlinePaintable paintable = (InlinePaintable)lines.get(i);
-            paintable.paintInline(c);
+            if (lines.get(i) instanceof  InlinePaintable) {
+                ((InlinePaintable) lines.get(i)).paintInline(c);
+            }
         }
 
         helper.popClipRegions(c, lines.size());
@@ -413,8 +416,8 @@ public class Layer {
         } else {
             BoxRangeLists rangeLists = new BoxRangeLists();
 
-            List<Box> blocks = new ArrayList<Box>();
-            List<Box> lines = new ArrayList<Box>();
+            List<Box> blocks = new ArrayList<>();
+            List<Box> lines = new ArrayList<>();
 
             BoxCollector collector = new BoxCollector();
             collector.collect(c, c.getOutputDevice().getClip(), this, blocks, lines, rangeLists);
@@ -432,7 +435,7 @@ public class Layer {
                 paintLayers(c, getSortedLayers(NEGATIVE));
             }
 
-            Map collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
+            Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
             paintBackgroundsAndBorders(c, blocks, collapsedTableBorders, rangeLists);
             paintFloats(c);
             paintListMarkers(c, blocks, rangeLists);
@@ -464,7 +467,7 @@ public class Layer {
     }
 
     public List<BlockBox> getFloats() {
-        return _floats == null ? Collections.<BlockBox>emptyList() : _floats;
+        return _floats == null ? Collections.emptyList() : _floats;
     }
 
     /**
@@ -567,7 +570,7 @@ public class Layer {
 		}
 
 		List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
-		List<AffineTransform> resultTransforms = new ArrayList<AffineTransform>();
+		List<AffineTransform> resultTransforms = new ArrayList<>();
 		AffineTransform translateToOrigin = AffineTransform.getTranslateInstance(relTranslateX, relTranslateY);
 		AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY);
 
@@ -627,12 +630,12 @@ public class Layer {
 	}
 
     @Deprecated // Currently not using the find functionality and considering removing.
-	private Box find(CssContext cssCtx, int absX, int absY, List layers, boolean findAnonymous) {
+	private Box find(CssContext cssCtx, int absX, int absY, List<Layer> layers, boolean findAnonymous) {
         Box result = null;
         // Work backwards since layers are painted forwards and we're looking
         // for the top-most box
         for (int i = layers.size()-1; i >= 0; i--) {
-            Layer l = (Layer)layers.get(i);
+            Layer l = layers.get(i);
             result = l.find(cssCtx, absX, absY, findAnonymous);
             if (result != null) {
                 return result;
@@ -662,7 +665,7 @@ public class Layer {
         }
 
         for (int i = 0; i < getFloats().size(); i++) {
-            Box floater = (Box)getFloats().get(i);
+            Box floater = getFloats().get(i);
             result = floater.find(cssCtx, absX, absY, findAnonymous);
             if (result != null) {
                 return result;
@@ -685,9 +688,9 @@ public class Layer {
     }
 
     @Deprecated
-    private void paintCollapsedTableBorders(RenderingContext c, List borders) {
-        for (Iterator i = borders.iterator(); i.hasNext(); ) {
-            CollapsedBorderSide border = (CollapsedBorderSide)i.next();
+    private void paintCollapsedTableBorders(RenderingContext c, List<CollapsedBorderSide> borders) {
+        for (Iterator<CollapsedBorderSide> i = borders.iterator(); i.hasNext(); ) {
+            CollapsedBorderSide border = i.next();
             border.getCell().paintCollapsedBorder(c, border.getSide());
         }
     }
@@ -699,19 +702,19 @@ public class Layer {
     // we'll paint as a key and a sorted list of borders as values.  These are
     // then painted after we've drawn the background for this cell.
     @Deprecated
-    private Map collectCollapsedTableBorders(RenderingContext c, List blocks) {
-        Map cellBordersByTable = new HashMap();
-        Map triggerCellsByTable = new HashMap();
+    private Map<TableCellBox, List<CollapsedBorderSide>> collectCollapsedTableBorders(RenderingContext c, List<Box> blocks) {
+        Map<TableBox, List<CollapsedBorderSide>> cellBordersByTable = new HashMap<>();
+        Map<TableBox, TableCellBox> triggerCellsByTable = new HashMap<>();
 
-        Set all = new HashSet();
-        for (Iterator i = blocks.iterator(); i.hasNext(); ) {
-            Box b = (Box)i.next();
+        Set<CollapsedBorderValue> all = new HashSet<>();
+        for (Iterator<Box> i = blocks.iterator(); i.hasNext(); ) {
+            Box b = i.next();
             if (b instanceof TableCellBox) {
                 TableCellBox cell = (TableCellBox)b;
                 if (cell.hasCollapsedPaintingBorder()) {
-                    List borders = (List)cellBordersByTable.get(cell.getTable());
+                    List<CollapsedBorderSide> borders = cellBordersByTable.get(cell.getTable());
                     if (borders == null) {
-                        borders = new ArrayList();
+                        borders = new ArrayList<>();
                         cellBordersByTable.put(cell.getTable(), borders);
                     }
                     triggerCellsByTable.put(cell.getTable(), cell);
@@ -723,11 +726,11 @@ public class Layer {
         if (triggerCellsByTable.size() == 0) {
             return null;
         } else {
-            Map result = new HashMap();
+            Map<TableCellBox, List<CollapsedBorderSide>> result = new HashMap<>();
 
-            for (Iterator i = triggerCellsByTable.values().iterator(); i.hasNext(); ) {
-                TableCellBox cell = (TableCellBox)i.next();
-                List borders = (List)cellBordersByTable.get(cell.getTable());
+            for (Iterator<TableCellBox> i = triggerCellsByTable.values().iterator(); i.hasNext(); ) {
+                TableCellBox cell = i.next();
+                List<CollapsedBorderSide> borders = cellBordersByTable.get(cell.getTable());
                 Collections.sort(borders);
                 result.put(cell, borders);
             }
@@ -740,14 +743,14 @@ public class Layer {
     public void paintAsLayer(RenderingContext c, BlockBox startingPoint) {
         BoxRangeLists rangeLists = new BoxRangeLists();
 
-        List blocks = new ArrayList();
-        List lines = new ArrayList();
+        List<Box> blocks = new ArrayList<>();
+        List<Box> lines = new ArrayList<>();
 
         BoxCollector collector = new BoxCollector();
         collector.collect(c, c.getOutputDevice().getClip(),
                 this, startingPoint, blocks, lines, rangeLists);
 
-        Map collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
+        Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
 
         paintBackgroundsAndBorders(c, blocks, collapsedTableBorders, rangeLists);
         paintListMarkers(c, blocks, rangeLists);
@@ -757,14 +760,15 @@ public class Layer {
     }
 
     @Deprecated
-    private void paintListMarkers(RenderingContext c, List blocks, BoxRangeLists rangeLists) {
+    private void paintListMarkers(RenderingContext c, List<Box> blocks, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
 
         for (int i = 0; i < blocks.size(); i++) {
             helper.popClipRegions(c, i);
 
-            BlockBox box = (BlockBox)blocks.get(i);
-            box.paintListMarker(c);
+            if (blocks.get(i) instanceof BlockBox) {
+                ((BlockBox) blocks.get(i)).paintListMarker(c);
+            }
 
             helper.pushClipRegion(c, i);
         }
@@ -773,7 +777,7 @@ public class Layer {
     }
 
     @Deprecated
-    private void paintReplacedElements(RenderingContext c, List blocks, BoxRangeLists rangeLists) {
+    private void paintReplacedElements(RenderingContext c, List<Box> blocks, BoxRangeLists rangeLists) {
         BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
 
         for (int i = 0; i < blocks.size(); i++) {
@@ -889,7 +893,7 @@ public class Layer {
      * The resulting list should not be modified.
      */
     public List<Layer> getChildren() {
-        return _children == null ? Collections.<Layer>emptyList() : _children;
+        return _children == null ? Collections.emptyList() : _children;
     }
 
     private void remove(Layer layer) {
@@ -1011,7 +1015,7 @@ public class Layer {
 
     public List<PageBox> getPages() {
 		if (_pages == null)
-			return _parent == null ? Collections.<PageBox> emptyList() : _parent.getPages();
+			return _parent == null ? Collections. emptyList() : _parent.getPages();
 		return _pages;
     }
 
@@ -1065,7 +1069,7 @@ public class Layer {
     public void addPage(CssContext c) {
         String pseudoPage = null;
         if (_pages == null) {
-            _pages = new ArrayList<PageBox>();
+            _pages = new ArrayList<>();
         }
 
         List<PageBox> pages = getPages();
@@ -1101,7 +1105,7 @@ public class Layer {
     }
 
     public PageBox getPage(CssContext c, int yOffset) {
-        List pages = getPages();
+        List<PageBox> pages = getPages();
         if (yOffset < 0) {
             return null;
         } else {
@@ -1111,7 +1115,7 @@ public class Layer {
                     return lastRequested;
                 }
             }
-            PageBox last = (PageBox) pages.get(pages.size()-1);
+            PageBox last = pages.get(pages.size()-1);
             if (yOffset < last.getBottom()) {
                 // The page we're looking for is probably at the end of the
                 // document so do a linear search for the first few pages
@@ -1156,11 +1160,11 @@ public class Layer {
     }
 
     private void addPagesUntilPosition(CssContext c, int position) {
-        List pages = getPages();
-        PageBox last = (PageBox)pages.get(pages.size()-1);
+        List<PageBox> pages = getPages();
+        PageBox last = pages.get(pages.size()-1);
         while (position >= last.getBottom()) {
             addPage(c);
-            last = (PageBox)pages.get(pages.size()-1);
+            last = pages.get(pages.size()-1);
         }
     }
 
@@ -1225,8 +1229,8 @@ public class Layer {
     }
 
     public PageBox getLastPage() {
-        List pages = getPages();
-        return pages.size() == 0 ? null : (PageBox)pages.get(pages.size()-1);
+        List<PageBox> pages = getPages();
+        return pages.size() == 0 ? null : pages.get(pages.size()-1);
     }
 
     public boolean crossesPageBreak(LayoutContext c, int top, int bottom) {
@@ -1345,7 +1349,7 @@ public class Layer {
 
     public void addPageSequence(BlockBox start) {
         if (_pageSequences == null) {
-            _pageSequences = new HashSet<BlockBox>();
+            _pageSequences = new HashSet<>();
         }
 
         _pageSequences.add(start);
@@ -1357,7 +1361,7 @@ public class Layer {
         }
 
         if (_sortedPageSequences == null) {
-            List<BlockBox> result = new ArrayList<BlockBox>(_pageSequences);
+            List<BlockBox> result = new ArrayList<>(_pageSequences);
 
             Collections.sort(result, new Comparator<BlockBox>() {
                 public int compare(BlockBox b1, BlockBox b2) {
@@ -1372,7 +1376,7 @@ public class Layer {
     }
 
     public int getRelativePageNo(RenderingContext c, int absY) {
-        List sequences = getSortedPageSequences();
+        List<BlockBox> sequences = getSortedPageSequences();
         int initial = 0;
         if (c.getInitialPageNo() > 0) {
             initial = c.getInitialPageNo() - 1;
@@ -1387,12 +1391,12 @@ public class Layer {
         }
     }
 
-    private BlockBox findPageSequence(List sequences, int absY) {
+    private BlockBox findPageSequence(List<BlockBox> sequences, int absY) {
         BlockBox result = null;
 
         for (int i = 0; i < sequences.size(); i++) {
-            result = (BlockBox) sequences.get(i);
-            if ((i < sequences.size() - 1) && (((BlockBox) sequences.get(i + 1)).getAbsY() > absY)) {
+            result = sequences.get(i);
+            if ((i < sequences.size() - 1) && ((sequences.get(i + 1)).getAbsY() > absY)) {
                 break;
             }
         }
@@ -1401,7 +1405,7 @@ public class Layer {
     }
 
     public int getRelativePageNo(RenderingContext c) {
-        List sequences = getSortedPageSequences();
+        List<BlockBox> sequences = getSortedPageSequences();
         int initial = 0;
         if (c.getInitialPageNo() > 0) {
             initial = c.getInitialPageNo() - 1;
@@ -1413,14 +1417,14 @@ public class Layer {
             if (sequenceStartIndex == -1) {
                 return initial + c.getPageNo();
             } else {
-                BlockBox block = (BlockBox)sequences.get(sequenceStartIndex);
+                BlockBox block = sequences.get(sequenceStartIndex);
                 return c.getPageNo() - getFirstPage(c, block).getPageNo();
             }
         }
     }
 
     public int getRelativePageCount(RenderingContext c) {
-        List sequences = getSortedPageSequences();
+        List<BlockBox> sequences = getSortedPageSequences();
         int initial = 0;
         if (c.getInitialPageNo() > 0) {
             initial = c.getInitialPageNo() - 1;
@@ -1436,12 +1440,12 @@ public class Layer {
             if (sequenceStartIndex == -1) {
                 firstPage = 0;
             } else {
-                BlockBox block = (BlockBox)sequences.get(sequenceStartIndex);
+                BlockBox block = sequences.get(sequenceStartIndex);
                 firstPage = getFirstPage(c, block).getPageNo();
             }
 
             if (sequenceStartIndex < sequences.size() - 1) {
-                BlockBox block = (BlockBox)sequences.get(sequenceStartIndex+1);
+                BlockBox block = sequences.get(sequenceStartIndex+1);
                 lastPage = getFirstPage(c, block).getPageNo();
             } else {
                 lastPage = c.getPageCount();
@@ -1456,9 +1460,9 @@ public class Layer {
         }
     }
 
-    private int getPageSequenceStart(RenderingContext c, List sequences, PageBox page) {
+    private int getPageSequenceStart(RenderingContext c, List<BlockBox> sequences, PageBox page) {
         for (int i = sequences.size() - 1; i >= 0; i--) {
-            BlockBox start = (BlockBox)sequences.get(i);
+            BlockBox start = sequences.get(i);
             if (start.getAbsY() < page.getBottom() - 1) {
                 return i;
             }

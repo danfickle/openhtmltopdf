@@ -295,16 +295,16 @@ public class DisplayListCollector {
 	// then painted after we've drawn the background for this cell.
 	public static Map<TableCellBox, List<CollapsedBorderSide>> collectCollapsedTableBorders(RenderingContext c,
 			List<TableCellBox> tcells) {
-		Map<TableBox, List<CollapsedBorderSide>> cellBordersByTable = new HashMap<TableBox, List<CollapsedBorderSide>>();
-		Map<TableBox, TableCellBox> triggerCellsByTable = new HashMap<TableBox, TableCellBox>();
+		Map<TableBox, List<CollapsedBorderSide>> cellBordersByTable = new HashMap<>();
+		Map<TableBox, TableCellBox> triggerCellsByTable = new HashMap<>();
 
-		Set<CollapsedBorderValue> all = new HashSet<CollapsedBorderValue>(0);
+		Set<CollapsedBorderValue> all = new HashSet<>(0);
 
 		for (TableCellBox cell : tcells) {
 			List<CollapsedBorderSide> borders = cellBordersByTable.get(cell.getTable());
 
 			if (borders == null) {
-				borders = new ArrayList<CollapsedBorderSide>();
+				borders = new ArrayList<>();
 				cellBordersByTable.put(cell.getTable(), borders);
 			}
 
@@ -315,7 +315,7 @@ public class DisplayListCollector {
 		if (triggerCellsByTable.isEmpty()) {
 			return null;
 		} else {
-			Map<TableCellBox, List<CollapsedBorderSide>> result = new HashMap<TableCellBox, List<CollapsedBorderSide>>(
+			Map<TableCellBox, List<CollapsedBorderSide>> result = new HashMap<>(
 					triggerCellsByTable.size());
 
 			for (TableCellBox cell : triggerCellsByTable.values()) {

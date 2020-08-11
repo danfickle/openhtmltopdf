@@ -29,7 +29,7 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 			final double height, OutputDevice outputDevice, RenderingContext ctx, final int dotsPerPixel) {
 		DefaultPieDataset dataset = new DefaultPieDataset();
 		NodeList childNodes = e.getChildNodes();
-		final Map<String, String> urls = new HashMap<String, String>();
+		final Map<String, String> urls = new HashMap<>();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node item = childNodes.item(i);
 			if (!(item instanceof Element))

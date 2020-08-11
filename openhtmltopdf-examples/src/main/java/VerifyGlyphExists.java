@@ -55,9 +55,9 @@ public class VerifyGlyphExists {
         File file = new File(args[1]);
         if (file.exists()) {
             if (file.getName().endsWith("txt")) {
-                List lines = readLines(file);
-                for (Iterator it = lines.iterator(); it.hasNext();) {
-                    String path = (String) it.next();
+                List<String> lines = readLines(file);
+                for (Iterator<String> it = lines.iterator(); it.hasNext();) {
+                    String path = it.next();
                     testForGlyph(codePoint, new File(path));
                 }
                 System.out.println("TODO: read list of fonts");
@@ -69,7 +69,7 @@ public class VerifyGlyphExists {
         }
     }
 
-    private static List readLines(File file) {
+    private static List<String> readLines(File file) {
         List<String> l = new ArrayList<>();
         try (LineNumberReader r = new LineNumberReader(new BufferedReader(new FileReader(file)))){
             String path;

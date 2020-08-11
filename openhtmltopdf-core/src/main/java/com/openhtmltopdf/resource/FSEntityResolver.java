@@ -61,7 +61,7 @@ public class FSEntityResolver implements EntityResolver {
      */
     private static final FSEntityResolver instance = new FSEntityResolver();
 
-    private final Map<String, String> entities = new HashMap<String, String>();
+    private final Map<String, String> entities = new HashMap<>();
     
     /**
      * Constructor for the FSEntityResolver object, fill the map of public ids to local urls.
@@ -74,8 +74,7 @@ public class FSEntityResolver implements EntityResolver {
 
     @Override
     public InputSource resolveEntity(String publicID,
-                                     String systemID)
-            throws SAXException {
+                                     String systemID) {
         InputSource local = null;
         String url = getEntities().get(publicID);
 
