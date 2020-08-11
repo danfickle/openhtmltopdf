@@ -47,6 +47,7 @@ public class Java2DVisualTest {
         run("linear-gradient");
         run("positioned-elements");
         run("images", builder -> builder.useSVGDrawer(new BatikSVGDrawer()));
+        run("sized-repeat-images");
 
         // If you add a test here, please remember to also
         // add it to runOneTest (commented out).
@@ -60,6 +61,7 @@ public class Java2DVisualTest {
         // run("linear-gradient");
         // run("positioned-elements");
         // run("images", builder -> builder.useSVGDrawer(new BatikSVGDrawer()));
+        // run("sized-repeat-images");
 
         // If you add a test here, please remember to also add
         // it to runAllTests.

@@ -24,7 +24,6 @@ import java.awt.image.BufferedImage;
 
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.LayoutContext;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ImageUtil;
 
 /**
@@ -50,7 +49,7 @@ public class ImageReplacedElement implements ReplacedElement {
      * @param targetHeight The height we'd like the image to have, in pixels.
      */
     public ImageReplacedElement(Image image, int targetWidth, int targetHeight) {
-		if (targetWidth > 0 || targetHeight > 0) {
+        if (targetWidth > 0 || targetHeight > 0) {
             int w = image.getWidth(null);
             int h = image.getHeight(null);
 
@@ -65,19 +64,13 @@ public class ImageReplacedElement implements ReplacedElement {
 	            newH = (int)(h * ((double)newW / w));
 	        }
 
-			if (w != newW || h != newH) {
+            if (w != newW || h != newH) {
                 if (image instanceof BufferedImage) {
                     image = ImageUtil.getScaledInstance((BufferedImage) image, newW, newH);
                 } else {
-                   String scalingType = Configuration.valueFor("xr.image.scale", "HIGH").trim() ;
-
-                   if(scalingType.equalsIgnoreCase("HIGH") || scalingType.equalsIgnoreCase("MID") ){
-                       image = image.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
-                   } else{
-                    image = image.getScaledInstance(newW, newH, Image.SCALE_FAST);
+                    image = image.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
                 }
             }
-        }
         }
         _image = image;
     }
