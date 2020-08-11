@@ -349,7 +349,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
         String resolved = _resolver.resolveURI(this._baseUri, uri);
 
-		if (! isAllowed(type, uri)) {
+		if (! isAllowed(type, resolved)) {
 			//FIXME
 		}
     	
