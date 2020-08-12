@@ -24,6 +24,7 @@ import java.awt.Rectangle;
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
+import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.*;
@@ -45,7 +46,7 @@ public class RenderingContext implements CssContext, Cloneable {
     
     private int pageNo;
     private PageBox page;
-    private int shadowPageNumber;
+    private int shadowPageNumber = -1;
     
     private Layer rootLayer;
     
@@ -74,7 +75,7 @@ public class RenderingContext implements CssContext, Cloneable {
     }
 
     public UserAgentCallback getUac() {
-        return sharedContext.getUac();
+        return sharedContext.getUserAgentCallback();
     }
 
     public String getBaseURL() {
@@ -142,6 +143,19 @@ public class RenderingContext implements CssContext, Cloneable {
     }
 
     public Rectangle getFixedRectangle() {
+        if (!outputDevice.isPDF() && !isPaged()) {
+            return new Rectangle(
+                 -this.page.getMarginBorderPadding(this, CalculatedStyle.LEFT),
+                 -this.page.getTop() - this.page.getMarginBorderPadding(this, CalculatedStyle.TOP),
+                 this.page.getContentWidth(this),
+                 this.page.getContentHeight(this));
+        } else if (!outputDevice.isPDF() && isPaged()) {
+            return new Rectangle(
+                    0, -this.page.getTop(), 
+                    this.page.getContentWidth(this),
+                    this.page.getContentHeight(this));
+        }
+
         Rectangle result;
         if (! isPrint()) {
             result = sharedContext.getFixedRectangle();

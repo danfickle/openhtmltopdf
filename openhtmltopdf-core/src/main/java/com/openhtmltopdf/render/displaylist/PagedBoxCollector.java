@@ -308,7 +308,7 @@ public class PagedBoxCollector {
 	
 	public void collectFloats(CssContext c, Layer layer) {
 	    for (int iflt = layer.getFloats().size() - 1; iflt >= 0; iflt--) {
-            BlockBox floater = (BlockBox) layer.getFloats().get(iflt);
+            BlockBox floater = layer.getFloats().get(iflt);
             
             int pgStart = findStartPage(c, floater, layer.getCurrentTransformMatrix());
             int pgEnd = findEndPage(c, floater, layer.getCurrentTransformMatrix());
@@ -396,9 +396,9 @@ public class PagedBoxCollector {
             		
             		BlockBox block = (BlockBox) container;
             		
-            		if (block.isNeedsClipOnPaint((RenderingContext) c)) {
+            		if (block.isNeedsClipOnPaint(c)) {
             			// A box with overflow set to hidden.
-            			ourClip = block.getChildrenClipEdge((RenderingContext) c);
+            			ourClip = block.getChildrenClipEdge(c);
             			clipPages = new ArrayList<>();
              		}
             	}
@@ -497,7 +497,7 @@ public class PagedBoxCollector {
             shadowPageResult.addInline(container);
 
             // Recursively add all children of the line box to the inlines list.
-            ((LineBox) container).addAllChildren(shadowPageResult._inlines, layer);
+            container.addAllChildren(shadowPageResult._inlines, layer);
         }
     }
 
@@ -513,7 +513,7 @@ public class PagedBoxCollector {
             pageResult.addInline(container);
 
             // Recursively add all children of the line box to the inlines list.
-            ((LineBox) container).addAllChildren(pageResult._inlines, layer);
+            container.addAllChildren(pageResult._inlines, layer);
         }
         
         if (includeShadowPages && pageBox.shouldInsertPages()) {

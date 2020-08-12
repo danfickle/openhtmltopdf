@@ -1,0 +1,59 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 200px;
+  margin: 20px;
+
+  @top-center {
+    content: "Top center";
+    background-color: red;
+    font-family: 'TestFont';
+  }
+
+  @bottom-center {
+    content: "Bottom center";
+    background-color: blue;
+    font-family: 'TestFont';
+  }
+
+  @right-top {
+    background-color: orange;
+    content: " ";
+    font-family: 'TestFont';
+  }
+
+  @left-top {
+    background-color: green;
+    content: " ";
+    font-family: 'TestFont';
+  }
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; max-width: 160px;">
+
+<!-- Clipping only -->
+<div style="overflow:hidden; border: 1px solid black; width: 10ex; white-space: nowrap; padding-top: 10px;">
+  Some clipped content overflows
+
+  <div style="width: 150%; background-color: red; height: 20px;">
+    Nested inside clipped content
+  </div>
+
+  <div style="width: 50%; overflow:hidden; border: 1px solid blue; margin-bottom: 10px;">
+    Nested and clipped
+  </div>
+</div>
+
+<div style="width: 6ex; height: 100px; margin-top: 120px; transform: translateX(100px) rotate(-90deg); transform-origin: left bottom; border: 1px solid blue;">
+  Rotated content
+
+  <div style="width: 100px; background-color: orange; height: 20px;">
+    Nested rotated content
+  </div>
+</div>
+
+<p>Content end</p>
+</body>
+</html>

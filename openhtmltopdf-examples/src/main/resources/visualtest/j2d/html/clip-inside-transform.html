@@ -1,0 +1,36 @@
+<html>
+<head>
+<style>
+@page {
+  size: 200px 300px;
+  margin: 0;
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; max-width: 200px; margin: 0;">
+
+<div style="transform: rotate(-180deg); transform-origin: center center; border: 1px solid orange; overflow: hidden;">
+<div style="overflow:hidden; border: 1px solid black; width: 10ex; white-space: nowrap; padding-top: 10px;">
+  Some clipped content overflows
+
+  <div style="width: 150%; background-color: red; height: 20px;">
+    Nested inside clipped content
+  </div>
+
+  <div style="width: 50%; overflow:hidden; border: 1px solid blue; margin-bottom: 10px;">
+    Nested and clipped
+  </div>
+</div>
+
+<div style="width: 6ex; height: 100px; transform: translateX(100px) rotate(-90deg); transform-origin: left bottom; border: 1px solid blue;">
+  Rotated content
+
+  <div style="width: 100px; background-color: orange; height: 20px; overflow: hidden;">
+    Nested rotated content
+  </div>
+</div>
+</div>
+
+<p>Content end</p>
+</body>
+</html>

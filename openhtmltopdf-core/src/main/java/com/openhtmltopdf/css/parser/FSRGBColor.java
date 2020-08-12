@@ -25,11 +25,11 @@ public class FSRGBColor implements FSColor {
     public static final FSRGBColor GREEN = new FSRGBColor(0, 255, 0);
     public static final FSRGBColor BLUE = new FSRGBColor(0, 0, 255);
     public static final FSRGBColor BLACK = new FSRGBColor(0, 0, 0);
-    
-    private int _red;
-    private int _green;
-    private int _blue;
-    
+
+    private final int _red;
+    private final int _green;
+    private final int _blue;
+
     public FSRGBColor(int red, int green, int blue) {
         if (red < 0 || red > 255) {
             throw new IllegalArgumentException();
