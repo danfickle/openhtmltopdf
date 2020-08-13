@@ -28,7 +28,6 @@ public interface LogMessageId {
         GENERAL_EXCEPTION_DESHAPING_TEXT(XRLog.GENERAL, "Exception while deshaping text"),
 
         LAYOUT_ERROR_PARSING_SHAPE_COORDS(XRLog.LAYOUT, "Error while parsing shape coords"),
-        LAYOUT_NO_SOURCE_PROVIDED_FOR_IMG_ELEMENT(XRLog.LAYOUT, "No source provided for img element."),
         LAYOUT_NO_CONTENT_LIMIT_FOUND(XRLog.LAYOUT, "No content limit found"),
         LAYOUT_BOX_HAS_NO_PAGE(XRLog.LAYOUT, "Box has no page"),
 
@@ -38,7 +37,6 @@ public interface LogMessageId {
         MATCH_TRYING_TO_SET_MORE_THAN_ONE_PSEUDO_ELEMENT(XRLog.MATCH, "Trying to set more than one pseudo-element"),
 
         GENERAL_IMPORT_FONT_FACE_RULES_HAS_NOT_BEEN_CALLED(XRLog.GENERAL, "importFontFaceRules has not been called for this pdf transcoder"),
-        GENERAL_NO_OP_REPAINT_REQUESTED(XRLog.GENERAL, "No-op repaint requested"),
         GENERAL_PDF_ACCESSIBILITY_NO_ALT_ATTRIBUTE_PROVIDED_FOR_IMAGE(XRLog.GENERAL, "No alt attribute provided for image/replaced in PDF/UA document."),
         GENERAL_PDF_SPECIFIED_FONTS_DONT_CONTAIN_A_SPACE_CHARACTER(XRLog.GENERAL, "Specified fonts don't contain a space character!"),
         GENERAL_PDF_USING_FAST_MODE(XRLog.GENERAL, "Using fast-mode renderer. Prepare to fly."),
@@ -125,24 +123,17 @@ public interface LogMessageId {
                 "could not be found. Class.forName() failed on " +
                 "{}. Please check classpath. Use value 'default' in " +
                 "FS configuration if necessary. Will now try JDK default."),
-        LOAD_ICON_REPLACED_IMAGE_REPAINT_REQUESTED(XRLog.LOAD, "Icon: replaced image {}, repaint requested"),
         LOAD_COULD_NOT_RESOLVE_RELATIVE_URI_BECAUSE_NO_BASE_URI_WAS_PROVIDED(XRLog.LOAD, "Couldn't resolve relative URI({}) because no base URI was provided."),
-        LOAD_CLEARING_PENDING_ITEMS_FROM_LOAD_QUEUE(XRLog.LOAD, "By request, clearing pending items from load queue: {}"),
         LOAD_LOAD_IMMEDIATE_URI(XRLog.LOAD, "Load immediate: {}"),
-        LOAD_IMAGE_CACHE_MISS_QUEUEING(XRLog.LOAD, "Image cache miss, URI not yet loaded, queueing: {}"),
 
         LAYOUT_FUNCTION_NOT_IMPLEMENTED(XRLog.LAYOUT, "{} function not implemented at this time"),
         LAYOUT_UNSUPPORTED_SHAPE(XRLog.LAYOUT, "Unsupported shape: '{}'"),
         LAYOUT_NO_MAP_NAMED(XRLog.LAYOUT, "No map named: '{}'"),
-        LAYOUT_UNKNOWN_FIELD_TYPE(XRLog.LAYOUT, "Unknown field type: {}"),
 
         GENERAL_MESSAGE(XRLog.GENERAL, "{}"),
         GENERAL_INVALID_INTEGER_PASSED_IN_VIEWBOX_ATTRIBUTE_FOR_SVG(XRLog.GENERAL, "Invalid integer passed in viewBox attribute for SVG: {}"),
-        GENERAL_QUEUEING_LOAD_FOR_IMAGE_URI(XRLog.GENERAL, "Queueing load for image uri {}"),
         GENERAL_INVALID_INTEGER_PASSED_AS_DIMENSION_FOR_SVG(XRLog.GENERAL, "Invalid integer passed as dimension for SVG: {}"),
         GENERAL_COULD_NOT_FIND_FONT_SPECIFIED_FOR_MATHML_OBJECT_IN_FONT_FACE_RULES(XRLog.GENERAL, "Could not find font ({}) specified for MathML object in font-face rules"),
-        GENERAL_THREAD_REQUESTED_ITEM_BUT_QUEUE_IS_SHUTTING_DOWN(XRLog.GENERAL, "Thread {} requested item, but queue is shutting down; returning kill switch."),
-        GENERAL_MUTABLE_IMAGE_URI_LOADED_REPAINT_REQUESTED(XRLog.GENERAL, "Mutable image {} loaded, repaint requested"),
         GENERAL_PDF_ACCESSIBILITY_NO_TITLE_TEXT_PROVIDED_FOR(XRLog.GENERAL, "PDF/UA - No title text provided for {}."),
         GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_BOOKMARK(XRLog.GENERAL, "Could not find valid target for bookmark. Bookmark href = {}"),
         GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_LINK(XRLog.GENERAL, "Could not find valid target for link. Link href = {}"),
@@ -206,7 +197,6 @@ public interface LogMessageId {
 
         LAYOUT_CSS_PROPERTY_HAS_UNPROCESSABLE_ASSIGNMENT(XRLog.LAYOUT, "Property {}} has an assignment we don't understand, " +
                 "and can't tell if it's an absolute unit or not. Assuming it is not. Exception was: {}"),
-        LAYOUT_FORM_ACTION_PERFORMED(XRLog.LAYOUT, "{} pressed: {}"),
 
         LOAD_LOADING_FONT_FROM_SUPPLIER(XRLog.LOAD, "Loading font({}) from {} supplier now."),
         LOAD_CACHE_HIT_STATUS(XRLog.LOAD, "{} key({}) from cache."),
@@ -214,14 +204,12 @@ public interface LogMessageId {
         LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI(XRLog.LOAD, "URI resolver rejected loading {} at ({})"),
         LOAD_COULD_NOT_READ_URI_AT_URL_MAY_BE_RELATIVE(XRLog.LOAD, "Could not read {} as a URL; may be relative. Testing using parent URL {}"),
         LOAD_WAS_ABLE_TO_READ_FROM_URI_USING_PARENT_URL(XRLog.LOAD, "Was able to read from {} using parent URL {}"),
-        LOAD_IMAGE_LOAD_WORKER_LOADED_WITH_URI(XRLog.LOAD, "{}, loaded {}"),
 
         GENERAL_FATAL_INFINITE_LOOP_BUG_IN_LINE_BREAKING_ALGO(XRLog.GENERAL, "A fatal infinite loop bug was detected in the line breaking " +
                 "algorithm for break-word! Start-substring=[{}], end={}"),
         GENERAL_EXPECTING_BOX_CHILDREN_OF_TYPE_BUT_GOT(XRLog.GENERAL, "Expecting box children to be of type ({}) but got ({})."),
         GENERAL_PDF_FOUND_ELEMENT_WITHOUT_ATTRIBUTE_NAME(XRLog.GENERAL, "found a <{} {}> element without attribute name, the element will not work without this attribute"),
 
-        EXCEPTION_CANT_OPEN_STREAM_FOR_URI(XRLog.EXCEPTION, "Can't open stream for URI '{}': {}"),
         EXCEPTION_SVG_EXTERNAL_RESOURCE_NOT_ALLOWED(XRLog.EXCEPTION, "Tried to fetch external resource from SVG. Refusing. Details: {}, {}"),
         EXCEPTION_DEFAULT_USERAGENT_IS_NOT_ABLE_TO_RESOLVE_URL_WITH_BASE_URL(XRLog.EXCEPTION, "The default NaiveUserAgent cannot resolve the URL {} with base URL {}");
 
@@ -251,9 +239,6 @@ public interface LogMessageId {
 
     enum LogMessageId3Param implements LogMessageId {
 
-        LOAD_SWING_IMAGE_REQUESTED_AT_URI(XRLog.LOAD, "Swing: Image {} requested at to {}, {}"),
-
-        GENERAL_THREAD_PULLED_ITEM_FROM_QUEUE(XRLog.GENERAL, "Thread {} pulled item {} from queue, {} remaining"),
         GENERAL_PDF_ACCESSIBILITY_INCOMPATIBLE_CHILD(XRLog.GENERAL, "Trying to add incompatible child to parent item: " +
                 " child type={}" +
                 ", parent type={}" +
