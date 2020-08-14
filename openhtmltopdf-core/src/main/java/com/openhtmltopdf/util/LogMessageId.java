@@ -220,6 +220,7 @@ public interface LogMessageId {
                 "algorithm for break-word! Start-substring=[{}], end={}"),
         GENERAL_EXPECTING_BOX_CHILDREN_OF_TYPE_BUT_GOT(XRLog.GENERAL, "Expecting box children to be of type ({}) but got ({})."),
         GENERAL_PDF_FOUND_ELEMENT_WITHOUT_ATTRIBUTE_NAME(XRLog.GENERAL, "found a <{} {}> element without attribute name, the element will not work without this attribute"),
+        GENERAL_UNABLE_TO_PARSE_VALUE_AS(XRLog.GENERAL, "Unable to parse value '{}' as {}"),
 
         EXCEPTION_CANT_OPEN_STREAM_FOR_URI(XRLog.EXCEPTION, "Can't open stream for URI '{}': {}"),
         EXCEPTION_SVG_EXTERNAL_RESOURCE_NOT_ALLOWED(XRLog.EXCEPTION, "Tried to fetch external resource from SVG. Refusing. Details: {}, {}"),

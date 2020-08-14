@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import com.openhtmltopdf.extend.FSStream;
+import com.openhtmltopdf.objects.zxing.ZXingObjectDrawer;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -1214,6 +1215,21 @@ public class VisualRegressionTest {
     @Test
     public void testIssue474NpeImageDecoding() throws IOException {
         assertTrue(vt.runTest("issue-474-npe-image-decoding"));
+    }
+
+    @Test
+    public void testBarcode() throws IOException {
+
+        VisualTester.BuilderConfig c = builder -> {
+            DefaultObjectDrawerFactory factory = new DefaultObjectDrawerFactory();
+            factory.registerDrawer("image/barcode", new ZXingObjectDrawer());
+            builder.useObjectDrawerFactory(factory);
+        };
+
+        assertTrue(vt.runTest("zxing-qrcode-default", c));
+        assertTrue(vt.runTest("zxing-barcode-custom-color", c));
+        assertTrue(vt.runTest("zxing-datamatrix-encode-hint", c));
+
     }
 
     // TODO:

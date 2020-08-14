@@ -60,6 +60,12 @@
 			<version>1.5.0</version>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>3.4.0</version>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 
 	<build>
