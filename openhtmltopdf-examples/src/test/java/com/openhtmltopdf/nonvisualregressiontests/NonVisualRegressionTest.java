@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.io.IOUtils;
@@ -28,9 +30,11 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocume
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.util.Charsets;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -773,6 +777,41 @@ public class NonVisualRegressionTest {
         sb.append("   !FAILED!");
         sb.append("\n\n");
         return true;
+    }
+
+    /**
+     * Tests that there is no repeated text in the page margin area as
+     * reported in issue 458.
+     */
+    @Test
+    @Ignore // The number 1. in the ordered list is repeating...
+    public void testIssue458PageContentRepeatedInMargin() throws IOException {
+        try (PDDocument doc = run("issue-458-content-repeated")) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(doc);
+
+            String expected = 
+               IntStream.rangeClosed(1, 9)
+                        .mapToObj(i -> "Line " + i + "\r\n")
+                        .collect(Collectors.joining()) +
+            "This is \r\n" + 
+            "some \r\n" + 
+            "flowing \r\n" + 
+            "text that \r\n" + 
+            "should not \r\n" + 
+            "repeat in \r\n" + 
+            // "1.  \r\n" + // This does not belong!
+            "page \r\n" + 
+            "margins.\r\n" +
+            "1.  \r\n" + 
+            "2.  \r\n" + 
+            "3.  \r\n" + 
+            "One\r\n" + 
+            "Two\r\n" + 
+            "Three";
+
+            assertEquals(expected.trim(), text.trim());
+        }
     }
 
     /**
