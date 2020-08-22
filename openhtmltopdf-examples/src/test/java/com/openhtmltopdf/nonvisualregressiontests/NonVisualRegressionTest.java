@@ -808,8 +808,8 @@ public class NonVisualRegressionTest {
             "Two\r\n" + 
             "Three";
 
-            String normalizedExpected = expected.replaceAll("(\\r|\\r\\n|\\n)", System.lineSeparator());
-            String normalizedActual = text.replaceAll("(\\r|\\r\\n|\\n)", System.lineSeparator());
+            String normalizedExpected = expected.replaceAll("(\\r|\\n)", "");
+            String normalizedActual = text.replaceAll("(\\r|\\n)", "");
 
             assertEquals(normalizedExpected.trim(), normalizedActual.trim());
         }
