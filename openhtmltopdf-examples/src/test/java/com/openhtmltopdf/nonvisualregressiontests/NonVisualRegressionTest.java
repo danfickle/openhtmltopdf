@@ -784,7 +784,6 @@ public class NonVisualRegressionTest {
      * reported in issue 458.
      */
     @Test
-    @Ignore // The number 1. in the ordered list is repeating...
     public void testIssue458PageContentRepeatedInMargin() throws IOException {
         try (PDDocument doc = run("issue-458-content-repeated")) {
             PDFTextStripper stripper = new PDFTextStripper();
@@ -800,7 +799,6 @@ public class NonVisualRegressionTest {
             "text that \r\n" + 
             "should not \r\n" + 
             "repeat in \r\n" + 
-            // "1.  \r\n" + // This does not belong!
             "page \r\n" + 
             "margins.\r\n" +
             "1.  \r\n" + 
