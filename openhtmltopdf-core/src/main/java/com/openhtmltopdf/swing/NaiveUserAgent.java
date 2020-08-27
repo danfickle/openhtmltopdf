@@ -464,7 +464,8 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
 
 	protected boolean isAllowed(ExternalResourceType type, String uri) {
-		String protocol = uri != null && uri.indexOf(':') > 0 ? uri.substring(0, uri.indexOf(':')) : null;
+    	int protocolSeparatorIdx = uri.indexOf(':');
+		String protocol = uri != null &&  protocolSeparatorIdx > 0 ? uri.substring(0, protocolSeparatorIdx) : null;
 		return isAllowed(type, uri, protocol);
 	}
 
