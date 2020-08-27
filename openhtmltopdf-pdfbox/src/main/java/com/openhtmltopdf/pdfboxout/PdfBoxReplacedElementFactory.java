@@ -22,6 +22,7 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.resource.ExternalResourceType;
 import com.openhtmltopdf.resource.XMLResource;
 
 import com.openhtmltopdf.util.ImageUtil;
@@ -77,7 +78,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
 
                     return null;
                 } else if (srcAttr.endsWith(".pdf")) {
-                    byte[] pdfBytes = uac.getBinaryResource(srcAttr);
+                    byte[] pdfBytes = uac.getBinaryResource(srcAttr, ExternalResourceType.IMAGE);
                     
                     if (pdfBytes != null) {
                         return PdfBoxPDFReplacedElement.create(_outputDevice.getWriter(), pdfBytes, e, box, c, c.getSharedContext());
