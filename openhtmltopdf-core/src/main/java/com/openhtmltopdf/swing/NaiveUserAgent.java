@@ -462,7 +462,19 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		}
 	}
 
-    /**
+
+	protected boolean isAllowed(ExternalResourceType type, String uri) {
+		String protocol = uri != null && uri.indexOf(':') > 0 ? uri.substring(0, uri.indexOf(':')) : null;
+		return isAllowed(type, uri, protocol);
+	}
+
+
+	@Override
+	public boolean isAllowed(ExternalResourceType type, String uri, String protocol) {
+		return true;
+	}
+
+	/**
      * Returns the current baseUrl for this class.
      */
     @Override

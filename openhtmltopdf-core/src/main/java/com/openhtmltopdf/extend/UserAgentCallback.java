@@ -131,10 +131,9 @@ public interface UserAgentCallback {
      *
      * @param type
      * @param uri
+     * @param protocol protocol part of the uri
      * @return
      */
-	default boolean isAllowed(ExternalResourceType type, String uri) {
-	    return true;
-    }
+	boolean isAllowed(ExternalResourceType type, String uri, String protocol);
 }
 
