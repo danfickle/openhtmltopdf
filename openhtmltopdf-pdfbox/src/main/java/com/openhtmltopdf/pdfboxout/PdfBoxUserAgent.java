@@ -60,13 +60,14 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
     public ImageResource getImageResource(String uriStr, ExternalResourceType type) {
         String uriResolved = resolveURI(uriStr);
 
-        if (!isAllowed(type, uriResolved)) {
-            //FIXME
-        }
-        
         if (uriResolved == null) {
             XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image", uriStr);
-           return new ImageResource(uriStr, null);
+            return new ImageResource(uriStr, null);
+        }
+
+        if (!isAllowed(type, uriResolved)) {
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.LOAD_URI_NOT_ALLOWED, uriResolved, type);
+            return new ImageResource(uriStr, null);
         }
         
         ImageResource resource = _imageCache.get(uriResolved);

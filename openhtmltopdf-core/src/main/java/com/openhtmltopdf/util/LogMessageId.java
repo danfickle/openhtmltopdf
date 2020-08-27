@@ -202,6 +202,7 @@ public interface LogMessageId {
         LOAD_CACHE_HIT_STATUS(XRLog.LOAD, "{} key({}) from cache."),
         LOAD_SAX_FEATURE_SET(XRLog.LOAD, "SAX Parser feature: {} set to {}"),
         LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI(XRLog.LOAD, "URI resolver rejected loading {} at ({})"),
+        LOAD_URI_NOT_ALLOWED(XRLog.LOAD, "URI {} with type {} is not allowed to be loaded"),
         LOAD_COULD_NOT_READ_URI_AT_URL_MAY_BE_RELATIVE(XRLog.LOAD, "Could not read {} as a URL; may be relative. Testing using parent URL {}"),
         LOAD_WAS_ABLE_TO_READ_FROM_URI_USING_PARENT_URL(XRLog.LOAD, "Was able to read from {} using parent URL {}"),
 

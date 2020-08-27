@@ -232,14 +232,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     public CSSResource getCSSResource(String uri, ExternalResourceType type) {
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
 
-    	if (!isAllowed(type, resolved)) {
-    		//FIXME
-		}
-    	
     	if (resolved == null) {
     		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "CSS resource", uri);
     		return null;
     	}
+
+		if (!isAllowed(type, resolved)) {
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.LOAD_URI_NOT_ALLOWED, resolved, type);
+			return null;
+		}
     	
 		return new CSSResource(openReader(resolved));
     }
@@ -262,15 +263,16 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             return new ImageResource(null, AWTFSImage.createImage(image));
         } else {
             String resolved = _resolver.resolveURI(this._baseUri, uri);
-
-            if (!isAllowed(type, resolved)) {
-            	// FIXME
-			}
             
             if (resolved == null) {
             	XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
         		return null;
         	}
+
+			if (!isAllowed(type, resolved)) {
+				XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.LOAD_URI_NOT_ALLOWED, resolved, type);
+				return null;
+			}
             
             // First, we check the internal per run cache.
             ir = _imageCache.get(resolved);
@@ -323,15 +325,16 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     @Override
     public XMLResource getXMLResource(String uri, ExternalResourceType type) {
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
-
-		if (!isAllowed(type, resolved)) {
-			//FIXME
-		}
     	
     	if (resolved == null) {
     		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "XML resource", uri);
     		return null;
     	}
+
+		if (!isAllowed(type, resolved)) {
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.LOAD_URI_NOT_ALLOWED, resolved, type);
+			return null;
+		}
     	
         try (Reader inputReader = openReader(resolved)) {
             return inputReader == null ? null : XMLResource.load(inputReader);
@@ -348,15 +351,16 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         }
 
         String resolved = _resolver.resolveURI(this._baseUri, uri);
-
-		if (! isAllowed(type, resolved)) {
-			//FIXME
-		}
     	
     	if (resolved == null) {
 			XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "binary resource", uri);
     		return null;
     	}
+
+		if (!isAllowed(type, resolved)) {
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.LOAD_URI_NOT_ALLOWED, resolved, type);
+			return null;
+		}
     	
         InputStream is = openStream(resolved);
         if (is == null) {
