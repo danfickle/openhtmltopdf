@@ -103,17 +103,25 @@ public class ListItemPainter {
                 RenderingHints.VALUE_ANTIALIAS_ON);
 
         // calculations for bullets
-        StrutMetrics strutMetrics = box.getMarkerData().getStructMetrics();
-        MarkerData.GlyphMarker marker = box.getMarkerData().getGlyphMarker();
+        MarkerData markerData = box.getMarkerData();
+        StrutMetrics strutMetrics = markerData.getStructMetrics();
+        MarkerData.GlyphMarker marker = markerData.getGlyphMarker();
         int x = getReferenceX(c, box);
+        // see issue 478. To be noted, the X positioning does not consider the available padding space
+        // (like all the browsers it seems), so if the font is too big, the list decoration will be cut or outside
+        // the viewport.
         if (style.getDirection() == IdentValue.LTR) {
-            x += -marker.getLayoutWidth();
+            x += -marker.getLayoutWidth() + marker.getDiameter() * 1.1;
         }
         if (style.getDirection() == IdentValue.RTL){
-            x += box.getMarkerData().getReferenceLine().getWidth() + marker.getLayoutWidth();
+            x += markerData.getReferenceLine().getWidth() + marker.getDiameter() * 1.1;
         }
-        int y = getReferenceBaseline(c, box)
-            - (int)strutMetrics.getAscent() / 2 - marker.getDiameter() / 2;
+
+        // see issue https://github.com/danfickle/openhtmltopdf/issues/478#issuecomment-682066113
+        int bottomLine = getReferenceBaseline(c, box);
+        int top = bottomLine - (int) (strutMetrics.getAscent() / 1.5);
+
+        int y = bottomLine - (bottomLine-top) / 2 - marker.getDiameter() / 2 ;
         if (listStyle == IdentValue.DISC) {
             c.getOutputDevice().fillOval(x, y, marker.getDiameter(), marker.getDiameter());
         } else if (listStyle == IdentValue.SQUARE) {
