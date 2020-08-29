@@ -1217,6 +1217,14 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-474-npe-image-decoding"));
     }
 
+    /**
+     * Tests that text justification works with nbsp.
+     */
+    @Test
+    public void testIssue543NonBreakingSpaceJustify() throws IOException {
+        assertTrue(vt.runTest("issue-543-nbsp-justify"));
+    }
+
     @Test
     public void testBarcode() throws IOException {
 
