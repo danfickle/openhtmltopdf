@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
+import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
+import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.extend.FSStream;
 import com.openhtmltopdf.objects.zxing.ZXingObjectDrawer;
 import org.junit.Before;
@@ -1238,6 +1240,14 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("zxing-barcode-custom-color", c));
         assertTrue(vt.runTest("zxing-datamatrix-encode-hint", c));
 
+    }
+
+    @Test
+    public void testIssue478ListDecorationPosition() throws IOException {
+        assertTrue(vt.runTest("issue-478-list-decoration-position", builder -> {
+            builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+            builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
+        }));
     }
 
     // TODO:

@@ -1,0 +1,95 @@
+<html>
+<head>
+    <style>
+
+@page {
+    size: 550px 450px;
+}
+
+body {
+    padding:0;
+    margin:0;
+}
+
+@font-face {
+  src: url(fonts/NotoNaskhArabic-Regular.ttf);
+  font-family: 'arabic';
+}
+
+@font-face {
+  src: url(fonts/SourceSansPro-Regular.ttf);
+  font-family: 'source-sans-pro';
+}
+
+@font-face {
+  src: url(fonts/Karla-Bold.ttf);
+  font-family: 'karla-bold';
+}
+
+.source-sans-pro {
+    font-family:source-sans-pro;
+}
+
+.karla-bold {
+    font-family:karla-bold;
+}
+
+.arabic {
+    font-family:arabic
+}
+
+.serif {
+    font-family:serif;
+}
+
+.sans-serif {
+    font-family:sans-serif;
+}
+
+li {
+    margin:0;
+    padding:0;
+}
+
+.e1 {
+ font-size: 40px;
+}
+.e2 {
+ font-size: 55px;
+}
+</style>
+</head>
+<body>
+
+<!--
+To be noted, like in chrome, if the font is _too big_ the decoration will be cut.
+Padding left/right can be adjusted if the current heuristic is not good enough.
+-->
+<ul >
+    <li class="serif" >A</li>
+    <li class="e1 serif">
+        <p>B</p>
+        <p>C</p>
+    </li>
+    <li class="e2 serif">D</li>
+    <li class="e3 serif">E</li>
+</ul>
+
+<ul class="arabic" style="direction:rtl; padding-right:40px;padding-left:0px">
+    <li>التنازلي  1234 بحق</li>
+    <li class="e1">التنازلي  1234 بحق</li> <!-- the decoration is partially cut-->
+    <li class="e2">التنازلي  1234 بحق</li> <!-- the decoration is nearly all cut-->
+</ul>
+
+<ul style="list-style-type:square">
+    <li class="karla-bold" >A</li>
+    <li class="e1 source-sans-pro">
+        <p>B</p>
+        <p>C</p>
+    </li>
+    <li class="e2 source-sans-pro">D</li> <!-- the decoration is partially cut-->
+    <li class="karla-bold">E</li>
+</ul>
+
+</body>
+</html>
