@@ -33,6 +33,7 @@
     <module>openhtmltopdf-mathml-support</module>
     <module>openhtmltopdf-latex-support</module>
     <module>openhtmltopdf-pdfa-testing</module>
+    <module>openhtmltopdf-templates</module>
   </modules>
 
   <scm>
