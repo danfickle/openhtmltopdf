@@ -40,6 +40,7 @@ import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
@@ -378,10 +379,12 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
         
         // First check if the string will print with the current font entirely.
         try {
-            firstFont.getStringWidth(s);
-            // We got here, so all is good.
-            drawStringFast(s, x, y, info, _font.getFontDescription().get(0), _font.getSize2D());
-            return;
+            if (s.chars().noneMatch(OpenUtil::isCodePointPrintable)) {
+                firstFont.encode(s);
+                // We got here, so all is good.
+                drawStringFast(s, x, y, info, _font.getFontDescription().get(0), _font.getSize2D());
+                return;
+            }
         } 
         catch (Exception e) {
             // Fallthrough, we'll have to process the string into font runs.

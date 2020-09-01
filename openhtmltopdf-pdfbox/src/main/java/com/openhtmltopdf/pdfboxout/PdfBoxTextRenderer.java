@@ -191,6 +191,11 @@ public class PdfBoxTextRenderer implements TextRenderer {
             int unicode = str.codePointAt(i);
             i += Character.charCount(unicode);
             String ch = String.valueOf(Character.toChars(unicode));
+
+            if (!OpenUtil.isCodePointPrintable(unicode)) {
+                continue;
+            }
+
             boolean gotChar = false;
             
             FONT_LOOP:
@@ -276,9 +281,6 @@ public class PdfBoxTextRenderer implements TextRenderer {
                 if (Character.isSpaceChar(unicode) || Character.isWhitespace(unicode)) {
                     current.spaceCharacterCount++;
                     sb.append(' ');
-                }
-                else if (!OpenUtil.isCodePointPrintable(unicode)) {
-                    // Do nothing
                 }
                 else {
                     current.otherCharacterCount++;

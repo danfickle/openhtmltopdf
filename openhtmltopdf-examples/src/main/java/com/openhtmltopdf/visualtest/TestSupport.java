@@ -61,6 +61,7 @@ public class TestSupport {
     public static void makeFontFiles() throws IOException {
         makeFontFile("Karla-Bold.ttf");
         makeFontFile("NotoNaskhArabic-Regular.ttf");
+        makeFontFile("NotoSans-Regular.ttf");
         makeFontFile("SourceSansPro-Regular.ttf");
     }
     
