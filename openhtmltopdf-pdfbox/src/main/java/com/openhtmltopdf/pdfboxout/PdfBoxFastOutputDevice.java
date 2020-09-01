@@ -33,6 +33,7 @@ import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.extend.StructureType;
+import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
@@ -395,22 +396,22 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     public void drawString(String s, float x, float y, JustificationInfo info) {
         PDFont firstFont = _font.getFontDescription().get(0).getFont();
-        
+
+        String effectiveString = TextRenderer.getEffectivePrintableString(s);
+
         // First check if the string contains printable characters only and
         // will print with the current font entirely.
         try {
-            if (areAllCharactersPrintable(s)) {
-                firstFont.encode(s);
-                // We got here, so all is good.
-                drawStringFast(s, x, y, info, _font.getFontDescription().get(0), _font.getSize2D());
-                return;
-            }
+            firstFont.getStringWidth(effectiveString);
+            // We got here, so all is good.
+            drawStringFast(effectiveString, x, y, info, _font.getFontDescription().get(0), _font.getSize2D());
+            return;
         }
         catch (Exception e) {
             // Fallthrough, we'll have to process the string into font runs.
         }
         
-        List<FontRun> fontRuns = PdfBoxTextRenderer.divideIntoFontRuns(_font, s, _reorderer);
+        List<FontRun> fontRuns = PdfBoxTextRenderer.divideIntoFontRuns(_font, effectiveString, _reorderer);
         
         float xOffset = 0f;
         for (FontRun run : fontRuns) {

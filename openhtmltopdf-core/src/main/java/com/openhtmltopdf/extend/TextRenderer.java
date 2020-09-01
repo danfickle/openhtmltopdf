@@ -24,9 +24,9 @@ import com.openhtmltopdf.layout.Breaker;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
+import com.openhtmltopdf.util.OpenUtil;
 
 import static com.openhtmltopdf.util.OpenUtil.areAllCharactersPrintable;
-import static com.openhtmltopdf.util.OpenUtil.isCodePointPrintable;
 
 public interface TextRenderer {
 
@@ -43,11 +43,7 @@ public interface TextRenderer {
         }
 
         StringBuilder effective = new StringBuilder(input.length());
-        for (int i = 0; i < input.length(); i++) {
-            if (isCodePointPrintable(input.codePointAt(i))) {
-                effective.append(input.charAt(i));
-            }
-        }
+        input.codePoints().filter(OpenUtil::isCodePointPrintable).forEach(effective::appendCodePoint);
 
         return effective.toString();
     }

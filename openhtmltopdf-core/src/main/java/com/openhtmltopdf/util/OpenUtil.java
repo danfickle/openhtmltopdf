@@ -34,9 +34,9 @@ public class OpenUtil {
 	 */
 	public static boolean areAllCharactersPrintable(String str) {
 		Objects.requireNonNull(str, "str");
-		return IntStream.range(0, str.length()).allMatch(idx -> isCodePointPrintable(str.codePointAt(idx)));
+		return str.codePoints().allMatch(OpenUtil::isCodePointPrintable);
 	}
-	
+
 	public static Integer parseIntegerOrNull(String possibleInteger) {
 	        try {
 	            return Integer.parseInt(possibleInteger);
