@@ -33,6 +33,7 @@ import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.extend.StructureType;
+import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
@@ -42,6 +43,7 @@ import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
@@ -72,6 +74,10 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
+
+import static com.openhtmltopdf.util.OpenUtil.areAllCharactersPrintable;
 
 public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements OutputDevice, PdfBoxOutputDevice {
     //
@@ -390,19 +396,22 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     public void drawString(String s, float x, float y, JustificationInfo info) {
         PDFont firstFont = _font.getFontDescription().get(0).getFont();
-        
-        // First check if the string will print with the current font entirely.
+
+        String effectiveString = TextRenderer.getEffectivePrintableString(s);
+
+        // First check if the string contains printable characters only and
+        // will print with the current font entirely.
         try {
-            firstFont.getStringWidth(s);
+            firstFont.getStringWidth(effectiveString);
             // We got here, so all is good.
-            drawStringFast(s, x, y, info, _font.getFontDescription().get(0), _font.getSize2D());
+            drawStringFast(effectiveString, x, y, info, _font.getFontDescription().get(0), _font.getSize2D());
             return;
-        } 
+        }
         catch (Exception e) {
             // Fallthrough, we'll have to process the string into font runs.
         }
         
-        List<FontRun> fontRuns = PdfBoxTextRenderer.divideIntoFontRuns(_font, s, _reorderer);
+        List<FontRun> fontRuns = PdfBoxTextRenderer.divideIntoFontRuns(_font, effectiveString, _reorderer);
         
         float xOffset = 0f;
         for (FontRun run : fontRuns) {
@@ -420,7 +429,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             }
         }
     }
-    
+
     public void drawStringFast(String s, float x, float y, JustificationInfo info, FontDescription desc, float fontSize) {
         if (s.length() == 0)
             return;
