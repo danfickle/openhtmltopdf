@@ -18,14 +18,28 @@
       div.code {
           border: 2px solid black;
           padding: 10px;
+          overflow: auto;
       }
       li {
           line-height: 150%;
       }
+      .to-top {
+          position: fixed;
+          bottom: 0;
+          right: 0;
+          width: auto;
+          background-color: black;
+          padding: 10px;
+      }
+      .to-top a, .to-top a:visited, .to-top a:link {
+          color: white;
+      }
   </style>
 </head>
 <body>
-  <p><a href="../../index.html">Back to templates index</a></p>
+  <div class="to-top"><a href="#top">^ Back to top</a></div>
+
+  <p id="top"><a href="../index.html">Back to templates index</a></p>
 
   <h1 th:text="|Template: ${name}|"></h1>
 
@@ -47,9 +61,16 @@
               </li>
           </ul>
 
+
+  <h2>Links</h2>
+  <ul>
+      <li><a th:href="|${name}.pdf|">PDF preview</a></li>
+      <li><a href="https://github.com/danfickle/openhtmltopdf/tree/open-dev-v1/openhtmltopdf-templates/src/main/java/com/openhtmltopdf/templates/dto">Thymeleaf data transfer objects</a></li>
+  </ul>
+
   <h2>Contents</h2>
   <ul>
-      <li><a href="#preview">PDF preview</a></li>
+      <li><a href="#preview">Image preview</a></li>
       <li><a href="#thymeleaf">Thymeleaf template</a></li>
       <li><a href="#raw">Raw HTML</a></li>
   </ul>

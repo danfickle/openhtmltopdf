@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -140,7 +141,14 @@ public class Application {
         boolean fail = false;
         try {
             _websiteBase.mkdirs();
+
             fail |= runTemplate("arboshiki-invoice", DataGenerator.INVOICE);
+
+            Map<String, Object> args = Collections.singletonMap("templates", _templates);
+            String indexHtml = _thymeleaf.process("webpage-index", args);
+
+            Files.write(new File(_websiteBase, "index.html").toPath(), indexHtml.getBytes(StandardCharsets.UTF_8));
+
         } catch (Exception e) {
             System.out.println("Exception while generating templates...");
             e.printStackTrace();
