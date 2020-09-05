@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Open source templates for HTML to PDF engine</title>
+  <meta name="description" content="Index of templates made for the Openhtmltopdf PDF rendering engine."/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    a, a * {
+      font-family: 'Helvetica', sans-serif;
+      font-size: 16px;
+    }
+    .tplate {
+        display: block;
+        float: left;
+        max-width: 100%;
+        width: 400px;
+        text-align: center;
+        min-height: 500px;
+        border: 1px solid black;
+        margin: 20px 10px;
+        text-decoration: none;
+    }
+    .tplate:first-child {
+        margin-left: 0;
+    }
+    .tplate:last-child {
+        margin-right: 0;
+    }
+    .tplate img {
+        max-width: 100%;
+        vertical-align: middle;
+    }
+    .tplate h2 {
+        border-bottom: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <h1>Openhtmltopdf templates</h1>
+
+  <p>These templates are developed and tested with the <a href="https://github.com/danfickle/openhtmltopdf">Openhtmltopdf</a> HTML to PDF engine.</p>
+
+  <div>
+  <a th:each="tplate : ${templates}" th:href="|${tplate}/details.html|" class="tplate">
+    <h2 th:text="${tplate}"></h2>
+    <img th:src="|${tplate}/${tplate}-small.png|" th:alt="|PDF preview for ${tplate}|"/>
+  </a>
+  </div>
+
+  <div style="clear: both;"></div>
+</body>
+</html>
