@@ -1,0 +1,31 @@
+name: Build Templates Website
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Commit message for this website deploy'
+        required: true
+        default: 'Update templates website'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Compile with Maven
+        run: mvn -B install -DskipTests
+      - name: Build website
+        run: cd openhtmltopdf-templates && mvn -B exec:java -Dexec.mainClass="com.openhtmltopdf.templates.Application" && cd ..
+      - name: Deploy website
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          external_repository: danfickle/pdf-templates
+          personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          publish_dir: ./openhtmltopdf-templates/target/website/pdfs
+          commit_message: ${{ github.event.inputs.message }}
