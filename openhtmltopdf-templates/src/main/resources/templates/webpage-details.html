@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title th:text="|Details for template ${name} - Open source templates for HTML to PDF engine|"></title>
+  <meta name="description" th:content="|Details page for template ${name} including Thymeleaf template source and raw html.|"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style th:text="${code_style}"></style>
+  <style>
+      body {
+          font-family: 'Helvetica', sans-serif;
+      }
+      img {
+          max-width: 100%;
+          border: 2px solid black;
+      }
+      div.code {
+          border: 2px solid black;
+          padding: 10px;
+          overflow: auto;
+          max-height: 90vh;
+      }
+      li {
+          line-height: 150%;
+      }
+      .to-top {
+          position: fixed;
+          bottom: 0;
+          right: 0;
+          width: auto;
+          background-color: black;
+          padding: 10px;
+      }
+      .to-top a, .to-top a:visited, .to-top a:link {
+          color: white;
+      }
+  </style>
+</head>
+<body>
+  <div class="to-top"><a href="#top">^ Back to top</a></div>
+
+  <p id="top"><a href="../index.html">Back to templates index</a></p>
+
+  <h1 th:text="|Template: ${name}|"></h1>
+
+  <p>This is a template created to produce PDF documents. Ideally, it should be rendered
+     with <a href="https://github.com/danfickle/openhtmltopdf">Openhtmltopdf</a>, but it may work with other PDF creators.</p>
+
+  <p>
+    <div><strong>Description:</strong></div>
+    <div th:text="${meta.description}"></div>
+
+    <div><strong>License:</strong></div>
+    <div th:text="${meta.license}"></div>
+
+    <div><strong>Authors &amp; attributions:</strong></div>
+          <ul>
+              <li th:each="attr : ${meta.attributions}">
+                  <a th:unless="${#strings.isEmpty(attr.link)}" th:href="${attr.link}" th:text="${attr.author}"></a>
+                  <span th:if="${#strings.isEmpty(attr.link)}" th:text="${attr.author}"></span>
+              </li>
+          </ul>
+
+
+  <h2>Links</h2>
+  <ul>
+      <li><a th:href="|${name}.pdf|">PDF preview</a></li>
+      <li><a href="https://github.com/danfickle/openhtmltopdf/tree/open-dev-v1/openhtmltopdf-templates/src/main/java/com/openhtmltopdf/templates/dto">Thymeleaf data transfer objects</a></li>
+  </ul>
+
+  <h2>Contents</h2>
+  <ul>
+      <li><a href="#preview">Image preview</a></li>
+      <li><a href="#thymeleaf">Thymeleaf template</a></li>
+      <li><a href="#raw">Raw HTML</a></li>
+  </ul>
+
+  <h2 id="preview">Preview</h2>
+  <div><img th:src="|${name}-large.png|" th:alt="|Template preview for ${name}|"></div>
+
+  <h2 id="thymeleaf">Thymeleaf Source</h2>
+  <div class="code"><code th:utext="${thymeleaf}"></code></div>
+
+  <h2 id="raw">Raw HTML</h2>
+  <div class="code"><code th:utext="${raw}"></code></div>
+</body>
+</html>
