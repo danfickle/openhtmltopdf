@@ -13,6 +13,7 @@ use it's extended CSS feature like [#31](https://github.com/danfickle/openhtmlto
 to get good results. Avoid floats near page breaks and use table layouts.
 
 ## GETTING STARTED
++ [Templates for Openhtmltopdf](https://danfickle.github.io/pdf-templates/index.html) - MIT licensed templates that work with this project.
 + [Showcase Document - PDF](https://openhtmltopdf.com/showcase.pdf)
 + [Integration guide](https://github.com/danfickle/openhtmltopdf/wiki/Integration-Guide) - get maven artifacts and code to get started.
 + [Documentation wiki](https://github.com/danfickle/openhtmltopdf/wiki)
