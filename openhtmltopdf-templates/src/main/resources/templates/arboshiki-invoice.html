@@ -12,6 +12,14 @@ attributions:
 <html>
 <head>
 <style>
+@page {
+    @top-right {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: sans-serif;
+        padding-right: 15px;
+    }
+}
+
 #invoice{
     padding: 0px;
 }
