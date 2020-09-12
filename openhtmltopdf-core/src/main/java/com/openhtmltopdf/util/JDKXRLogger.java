@@ -21,14 +21,14 @@
  */
 package com.openhtmltopdf.util;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.logging.Handler;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * An {@link XRLogger} interface that uses <code>java.util.logging</code>.
@@ -37,9 +37,9 @@ import java.util.List;
 public class JDKXRLogger implements XRLogger {
     private boolean initPending = true;
 
-    // Keep a list of Loggers so they are not garbage collected
+    // Keep a map of Loggers so they are not garbage collected
     // which makes them lose their settings we have applied.
-    private List<Logger> loggers;
+    private Map<String, Logger> loggers;
 
     private final boolean useParent;
     private final Level level;
@@ -54,7 +54,7 @@ public class JDKXRLogger implements XRLogger {
     }
 
     public JDKXRLogger(boolean useParent, Level level, Handler handler, Formatter formatter) {
-        this.useParent = false;
+        this.useParent = useParent;
         this.level = level;
         this.handler = handler;
         this.formatter = formatter;
@@ -100,7 +100,7 @@ public class JDKXRLogger implements XRLogger {
      */
     private Logger getLogger(String log) {
         checkInitPending();
-        return Logger.getLogger(log);
+        return loggers.get(log);
     }
 
     private void init(boolean useParent, Level level, Handler handler, Formatter formatter) {
@@ -122,27 +122,30 @@ public class JDKXRLogger implements XRLogger {
     }
 
     private void configureLoggerHandlerForwarding(boolean useParentHandlers) {
-        loggers.forEach(logger -> logger.setUseParentHandlers(useParentHandlers));
+        loggers.forEach((name, logger) -> logger.setUseParentHandlers(useParentHandlers));
     }
 
     /**
      * Returns a List of all Logger instances used by this project from the JDK LogManager; these will
      * be automatically created if they aren't already available.
      */
-    private List<Logger> retrieveLoggers() {
-        return XRLog.listRegisteredLoggers().stream()
-                .map(Logger::getLogger).collect(Collectors.toList());
+    private Map<String, Logger> retrieveLoggers() {
+        Map<String, Logger> loggers = new HashMap<>();
+        for (String name : XRLog.listRegisteredLoggers()) {
+            loggers.put(name, Logger.getLogger(name));
+        }
+        return loggers;
     }
 
     private void configureLogHandlers(Handler handler, Formatter formatter) {
         handler.setFormatter(formatter);
         // Note Logger::removeLogger doesn't throw if the handler isn't found
         // so there are no sync issues here.
-        loggers.forEach(logger -> Arrays.stream(logger.getHandlers()).forEach(logger::removeHandler));
-        loggers.forEach(logger -> logger.addHandler(handler));
+        loggers.forEach((name, logger) -> Arrays.stream(logger.getHandlers()).forEach(logger::removeHandler));
+        loggers.forEach((name, logger) -> logger.addHandler(handler));
     }
 
     private void configureLogLevels(Level level) {
-        loggers.forEach(logger -> logger.setLevel(level));
+        loggers.forEach((name, logger) -> logger.setLevel(level));
     }
 }

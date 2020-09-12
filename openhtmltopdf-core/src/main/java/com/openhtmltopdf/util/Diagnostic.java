@@ -36,11 +36,7 @@ public class Diagnostic {
     }
 
     public String getFormattedMessage() {
-        if (logMessageId instanceof LogMessageId.LogMessageId0Param) {
-            return logMessageId.getMessageFormat();
-        } else {
-            return String.format(MESSAGE_FORMAT_PLACEHOLDER.matcher(logMessageId.getMessageFormat()).replaceAll("%s"), args);
-        }
+        return logMessageId.formatMessage(args);
     }
 
     public Object[] getArgs() {
