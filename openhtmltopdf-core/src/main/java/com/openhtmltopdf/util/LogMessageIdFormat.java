@@ -5,7 +5,7 @@ import java.util.List;
 
 class LogMessageIdFormat {
 
-    private final Object PLACEHOLDER = new Object();
+    private static final Object PLACEHOLDER = new Object();
 
 
     private final List<Object> tokens;
@@ -34,12 +34,13 @@ class LogMessageIdFormat {
 
     String formatMessage(Object[] args) {
         StringBuilder sb = new StringBuilder();
+        int argsLength = args == null ? 0 : args.length;
         int size = tokens.size();
         int argsUse = 0;
         for (int i = 0; i < size; i++) {
             Object f = tokens.get(i);
             if (f == PLACEHOLDER) {
-                Object argument = args[argsUse];
+                Object argument = argsUse < argsLength ? args[argsUse] : "";
                 sb.append(argument);
                 argsUse++;
             } else {
