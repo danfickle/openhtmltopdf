@@ -22,6 +22,9 @@ package com.openhtmltopdf.util;
 
 import java.io.*;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.logging.*;
 
 
@@ -41,11 +44,36 @@ public class XRSimpleLogFormatter extends Formatter {
     /** Description of the Field */
     private final static String exmsgFmt;
 
+    private final boolean[] usedPlaceholderForMsgFmt;
+    private final boolean[] usedPlaceholderForExmsgFmt;
+
     /** Constructor for the XRSimpleLogFormatter object */
     public XRSimpleLogFormatter() {
         super();
-        mformat = new MessageFormat( msgFmt );
-        exmformat = new MessageFormat( exmsgFmt );
+        mformat = new MessageFormat(msgFmt);
+        exmformat = new MessageFormat(exmsgFmt);
+        usedPlaceholderForMsgFmt = usedPlaceholder(mformat);
+        usedPlaceholderForExmsgFmt = usedPlaceholder(exmformat);
+    }
+
+    /**
+     * Identify which arguments are effectively used.
+     *
+     * @param messageFormat
+     * @return
+     */
+    private static boolean[] usedPlaceholder(MessageFormat messageFormat) {
+        boolean[] used = new boolean[9];
+        String identifier = UUID.randomUUID().toString();
+        List<String> args = new ArrayList<>();
+        for (int i = 0; i < 9; i++) {
+            args.add(new StringBuilder().append('{').append(identifier).append('-').append(i).append('}').toString());
+        }
+        String res = messageFormat.format(args.stream().toArray());
+        for (int i = 0; i < 9; i++) {
+            used[i] = res.contains(args.get(i));
+        }
+        return used;
     }
 
     /**
@@ -56,36 +84,36 @@ public class XRSimpleLogFormatter extends Formatter {
      */
     public String format( LogRecord record ) {
 
+
         Throwable th = record.getThrown();
+
+        boolean[] placeholderUse = th == null ? usedPlaceholderForMsgFmt : usedPlaceholderForExmsgFmt;
+
         String thName = "";
         String thMessage = "";
         String trace = null;
         if ( th != null ) {
-            StringWriter sw = new StringWriter();
-            th.printStackTrace( new PrintWriter( sw ) );
-            trace = sw.toString();
-
+            if (placeholderUse[8]) {
+                StringWriter sw = new StringWriter();
+                th.printStackTrace(new PrintWriter(sw));
+                trace = sw.toString();
+            }
             thName = th.getClass().getName();
             thMessage = th.getMessage();
         }
+
         String[] args = {
-                String.valueOf( record.getMillis() ),
-                record.getLoggerName(),
-                record.getLevel().toString(),
-                record.getSourceClassName(),
-                record.getSourceMethodName(),
-                record.getMessage(),
-                thName,
-                thMessage,
-                trace
-                };
-        String log = null;
-        if ( th == null ) {
-            log = mformat.format( args );
-        } else {
-            log = exmformat.format( args );
-        }
-        return log;
+                placeholderUse[0] ? String.valueOf( record.getMillis() ) : null,
+                placeholderUse[1] ? record.getLoggerName() : null,
+                placeholderUse[2] ? record.getLevel().toString() : null,
+                placeholderUse[3] ? record.getSourceClassName() : null,
+                placeholderUse[4] ? record.getSourceMethodName() : null,
+                placeholderUse[5] ? record.getMessage() : null,
+                placeholderUse[6] ? thName : null,
+                placeholderUse[7] ? thMessage : null,
+                placeholderUse[8] ? trace : null
+        };
+        return th == null ? mformat.format(args) : exmformat.format(args);
     }
 
     /**
@@ -119,8 +147,8 @@ public class XRSimpleLogFormatter extends Formatter {
     }
 
     static {
-        msgFmt = Configuration.valueFor( "xr.simple-log-format", "{1}:\n  {5}\n" ).trim() + "\n";
-        exmsgFmt = Configuration.valueFor( "xr.simple-log-format-throwable", "{1}:\n  {5}\n{8}" ).trim() + "\n";
+        msgFmt = Configuration.valueFor( "xr.simple-log-format", "{1} {2}:: {5}" ).trim() + "\n";
+        exmsgFmt = Configuration.valueFor( "xr.simple-log-format-throwable", "{1} {2}:: {5}" ).trim() + "\n";
     }
 
 }// end class

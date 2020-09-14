@@ -5,6 +5,7 @@ public interface LogMessageId {
     Enum<?> getEnum();
     String getWhere();
     String getMessageFormat();
+    String formatMessage(Object[] args);
 
     enum LogMessageId0Param implements LogMessageId {
         CSS_PARSE_MUST_PROVIDE_AT_LEAST_A_FONT_FAMILY_AND_SRC_IN_FONT_FACE_RULE(XRLog.CSS_PARSE, "Must provide at least a font-family and src in @font-face rule"),
@@ -81,6 +82,10 @@ public interface LogMessageId {
             return where;
         }
 
+        @Override
+        public String formatMessage(Object[] args) {
+            return getMessageFormat();
+        }
     }
 
     enum LogMessageId1Param implements LogMessageId {
@@ -160,10 +165,12 @@ public interface LogMessageId {
 
         private final String where;
         private final String messageFormat;
+        private final LogMessageIdFormat logMessageIdFormat;
 
         LogMessageId1Param(String where, String messageFormat) {
             this.where = where;
             this.messageFormat = messageFormat;
+            this.logMessageIdFormat = new LogMessageIdFormat(messageFormat);
         }
 
         @Override
@@ -179,6 +186,11 @@ public interface LogMessageId {
         @Override
         public String getWhere() {
             return where;
+        }
+
+        @Override
+        public String formatMessage(Object[] args) {
+            return logMessageIdFormat.formatMessage(args);
         }
     }
 
@@ -216,10 +228,12 @@ public interface LogMessageId {
 
         private final String where;
         private final String messageFormat;
+        private final LogMessageIdFormat logMessageIdFormat;
 
         LogMessageId2Param(String where, String messageFormat) {
             this.where = where;
             this.messageFormat = messageFormat;
+            this.logMessageIdFormat = new LogMessageIdFormat(messageFormat);
         }
 
         @Override
@@ -230,6 +244,11 @@ public interface LogMessageId {
         @Override
         public String getMessageFormat() {
             return messageFormat;
+        }
+
+        @Override
+        public String formatMessage(Object[] args) {
+            return logMessageIdFormat.formatMessage(args);
         }
 
         @Override
@@ -252,10 +271,12 @@ public interface LogMessageId {
 
         private final String where;
         private final String messageFormat;
+        private final LogMessageIdFormat logMessageIdFormat;
 
         LogMessageId3Param(String where, String messageFormat) {
             this.where = where;
             this.messageFormat = messageFormat;
+            this.logMessageIdFormat = new LogMessageIdFormat(messageFormat);
         }
 
         @Override
@@ -271,6 +292,11 @@ public interface LogMessageId {
         @Override
         public String getWhere() {
             return where;
+        }
+
+        @Override
+        public String formatMessage(Object[] args) {
+            return logMessageIdFormat.formatMessage(args);
         }
     }
 
@@ -286,10 +312,12 @@ public interface LogMessageId {
 
         private final String where;
         private final String messageFormat;
+        private final LogMessageIdFormat logMessageIdFormat;
 
         LogMessageId4Param(String where, String messageFormat) {
             this.where = where;
             this.messageFormat = messageFormat;
+            this.logMessageIdFormat = new LogMessageIdFormat(messageFormat);
         }
 
         @Override
@@ -305,6 +333,11 @@ public interface LogMessageId {
         @Override
         public String getWhere() {
             return where;
+        }
+
+        @Override
+        public String formatMessage(Object[] args) {
+            return logMessageIdFormat.formatMessage(args);
         }
     }
 
@@ -314,10 +347,12 @@ public interface LogMessageId {
 
         private final String where;
         private final String messageFormat;
+        private final LogMessageIdFormat logMessageIdFormat;
 
         LogMessageId5Param(String where, String messageFormat) {
             this.where = where;
             this.messageFormat = messageFormat;
+            this.logMessageIdFormat = new LogMessageIdFormat(messageFormat);
         }
 
         @Override
@@ -333,6 +368,11 @@ public interface LogMessageId {
         @Override
         public String getWhere() {
             return where;
+        }
+
+        @Override
+        public String formatMessage(Object[] args) {
+            return logMessageIdFormat.formatMessage(args);
         }
 
     }
