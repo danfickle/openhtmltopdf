@@ -22,6 +22,7 @@
   </licenses>
 
   <modules>
+    <module>openhtmltopdf-benchmark</module>
     <module>openhtmltopdf-core</module>
     <module>openhtmltopdf-slf4j</module>
     <module>openhtmltopdf-examples</module>

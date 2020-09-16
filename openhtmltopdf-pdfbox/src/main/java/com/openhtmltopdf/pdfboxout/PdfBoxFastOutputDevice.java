@@ -73,6 +73,10 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
+
+import static com.openhtmltopdf.util.OpenUtil.areAllCharactersPrintable;
 
 public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements OutputDevice, PdfBoxOutputDevice {
     //
@@ -392,15 +396,16 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     public void drawString(String s, float x, float y, JustificationInfo info) {
         PDFont firstFont = _font.getFontDescription().get(0).getFont();
         
-        // First check if the string will print with the current font entirely.
+        // First check if the string contains printable characters only and
+        // will print with the current font entirely.
         try {
-            if (s.chars().noneMatch(OpenUtil::isCodePointPrintable)) {
+            if (areAllCharactersPrintable(s)) {
                 firstFont.encode(s);
                 // We got here, so all is good.
                 drawStringFast(s, x, y, info, _font.getFontDescription().get(0), _font.getSize2D());
                 return;
             }
-        } 
+        }
         catch (Exception e) {
             // Fallthrough, we'll have to process the string into font runs.
         }
@@ -423,7 +428,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             }
         }
     }
-    
+
     public void drawStringFast(String s, float x, float y, JustificationInfo info, FontDescription desc, float fontSize) {
         if (s.length() == 0)
             return;

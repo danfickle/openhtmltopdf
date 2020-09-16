@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.IntStream;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.extend.FontContext;
@@ -34,13 +35,14 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.util.LogMessageId;
-import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
+import static com.openhtmltopdf.util.OpenUtil.isCodePointPrintable;
+
 public class PdfBoxTextRenderer implements TextRenderer {
     private static float TEXT_MEASURING_DELTA = 0.01f;
-    
+
     private BidiReorderer _reorderer;
     
     public void setup(FontContext context, BidiReorderer reorderer) {
@@ -192,7 +194,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
             i += Character.charCount(unicode);
             String ch = String.valueOf(Character.toChars(unicode));
 
-            if (!OpenUtil.isCodePointPrintable(unicode)) {
+            if (!isCodePointPrintable(unicode)) {
                 continue;
             }
 
@@ -316,6 +318,8 @@ public class PdfBoxTextRenderer implements TextRenderer {
     public int getWidth(FontContext context, FSFont font, String string) {
         float result = 0f;
 
+        String effectiveString = TextRenderer.getEffectivePrintableString(string);
+
         try {
             if (((PdfBoxFSFont) font).getFontDescription() == null 
                     || ((PdfBoxFSFont) font).getFontDescription().isEmpty()) {
@@ -324,7 +328,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
               // Go through the list of font descriptions
               for (FontDescription fd : ((PdfBoxFSFont) font).getFontDescription()) {
                  if (fd.getFont() != null) {
-                   result = fd.getFont().getStringWidth(string) / 1000f * font.getSize2D();
+                   result = fd.getFont().getStringWidth(effectiveString) / 1000f * font.getSize2D();
                    break;
                  } else {
                      XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_FONT_IS_NULL);
@@ -334,7 +338,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
         } catch (IllegalArgumentException e2) {
             // PDFont::getStringWidth throws an IllegalArgumentException if the character doesn't exist in the font.
             // So we do it one character by character instead.
-            result = getStringWidthSlow(font, string) / 1000f * font.getSize2D();
+            result = getStringWidthSlow(font, effectiveString) / 1000f * font.getSize2D();
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("getWidth", e);
         }

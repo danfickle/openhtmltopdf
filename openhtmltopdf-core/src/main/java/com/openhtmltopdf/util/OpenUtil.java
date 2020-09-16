@@ -1,5 +1,8 @@
 package com.openhtmltopdf.util;
 
+import java.util.Objects;
+import java.util.stream.IntStream;
+
 public class OpenUtil {
 
 	private OpenUtil() {}
@@ -22,6 +25,16 @@ public class OpenUtil {
 				 category == Character.UNASSIGNED ||
 				 category == Character.PRIVATE_USE ||
 				 category == Character.SURROGATE);
+	}
+
+	/**
+	 * Returns <code>true</code>, when all characters of the given string are printable.
+	 * @param str a non-null string to test
+	 * @return whether all characters are printable
+	 */
+	public static boolean areAllCharactersPrintable(String str) {
+		Objects.requireNonNull(str, "str");
+		return IntStream.range(0, str.length()).allMatch(idx -> isCodePointPrintable(str.codePointAt(idx)));
 	}
 	
 	public static Integer parseIntegerOrNull(String possibleInteger) {

@@ -25,25 +25,51 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
 
-public interface TextRenderer {
-    public void setup(FontContext context);
+import static com.openhtmltopdf.util.OpenUtil.areAllCharactersPrintable;
+import static com.openhtmltopdf.util.OpenUtil.isCodePointPrintable;
 
-    public void drawString(OutputDevice outputDevice, String string, float x, float y);
-    public void drawString(
+public interface TextRenderer {
+
+    /**
+     * Returns a string containing printable characters only.
+     *
+     * @param input The string can be null
+     * @return The cleaned string or <code>null</code> if the input is null
+     * @see com.openhtmltopdf.util.OpenUtil#isCodePointPrintable(int)
+     */
+    static String getEffectivePrintableString(String input) {
+        if (input == null || input.isEmpty() || areAllCharactersPrintable(input)) {
+            return input;
+        }
+
+        StringBuilder effective = new StringBuilder(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            if (isCodePointPrintable(input.codePointAt(i))) {
+                effective.append(input.charAt(i));
+            }
+        }
+
+        return effective.toString();
+    }
+
+    void setup(FontContext context);
+
+    void drawString(OutputDevice outputDevice, String string, float x, float y);
+    void drawString(
             OutputDevice outputDevice, String string, float x, float y, JustificationInfo info);
 
-    public FSFontMetrics getFSFontMetrics(
+    FSFontMetrics getFSFontMetrics(
             FontContext context, FSFont font, String string );
 
     /**
      * Rarely need to use this method directly.
      * Instead favor {@link Breaker} static method instead.
      */
-    public int getWidth(FontContext context, FSFont font, String string);
+    int getWidth(FontContext context, FSFont font, String string);
 
-    public void setFontScale(float scale);
+    void setFontScale(float scale);
 
-    public float getFontScale();
+    float getFontScale();
 
     /**
      * Set the smoothing threashold. This is a font size above which
@@ -53,15 +79,15 @@ public interface TextRenderer {
      * Else, set to the threshold font size. does not take font scaling
      * into account.
      */
-    public void setSmoothingThreshold(float fontsize);
+    void setSmoothingThreshold(float fontsize);
 
-    public int getSmoothingLevel();
+    int getSmoothingLevel();
 
     /**
      * @deprecated no-op, will be removed in a future release. Anti-aliasing is now controlled via the smoothing
      * threshhold.
      * @param level no-op
      */
-    public void setSmoothingLevel(int level);
+    void setSmoothingLevel(int level);
 }
 
