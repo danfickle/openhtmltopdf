@@ -57,6 +57,14 @@
 
     <build>
         <plugins>
+            <!-- workaround for: 'java.lang.IllegalStateException: endPosTable already set'.
+                 see: https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8067747 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
