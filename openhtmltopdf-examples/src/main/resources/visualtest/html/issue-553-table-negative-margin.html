@@ -1,8 +1,27 @@
 <html>
+<head>
+<style>
+@page {
+  margin: 0;
+  size: 70px 70px;
+}
+body {
+  margin: 5px;
+}
+</style>
+</head>
 <body>
     <div style="page-break-before: always;"></div>
-    <table style="margin-top: -20px; -fs-table-paginate: paginate;">
-      <tr><td>Row 1</td></tr>
+    <table style="margin-top: -50px; -fs-table-paginate: paginate;">
+      <tr><td style="background-color: red;">One</td></tr>
     </table>
+
+    <div style="page-break-before: always; margin-top: 50px;"></div>
+    <table style="-fs-table-paginate: paginate;">
+      <tr><td><p style="margin-top: -40px;background-color: blue;">Two</p></td></tr>
+    </table>
+
+
+
 </body>
 </html>

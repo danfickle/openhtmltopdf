@@ -26,12 +26,12 @@ import com.openhtmltopdf.layout.LayoutContext;
 
 public class ContentLimitContainer {
     private ContentLimitContainer _parent;
-    
-    private final int _initialPageNo;
+
     private final List<ContentLimit> _contentLimits = new ArrayList<>();
-    
+
+    private int _initialPageNo;
     private PageBox _lastPage;
-    
+
     public ContentLimitContainer(LayoutContext c, int startAbsY) {
         _initialPageNo = getPage(c, startAbsY).getPageNo();
     }
@@ -52,6 +52,18 @@ public class ContentLimitContainer {
         if (addAsNeeded) {
             while (_contentLimits.size() < (pageNo - _initialPageNo + 1)) {
                 _contentLimits.add(new ContentLimit());
+            }
+
+            if (pageNo < _initialPageNo) {
+                // Issue 553 - if we have negative margins, we might need to
+                // adjust the initial page number also.
+                int diff = _initialPageNo - pageNo;
+
+                for (int i = 0; i < diff; i++) {
+                    _contentLimits.add(0, new ContentLimit());
+                }
+
+                _initialPageNo = pageNo;
             }
         }
         
