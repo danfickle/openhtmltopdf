@@ -1250,6 +1250,15 @@ public class VisualRegressionTest {
         }));
     }
 
+    /**
+     * Tests paginated table with negative margin at start of new page.
+     */
+    @Test
+    @Ignore // Currently throwing a NPE at ContentLimitContainer::updateTop.
+    public void testIssue553TableNegativeMargin() throws IOException {
+        assertTrue(vt.runTest("issue-553-table-negative-margin"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
