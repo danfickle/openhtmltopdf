@@ -240,14 +240,19 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 
 	/**
 	 * Provides a string containing XHTML/XML to convert to PDF.
+	 * Note that baseDocumentUri can be null if there are no relative resources, otherwise
+	 * should be a uri to a (possibly fake) document that is used to resolve relative resources.
+	 * Examples:
+	 *   <code>file:///Users/user/my-dummy-doc.html</code>,
+	 *   <code>file:/C:/Users/me/Desktop/dummy.html</code>
 	 *
-	 * @param html the HTML file to use.
-	 * @param baseUri the base URI to resolve future resources (e.g. images)
+	 * @param html the HTML text to use.
+	 * @param baseDocumentUri the base document URI to resolve future relative resources (e.g. images)
 	 * @return this for method chaining
 	 */
-	public final TFinalClass withHtmlContent(String html, String baseUri) {
+	public final TFinalClass withHtmlContent(String html, String baseDocumentUri) {
 		state._html = html;
-		state._baseUri = baseUri;
+		state._baseUri = baseDocumentUri;
 		return (TFinalClass) this;
 	}
 
