@@ -2,7 +2,7 @@ package com.openhtmltopdf.layout;
 
 import static com.openhtmltopdf.layout.BreakerTestSupport.*;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Test;
 

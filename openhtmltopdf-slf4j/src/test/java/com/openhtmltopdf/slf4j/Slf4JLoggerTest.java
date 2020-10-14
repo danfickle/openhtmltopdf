@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -12,6 +11,7 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.util.XRLog;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class Slf4JLoggerTest {
 
@@ -43,8 +43,8 @@ public class Slf4JLoggerTest {
         old.println(log);
         System.setErr(old);
 
-        Assert.assertThat(log, containsString("] [INFO]"));
-        Assert.assertThat(log, containsString("] [WARN]"));
+        assertThat(log, containsString("] [INFO]"));
+        assertThat(log, containsString("] [WARN]"));
     }
 
     /**
