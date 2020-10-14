@@ -63,7 +63,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 		public FSObjectDrawerFactory _objectDrawerFactory;
 		public String _preferredTransformerFactoryImplementationClass = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
 		public String _preferredDocumentBuilderFactoryImplementationClass = "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl";
-		public boolean _useFastRenderer = false;
+		public boolean _useFastRenderer = true;
 		public Consumer<Diagnostic> _diagnosticConsumer;
     }
 
@@ -435,10 +435,15 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	}
 	
 	/**
-	 * Use the new (May 2018) fast renderer if possible (only PDF at this point).
+	 * Use the new (May 2018) fast renderer.
 	 * This renderer can be 100s of times faster for very large documents.
 	 * Please note that the fast renderer will be the only renderer at some future
 	 * release so please at least test your code using the fast mode.
+	 * 
+	 * Note: As of version 1.0.5 the fast renderer will be the default
+	 * and this method is not required. To temporarily
+	 * use the slow renderer (now only available for PDFs) call <code>useSlowMode</code>.
+	 * 
 	 * @return this for method chaining
 	 */
 	public final TFinalClass useFastMode() {
