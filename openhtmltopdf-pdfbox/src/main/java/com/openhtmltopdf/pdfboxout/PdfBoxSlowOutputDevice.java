@@ -40,6 +40,7 @@ import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
@@ -86,7 +87,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     //   Dividing by _dotsPerPoint will convert OpenHTMLtoPDF dots to PDF points.
     //   Theoretically, this is all configurable, but not tested at all with other values.
     //
-    
+
     private static final int FILL = 1;
     private static final int STROKE = 2;
     private static final int CLIP = 3;
@@ -98,11 +99,11 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
     // The current PDF page.
     private PDPage _page;
-    
+
     // A wrapper around the IOException throwing content stream methods which only throws runtime exceptions.
     // Created for every page.
     private PdfContentStreamAdapter _cp;
-    
+
     // We need the page height because the project uses top down units which PDFs use bottom up units.
     // This is in PDF points unit (1/72 inch).
     private float _pageHeight;
@@ -115,7 +116,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     // It scales from internal dots to PDF points.
     // It translates positions to implement page margins.
     private AffineTransform _transform = new AffineTransform();
-    
+
     // A stack of currently in force transforms on the PDF graphics state.
     // NOTE: Transforms are cumulative and order is important.
     // After the graphics state is restored in setClip we must appropriately reapply the transforms
@@ -125,11 +126,11 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     // An index into the transformStack. When we save state we set this to the length of transformStack
     // then we know we have to reapply those transforms set after saving state upon restoring state.
     private int clipTransformIndex;
-    
+
     // We use these to keep track of where the current transform-origin is in absolute internal dots units.
     private float _absoluteTransformOriginX = 0;
     private float _absoluteTransformOriginY = 0;
-    
+
     // The desired color as set by setColor.
     // To make sure this color is set on the PDF graphics stream call ensureFillColor or ensureStrokeColor.
     private FSColor _color = FSRGBColor.BLACK;
@@ -143,10 +144,10 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     // This is already transformed to PDF points units.
     // Call setStrokeDiff to set this on the PDF graphics stream.
     private Stroke _stroke = null;
-    
+
     // Same as _stroke, but not transformed. That is, it is in internal dots units.
     private Stroke _originalStroke = null;
-    
+
     // The currently set stroke on the PDF graphics stream. When we call setStokeDiff
     // this is compared with _stroke and only the differences are output to the graphics stream.
     private Stroke _oldStroke = null;
@@ -156,7 +157,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
     // Essentially per-run global variables.
     private SharedContext _sharedContext;
-    
+
     // The project internal dots per PDF point unit. See discussion of units above.
     private float _dotsPerPoint;
 
@@ -175,7 +176,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
     // Contains all the state needed to manage form controls
     private final PdfBoxPerDocumentFormState _formState = new PdfBoxPerDocumentFormState();
-    
+
     // The root box in the document. We keep this so we can search for specific boxes below it
     // such as links or form controls which we need to position.
     private Box _root;
@@ -184,24 +185,24 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     // so we can use it to offset when we need to know the PDF page number.
     // NOTE: Not tested recently, this feature may be broken.
     private int _startPageNo;
-    
+
     // Whether we are in test mode, currently not used here, but keep around in case we need it down the track.
     @SuppressWarnings("unused")
     private final boolean _testMode;
-    
+
     // Link manage handles a links. We add the link in paintBackground and then output links when the document is finished.
     private PdfBoxLinkManager _linkManager;
-    
+
     // Not used currently.
     private RenderingContext _renderingContext;
-    
-    // The bidi reorderer is responsible for shaping Arabic text, deshaping and 
+
+    // The bidi reorderer is responsible for shaping Arabic text, deshaping and
     // converting RTL text into its visual order.
     private BidiReorderer _reorderer = new SimpleBidiReorderer();
 
     // Font Mapping for the Graphics2D output
     private PdfBoxGraphics2DFontTextDrawer _fontTextDrawer;
-    
+
     public PdfBoxSlowOutputDevice(float dotsPerPoint, boolean testMode) {
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
@@ -216,7 +217,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     /**
-     * Start a page. A new PDF page starts a new content stream so all graphics state has to be 
+     * Start a page. A new PDF page starts a new content stream so all graphics state has to be
      * set back to default.
      */
     public void initializePage(PDPageContentStream currentPage, PDPage page, float height) {
@@ -229,7 +230,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
             // restoreGraphics is only used by setClip and page finish (unless the fast renderer is in use).
             _cp.saveGraphics();
         }
-        
+
         _transform = new AffineTransform();
         _transform.scale(1.0d / _dotsPerPoint, 1.0d / _dotsPerPoint);
 
@@ -253,7 +254,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
         if (!isFastRenderer()) {
             _cp.restoreGraphics();
         }
-        
+
         _cp.closeContent();
     }
 
@@ -271,7 +272,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
         // processLinkLater will take care of making sure it is actually a link.
         _linkManager.processLinkLater(c, box, _page, _pageHeight, _transform);
-       
+
         if (box.getElement() != null && box.getElement().getNodeName().equals("form")) {
             _formState.addFormIfRequired(box, this);
         } else if (box.getElement() != null &&
@@ -285,7 +286,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     private void processControls() {
         _formState.processControls(_sharedContext, _writer, _root);
     }
-    
+
 
 
     /**
@@ -375,7 +376,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
 
     public void drawString(String s, float x, float y, JustificationInfo info) {
         PDFont firstFont = _font.getFontDescription().get(0).getFont();
-        
+
         // First check if the string will print with the current font entirely.
         try {
             firstFont.getStringWidth(s);
