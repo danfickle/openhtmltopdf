@@ -288,6 +288,14 @@ lower corner.
 	<li><b>pdfpage</b>: Page to import from the PDF file.</li>
 </ul>
 
+If you want to have this watermark in the foreground you should use
+[@htmlCode]
+	<object type="pdf/foreground" pdfsrc="watermark.pdf" pdfpage="1" style="width:1px;height:1px"></object>
+[/@htmlCode]
+<object type="pdf/foreground" pdfsrc="watermark.pdf" pdfpage="1" style="width:1px;height:1px"></object>
+
+To have this placed on every page, you should put the object into the header of the page.
+
 [@h3]JFreeGraph[/@h3]
 
 For simple charts you can use the builtin objects for JFreeGraph. Note: You must specify the dependency to JFreeMarker
