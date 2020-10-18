@@ -370,6 +370,15 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that a transformed element with fixed position works on
+     * multiple pages.
+     */
+    @Test
+    public void testTransformFixed() throws IOException {
+        assertTrue(vt.runTest("transform-fixed"));
+    }
+
+    /**
      * With single static block, rotate then translate, small page margin, no block margin or padding.
      */
     @Test

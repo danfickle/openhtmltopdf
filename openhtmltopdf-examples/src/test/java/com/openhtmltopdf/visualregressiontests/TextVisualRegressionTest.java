@@ -652,8 +652,6 @@ public class TextVisualRegressionTest {
      * inside a fixed position object.
      */
     @Test
-    @Ignore // Works well on the first page, but not positioned correctly on
-            // subsequent pages.
     public void testIssue472AddSemiTransparentWatermark() throws IOException {
          assertTrue(vtester.runTest("issue-472-add-semi-transparent-watermark", builder -> {
              builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "Karla", 700, FontStyle.NORMAL, true);
