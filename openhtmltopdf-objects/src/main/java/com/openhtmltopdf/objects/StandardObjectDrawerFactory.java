@@ -3,6 +3,7 @@ package com.openhtmltopdf.objects;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartBarDiagramObjectDrawer;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartPieDiagramObjectDrawer;
 import com.openhtmltopdf.objects.pdf.MergeBackgroundPdfDrawer;
+import com.openhtmltopdf.objects.pdf.ForegroundPdfDrawer;
 import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 
 /**
@@ -14,6 +15,7 @@ public class StandardObjectDrawerFactory extends DefaultObjectDrawerFactory {
 		factory.registerDrawer("jfreechart/pie", new JFreeChartPieDiagramObjectDrawer());
 		factory.registerDrawer("jfreechart/bar", new JFreeChartBarDiagramObjectDrawer());
 		factory.registerDrawer("pdf/background",new MergeBackgroundPdfDrawer());
+        factory.registerDrawer("pdf/foreground", new ForegroundPdfDrawer());
 	}
 
 	public StandardObjectDrawerFactory() {
