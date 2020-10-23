@@ -92,7 +92,7 @@ public class Breaker {
             } else if (!c.isLineBreakedBecauseOfNoWrap()) {
                 c.setLineBreakedBecauseOfNoWrap(true);
                 context.setEnd(context.getStart());
-                context.setWidth(width);
+                context.setWidth(0);
                 context.setNeedsNewLine(true);
                 return LineBreakResult.WORD_BREAKING_NEED_NEW_LINE;
             } else {
