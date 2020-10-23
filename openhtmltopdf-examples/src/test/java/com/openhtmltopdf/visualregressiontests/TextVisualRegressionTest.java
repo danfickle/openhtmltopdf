@@ -194,7 +194,7 @@ public class TextVisualRegressionTest {
      * Tests that a nowrap span inside a line wraps to a new line if needed. Issue 302.
      */
     @Test
-    @Ignore // Greedily puts nowrap span on same line even though it does not fit.
+    // Greedily puts nowrap span on same line even though it does not fit.
     public void testLineWrapNoWrapSpan() throws IOException {
         assertTrue(run("line-wrap-nowrap-span"));
     }
