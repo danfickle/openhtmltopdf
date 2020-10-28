@@ -1,0 +1,31 @@
+<html>
+<head>
+<style>
+@page {
+ size: 300px 350px;
+ margin: 10px;
+}
+body {
+  margin: 20px;
+  max-width: 280px;
+  color: red;
+  border: 1px solid pink;
+}
+.nowrap {
+  white-space: nowrap;
+  color: blue;
+}
+.wrap {
+  white-space: normal;
+  color: red;
+}
+</style>
+</head>
+<body style="font-family: 'TestFont'; font-size: 20px;">
+Text should wrap before <span class="nowrap">a very long <span class="wrap">unwrappable wrap</span> span some more very long</span>
+
+Text should wrap before <span class="nowrap">a very long <span class="wrap">unwrappable</span> nowrap span some more very long</span>
+
+Text should wrap before <span class="nowrap">a very long <span class="wrap">unwrappable <span class="nowrap">wrap some more content testing 123</span></span> nowrap span some more very long</span>
+</body>
+</html>
