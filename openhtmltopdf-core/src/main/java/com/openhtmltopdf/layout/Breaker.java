@@ -83,9 +83,24 @@ public class Breaker {
 
         // ====== handle nowrap
         if (whitespace == IdentValue.NOWRAP) {
-            context.setEnd(context.getLast());
-            context.setWidth(Breaker.getTextWidthWithLetterSpacing(c, font, context.getCalculatedSubstring(), letterSpacing));
-            return LineBreakResult.WORD_BREAKING_FINISHED;
+            int width = Breaker.getTextWidthWithLetterSpacing(c, font, context.getMaster(), letterSpacing);
+            if (width <= avail) {
+                c.setLineBreakedBecauseOfNoWrap(false);
+                context.setEnd(context.getLast());
+                context.setWidth(width);
+                return LineBreakResult.WORD_BREAKING_FINISHED;
+            } else if (!c.isLineBreakedBecauseOfNoWrap()) {
+                c.setLineBreakedBecauseOfNoWrap(true);
+                context.setEnd(context.getStart());
+                context.setWidth(0);
+                context.setNeedsNewLine(true);
+                return LineBreakResult.WORD_BREAKING_NEED_NEW_LINE;
+            } else {
+                c.setLineBreakedBecauseOfNoWrap(false);
+                context.setEnd(context.getLast());
+                context.setWidth(width);
+                return LineBreakResult.WORD_BREAKING_FINISHED;
+            }
         }
 
         //check if we should break on the next newline

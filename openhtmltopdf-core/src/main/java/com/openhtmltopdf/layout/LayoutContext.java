@@ -89,6 +89,8 @@ public class LayoutContext implements CssContext {
 
     private boolean _mayCheckKeepTogether = true;
 
+    private boolean _lineBreakedBecauseOfNoWrap = false;
+
     private BreakAtLineContext _breakAtLineContext;
     
     private Boolean isPrintOverride = null; // True, false, or null for no override.
@@ -598,6 +600,14 @@ public class LayoutContext implements CssContext {
 
     public void setMayCheckKeepTogether(boolean mayKeepTogether) {
         _mayCheckKeepTogether = mayKeepTogether;
+    }
+
+    public boolean isLineBreakedBecauseOfNoWrap() {
+        return _lineBreakedBecauseOfNoWrap;
+    }
+
+    public void setLineBreakedBecauseOfNoWrap(boolean value) {
+        _lineBreakedBecauseOfNoWrap = value;
     }
 
     public BreakAtLineContext getBreakAtLineContext() {
