@@ -207,6 +207,14 @@ public class TextVisualRegressionTest {
     }
 
     /**
+     * Test provided with pr#587, fix for break before nowrap span.
+     */
+    @Test
+    public void testPr587FixForBreakBeforeNoWrap() throws IOException {
+        assertTrue(run("nowrap"));
+    }
+
+    /**
      * Tests that an element boundary is NOT seen as a line break opportunity by itself (eg. mid word). Issue 39.
      */
     @Test
