@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.stream.IntStream;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.extend.FontContext;
@@ -35,10 +34,9 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
-
-import static com.openhtmltopdf.util.OpenUtil.isCodePointPrintable;
 
 public class PdfBoxTextRenderer implements TextRenderer {
     private static float TEXT_MEASURING_DELTA = 0.01f;
@@ -194,7 +192,9 @@ public class PdfBoxTextRenderer implements TextRenderer {
             i += Character.charCount(unicode);
             String ch = String.valueOf(Character.toChars(unicode));
 
-            if (!isCodePointPrintable(unicode)) {
+            if (!OpenUtil.isSafeFontCodePointToPrint(unicode)) {
+                // Filter out characters that should never be visible (such
+                // as soft-hyphen) but are in some fonts.
                 continue;
             }
 
@@ -264,8 +264,14 @@ public class PdfBoxTextRenderer implements TextRenderer {
                     }
                 }
             }
-            
+
             if (!gotChar) {
+                if (!OpenUtil.isCodePointPrintable(unicode)) {
+                    // Filter out control, etc characters when they
+                    // are not present in any font.
+                    continue;
+                }
+
                 // We still don't have the character after all that. So use replacement character.
                 if (current.des == null) {
                     // First character of run.
@@ -366,6 +372,8 @@ public class PdfBoxTextRenderer implements TextRenderer {
         return 0;
     }
 
+    @Deprecated
+    @Override
     public void setSmoothingLevel(int level) {
     }
 

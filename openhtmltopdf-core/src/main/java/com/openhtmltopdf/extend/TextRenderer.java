@@ -35,15 +35,15 @@ public interface TextRenderer {
      *
      * @param input The string can be null
      * @return The cleaned string or <code>null</code> if the input is null
-     * @see com.openhtmltopdf.util.OpenUtil#isCodePointPrintable(int)
+     * @see com.openhtmltopdf.util.OpenUtil#isSafeFontCodePointToPrint(int)
      */
-    static String getEffectivePrintableString(String input) {
+    public static String getEffectivePrintableString(String input) {
         if (input == null || input.isEmpty() || areAllCharactersPrintable(input)) {
             return input;
         }
 
         StringBuilder effective = new StringBuilder(input.length());
-        input.codePoints().filter(OpenUtil::isCodePointPrintable).forEach(effective::appendCodePoint);
+        input.codePoints().filter(OpenUtil::isSafeFontCodePointToPrint).forEach(effective::appendCodePoint);
 
         return effective.toString();
     }

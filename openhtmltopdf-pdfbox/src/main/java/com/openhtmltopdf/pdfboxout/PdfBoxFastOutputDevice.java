@@ -43,7 +43,6 @@ import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.LogMessageId;
-import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
@@ -74,10 +73,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
-
-import static com.openhtmltopdf.util.OpenUtil.areAllCharactersPrintable;
 
 public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements OutputDevice, PdfBoxOutputDevice {
     //
