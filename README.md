@@ -68,7 +68,23 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 ## CHANGELOG
 
 ### head - 1.0.5-SNAPSHOT
-+ See commit log
+**IMPORTANT:** The fast renderer is now the default in preparation of removing the old slow renderer. To temporarily use the slow renderer, you can call the deprecated method `builder.useSlowMode()` (PDF output only).
+
+**IMPORTANT:** [#543](https://github.com/danfickle/openhtmltopdf/issues/543) This version stays on PDFBOX version 2.0.20 due to a bug with non-breaking spaces in version 2.0.21. Please make sure version 2.0.21 is not on your classpath. This bug has been fixed in the upcoming 2.0.22.
+
++ [#544](https://github.com/danfickle/openhtmltopdf/pull/544) Code to create a website for pre-canned PDF templates in thymeleaf and raw XHTML format. Check out the [template website](https://danfickle.github.io/pdf-templates/index.html) to preview templates.
++ [#533](https://github.com/danfickle/openhtmltopdf/pull/533) Barcode plugin. Very useful PR supplied by @syjer. [Barcode plugin docs](https://github.com/danfickle/openhtmltopdf/wiki/Plugins:-1D-2D-Barcode-with-ZXing).
++ [#521](https://github.com/danfickle/openhtmltopdf/pull/521) Move Java2D image output to fast renderer and general improvements. [Java2D image output docs](https://github.com/danfickle/openhtmltopdf/wiki/Java2D-Image-Output).
++ [9ffd0e](https://github.com/danfickle/openhtmltopdf/commit/9ffd0e4ad4a14e06a8c3921c3849f6bef83cef74)[#568](https://github.com/danfickle/openhtmltopdf/pull/568) Filter out problematic characters that are visible in some fonts but should not be such as soft-hyphen. Thanks @StephanSchrader.
++ [#587](https://github.com/danfickle/openhtmltopdf/pull/587) Fix for white-space: nowrap cutting off instead of wrapping. Thanks @vipcxj for finally fixing via PR.
++ [#577](https://github.com/danfickle/openhtmltopdf/pull/577) Add foreground PDF drawer plugin (useful especially for watermarks). Thanks @rototor for PR and @sillen102 for persisting.
++ [#566](https://github.com/danfickle/openhtmltopdf/issues/566) Rename `baseUri` arg to `baseDocumentUri` and improve javadoc to avoid confusion. Thanks for reporting @NehalDamania.
++ [801780](https://github.com/danfickle/openhtmltopdf/commit/801780ba03537d004b3423485a3ac7692a09bb95) Update junit test dependency to 4.13.1 to avoid security scanner warnings (the specific security problem did not impact this library).
++ [#553](https://github.com/danfickle/openhtmltopdf/issues/553) Fix for ContentLimitContainer causing NPEs when negative margins are used. Thanks for reporting @adilxoxo.
++ [#552](https://github.com/danfickle/openhtmltopdf/pull/552) Optimize the log formatter for j.u.l logging. Thanks for the impressive PR @syjer.
++ [#542](https://github.com/danfickle/openhtmltopdf/pull/542) Improve list-decoration placement. Thanks for PR @syjer and reporting @mndzielski.
++ [#458](https://github.com/danfickle/openhtmltopdf/issues/458) Fix for list-decorations being output (clipped) in page margin area.
++ [#525](https://github.com/danfickle/openhtmltopdf/pull/525) Remove unused schema/DTDs. Significantly reduces size of jar. Thanks for PR @syjer.
 
 
 ## 1.0.4 (2020-July-25)
