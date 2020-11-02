@@ -1,11 +1,21 @@
 package com.openhtmltopdf.svgsupport;
 
+import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
+import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.svgsupport.PDFTranscoder.OpenHtmlFontResolver;
+import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.XRLog;
 import java.awt.Point;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-
-import com.openhtmltopdf.extend.UserAgentCallback;
-import com.openhtmltopdf.util.LogMessageId;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
@@ -15,13 +25,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-
-import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
-import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.svgsupport.PDFTranscoder.OpenHtmlFontResolver;
-import com.openhtmltopdf.util.XRLog;
 
 public class BatikSVGImage implements SVGImage {
     private final static int DEFAULT_SVG_WIDTH = 400;
@@ -33,6 +36,65 @@ public class BatikSVGImage implements SVGImage {
     private OpenHtmlFontResolver fontResolver;
     private final PDFTranscoder pdfTranscoder;
     private UserAgentCallback userAgentCallback;
+    
+    private enum AbsoluteCSSUnits {
+        
+        CENTIMETERS("cm", 37.7952755906),
+ 	MILLIMETERS("mm", 3.77952755906),
+        INCHES("in", 300.0),
+        PIXELS("px", 1.0),
+        POINTS("pt", 4.0/3.0),
+        PICAS("pc", 16.0);
+        
+        private String unit;
+        private double pixelRatio;
+        
+        private AbsoluteCSSUnits(String unit, double pixelRatio) {
+            this.unit = unit;
+            this.pixelRatio = pixelRatio;
+        }
+
+        public String getUnit() {
+            return unit;
+        }
+        
+        public int toPixel(Number amount) {
+            return amount != null ? (int) Math.round(amount.doubleValue() * pixelRatio) : null;
+        }
+        
+        public static List<String> getUnits() {
+            return Arrays.stream(AbsoluteCSSUnits.values())
+                    .map(AbsoluteCSSUnits::getUnit)
+                    .collect(Collectors.toList());
+        }
+        
+        public static AbsoluteCSSUnits parseFromUnit(String unit) {
+            return unit != null
+                    ? Arrays.stream(AbsoluteCSSUnits.values())
+                            .filter(cssUnit -> unit.toLowerCase().equals(cssUnit.unit))
+                            .findFirst().orElse(null)
+                    : null;
+        }
+    }
+    
+    private static class HtmlUnitConverter {
+        public static Pattern UNIT_PATTERN = Pattern.compile("\\s*(\\d+(\\.\\d+)?)\\s*(" 
+                + AbsoluteCSSUnits.getUnits().stream().collect(Collectors.joining("|")) 
+                + ")?", Pattern.CASE_INSENSITIVE);
+        
+        public static Integer convert(String value) throws Exception {
+            Matcher matcher = UNIT_PATTERN.matcher(value);
+            if (matcher.matches()) {
+                Double number = Double.valueOf(matcher.group(1));
+                AbsoluteCSSUnits unit = AbsoluteCSSUnits.parseFromUnit(matcher.group(3));
+                Integer dots = unit != null 
+                        ? (int) Math.round(unit.toPixel(number)) 
+                        : number.intValue();
+                return dots;
+            }
+            return null;
+        }
+    }
 
     public BatikSVGImage(Element svgElement, Box box, double cssWidth, double cssHeight,
             double cssMaxWidth, double cssMaxHeight, double dotsPerPixel) {
@@ -113,12 +175,9 @@ public class BatikSVGImage implements SVGImage {
     }
     
     public Integer parseLength(String attrValue) {
-        // TODO read length with units and convert to dots.
-        // length ::= number (~"em" | ~"ex" | ~"px" | ~"in" | ~"cm" | ~"mm" |
-        // ~"pt" | ~"pc")?
         try {
-            return Integer.valueOf(attrValue);
-        } catch (NumberFormatException e) {
+            return HtmlUnitConverter.convert(attrValue);
+        } catch (Exception e) {
             XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_INVALID_INTEGER_PASSED_AS_DIMENSION_FOR_SVG, attrValue);
             return null;
         }
