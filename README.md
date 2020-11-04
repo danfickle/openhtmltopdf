@@ -85,6 +85,7 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 + [#542](https://github.com/danfickle/openhtmltopdf/pull/542) Improve list-decoration placement. Thanks for PR @syjer and reporting @mndzielski.
 + [#458](https://github.com/danfickle/openhtmltopdf/issues/458) Fix for list-decorations being output (clipped) in page margin area.
 + [#525](https://github.com/danfickle/openhtmltopdf/pull/525) Remove unused schema/DTDs. Significantly reduces size of jar. Thanks for PR @syjer.
++ [#592](https://github.com/danfickle/openhtmltopdf/issues/592) Allow unit (px, cm, em, etc) values in the width/height attributes of linked SVG images. Thanks @DanielWulfert.
 
 
 ## 1.0.4 (2020-July-25)

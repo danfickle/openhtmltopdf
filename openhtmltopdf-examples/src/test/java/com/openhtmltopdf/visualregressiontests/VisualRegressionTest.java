@@ -760,6 +760,15 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that a svg image linked from an image element containing unit
+     * sizes (px, cm, etc) in the width and height attribute is correctly sized.
+     */
+    @Test
+    public void testIssue592SVGLinkedImageWithUnitSize() throws IOException {
+        assertTrue(vt.runTest("issue-592-svg-linked-image-unit-size", TestSupport.WITH_SVG));
+    }
+
+    /**
      * Tests that a broken image inside a table cell renders with a zero sized image rather
      * than crashing with a NPE. See issue 336.
      */

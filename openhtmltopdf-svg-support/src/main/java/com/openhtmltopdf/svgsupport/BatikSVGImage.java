@@ -16,6 +16,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.parser.CSSParser;
+import com.openhtmltopdf.css.parser.PropertyValue;
+import com.openhtmltopdf.css.sheet.StylesheetInfo;
+import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.SVGDrawer.SVGImage;
 import com.openhtmltopdf.render.Box;
@@ -34,12 +40,17 @@ public class BatikSVGImage implements SVGImage {
     private final PDFTranscoder pdfTranscoder;
     private UserAgentCallback userAgentCallback;
 
-    public BatikSVGImage(Element svgElement, Box box, double cssWidth, double cssHeight,
-            double cssMaxWidth, double cssMaxHeight, double dotsPerPixel) {
+    public BatikSVGImage(
+            Element svgElement, Box box,
+            double cssWidth, double cssHeight,
+            double cssMaxWidth, double cssMaxHeight,
+            double dotsPerPixel,
+            CssContext ctx) {
+
         this.svgElement = svgElement;
         this.dotsPerPixel = dotsPerPixel;
-
         this.pdfTranscoder = new PDFTranscoder(box, dotsPerPixel, cssWidth, cssHeight);
+
         if (cssWidth >= 0) {
             this.pdfTranscoder.addTranscodingHint(
                     SVGAbstractTranscoder.KEY_WIDTH,
@@ -61,7 +72,7 @@ public class BatikSVGImage implements SVGImage {
                     (float) (cssMaxHeight / dotsPerPixel));
         }
         
-        Point dimensions = parseDimensions(svgElement);
+        Point dimensions = parseDimensions(svgElement, box, ctx);
         double w;
         double h;
         
@@ -111,38 +122,57 @@ public class BatikSVGImage implements SVGImage {
     public void setUserAgentCallback(UserAgentCallback userAgentCallback) {
         this.userAgentCallback = userAgentCallback;
     }
-    
-    public Integer parseLength(String attrValue) {
-        // TODO read length with units and convert to dots.
-        // length ::= number (~"em" | ~"ex" | ~"px" | ~"in" | ~"cm" | ~"mm" |
-        // ~"pt" | ~"pc")?
+
+    private Integer parseLength(
+            String attrValue,
+            CSSName property,
+            Box box,
+            CssContext ctx) {
+
         try {
             return Integer.valueOf(attrValue);
         } catch (NumberFormatException e) {
-            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_INVALID_INTEGER_PASSED_AS_DIMENSION_FOR_SVG, attrValue);
-            return null;
+            // Not a plain number, probably has a unit (px, cm, etc), so
+            // try with css parser.
+
+            CSSParser parser = new CSSParser((uri, msg) -> 
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_INVALID_INTEGER_PASSED_AS_DIMENSION_FOR_SVG, attrValue));
+
+            PropertyValue value = parser.parsePropertyValue(property, StylesheetInfo.AUTHOR, attrValue);
+
+            if (value == null) {
+                // CSS parser couldn't deal with value either.
+                return null;
+            }
+
+            LengthValue length = new LengthValue(box.getStyle(), property, value);
+            float pixels = length.getFloatProportionalTo(property, box.getContainingBlock() == null ? 0 : box.getContainingBlock().getWidth(), ctx);
+
+            return (int) Math.round(pixels / this.dotsPerPixel);
         }
     }
-    
-    public Point parseWidthHeightAttributes(Element e) {
+
+    private Point parseWidthHeightAttributes(Element e, Box box, CssContext ctx) {
         String widthAttr = e.getAttribute("width");
-        Integer width = widthAttr.isEmpty() ? null : parseLength(widthAttr);
+        Integer width = widthAttr.isEmpty() ? null :
+            parseLength(widthAttr, CSSName.WIDTH, box, ctx);
 
         String heightAttr = e.getAttribute("height");
-        Integer height = heightAttr.isEmpty() ? null : parseLength(heightAttr);
+        Integer height = heightAttr.isEmpty() ? null : 
+            parseLength(heightAttr, CSSName.HEIGHT, box, ctx);
 
         if (width != null && height != null) {
             return new Point(width, height);
         }
-        
+
         return DEFAULT_DIMENSIONS;
     }
 
-    public Point parseDimensions(Element e) {
+    private Point parseDimensions(Element e, Box box, CssContext ctx) {
         String viewBoxAttr = e.getAttribute("viewBox");
         String[] splitViewBox = viewBoxAttr.split("\\s+");
         if (splitViewBox.length != 4) {
-            return parseWidthHeightAttributes(e);
+            return parseWidthHeightAttributes(e, box, ctx);
         }
         try {
             int viewBoxWidth = Integer.parseInt(splitViewBox[2]);
@@ -150,7 +180,7 @@ public class BatikSVGImage implements SVGImage {
 
             return new Point(viewBoxWidth, viewBoxHeight);
         } catch (NumberFormatException ex) {
-            return parseWidthHeightAttributes(e);
+            return parseWidthHeightAttributes(e, box, ctx);
         }
     }
 
