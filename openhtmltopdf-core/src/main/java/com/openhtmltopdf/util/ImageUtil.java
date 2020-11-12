@@ -221,20 +221,6 @@ public class ImageUtil {
     }
     
     /**
-     * Detect if an URI represents an embedded base 64 image.
-     *
-     * @param uri URI of the image
-     * @return A boolean
-     */
-    public static boolean isEmbeddedBase64Image(String uri) {
-        return (uri != null && uri.startsWith("data:image/"));
-    }
-    
-    public static boolean isDataUri(String uri) {
-        return uri != null && uri.startsWith("data:");
-    }
-    
-    /**
      * Get the binary content of an embedded base 64 image.
      *
      * @param imageDataUri URI of the embedded image
@@ -247,28 +233,6 @@ public class ImageUtil {
             return Base64.getMimeDecoder().decode(b64encoded);
         } else {
             XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_EMBEDDED_DATA_URI_MUST_BE_ENCODED_IN_BASE64);
-        }
-        return null;
-    }
-    
-    public static byte[] getEmbeddedDataUri(String dataUri) {
-        return getEmbeddedBase64Image(dataUri);
-    }
-    
-    /**
-     * Get the BufferedImage of an embedded base 64 image.
-     *
-     * @param imageDataUri URI of the embedded image
-     * @return The BufferedImage
-     */
-    public static BufferedImage loadEmbeddedBase64Image(String imageDataUri) {
-        try {
-            byte[] buffer = getEmbeddedBase64Image(imageDataUri);
-            if (buffer != null) {
-                return ImageIO.read(new ByteArrayInputStream(buffer));
-            }
-        } catch (IOException ex) {
-            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_CANT_READ_XHTML_EMBEDDED_IMAGE, ex);
         }
         return null;
     }

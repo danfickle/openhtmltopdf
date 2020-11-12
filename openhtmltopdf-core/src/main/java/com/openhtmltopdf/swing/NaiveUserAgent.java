@@ -20,17 +20,13 @@
 package com.openhtmltopdf.swing;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -111,11 +107,50 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	        return new DefaultHttpStream(is);
 		}
     }
+
+    private static class ByteStream implements FSStream {
+
+		ByteStream(byte[] input) {
+			this.input = input;
+		}
+
+    	private final byte[] input;
+
+		@Override
+		public InputStream getStream() {
+			return new ByteArrayInputStream(input);
+		}
+
+		@Override
+		public Reader getReader() {
+			return new InputStreamReader(getStream(), StandardCharsets.UTF_8);
+		}
+	}
+
+    public static class DataUriFactory implements FSStreamFactory {
+
+		@Override
+		public FSStream getUrl(String url) {
+			int idxSeparator;
+			if (url != null && url.startsWith("data:") && (idxSeparator = url.indexOf(',')) > 0) {
+				String data = url.substring(idxSeparator+1);
+				byte[] res;
+				if (url.indexOf("base64,") == idxSeparator - 6 /* 6 = "base64,".length */) {
+					res = Base64.getMimeDecoder().decode(data);
+				} else {
+					res = data.getBytes(StandardCharsets.UTF_8);
+				}
+				return new ByteStream(res);
+			}
+			return null;
+		}
+	}
     
     public NaiveUserAgent() {
     	FSStreamFactory factory = new DefaultHttpStreamFactory();
     	this._protocolsStreamFactory.put("http", factory);
     	this._protocolsStreamFactory.put("https", factory);
+    	this._protocolsStreamFactory.put("data", new DataUriFactory());
     }
     
     public void setProtocolsStreamFactory(Map<String, FSStreamFactory> protocolsStreamFactory) {
@@ -146,6 +181,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	return _protocolsStreamFactory.containsKey(protocol);
     }
 
+	protected String extractProtocol(String uri) throws URISyntaxException {
+		int idxSeparator;
+		if (uri != null && (idxSeparator = uri.indexOf(':')) > 0) {
+			return uri.substring(0, idxSeparator);
+		} else {
+			throw new URISyntaxException(uri, "missing protocol for URI");
+		}
+	}
+
     /**
      * Gets a InputStream for the resource identified by a resolved URI.
      */
@@ -153,13 +197,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         java.io.InputStream is = null;
         
         try {
-			URI urlObj = new URI(uri);
-			String protocol = urlObj.getScheme();
+			String protocol = extractProtocol(uri);
 
 			if (hasProtocolFactory(protocol)) {
 				return getProtocolFactory(protocol).getUrl(uri).getStream();
-			}
-			else {
+			} else {
 		        try {
 		            is = new URL(uri).openStream();
 		        } catch (java.net.MalformedURLException e) {
@@ -184,13 +226,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     	InputStream is = null;
     	
         try {
-			URI urlObj = new URI(uri);
-			String protocol = urlObj.getScheme();
+			String protocol = extractProtocol(uri);
 
 			if (hasProtocolFactory(protocol)) {
 				return getProtocolFactory(protocol).getUrl(uri).getReader();
-			}
-			else {
+			} else {
 		        try {
 		            is = new URL(uri).openStream();
 		        } catch (java.net.MalformedURLException e) {
@@ -250,54 +290,51 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     public ImageResource getImageResource(String uri) {
         ImageResource ir;
         
-        if (ImageUtil.isEmbeddedBase64Image(uri)) {
-            BufferedImage image = ImageUtil.loadEmbeddedBase64Image(uri);
-            return new ImageResource(null, AWTFSImage.createImage(image));
-        } else {
-            String resolved = _resolver.resolveURI(this._baseUri, uri);
-            
-            if (resolved == null) {
-            	XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
-        		return null;
-        	}
-            
-            // First, we check the internal per run cache.
-            ir = _imageCache.get(resolved);
-            if (ir != null) {
-            	return ir;
-            }
-            
-            // Finally we fetch from the network or file, etc.
-            InputStream is = openStream(resolved);
 
-            if (is != null) {
-                    try {
-                        BufferedImage img = ImageIO.read(is);
-                        if (img == null) {
-                            throw new IOException("ImageIO.read() returned null");
-                        }
-                        
-                        AWTFSImage fsImage2 = (AWTFSImage) AWTFSImage.createImage(img);
-                        
-                        ir = new ImageResource(resolved, fsImage2);
-                        _imageCache.put(resolved, ir);
-                        
-                        return ir;
-                    } catch (FileNotFoundException e) {
-                    	XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND, resolved);
-                    } catch (IOException e) {
-						XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uri, e);
-                    } finally {
-                        try {
-                            is.close();
-                        } catch (IOException e) {
-                            // ignore
-                        }
-                    }
-                }
-            
-            	return new ImageResource(resolved, null);
-        }
+		String resolved = _resolver.resolveURI(this._baseUri, uri);
+
+		if (resolved == null) {
+			XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
+			return null;
+		}
+
+		// First, we check the internal per run cache.
+		ir = _imageCache.get(resolved);
+		if (ir != null) {
+			return ir;
+		}
+
+		// Finally we fetch from the network or file, etc.
+		InputStream is = openStream(resolved);
+
+		if (is != null) {
+				try {
+					BufferedImage img = ImageIO.read(is);
+					if (img == null) {
+						throw new IOException("ImageIO.read() returned null");
+					}
+
+					AWTFSImage fsImage2 = (AWTFSImage) AWTFSImage.createImage(img);
+
+					ir = new ImageResource(resolved, fsImage2);
+					_imageCache.put(resolved, ir);
+
+					return ir;
+				} catch (FileNotFoundException e) {
+					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND, resolved);
+				} catch (IOException e) {
+					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uri, e);
+				} finally {
+					try {
+						is.close();
+					} catch (IOException e) {
+						// ignore
+					}
+				}
+			}
+
+			return new ImageResource(resolved, null);
+
     }
 
     /**
@@ -328,10 +365,6 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
     @Override
     public byte[] getBinaryResource(String uri) {
-        if (ImageUtil.isDataUri(uri)) {
-            return ImageUtil.getEmbeddedDataUri(uri);
-        }
-
         String resolved = _resolver.resolveURI(this._baseUri, uri);
     	
     	if (resolved == null) {

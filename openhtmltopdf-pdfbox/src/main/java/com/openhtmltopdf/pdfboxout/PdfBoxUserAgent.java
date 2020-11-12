@@ -72,69 +72,50 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
             return new ImageResource(resource.getImageUri(), copy);
         }
         
-        if (ImageUtil.isEmbeddedBase64Image(uriResolved)) {
-            resource = loadEmbeddedBase64ImageResource(uriResolved);
-            // see issue 474: getImage can be null, as the loading of the embedded base64 resource may fail.
-            if (resource.getImage() != null) {
-                _outputDevice.realizeImage((PdfBoxImage) resource.getImage());
+
+        InputStream is = openStream(uriResolved);
+
+        if (is != null) {
+            try {
+                URI uri = new URI(uriStr);
+                if (uri.getPath() != null
+                    && uri.getPath().toLowerCase(Locale.US)
+                                .endsWith(".pdf")) {
+                    // TODO: Implement PDF AS IMAGE
+                    // PdfReader reader = _outputDevice.getReader(uri);
+                    // PDFAsImage image = new PDFAsImage(uri);
+                    // Rectangle rect = reader.getPageSizeWithRotation(1);
+                    // image.setInitialWidth(rect.getWidth() *
+                    // _outputDevice.getDotsPerPoint());
+                    // image.setInitialHeight(rect.getHeight() *
+                    // _outputDevice.getDotsPerPoint());
+                    // resource = new ImageResource(uriStr, image);
+                } else {
+                    byte[] imgBytes = readStream(is);
+                    PdfBoxImage fsImage = new PdfBoxImage(imgBytes, uriStr);
+                    scaleToOutputResolution(fsImage);
+                    _outputDevice.realizeImage(fsImage);
+                    resource = new ImageResource(uriResolved, fsImage);
+                }
                 _imageCache.put(uriResolved, resource);
-            }
-        } else {
-            InputStream is = openStream(uriResolved);
-            
-            if (is != null) {
+            } catch (Exception e) {
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uriStr, e);
+            } finally {
                 try {
-                    URI uri = new URI(uriStr);
-                    if (uri.getPath() != null
-                        && uri.getPath().toLowerCase(Locale.US)
-                                    .endsWith(".pdf")) {
-                        // TODO: Implement PDF AS IMAGE
-                        // PdfReader reader = _outputDevice.getReader(uri);
-                        // PDFAsImage image = new PDFAsImage(uri);
-                        // Rectangle rect = reader.getPageSizeWithRotation(1);
-                        // image.setInitialWidth(rect.getWidth() *
-                        // _outputDevice.getDotsPerPoint());
-                        // image.setInitialHeight(rect.getHeight() *
-                        // _outputDevice.getDotsPerPoint());
-                        // resource = new ImageResource(uriStr, image);
-                    } else {
-                        byte[] imgBytes = readStream(is);
-                        PdfBoxImage fsImage = new PdfBoxImage(imgBytes, uriStr);
-                        scaleToOutputResolution(fsImage);
-                        _outputDevice.realizeImage(fsImage);
-                        resource = new ImageResource(uriResolved, fsImage);
-                    }
-                    _imageCache.put(uriResolved, resource);
-                } catch (Exception e) {
-                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uriStr, e);
-                } finally {
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        // ignore
-                    }
+                    is.close();
+                } catch (IOException e) {
+                    // ignore
                 }
             }
+        }
 
-            if (resource != null) {
-                resource = new ImageResource(resource.getImageUri(), resource.getImage());
-            } else {
-                resource = new ImageResource(uriStr, null);
-            }
+        if (resource != null) {
+            resource = new ImageResource(resource.getImageUri(), resource.getImage());
+        } else {
+            resource = new ImageResource(uriStr, null);
         }
+
         return resource;
-    }
-    
-    private ImageResource loadEmbeddedBase64ImageResource(final String uri) {
-        try {
-            byte[] buffer = ImageUtil.getEmbeddedBase64Image(uri);
-            PdfBoxImage fsImage = new PdfBoxImage(buffer, uri);
-            scaleToOutputResolution(fsImage);
-            return new ImageResource(null, fsImage);
-        } catch (Exception e) {
-            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_CANT_READ_XHTML_EMBEDDED_IMAGE, e);
-        }
-        return new ImageResource(null, null);
     }
 
     private void scaleToOutputResolution(PdfBoxImage image) {

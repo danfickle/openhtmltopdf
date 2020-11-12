@@ -1276,6 +1276,11 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-553-table-negative-margin"));
     }
 
+    @Test
+    public void testIssue596CSSDataUriInImportUrl() throws IOException {
+        assertTrue(vt.runTest("issue-596-generalize-data-uri-support"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

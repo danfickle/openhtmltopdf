@@ -72,6 +72,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	protected BaseRendererBuilder(TBaseRendererBuilderState state) {
 		this.state = state;
 		this.useProtocolsStreamImplementation(new NaiveUserAgent.DefaultHttpStreamFactory(), "http", "https");
+		this.useProtocolsStreamImplementation(new NaiveUserAgent.DataUriFactory(), "data");
 	}
 
 	/**
