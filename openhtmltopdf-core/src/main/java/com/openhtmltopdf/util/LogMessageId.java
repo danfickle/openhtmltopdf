@@ -50,7 +50,6 @@ public interface LogMessageId {
         EXCEPTION_MATHML_COULD_NOT_REGISTER_FONT(XRLog.EXCEPTION, "Could not register font correctly"),
         EXCEPTION_JAVA2D_COULD_NOT_LOAD_FONT(XRLog.EXCEPTION, "Couldn't load font. Please check that it is a valid truetype font."),
         EXCEPTION_PROBLEM_TRYING_TO_READ_INPUT_XHTML_FILE(XRLog.EXCEPTION, "Problem trying to read input XHTML file"),
-        EXCEPTION_CANT_READ_XHTML_EMBEDDED_IMAGE(XRLog.EXCEPTION, "Can't read XHTML embedded image."),
         EXCEPTION_COULD_NOT_LOAD_FONT_METRICS(XRLog.EXCEPTION, "Couldn't load font metrics."),
         EXCEPTION_UNABLE_TO_PARSE_PAGE_OF_IMG_TAG_WITH_PDF(XRLog.EXCEPTION, "Unable to parse page of img tag with PDF!"),
         EXCEPTION_TRIED_TO_OPEN_A_PASSWORD_PROTECTED_DOCUMENT_AS_SRC_FOR_IMG(XRLog.EXCEPTION, "Tried to open a password protected document as src for an img!"),
