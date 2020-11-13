@@ -21,7 +21,6 @@
 package com.openhtmltopdf.css.constants;
 
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
-import com.openhtmltopdf.util.GeneralUtil;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRRuntimeException;

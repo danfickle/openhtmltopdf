@@ -1,11 +1,8 @@
 package com.openhtmltopdf.util;
 
 import java.util.logging.Level;
-import java.util.regex.Pattern;
 
 public class Diagnostic {
-
-    private static final Pattern MESSAGE_FORMAT_PLACEHOLDER = Pattern.compile("\\{\\}");
 
     private final Level level;
     private final LogMessageId logMessageId;

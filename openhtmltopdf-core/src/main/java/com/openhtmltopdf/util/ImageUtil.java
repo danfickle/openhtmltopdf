@@ -21,13 +21,10 @@ package com.openhtmltopdf.util;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import javax.imageio.ImageIO;
 
 /**
  * Static utility methods for working with images. Meant to suggest "best practices" for the most straightforward
@@ -108,20 +105,6 @@ public class ImageUtil {
     }
 
     /**
-     * Creates a BufferedImage compatible with the local graphics environment; this is a helper method for a
-     * common process and just sets up and calls
-     * {@link java.awt.GraphicsConfiguration#createCompatibleImage(int,int,int)}. The image will support
-     * transparent pixels.
-     *
-     * @param width  Target width for the image
-     * @param height Target height for the image
-     * @return A BufferedImage compatible with the screen (best fit) supporting transparent pixels.
-     */
-    public static BufferedImage createCompatibleBufferedImage(int width, int height) {
-        return createCompatibleBufferedImage(width, height, Transparency.BITMASK);
-    }
-
-    /**
      * Scales an image to the requested width and height, assuming these are both &gt;= 1; size given in pixels.
      * If either width or height is &lt;=0, the current image width or height will be used. This method assumes
      * that, at the moment the method is called, the width and height of the image are available; it won't wait for
@@ -148,7 +131,7 @@ public class ImageUtil {
         w = (opt.getTargetWidth() <= 0 ? w : opt.getTargetWidth());
         h = (opt.getTargetHeight() <= 0 ? h : opt.getTargetHeight());
 
-        Scaler scaler = (ImageUtil.Scaler) qual.get(opt.getDownscalingHint());
+        Scaler scaler = qual.get(opt.getDownscalingHint());
         opt.setTargetWidth(w);
         opt.setTargetHeight(h);
 
