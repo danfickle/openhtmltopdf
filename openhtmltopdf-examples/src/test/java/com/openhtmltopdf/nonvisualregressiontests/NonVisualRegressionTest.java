@@ -816,6 +816,21 @@ public class NonVisualRegressionTest {
     }
 
     /**
+     * Table row repeating on two pages. See issue 594.
+     */
+    @Test
+    @Ignore // The second row is repeating on both pages.
+    public void testIssue594RepeatingContentTableRow() throws IOException {
+        try (PDDocument doc = run("issue-594-content-repeated")) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(doc).replaceAll("(\\r|\\n)", "");
+            String expected = "One" + "Abcdefghij2";
+
+            assertEquals(expected, text);
+        }
+    }
+
+    /**
      * Tests the shaped links support for custom object drawers
      * in the main document area and in the page margin on multiple
      * pages.
