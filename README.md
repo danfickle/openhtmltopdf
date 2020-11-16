@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.org/danfickle/openhtmltopdf.svg?branch=open-dev-v1)](https://travis-ci.org/danfickle/openhtmltopdf)
+[![build](https://github.com/danfickle/openhtmltopdf/workflows/build/badge.svg)](https://github.com/danfickle/openhtmltopdf/actions?query=workflow%3Abuild)
 
 # OPEN HTML TO PDF
 
