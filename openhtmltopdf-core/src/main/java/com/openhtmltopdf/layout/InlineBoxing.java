@@ -1170,6 +1170,7 @@ public class InlineBoxing {
             i++;
         }
         lbContext.setStart(lbContext.getStart() + i);
+        lbContext.setEnd(lbContext.getEnd() + i);
     }
 
     private static LineBox newLine(LayoutContext c, LineBox previousLine, Box box) {
