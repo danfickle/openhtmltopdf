@@ -30,12 +30,20 @@ public class CharCounts {
     public void setSpaceCount(int spaceCount) {
         _spaceCount = spaceCount;
     }
-    
+
+    public void incrementSpaceCount() {
+        _spaceCount++;
+    }
+
     public int getNonSpaceCount() {
         return _nonSpaceCount;
     }
     
     public void setNonSpaceCount(int nonSpaceCount) {
         _nonSpaceCount = nonSpaceCount;
+    }
+
+    public void incrementNonSpaceCount() {
+        _nonSpaceCount++;
     }
 }

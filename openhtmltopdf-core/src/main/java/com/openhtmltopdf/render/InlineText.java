@@ -268,43 +268,40 @@ public class InlineText {
     private boolean isTrimmedTrailingSpace() {
         return _trimmedTrailingSpace;
     }
-    
+
+    public static boolean isJustifySpaceCodePoint(int cp) {
+        return cp == ' ' || cp == '\u00a0' || cp == '\u3000';
+    }
+
     public void countJustifiableChars(CharCounts counts) {
         if (getLetterSpacing() != 0f) {
             // We can't mess with character spacing if
             // letter spacing is already explicitly set.
             return;
         }
-        
-        String s = getSubstring();
-        int len = s.length();
-        int spaces = 0;
-        int other = 0;
-        
-        for (int i = 0; i < len; i++) {
-            char c = s.charAt(i);
-            if (c == ' ' || c == '\u00a0' || c == '\u3000') {
-                spaces++;
-            } else if (!OpenUtil.isCodePointPrintable(c)) {
-                
-            } else {
-                other++;
-            }
-        }
-        
-        if (isEndsOnSoftHyphen()) {
-            other++;
-        }
-        
-        counts.setSpaceCount(counts.getSpaceCount() + spaces);
-        counts.setNonSpaceCount(counts.getNonSpaceCount() + other);
 
         // Our own personal copy we can use in the calcTotalAdjustment method.
         _counts = new CharCounts();
-        _counts.setSpaceCount(spaces);
-        _counts.setNonSpaceCount(other);
+
+        getSubstring().codePoints().forEach(cp -> {
+            if (isJustifySpaceCodePoint(cp)) {
+                _counts.incrementSpaceCount();
+            } else if (!OpenUtil.isCodePointPrintable(cp)) {
+                // Do nothing...
+                // FIXME: This will actually depend on font.
+            } else {
+                _counts.incrementNonSpaceCount();
+            }
+        });
+
+        if (isEndsOnSoftHyphen()) {
+            _counts.incrementNonSpaceCount();
+        }
+
+        counts.setSpaceCount(counts.getSpaceCount() + _counts.getSpaceCount());
+        counts.setNonSpaceCount(counts.getNonSpaceCount() + _counts.getNonSpaceCount());
     }
-    
+
     public float calcTotalAdjustment(JustificationInfo info) {
         if (getLetterSpacing() != 0f) {
             // We can't mess with character spacing if

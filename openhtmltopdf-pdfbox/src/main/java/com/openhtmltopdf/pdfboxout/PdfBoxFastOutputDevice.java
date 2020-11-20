@@ -485,24 +485,28 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             _cp.setLineWidth(1);
         }
     }
-    
+
     private Object[] makeJustificationArray(String s, JustificationInfo info) {
         List<Object> data = new ArrayList<>(s.length() * 2);
 
-        int len = s.length();
-        for (int i = 0; i < len; i++) {
-            char c = s.charAt(i);
-            data.add(Character.toString(c));
-            if (i != len - 1) {
-                float offset;
-                if (c == ' ' || c == '\u00a0' || c == '\u3000') {
-                    offset = info.getSpaceAdjust();
-                } else {
-                    offset = info.getNonSpaceAdjust();
-                }
-                data.add(Float.valueOf((-offset / _dotsPerPoint) * 1000 / (_font.getSize2D() / _dotsPerPoint)));
+        s.codePoints().forEachOrdered(cp -> {
+            data.add(String.valueOf(Character.toChars(cp)));
+
+            float offset = InlineText.isJustifySpaceCodePoint(cp) ?
+                    info.getSpaceAdjust() :
+                    info.getNonSpaceAdjust();
+
+            data.add(Float.valueOf((-offset / _dotsPerPoint) * 1000 / (_font.getSize2D() / _dotsPerPoint)));
+        });
+
+        if (data.size() > 0) {
+            int lastIndex = data.size() - 1;
+            if (data.get(lastIndex) instanceof Float) {
+                // The array should not end with a spacing value.
+                data.remove(lastIndex);
             }
         }
+
         return data.toArray();
     }
 
