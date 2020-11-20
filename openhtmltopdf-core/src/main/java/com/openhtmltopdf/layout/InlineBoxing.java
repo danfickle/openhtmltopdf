@@ -1169,7 +1169,9 @@ public class InlineBoxing {
         while (i < s.length() && s.charAt(i) == ' ') {
             i++;
         }
-        lbContext.setStart(lbContext.getStart() + i);
+        int newStart = lbContext.getStart() + i;
+        lbContext.setStart(newStart);
+        lbContext.setEnd(Math.max(lbContext.getEnd(), newStart));
     }
 
     private static LineBox newLine(LayoutContext c, LineBox previousLine, Box box) {
