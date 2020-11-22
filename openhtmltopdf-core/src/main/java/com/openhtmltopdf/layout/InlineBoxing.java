@@ -164,6 +164,8 @@ public class InlineBoxing {
                 do {
                     lbContext.reset();
 
+                    lbContext.setFirstCharInLine(lbContext.getStart() == 0 && !current.line.isContainsContent());
+
                     int fit = 0;
                     if (lbContext.getStart() == 0) {
                         fit += space.pendingLeftMBP + space.pendingRightMBP;

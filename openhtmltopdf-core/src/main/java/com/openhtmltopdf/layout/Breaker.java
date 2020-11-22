@@ -181,9 +181,11 @@ public class Breaker {
                     }
                 }
                 case WORD_BREAKING_UNBREAKABLE: {
-                    if (context.getWidth() >= lineWidth) {
-                        // If the word is too long to fit on a line by itself, retry it in 
-                        // character breaking mode.
+                    if (context.getWidth() >= lineWidth ||
+                        context.isFirstCharInLine()) {
+                        // If the word is too long to fit on a line by itself or
+                        // if we are at the start of a line,
+                        // retry in character breaking mode.
                         tryToBreakAnywhere = true;
                         context.setEnd(savedEnd);
                         continue LOOP;

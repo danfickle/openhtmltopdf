@@ -1282,7 +1282,6 @@ public class VisualRegressionTest {
     }
 
     @Test
-    @Ignore // It is not throwing, but the text-indent property is ignored.
     public void testIssue599TrimLeadingSpaceException() throws IOException {
         assertTrue(vt.runTest("issue-599-trim-leading-space-exception"));
     }

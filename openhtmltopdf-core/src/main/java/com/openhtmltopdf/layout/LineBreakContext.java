@@ -51,6 +51,7 @@ public class LineBreakContext {
     private int _nextWidth;
     private boolean _endsOnWordBreak;
     private boolean _finishedInCharBreakingMode;
+    private boolean _isFirstChar;
     
     public int getLast() {
         return _master.length();
@@ -188,5 +189,21 @@ public class LineBreakContext {
      */
     public boolean isFinishedInCharBreakingMode() {
         return _finishedInCharBreakingMode;
+    }
+
+    /**
+     * @return true if this is the first non-trimmed character
+     * in a line.
+     */
+    public boolean isFirstCharInLine() {
+        return _isFirstChar;
+    }
+
+    /**
+     * @param isFirstChar set to true if this is the first non-trimmable
+     * character in a line.
+     */
+    public void setFirstCharInLine(boolean isFirstChar) {
+        _isFirstChar = isFirstChar;
     }
 }
