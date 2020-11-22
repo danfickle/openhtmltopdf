@@ -1281,6 +1281,12 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-596-generalize-data-uri-support"));
     }
 
+    @Test
+    @Ignore // It is not throwing, but the text-indent property is ignored.
+    public void testIssue599TrimLeadingSpaceException() throws IOException {
+        assertTrue(vt.runTest("issue-599-trim-leading-space-exception"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
