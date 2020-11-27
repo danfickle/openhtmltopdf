@@ -150,7 +150,7 @@
     <open.bundle.plugin.version>5.1.1</open.bundle.plugin.version>
     <open.jar.plugin.version>3.2.0</open.jar.plugin.version>
 
-    <open.batik.version>1.12</open.batik.version>
+    <open.batik.version>1.13</open.batik.version>
     <open.junit4.version>4.13.1</open.junit4.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
