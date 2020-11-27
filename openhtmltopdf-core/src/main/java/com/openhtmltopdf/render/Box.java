@@ -756,13 +756,17 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public int forcePageBreakBefore(LayoutContext c, IdentValue pageBreakValue, boolean pendingPageName) {
-        PageBox page = c.getRootLayer().getFirstPage(c, this);
+        return forcePageBreakBefore(c, pageBreakValue, pendingPageName, getAbsY());
+    }
+
+    public int forcePageBreakBefore(LayoutContext c, IdentValue pageBreakValue, boolean pendingPageName, int absY) {
+        PageBox page = c.getRootLayer().getFirstPage(c, absY);
         if (page == null) {
             XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LAYOUT_BOX_HAS_NO_PAGE);
             return 0;
         } else {
             int pageBreakCount = 1;
-            if (page.getTop() == getAbsY()) {
+            if (page.getTop() == absY) {
                 pageBreakCount--;
                 if (pendingPageName && page == c.getRootLayer().getLastPage()) {
                     c.getRootLayer().removeLastPage();
@@ -783,7 +787,7 @@ public abstract class Box implements Styleable, DisplayListItem {
                 c.setPageName(c.getPendingPageName());
             }
 
-            int delta = page.getBottom() + c.getExtraSpaceTop() - getAbsY();
+            int delta = page.getBottom() + c.getExtraSpaceTop() - absY;
             if (page == c.getRootLayer().getLastPage()) {
                 c.getRootLayer().addPage(c);
             }

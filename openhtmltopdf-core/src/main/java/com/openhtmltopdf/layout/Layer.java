@@ -1092,6 +1092,10 @@ public class Layer {
         pages.add(pageBox);
     }
 
+    public PageBox getFirstPage(CssContext c, int absY) {
+        return getPage(c, absY);
+    }
+
     public PageBox getFirstPage(CssContext c, Box box) {
         return getPage(c, box.getAbsY());
     }
