@@ -486,96 +486,74 @@ public class PdfBoxFontResolver implements FontResolver {
 
     private static Map<String, FontFamily<FontDescription>> createInitialFontMap() {
         HashMap<String, FontFamily<FontDescription>> result = new HashMap<>();
-
-        try {
-            addCourier(result);
-            addTimes(result);
-            addHelvetica(result);
-            addSymbol(result);
-            addZapfDingbats(result);
-
+        addCourier(result);
+        addTimes(result);
+        addHelvetica(result);
+        addSymbol(result);
+        addZapfDingbats(result);
             // Try and load the iTextAsian fonts
 //            if(PdfBoxFontResolver.class.getClassLoader().getResource("com/lowagie/text/pdf/fonts/cjkfonts.properties") != null) {
 //                addCJKFonts(result);
 //            }
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
 
         return result;
     }
 
-    private static PDFont createFont(PDFont font) throws IOException {
-        return font;
-    }
-
-    private static void addCourier(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
+    private static void addCourier(HashMap<String, FontFamily<FontDescription>> result) {
         FontFamily<FontDescription> courier = new FontFamily<>();
         courier.setName("Courier");
 
-        courier.addFontDescription(new FontDescription(
-                createFont(PDType1Font.COURIER_BOLD_OBLIQUE), IdentValue.OBLIQUE, 700));
-        courier.addFontDescription(new FontDescription(
-                createFont(PDType1Font.COURIER_OBLIQUE), IdentValue.OBLIQUE, 400));
-        courier.addFontDescription(new FontDescription(
-                createFont(PDType1Font.COURIER_BOLD), IdentValue.NORMAL, 700));
-        courier.addFontDescription(new FontDescription(
-                createFont(PDType1Font.COURIER), IdentValue.NORMAL, 400));
+        courier.addFontDescription(new FontDescription(PDType1Font.COURIER_BOLD_OBLIQUE, IdentValue.OBLIQUE, 700));
+        courier.addFontDescription(new FontDescription(PDType1Font.COURIER_OBLIQUE, IdentValue.OBLIQUE, 400));
+        courier.addFontDescription(new FontDescription(PDType1Font.COURIER_BOLD, IdentValue.NORMAL, 700));
+        courier.addFontDescription(new FontDescription(PDType1Font.COURIER, IdentValue.NORMAL, 400));
 
         result.put("DialogInput", courier);
         result.put("Monospaced", courier);
         result.put("Courier", courier);
     }
 
-    private static void addTimes(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
+    private static void addTimes(HashMap<String, FontFamily<FontDescription>> result) {
         FontFamily<FontDescription> times = new FontFamily<>();
         times.setName("Times");
 
-        times.addFontDescription(new FontDescription(
-                createFont(PDType1Font.TIMES_BOLD_ITALIC), IdentValue.ITALIC, 700));
-        times.addFontDescription(new FontDescription(
-                createFont(PDType1Font.TIMES_ITALIC), IdentValue.ITALIC, 400));
-        times.addFontDescription(new FontDescription(
-                createFont(PDType1Font.TIMES_BOLD), IdentValue.NORMAL, 700));
-        times.addFontDescription(new FontDescription(
-                createFont(PDType1Font.TIMES_ROMAN), IdentValue.NORMAL, 400));
+        times.addFontDescription(new FontDescription(PDType1Font.TIMES_BOLD_ITALIC, IdentValue.ITALIC, 700));
+        times.addFontDescription(new FontDescription(PDType1Font.TIMES_ITALIC, IdentValue.ITALIC, 400));
+        times.addFontDescription(new FontDescription(PDType1Font.TIMES_BOLD, IdentValue.NORMAL, 700));
+        times.addFontDescription(new FontDescription(PDType1Font.TIMES_ROMAN, IdentValue.NORMAL, 400));
 
         result.put("Serif", times);
         result.put("TimesRoman", times);
     }
 
-    private static void addHelvetica(HashMap<String, FontFamily<FontDescription>> result) throws IOException {
+    private static void addHelvetica(HashMap<String, FontFamily<FontDescription>> result) {
         FontFamily<FontDescription> helvetica = new FontFamily<>();
         helvetica.setName("Helvetica");
 
-        helvetica.addFontDescription(new FontDescription(
-                createFont(PDType1Font.HELVETICA_BOLD_OBLIQUE), IdentValue.OBLIQUE, 700));
-        helvetica.addFontDescription(new FontDescription(
-                createFont(PDType1Font.HELVETICA_OBLIQUE), IdentValue.OBLIQUE, 400));
-        helvetica.addFontDescription(new FontDescription(
-                createFont(PDType1Font.HELVETICA_BOLD), IdentValue.NORMAL, 700));
-        helvetica.addFontDescription(new FontDescription(
-                createFont(PDType1Font.HELVETICA), IdentValue.NORMAL, 400));
+        helvetica.addFontDescription(new FontDescription(PDType1Font.HELVETICA_BOLD_OBLIQUE, IdentValue.OBLIQUE, 700));
+        helvetica.addFontDescription(new FontDescription(PDType1Font.HELVETICA_OBLIQUE, IdentValue.OBLIQUE, 400));
+        helvetica.addFontDescription(new FontDescription(PDType1Font.HELVETICA_BOLD, IdentValue.NORMAL, 700));
+        helvetica.addFontDescription(new FontDescription(PDType1Font.HELVETICA, IdentValue.NORMAL, 400));
 
         result.put("Dialog", helvetica);
         result.put("SansSerif", helvetica);
         result.put("Helvetica", helvetica);
     }
 
-    private static void addSymbol(Map<String, FontFamily<FontDescription>> result) throws IOException {
+    private static void addSymbol(Map<String, FontFamily<FontDescription>> result) {
         FontFamily<FontDescription> fontFamily = new FontFamily<>();
         fontFamily.setName("Symbol");
 
-        fontFamily.addFontDescription(new FontDescription(createFont(PDType1Font.SYMBOL), IdentValue.NORMAL, 400));
+        fontFamily.addFontDescription(new FontDescription(PDType1Font.SYMBOL, IdentValue.NORMAL, 400));
 
         result.put("Symbol", fontFamily);
     }
 
-    private static void addZapfDingbats(Map<String, FontFamily<FontDescription>> result) throws IOException {
+    private static void addZapfDingbats(Map<String, FontFamily<FontDescription>> result) {
         FontFamily<FontDescription> fontFamily = new FontFamily<>();
         fontFamily.setName("ZapfDingbats");
 
-        fontFamily.addFontDescription(new FontDescription(createFont(PDType1Font.ZAPF_DINGBATS), IdentValue.NORMAL, 400));
+        fontFamily.addFontDescription(new FontDescription(PDType1Font.ZAPF_DINGBATS, IdentValue.NORMAL, 400));
 
         result.put("ZapfDingbats", fontFamily);
     }
