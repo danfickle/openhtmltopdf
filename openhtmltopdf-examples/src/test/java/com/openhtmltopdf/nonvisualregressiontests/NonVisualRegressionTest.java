@@ -819,12 +819,11 @@ public class NonVisualRegressionTest {
      * Table row repeating on two pages. See issue 594.
      */
     @Test
-    @Ignore // The second row is repeating on both pages.
     public void testIssue594RepeatingContentTableRow() throws IOException {
         try (PDDocument doc = run("issue-594-content-repeated")) {
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(doc).replaceAll("(\\r|\\n)", "");
-            String expected = "One" + "Abcdefghij2";
+            String expected = "One 1" + "Abcdefghij2 2";
 
             assertEquals(expected, text);
         }

@@ -419,6 +419,20 @@ public class LineBox extends Box implements InlinePaintable {
         _paintingTop = paintingTop;
     }
 
+    public int getMinPaintingTop() {
+        int paintingAbsTop = getAbsY() + getPaintingTop();
+        int lineAbsTop = getAbsY();
+
+        return Math.min(lineAbsTop, paintingAbsTop);
+    }
+
+    public int getMaxPaintingBottom() {
+        int paintingAbsBottom = getAbsY() + getPaintingTop() + getPaintingHeight();
+        int lineAbsBottom = getAbsY() + getHeight();
+
+        return Math.max(paintingAbsBottom, lineAbsBottom);
+    }
+
     public void addAllChildren(List<? super Box> list, Layer layer) {
         for (int i = 0; i < getChildCount(); i++) {
             Box child = getChild(i);
@@ -650,23 +664,30 @@ public class LineBox extends Box implements InlinePaintable {
         container.updateTop(c, getAbsY());
         container.updateBottom(c, getAbsY() + getHeight());
     }
-    
+
     public void checkPagePosition(LayoutContext c, boolean alwaysBreak) {
         if (! c.isPageBreaksAllowed()) {
             return;
         }
-        
+
         PageBox pageBox = c.getRootLayer().getFirstPage(c, this);
         if (pageBox != null) {
+            // We need to force a page break if any of our content goes over a page break,
+            // otherwise we will get repeated content in page margins (because content is
+            // printed on both pages).
+
+            // Painting top and bottom take account of line-height other than 1.
+            int greatestAbsY = getMaxPaintingBottom();
+            int leastAbsY = getMinPaintingTop();
+
             boolean needsPageBreak = 
-                alwaysBreak || getAbsY() + getHeight() >= pageBox.getBottom() - c.getExtraSpaceBottom();
-                
+                alwaysBreak || greatestAbsY >= pageBox.getBottom() - c.getExtraSpaceBottom();
+
            if (needsPageBreak) {
-               forcePageBreakBefore(c, IdentValue.ALWAYS, false);
+               forcePageBreakBefore(c, IdentValue.ALWAYS, false, leastAbsY);
                calcCanvasLocation();
            } else if (pageBox.getTop() + c.getExtraSpaceTop() > getAbsY()) {
                int diff = pageBox.getTop() + c.getExtraSpaceTop() - getAbsY();
-               
                setY(getY() + diff);
                calcCanvasLocation();
            }

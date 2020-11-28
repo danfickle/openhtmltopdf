@@ -1286,6 +1286,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-599-trim-leading-space-exception"));
     }
 
+    /**
+     * Tests auto page break before line-box with content
+     * much larger than line-height.
+     */
+    @Test
+    public void testPr610ForcePageBreakLine() throws IOException {
+        assertTrue(vt.runTest("pr-610-force-page-break-line"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
