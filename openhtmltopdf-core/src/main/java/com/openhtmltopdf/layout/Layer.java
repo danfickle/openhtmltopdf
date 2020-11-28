@@ -1092,11 +1092,33 @@ public class Layer {
         pages.add(pageBox);
     }
 
+    /**
+     * Returns the page box for a Y position.
+     * If the y position is less than 0 then the first page will
+     * be returned if available.
+     * Returns null if there are no pages available or absY
+     * is past the last page.
+     */
     public PageBox getFirstPage(CssContext c, int absY) {
-        return getPage(c, absY);
+        PageBox page = getPage(c, absY);
+
+        if (page == null && absY < 0) {
+            List<PageBox> pages = getPages();
+
+            if (!pages.isEmpty()) {
+                return pages.get(0);
+            }
+        }
+
+        return page;
     }
 
     public PageBox getFirstPage(CssContext c, Box box) {
+        if (box instanceof LineBox) {
+            LineBox lb = (LineBox) box;
+            return getPage(c, lb.getMinPaintingTop());
+        }
+
         return getPage(c, box.getAbsY());
     }
 
