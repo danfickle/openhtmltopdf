@@ -4,8 +4,12 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.CharacterIterator;
 
 import org.apache.batik.gvt.font.GVTFont;
@@ -40,13 +44,45 @@ public class OpenHtmlGvtFont implements GVTFont {
     			? Font.ITALIC
                 : Font.PLAIN;
     }
-	
+
+    // generate a unique name for a given byte array.
+	private static final String fontHash(byte[] fontBytes) {
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(fontBytes);
+			return "openhtmlfont-cache-" + new BigInteger(1, hash).toString(16);
+		} catch (NoSuchAlgorithmException e) {
+			return null;
+		}
+	}
+
+	private static void tryToMoveAtomically(Path from, Path to) throws IOException {
+		try {
+			Files.move(from, to, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+		} catch (AtomicMoveNotSupportedException e) {
+			Files.move(from, to, StandardCopyOption.REPLACE_EXISTING);
+		}
+	}
+
+	private static final Path TMP_DIR = new File(System.getProperty("java.io.tmpdir")).toPath();
 	
 	public OpenHtmlGvtFont(byte[] fontBytes, GVTFontFamily family, float size, Float fontWeight, Float fontStyle) throws FontFormatException {
 		Font font;
-		
 		try {
-			font = Font.createFont(Font.TRUETYPE_FONT, new ByteArrayInputStream(fontBytes)).deriveFont(toFontWeight(fontWeight) | toStyle(fontStyle) , size);
+			String fontName = fontHash(fontBytes);
+			Path cachedFile = TMP_DIR.resolve(fontName);
+			//see issue #608 #405, Font.createFont(byte[]..) create for each invocation a temporary file which will be removed on close, this can fill up the
+			//temporary directory. With the following implementation, we keep the minimal amount of files
+			if (!Files.exists(cachedFile)) {
+				Path tmpFile = Files.createTempFile("openhtmlfont", "tobecopied");
+				Files.write(tmpFile, fontBytes);
+				tryToMoveAtomically(tmpFile, cachedFile);
+				Files.delete(tmpFile);
+			}
+			File cachedFontFile = cachedFile.toFile();
+			cachedFontFile.deleteOnExit(); // we ensure to remove the file in case of a previous crash
+			//
+			font = Font.createFont(Font.TRUETYPE_FONT, cachedFontFile).deriveFont(toFontWeight(fontWeight) | toStyle(fontStyle) , size);
 		} catch (IOException e) {
 			// Shouldn't happen
 			e.printStackTrace();
