@@ -68,6 +68,8 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 ## CHANGELOG
 
 ### head - 1.0.5-SNAPSHOT
+**SECURITY:** [#609](https://github.com/danfickle/openhtmltopdf/pull/609) Updates Apache Batik SVG renderer to latest version to avoid security issue. If you are using this project to render untrusted SVGs (advised against), you should update immediately. Thanks a lot @halvorbmundal.
+
 **IMPORTANT:** The fast renderer is now the default in preparation of removing the old slow renderer. To temporarily use the slow renderer, you can call the deprecated method `builder.useSlowMode()` (PDF output only).
 
 **IMPORTANT:** [#543](https://github.com/danfickle/openhtmltopdf/issues/543) This version stays on PDFBOX version 2.0.20 due to a bug with non-breaking spaces in version 2.0.21. Please make sure version 2.0.21 is not on your classpath. This bug has been fixed in the upcoming 2.0.22.
@@ -75,7 +77,7 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 + [#544](https://github.com/danfickle/openhtmltopdf/pull/544) Code to create a website for pre-canned PDF templates in thymeleaf and raw XHTML format. Check out the [template website](https://danfickle.github.io/pdf-templates/index.html) to preview templates.
 + [#533](https://github.com/danfickle/openhtmltopdf/pull/533) Barcode plugin. Very useful PR supplied by @syjer. [Barcode plugin docs](https://github.com/danfickle/openhtmltopdf/wiki/Plugins:-1D-2D-Barcode-with-ZXing).
 + [#521](https://github.com/danfickle/openhtmltopdf/pull/521) Move Java2D image output to fast renderer and general improvements. [Java2D image output docs](https://github.com/danfickle/openhtmltopdf/wiki/Java2D-Image-Output).
-+ [9ffd0e](https://github.com/danfickle/openhtmltopdf/commit/9ffd0e4ad4a14e06a8c3921c3849f6bef83cef74)[#568](https://github.com/danfickle/openhtmltopdf/pull/568) Filter out problematic characters that are visible in some fonts but should not be such as soft-hyphen. Thanks @StephanSchrader.
++ [9ffd0e](https://github.com/danfickle/openhtmltopdf/commit/9ffd0e4ad4a14e06a8c3921c3849f6bef83cef74) [#568](https://github.com/danfickle/openhtmltopdf/pull/568) Filter out problematic characters that are visible in some fonts but should not be such as soft-hyphen. Thanks @StephanSchrader.
 + [#587](https://github.com/danfickle/openhtmltopdf/pull/587) Fix for white-space: nowrap cutting off instead of wrapping. Thanks @vipcxj for finally fixing via PR.
 + [#577](https://github.com/danfickle/openhtmltopdf/pull/577) Add foreground PDF drawer plugin (useful especially for watermarks). Thanks @rototor for PR and @sillen102 for persisting.
 + [#566](https://github.com/danfickle/openhtmltopdf/issues/566) Rename `baseUri` arg to `baseDocumentUri` and improve javadoc to avoid confusion. Thanks for reporting @NehalDamania.
@@ -86,6 +88,12 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 + [#458](https://github.com/danfickle/openhtmltopdf/issues/458) Fix for list-decorations being output (clipped) in page margin area.
 + [#525](https://github.com/danfickle/openhtmltopdf/pull/525) Remove unused schema/DTDs. Significantly reduces size of jar. Thanks for PR @syjer.
 + [#592](https://github.com/danfickle/openhtmltopdf/issues/592) Allow unit (px, cm, em, etc) values in the width/height attributes of linked SVG images. Thanks @DanielWulfert.
++ [#594](https://github.com/danfickle/openhtmltopdf/issues/594) [#458](https://github.com/danfickle/openhtmltopdf/issues/458) Fix for more repeating content and PDF/UA crash. Thanks @ThomHurks, @fungc.
++ [#599](https://github.com/danfickle/openhtmltopdf/issues/599) Fix RuntimeException ocurring on InlineText.setSubstring. Thanks @LAlves91.
++ [#605](https://github.com/danfickle/openhtmltopdf/issues/605) Fix to make justification work with surrogate pairs. Thanks @EmanuelCozariz.
++ [#601](https://github.com/danfickle/openhtmltopdf/pull/601) Move CI to Github actions. Thanks @syjer.
++ [#597](https://github.com/danfickle/openhtmltopdf/pull/597) Generalize data uri support. Thanks @syjer, @Leostat86.
++ [#613](https://github.com/danfickle/openhtmltopdf/pull/613) Allow adding fonts for SVG, MathML as files instead of input streams to avoid JDK bug. Thanks @syjer, @sureshkumar-ramalingam, @olayinkasf.
 
 
 ## 1.0.4 (2020-July-25)
