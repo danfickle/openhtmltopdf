@@ -1,6 +1,10 @@
 ## CHANGELOG
 
-### head - 1.0.5-SNAPSHOT
+### head - 1.0.6-SNAPSHOT
++ See commit log.
+
+
+### 1.0.5 (2020-November-30)
 **SECURITY:** [#609](https://github.com/danfickle/openhtmltopdf/pull/609) Updates Apache Batik SVG renderer to latest version to avoid security issue. If you are using this project to render untrusted SVGs (advised against), you should update immediately. Thanks a lot @halvorbmundal.
 
 **IMPORTANT:** The fast renderer is now the default in preparation of removing the old slow renderer. To temporarily use the slow renderer, you can call the deprecated method `builder.useSlowMode()` (PDF output only).
