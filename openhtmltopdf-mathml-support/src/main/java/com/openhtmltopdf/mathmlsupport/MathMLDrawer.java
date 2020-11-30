@@ -3,6 +3,7 @@ package com.openhtmltopdf.mathmlsupport;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.util.XRLog;
 
@@ -125,4 +127,9 @@ public class MathMLDrawer implements SVGDrawer {
 	public void close() throws IOException {
 		FontFactory.clearThreadFontFactory();
 	}
+
+    public void addFontFile(File fontFile, String family, Integer weight, FontStyle style) {
+        // TODO Auto-generated method stub
+        
+    }
 }

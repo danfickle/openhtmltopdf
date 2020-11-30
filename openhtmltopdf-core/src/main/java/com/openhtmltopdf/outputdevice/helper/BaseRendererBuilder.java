@@ -14,6 +14,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -453,14 +454,51 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	}
 	
     /**
-     * Like {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}, but
-     * allows to supply a font file. If the font file is a .ttc file it is handled
-     * as TrueTypeCollection (PDF only). If you have the font in file form you should use this
-     * API.
+     * <p>Allows the user to provide a font file for use by the main
+     * document only (not SVGs). See:
+     * {@link #useFont(File, String, Integer, FontStyle, boolean, Set)}</p>
+     *
+     * <p>For gotchas related to font handling please see:
+     * <a href="https://github.com/danfickle/openhtmltopdf/wiki/Fonts">Wiki: Fonts</a></p>
      */
-    public TFinalClass useFont(File fontFile, String fontFamily, Integer fontWeight, FontStyle fontStyle,
+    public TFinalClass useFont(
+            File fontFile,
+            String fontFamily,
+            Integer fontWeight,
+            FontStyle fontStyle,
             boolean subset) {
-        state._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle));
+        state._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle, EnumSet.of(FSFontUseCase.DOCUMENT)));
+        return (TFinalClass) this;
+    }
+
+    /**
+     * <p>Allows the user to provide a font file for use any or all of
+     * the use cases listed in {@link FSFontUseCase} such as main
+     * document, SVGs, etc.</p>
+     *
+     * <p>For gotchas related to font handling please see:
+     * <a href="https://github.com/danfickle/openhtmltopdf/wiki/Fonts">Wiki: Fonts</a></p>
+     * 
+     * @param fontFile A file system font file in true-type format. Beware of using resources as
+     * they will not be separate files in the final jar.
+     * @param fontFamily Font family name. If using a font in Java2D, SVG or MathML this should match
+     * <code>Font.createFont(Font.TRUETYPE_FONT, fontFile).getFamily()</code>.
+     * @param fontWeight Font boldness, usually 400 for regular fonts and 700 for bold fonts.
+     * @param fontStyle Normal, italic or oblique.
+     * @param subset For PDF use whether the font is subset, usually true unless the font is 
+     * being used by form controls.
+     * @param fontUsedFor Which components use the font such as main document, SVG, etc. Example:
+     * <code>EnumSet.of(FSFontUseCase.DOCUMENT, FSFontUseCase.SVG)</code>
+     * @return this for method chaining
+     */
+    public TFinalClass useFont(
+            File fontFile,
+            String fontFamily,
+            Integer fontWeight,
+            FontStyle fontStyle,
+            boolean subset,
+            Set<FSFontUseCase> fontUsedFor) {
+        state._fonts.add(new AddedFont(null, fontFile, fontWeight, fontFamily, subset, fontStyle, fontUsedFor));
         return (TFinalClass) this;
     }
 
@@ -468,36 +506,38 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
      * Simpler overload for
      * {@link #useFont(File, String, Integer, FontStyle, boolean)}
      *
-     * @param fontFile
-     * @param fontFamily
      * @return this for method chaining
      */
     public TFinalClass useFont(File fontFile, String fontFamily) {
         return this.useFont(fontFile, fontFamily, 400, FontStyle.NORMAL, true);
     }
-    
+
     /**
-     * Add a font programmatically. If the font is NOT subset, it will be downloaded
+     * <p>Add a font programmatically. If the font is NOT subset, it will be downloaded
      * when the renderer is run, otherwise, assuming a font-metrics cache has been configured,
      * the font will only be downloaded if required. Therefore, the user could add many fonts,
-     * confident that only those that are needed will be downloaded and processed.
+     * confident that only those that are needed will be downloaded and processed.</p>
      *
-     * The InputStream returned by the supplier will be closed by the caller. Fonts
-     * should generally be subset (Java2D rendered ignores this argument),
-     * except when used in form controls. FSSupplier is a lambda compatible interface.
+     * <p>The InputStream returned by the supplier will be closed by the caller. Fonts
+     * should generally be subset (Java2D renderer ignores this argument),
+     * except when used in form controls. FSSupplier is a lambda compatible interface.</p>
      *
-     * Fonts can also be added using a font-face at-rule in the CSS.
+     * <p>Fonts can also be added using a font-face at-rule in the CSS (not
+     * recommended for Java2D usage).</p>
+     * 
+     * <p><strong>IMPORTANT:</strong> This method will add fonts for use by the main document
+     * only. It is not recommended for use with Java2D.
+     * To add fonts for use by Java2D, SVG, etc see:
+     * {@link #useFont(File, String, Integer, FontStyle, boolean, Set)}</p>
+     * 
+     * <p>For gotchas related to font handling please see:
+     * <a href="https://github.com/danfickle/openhtmltopdf/wiki/Fonts">Wiki: Fonts</a></p>
      *
-     * @param supplier
-     * @param fontFamily
-     * @param fontWeight
-     * @param fontStyle
-     * @param subset
-     * @return
+     * @return this for method chaining
      */
     public TFinalClass useFont(FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
             FontStyle fontStyle, boolean subset) {
-        state._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle));
+        state._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle, EnumSet.of(FSFontUseCase.DOCUMENT)));
         return (TFinalClass) this;
     }
 
@@ -505,9 +545,7 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
      * Simpler overload for
      * {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}
      *
-     * @param supplier
-     * @param fontFamily
-     * @return
+     * @return this for method chaining
      */
     public TFinalClass useFont(FSSupplier<InputStream> supplier, String fontFamily) {
         return this.useFont(supplier, fontFamily, 400, FontStyle.NORMAL, true);
@@ -533,4 +571,14 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	public enum FontStyle {
 		NORMAL, ITALIC, OBLIQUE
 	}
+
+    /**
+     * Use cases for fonts.
+     */
+    public enum FSFontUseCase {
+        /** Main document (PDF or Java2D) */
+        DOCUMENT,
+        SVG,
+        MATHML
+    }
 }

@@ -5,6 +5,7 @@ import java.awt.FontFormatException;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextAttribute;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.text.CharacterIterator;
 
@@ -40,8 +41,14 @@ public class OpenHtmlGvtFont implements GVTFont {
     			? Font.ITALIC
                 : Font.PLAIN;
     }
-	
-	
+
+    public OpenHtmlGvtFont(File fontFile, GVTFontFamily family, float size, Float fontWeight, Float fontStyle) throws IOException, FontFormatException {
+        Font font = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+
+        this.baseFont = font;
+        this.fontFamily = family;
+    }
+
 	public OpenHtmlGvtFont(byte[] fontBytes, GVTFontFamily family, float size, Float fontWeight, Float fontStyle) throws FontFormatException {
 		Font font;
 		
