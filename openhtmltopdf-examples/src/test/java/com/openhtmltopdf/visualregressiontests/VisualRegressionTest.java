@@ -1,17 +1,23 @@
 package com.openhtmltopdf.visualregressiontests;
 
+import java.awt.FontFormatException;
 import java.io.*;
 
 import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.EnumSet;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.extend.FSStream;
 import com.openhtmltopdf.objects.zxing.ZXingObjectDrawer;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FSFontUseCase;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
+
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
@@ -27,7 +33,12 @@ import com.openhtmltopdf.visualtest.VisualTester;
 
 public class VisualRegressionTest {
     private VisualTester vt;
-    
+
+    @BeforeClass
+    public static void configureTests() throws IOException {
+        TestSupport.makeFontFiles();
+    }
+
     @Before
     public void configureTester() {
         File outputDirectory = new File("target/test/visual-tests/test-output/");
@@ -831,6 +842,9 @@ public class VisualRegressionTest {
     public void testReplacedSizingMathMl() throws IOException {
         assertTrue(vt.runTest("replaced-sizing-mathml", (builder) -> {
           builder.useMathMLDrawer(new MathMLDrawer());
+          builder.useFont(
+                  new File("target/test/visual-tests/Karla-Bold.ttf"),
+                  "MyFont", 400, FontStyle.NORMAL, true, EnumSet.of(FSFontUseCase.MATHML));
         }));
     }
 
@@ -1293,6 +1307,23 @@ public class VisualRegressionTest {
     @Test
     public void testPr610ForcePageBreakLine() throws IOException {
         assertTrue(vt.runTest("pr-610-force-page-break-line"));
+    }
+
+
+    /**
+     * Tests that a font can be added as a file for use with SVGs.
+     */
+    @Test
+    public void testSVGFontFileAddition() throws IOException, FontFormatException {
+        assertTrue(vt.runTest("svg-font-file-addition",
+                builder -> {
+                    TestSupport.WITH_SVG.configure(builder);
+                    builder.useFont(
+                            new File("target/test/visual-tests/Karla-Bold.ttf"),
+                            "Karla",
+                            700, FontStyle.NORMAL, true,
+                            EnumSet.of(FSFontUseCase.SVG));
+                }));
     }
 
     // TODO:

@@ -9,6 +9,7 @@ import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
@@ -28,6 +29,8 @@ import org.w3c.dom.Document;
 import java.awt.*;
 import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -110,13 +113,50 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		}
 		
 		private Float getStyle(IdentValue fontStyle) {
-
 			if (fontStyle == IdentValue.ITALIC ||
 				fontStyle == IdentValue.OBLIQUE)
 				return TextAttribute.POSTURE_OBLIQUE;
 			
 			return null;
 		}
+
+        private Float getStyle(FontStyle style) {
+            switch (style) {
+            case ITALIC:
+            case OBLIQUE:
+                return TextAttribute.POSTURE_OBLIQUE;
+            case NORMAL:
+            default:
+                return 0f;
+            }
+        }
+
+        private Float getWeight(Integer weight) {
+            if (weight == null) {
+                return null;
+            }
+
+            switch (weight.intValue()) {
+            case 100:
+                return TextAttribute.WEIGHT_EXTRA_LIGHT;
+            case 200:
+            case 300:
+                return TextAttribute.WEIGHT_LIGHT;
+            case 400:
+                return TextAttribute.WEIGHT_REGULAR;
+            case 500:
+            case 600:
+                return TextAttribute.WEIGHT_SEMIBOLD;
+            case 700:
+                return TextAttribute.WEIGHT_BOLD;
+            case 800:
+                return TextAttribute.WEIGHT_EXTRABOLD;
+            case 900:
+                return TextAttribute.WEIGHT_ULTRABOLD;
+            default:
+                return null;
+            }
+        }
 
 		private Float getWeight(IdentValue weight) {
 	        if (weight == IdentValue.NORMAL) {
@@ -209,7 +249,13 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 				}
 		    }
 		 }
-	}
+
+        public void addFontFile(File fontFile, String family, Integer weight, FontStyle style) throws IOException, FontFormatException {
+            OpenHtmlGvtFontFamily fontFamily = this.families.computeIfAbsent(family, fam -> new OpenHtmlGvtFontFamily(fam));
+            // 12 seems to be the default font-size for SVG so use it as our base font size.
+            fontFamily.addFont(fontFile, 12, getWeight(weight), getStyle(style));
+        }
+    }
 
     public void setSecurityOptions(boolean allowScripts, boolean allowExternalResources, Set<String> allowedProtocols) {
         this.allowScripts = allowScripts;

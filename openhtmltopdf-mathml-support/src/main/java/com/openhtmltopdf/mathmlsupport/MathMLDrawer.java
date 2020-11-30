@@ -3,6 +3,7 @@ package com.openhtmltopdf.mathmlsupport;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.util.XRLog;
 
@@ -34,7 +36,12 @@ public class MathMLDrawer implements SVGDrawer {
 	private final FontFactory _fontFactory;
 	private SharedContext _sharedCtx;
 	private final Set<String> _loadedFontFamilies = new HashSet<>();
-	private final Map<String, List<String>> _availabelFontFamilies = new HashMap<>();
+    private final Map<String, List<FontEntry>> _availabelFontFamilies = new HashMap<>();
+
+    private static class FontEntry {
+        String src;
+        File file;
+    }
 
 	public MathMLDrawer() {
 		this._fontFactory = new DefaultFontFactory();
@@ -59,15 +66,13 @@ public class MathMLDrawer implements SVGDrawer {
 				!rule.hasFontFamily()) {
 	            continue;
 	        }
-	        
-			String family = style.valueByName(CSSName.FONT_FAMILY).asString();
-			
-			if (_availabelFontFamilies.containsKey(family)) {
-				_availabelFontFamilies.get(family).add(src.asString());
-			} else {
-				_availabelFontFamilies.put(family, new ArrayList<>());
-				_availabelFontFamilies.get(family).add(src.asString());
-			}
+
+            String family = style.valueByName(CSSName.FONT_FAMILY).asString();
+
+            FontEntry entry = new FontEntry();
+            entry.src = src.asString();
+
+            _availabelFontFamilies.computeIfAbsent(family, f -> new ArrayList<>()).add(entry);
 		}
 	}
 	
@@ -85,22 +90,29 @@ public class MathMLDrawer implements SVGDrawer {
 			XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_COULD_NOT_FIND_FONT_SPECIFIED_FOR_MATHML_OBJECT_IN_FONT_FACE_RULES,family);
 			return;
 		}
-		
-		for (String src : _availabelFontFamilies.get(family)) {
-			byte[] font1 = _sharedCtx.getUserAgentCallback().getBinaryResource(src);
-			if (font1 == null) {
-				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, src);
-				continue;
-			}
-		
-			try {
-				_fontFactory.registerFont(Font.TRUETYPE_FONT, new ByteArrayInputStream(font1));
-			} catch (IOException | FontFormatException e) {
-				XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_MATHML_COULD_NOT_REGISTER_FONT, e);
-			}
-		}
 
-	}
+        for (FontEntry entry : _availabelFontFamilies.get(family)) {
+            if (entry.src != null) {
+                byte[] font1 = _sharedCtx.getUserAgentCallback().getBinaryResource(entry.src);
+                if (font1 == null) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, entry.src);
+                    continue;
+                }
+
+                try {
+                    _fontFactory.registerFont(Font.TRUETYPE_FONT, new ByteArrayInputStream(font1));
+                } catch (IOException | FontFormatException e) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_MATHML_COULD_NOT_REGISTER_FONT, e);
+                }
+            } else if (entry.file != null) {
+                try {
+                    _fontFactory.registerFont(Font.TRUETYPE_FONT, entry.file);
+                } catch (IOException | FontFormatException e) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_MATHML_COULD_NOT_REGISTER_FONT, e);
+                }
+            }
+        }
+    }
 
 	@Override
 	public SVGImage buildSVGImage(Element mathMlElement, Box box, CssContext c, double cssWidth,
@@ -115,7 +127,7 @@ public class MathMLDrawer implements SVGDrawer {
 		double cssMaxWidth = CalculatedStyle.getCSSMaxWidth(c, box);
 		double cssMaxHeight = CalculatedStyle.getCSSMaxHeight(c, box);
 		List<String> fontList = Arrays.asList(fonts);
-		
+
 		MathMLImage img = new MathMLImage(mathMlElement, box, cssWidth, cssHeight, cssMaxWidth, cssMaxHeight, dotsPerPixel, fontList);
 
 		return img;
@@ -125,4 +137,11 @@ public class MathMLDrawer implements SVGDrawer {
 	public void close() throws IOException {
 		FontFactory.clearThreadFontFactory();
 	}
+
+    public void addFontFile(File fontFile, String family, Integer weight, FontStyle style) {
+        FontEntry entry = new FontEntry();
+        entry.file = fontFile;
+
+        this._availabelFontFamilies.computeIfAbsent(family, f -> new ArrayList<>()).add(entry);
+    }
 }

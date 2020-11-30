@@ -13,9 +13,11 @@ import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
+import java.awt.FontFormatException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.EnumSet;
 import java.util.logging.Level;
 
 public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, PdfRendererBuilderState> {
@@ -68,37 +70,69 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 		 * Register all Fonts
 		 */
 		PdfBoxFontResolver resolver = renderer.getFontResolver();
-		for (AddedFont font : state._fonts) {
-			IdentValue fontStyle = null;
 
-			if (font.style == FontStyle.NORMAL) {
-				fontStyle = IdentValue.NORMAL;
-			} else if (font.style == FontStyle.ITALIC) {
-				fontStyle = IdentValue.ITALIC;
-			} else if (font.style == FontStyle.OBLIQUE) {
-				fontStyle = IdentValue.OBLIQUE;
-			}
+        for (AddedFont font : state._fonts) {
 
-			// use InputStream supplier
-			if (font.supplier != null) {
-				resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset);
-			} 
-			// use PDFont supplier
-			else if (font.pdfontSupplier != null) {
-				resolver.addFont((PDFontSupplier) font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset);
-			} 
-			// load via font File
-			else {
-				try {
-					resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset);
-				} catch (Exception e) {
-					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
-				}
-			}
-		}
+            if (state._svgImpl != null &&
+                font.fontFile != null &&
+                font.usedFor.contains(FSFontUseCase.SVG)) {
+                try {
+                    state._svgImpl.addFontFile(font.fontFile, font.family, font.weight, font.style);
+                } catch (IOException | FontFormatException e) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
+                }
+            }
 
-		return renderer;
-	}
+            if (state._mathmlImpl != null &&
+                font.fontFile != null &&
+                font.usedFor.contains(FSFontUseCase.MATHML)) {
+                try {
+                    state._mathmlImpl.addFontFile(font.fontFile, font.family, font.weight, font.style);
+                } catch (IOException | FontFormatException e) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
+                }
+            }
+
+            if (font.usedFor.contains(FSFontUseCase.DOCUMENT)) {
+                IdentValue fontStyle = null;
+
+                switch (font.style) {
+                case NORMAL:
+                    fontStyle = IdentValue.NORMAL;
+                    break;
+                case ITALIC:
+                    fontStyle = IdentValue.ITALIC;
+                    break;
+                case OBLIQUE:
+                    fontStyle = IdentValue.OBLIQUE;
+                    break;
+                default:
+                    fontStyle = null;
+                    break;
+                }
+
+
+                // use InputStream supplier
+                if (font.supplier != null) {
+                    resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset);
+                }
+                // use PDFont supplier
+                else if (font.pdfontSupplier != null) {
+                    resolver.addFont((PDFontSupplier) font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset);
+                }
+                // load via font File
+                else {
+                    try {
+                        resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset);
+                    } catch (Exception e) {
+                        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
+                    }
+                }
+            }
+        }
+
+        return renderer;
+    }
 
 	/**
 	 * An output stream to output the resulting PDF. The caller is required to close
@@ -176,13 +210,13 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	}
 
 	/**
-	 * Like {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)} but
+	 * Like {@link BaseRendererBuilder#useFont(FSSupplier, String, Integer, FontStyle, boolean)} but
 	 * allows to supply a PDFont directly. Subclass {@link PDFontSupplier} if you need
 	 * special font-loading rules (like using a font-cache).
 	 */
 	public PdfRendererBuilder useFont(PDFontSupplier supplier, String fontFamily, Integer fontWeight,
 			FontStyle fontStyle, boolean subset) {
-		state._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, subset, fontStyle));
+		state._fonts.add(new AddedFont(supplier, fontWeight, fontFamily, subset, fontStyle, EnumSet.of(FSFontUseCase.DOCUMENT)));
 		return this;
 	}
 	

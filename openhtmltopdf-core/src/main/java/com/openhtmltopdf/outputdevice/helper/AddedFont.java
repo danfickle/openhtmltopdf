@@ -2,8 +2,10 @@ package com.openhtmltopdf.outputdevice.helper;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Set;
 
 import com.openhtmltopdf.extend.FSSupplier;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FSFontUseCase;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 
 public class AddedFont {
@@ -14,9 +16,16 @@ public class AddedFont {
     public final boolean subset;
     public final FontStyle style;
     public final Object pdfontSupplier; // Bit of a hack, not type-safe!
+    public final Set<FSFontUseCase> usedFor;
 
-    public AddedFont(FSSupplier<InputStream> supplier, File fontFile, Integer weight, String family, boolean subset,
-            FontStyle style) {
+    public AddedFont(
+            FSSupplier<InputStream> supplier,
+            File fontFile,
+            Integer weight,
+            String family,
+            boolean subset,
+            FontStyle style,
+            Set<FSFontUseCase> usedFor) {
         this.supplier = supplier;
         this.fontFile = fontFile;
         this.pdfontSupplier = null;
@@ -24,9 +33,16 @@ public class AddedFont {
         this.family = family;
         this.subset = subset;
         this.style = style;
+        this.usedFor = usedFor;
     }
 
-    public AddedFont(Object pdfontSupplier, Integer weight, String family, boolean subset, FontStyle style) {
+    public AddedFont(
+            Object pdfontSupplier,
+            Integer weight,
+            String family,
+            boolean subset,
+            FontStyle style,
+            Set<FSFontUseCase> usedFor) {
         this.supplier = null;
         this.fontFile = null;
         this.pdfontSupplier = pdfontSupplier;
@@ -34,5 +50,6 @@ public class AddedFont {
         this.family = family;
         this.subset = subset;
         this.style = style;
+        this.usedFor = usedFor;
     }
 }
