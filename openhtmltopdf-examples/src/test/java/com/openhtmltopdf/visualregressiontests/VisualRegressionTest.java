@@ -1326,6 +1326,12 @@ public class VisualRegressionTest {
                 }));
     }
 
+    @Test
+    @Ignore // Infinite loop again.
+    public void testIssue615InfiniteLoopBreakWord() throws IOException {
+        assertTrue(vt.runTest("issue-615-infinite-loop-break-word"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
