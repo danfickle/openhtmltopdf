@@ -37,6 +37,7 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
+import com.openhtmltopdf.layout.Breaker.BreakTextResult;
 import com.openhtmltopdf.render.AnonymousBlockBox;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
@@ -1100,18 +1101,27 @@ public class InlineBoxing {
         }
     }
 
-    private static InlineText layoutText(LayoutContext c, CalculatedStyle style, int remainingWidth,
-                                         LineBreakContext lbContext, boolean needFirstLetter,
-                                         byte textDirection, boolean tryToBreakAnywhere, int lineWidth) {
+    private static InlineText layoutText(
+            LayoutContext c,
+            CalculatedStyle style,
+            int remainingWidth,
+            LineBreakContext lbContext,
+            boolean needFirstLetter,
+            byte textDirection,
+            boolean tryToBreakAnywhere,
+            int lineWidth) {
+
         InlineText result = new InlineText();
         String masterText = lbContext.getMaster();
-        
+
         if (needFirstLetter) {
             masterText = TextUtil.transformFirstLetterText(masterText, style);
             lbContext.setMaster(masterText);
             Breaker.breakFirstLetter(c, lbContext, remainingWidth, style);
         } else {
-            Breaker.breakText(c, lbContext, remainingWidth, style, tryToBreakAnywhere, lineWidth);
+            BreakTextResult breakResult = 
+                    Breaker.breakText(c, lbContext, remainingWidth, style, tryToBreakAnywhere, lineWidth);
+            checkBreakResult(breakResult, lbContext, tryToBreakAnywhere);
         }
 
         result.setMasterText(masterText);
@@ -1119,8 +1129,67 @@ public class InlineBoxing {
         result.setWidth(lbContext.getWidth());
         result.setTextDirection(textDirection);
         result.setEndsOnSoftHyphen(lbContext.isEndsOnSoftHyphen());
-        
+
         return result;
+    }
+
+    private static void checkBreakResult(
+            BreakTextResult breakResult,
+            LineBreakContext lbContext,
+            boolean tryToBreakAnywhere) {
+
+        switch (breakResult) {
+        case CONTINUE_CHAR_BREAKING_ON_NL:
+            if (lbContext.getStart() >= lbContext.getEnd() ||
+                !lbContext.isNeedsNewLine()) {
+                fail(breakResult, lbContext);
+            }
+            break;
+        case CONTINUE_WORD_BREAKING_ON_NL:
+            if (lbContext.getStart() >= lbContext.getEnd() ||
+                lbContext.isUnbreakable() ||
+                !lbContext.isNeedsNewLine()) {
+                fail(breakResult, lbContext);
+            }
+            break;
+        case DANGER_RECONSUME_CHAR_ON_NL:
+            if (lbContext.getStart() > lbContext.getEnd()) {
+                fail(breakResult, lbContext);
+            }
+            break;
+        case DANGER_RECONSUME_WORD_ON_NL:
+            if (lbContext.getStart() > lbContext.getEnd()) {
+                fail(breakResult, lbContext);
+            }
+            break;
+        case FINISHED:
+            if (!lbContext.isFinished() ||
+                lbContext.getStart() >= lbContext.getEnd() ||
+                lbContext.isUnbreakable() ||
+                lbContext.isNeedsNewLine()) {
+                fail(breakResult, lbContext);
+            }
+            break;
+        case WORD_UNBREAKABLE_BUT_CONSUMED:
+            if (!lbContext.isUnbreakable() ||
+                lbContext.getStart() >= lbContext.getEnd()) {
+                fail(breakResult, lbContext);
+            }
+            break;
+        case CHAR_UNBREAKABLE_BUT_CONSUMED:
+            if (!lbContext.isUnbreakable() ||
+                lbContext.getStart() >= lbContext.getEnd()) {
+                fail(breakResult, lbContext);
+            }
+            break;
+        }
+    }
+
+    private static void fail(
+            BreakTextResult breakResult,
+            LineBreakContext lbContext) {
+        // TODO: Log
+        throw new RuntimeException();
     }
 
     private static int processOutOfFlowContent(
