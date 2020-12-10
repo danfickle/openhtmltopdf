@@ -159,6 +159,8 @@ public class Breaker {
                         break LOOP;
                     } else {
                         // We may be at the end of the line, so pick up at next line.
+                        // FIXME: This is very dangerous and has led to infinite
+                        // loops. Needs review.
                         context.setEnd(savedEnd);
                         break LOOP;
                     }

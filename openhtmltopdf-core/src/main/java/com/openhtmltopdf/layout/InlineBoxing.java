@@ -441,7 +441,9 @@ public class InlineBoxing {
         }
 
         if (!lbContext.isUnbreakable() ||
-            (lbContext.isUnbreakable() && !current.line.isContainsContent())) {
+            (lbContext.isUnbreakable() && 
+             !current.line.isContainsContent() &&
+             lbContext.getEnd() > lbContext.getStart())) {
             // We can use the inline text by adding it to the current inline layout box.
             // We also mark the text as consumed by the line break context and reduce the width
             // we have remaining on this line.
