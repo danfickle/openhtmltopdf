@@ -122,7 +122,8 @@ public class Breaker {
             int avail,
             CalculatedStyle style,
             boolean tryToBreakAnywhere,
-            int lineWidth) {
+            int lineWidth,
+            boolean forceOutput) {
 
         FSFont font = style.getFSFont(c);
         IdentValue whitespace = style.getWhitespace();
@@ -132,21 +133,24 @@ public class Breaker {
         // ====== handle nowrap
         if (whitespace == IdentValue.NOWRAP) {
             int width = Breaker.getTextWidthWithLetterSpacing(c, font, context.getMaster(), letterSpacing);
-            if (width <= avail) {
+            if (width <= avail || forceOutput) {
                 c.setLineBreakedBecauseOfNoWrap(false);
                 context.setEnd(context.getLast());
                 context.setWidth(width);
+                context.setNeedsNewLine(false);
                 return BreakTextResult.FINISHED;
             } else if (!c.isLineBreakedBecauseOfNoWrap()) {
                 c.setLineBreakedBecauseOfNoWrap(true);
                 context.setEnd(context.getStart());
                 context.setWidth(0);
                 context.setNeedsNewLine(true);
+                context.setUnbreakable(true);
                 return BreakTextResult.DANGER_RECONSUME_WORD_ON_NL;
             } else {
                 c.setLineBreakedBecauseOfNoWrap(false);
                 context.setEnd(context.getLast());
                 context.setWidth(width);
+                context.setNeedsNewLine(false);
                 return BreakTextResult.FINISHED;
             }
         }
@@ -164,6 +168,7 @@ public class Breaker {
             } else if (whitespace == IdentValue.PRE) {
                 context.setEnd(context.getLast());
                 context.setWidth(Breaker.getTextWidthWithLetterSpacing(c, font, context.getCalculatedSubstring(), letterSpacing));
+                context.setNeedsNewLine(false);
             }
         }
 
@@ -208,8 +213,8 @@ public class Breaker {
                     break LOOP;
 
                 case CHAR_BREAKING_UNBREAKABLE:
-                    if (totalWidth == 0 &&
-                        avail == lineWidth) {
+                    if ((totalWidth == 0 && avail == lineWidth) ||
+                        forceOutput) {
                         // We are at the start of the line but could not fit a single character!
                         totalWidth += context.getWidth();
                         breakResult = BreakTextResult.CHAR_UNBREAKABLE_BUT_CONSUMED;
@@ -219,6 +224,7 @@ public class Breaker {
                         // FIXME: This is very dangerous and has led to infinite
                         // loops. Needs review.
                         context.setEnd(savedEnd);
+                        context.setNeedsNewLine(true);
                         breakResult = BreakTextResult.DANGER_RECONSUME_CHAR_ON_NL;
                         break LOOP;
                     }
@@ -243,7 +249,8 @@ public class Breaker {
                 }
                 case WORD_BREAKING_UNBREAKABLE: {
                     if (context.getWidth() >= lineWidth ||
-                        context.isFirstCharInLine()) {
+                        context.isFirstCharInLine() ||
+                        forceOutput) {
                         // If the word is too long to fit on a line by itself or
                         // if we are at the start of a line,
                         // retry in character breaking mode.
@@ -295,7 +302,7 @@ public class Breaker {
         case CHAR_BREAKING_NEED_NEW_LINE:    // Fall-thru
         case CHAR_BREAKING_UNBREAKABLE:      // Fall-thru
         default:
-            throw new RuntimeException(); // TODO: Log
+            throw new RuntimeException("PROGRAMMER ERROR: Unexpected LineBreakResult from word wrap");
         }
     }
 
@@ -320,12 +327,12 @@ public class Breaker {
 
             String currentString = context.getStartSubstring();
             FSTextBreaker lineIterator = STANDARD_LINE_BREAKER.getBreaker(currentString, c.getSharedContext());
-            FSTextBreaker charIterator = STANDARD_CHARACTER_BREAKER.getBreaker(currentString, c.getSharedContext());       
+            FSTextBreaker charIterator = STANDARD_CHARACTER_BREAKER.getBreaker(currentString, c.getSharedContext());
 
             return doBreakCharacters(currentString, lineIterator, charIterator, context, avail, letterSpacing, measurer);
         }
     }
-    
+
     /**
      * Breaks at most one word (until the next word break) going character by character to see
      * what will fit in.
@@ -393,11 +400,12 @@ public class Breaker {
             graphicsLength > 0) {
             // Exact fit..
             boolean needNewLine = currentString.length() > left;
-            
+
             context.setNeedsNewLine(needNewLine);
             context.setEnd(left + context.getStart());
             context.setWidth(graphicsLength);
-            
+            context.setUnbreakable(false);
+
             if (left >= currentString.length()) {
                 return LineBreakResult.CHAR_BREAKING_FINISHED;
             } else if (left >= nextWordBreak) {
@@ -430,6 +438,7 @@ public class Breaker {
             context.setWidth(graphicsLength);
             context.setEnd(nextCharBreak + context.getStart());
             context.setEndsOnWordBreak(nextCharBreak == nextWordBreak);
+            context.setUnbreakable(false);
             
             if (nextCharBreak >= currentString.length()) {
                 return LineBreakResult.CHAR_BREAKING_FINISHED;
@@ -448,8 +457,10 @@ public class Breaker {
             context.setWidth(lastGoodGraphicsLength);
             context.setEnd(lastGoodWrap + context.getStart());
             context.setEndsOnWordBreak(lastGoodWrap == nextWordBreak);
+            context.setUnbreakable(false);
 
             if (lastGoodWrap >= currentString.length()) {
+                context.setNeedsNewLine(false);
                 return LineBreakResult.CHAR_BREAKING_FINISHED;
             } else if (lastGoodWrap >= nextWordBreak) {
                 return LineBreakResult.CHAR_BREAKING_FOUND_WORD_BREAK;
@@ -466,13 +477,15 @@ public class Breaker {
             context.setEnd(end + context.getStart());
             context.setEndsOnWordBreak(end == nextWordBreak);
             context.setWidth(splitWidth);
-            
+            context.setNeedsNewLine(end < currentString.length());
+
             return LineBreakResult.CHAR_BREAKING_UNBREAKABLE;
         } else {
             // Empty string.
             context.setEnd(context.getStart());
             context.setWidth(0);
             context.setNeedsNewLine(false);
+            context.setUnbreakable(false);
 
             return LineBreakResult.CHAR_BREAKING_FINISHED;
         }
@@ -588,6 +601,7 @@ public class Breaker {
         if (current.graphicsLength <= avail) {
             context.setWidth(current.graphicsLength);
             context.setEnd(context.getMaster().length());
+            context.setNeedsNewLine(false);
             // It all fit!
             return LineBreakResult.WORD_BREAKING_FINISHED;
         }

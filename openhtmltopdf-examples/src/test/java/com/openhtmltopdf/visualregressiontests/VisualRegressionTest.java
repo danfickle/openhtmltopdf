@@ -1327,7 +1327,8 @@ public class VisualRegressionTest {
     }
 
     @Test
-    @Ignore // Infinite loop again.
+    @Ignore // No more infinite loop, but being force output at the right
+            // instead of being pushed below the float.
     public void testIssue615InfiniteLoopBreakWord() throws IOException {
         assertTrue(vt.runTest("issue-615-infinite-loop-break-word"));
     }

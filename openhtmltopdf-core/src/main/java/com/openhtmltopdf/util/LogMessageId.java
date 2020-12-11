@@ -144,6 +144,7 @@ public interface LogMessageId {
         GENERAL_PDF_URI_IN_HREF_IS_NOT_A_VALID_URI(XRLog.GENERAL, "'{}' in href is not a valid URI, will be skipped"),
         GENERAL_PDF_FOUND_FORM_CONTROL_WITH_NO_ENCLOSING_FORM(XRLog.GENERAL, "Found form control ({}) with no enclosing form. Ignoring."),
         GENERAL_PDF_A_ELEMENT_DOES_NOT_HAVE_OPTION_CHILDREN(XRLog.GENERAL, "A <{}> element does not have <option> children"),
+        GENERAL_FORCED_OUTPUT_TO_AVOID_INFINITE_LOOP(XRLog.GENERAL, "Forced text ({}) output after trying to move to next line unsuccessfully. Probably a bug."),
 
         EXCEPTION_URI_SYNTAX_WHILE_LOADING_EXTERNAL_SVG_RESOURCE(XRLog.EXCEPTION, "URI syntax exception while loading external svg resource: {}"),
         EXCEPTION_SVG_ERROR_HANDLER(XRLog.EXCEPTION, "SVG {}"),

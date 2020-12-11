@@ -159,8 +159,6 @@ public class InlineBoxing {
                 }
 
                 boolean inCharBreakingMode = false;
-                int troublesomeStartPosition = -1;
-                int troublesomeAttemptCount = 0;
 
                 do {
                     lbContext.reset();
@@ -191,34 +189,24 @@ public class InlineBoxing {
                         needFirstLetter = false;
                     } else {
                         if (style.getWordWrap() != IdentValue.BREAK_WORD) {
-                            StartInlineTextResult result = startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, false);
+                            StartInlineTextResult result = startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, false, lbContext.possibleEndlessLoop());
                             if (result == StartInlineTextResult.RECONSUME_BELOW_FLOATS) {
+                                lbContext.newLine();
                                 continue;
                             }
                         } else {
-                            StartInlineTextResult result = startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, inCharBreakingMode);
+                            StartInlineTextResult result = startInlineText(c, lbContext, inlineBox, space, current, fit, trimmedLeadingSpace, inCharBreakingMode, lbContext.possibleEndlessLoop());
                             inCharBreakingMode = lbContext.isFinishedInCharBreakingMode();
 
                             if (result == StartInlineTextResult.RECONSUME_BELOW_FLOATS) {
+                                lbContext.newLine();
                                 continue;
-                            } else if (result == StartInlineTextResult.RECONSUME_UNBREAKABLE_ON_NEW_LINE) {
-                                if (troublesomeStartPosition == lbContext.getStart()) {
-                                    troublesomeAttemptCount++;
-                                } else {
-                                    troublesomeStartPosition = lbContext.getStart();
-                                    troublesomeAttemptCount = 1;
-                                }
-
-                                if (troublesomeAttemptCount > 5) {
-                                    XRLog.log(Level.SEVERE, LogMessageId.LogMessageId2Param.GENERAL_FATAL_INFINITE_LOOP_BUG_IN_LINE_BREAKING_ALGO,
-                                            lbContext.getStartSubstring(), lbContext.getEnd());
-                                    throw new RuntimeException("Infinite loop bug in break-word line breaking algorithm!");
-                                }
-                            }
-                        }
+                            }                        }
                     }
 
                     if (lbContext.isNeedsNewLine()) {
+                        lbContext.newLine();
+
                         startNewInlineLine(c, box, breakAtLine, blockLayoutDirection, space, current, previous,
                                 contentStart, openInlineBoxes, iBMap, minimumLineHeight, markerData, pendingFloats,
                                 hasFirstLinePEs, pendingInlineLayers, lineOffset, inlineBox, lbContext);
@@ -402,12 +390,17 @@ public class InlineBoxing {
      * layout box.
      * Otherwise, if there are floats and the current line is otherwise empty, moves below float and trys again.
      * Otherwise, trys again on a new line.
-     * @return true if the line is finished, false if we must continue
      */
     private static StartInlineTextResult startInlineText(
-            LayoutContext c, LineBreakContext lbContext, InlineBox inlineBox,
-            SpaceVariables space, StateVariables current, int fit,
-            boolean trimmedLeadingSpace, boolean tryToBreakAnywhere) {
+            LayoutContext c,
+            LineBreakContext lbContext,
+            InlineBox inlineBox,
+            SpaceVariables space,
+            StateVariables current,
+            int fit,
+            boolean trimmedLeadingSpace,
+            boolean tryToBreakAnywhere,
+            boolean forceOutput) {
 
         lbContext.saveEnd();
         CalculatedStyle style = inlineBox.getStyle();
@@ -415,13 +408,16 @@ public class InlineBoxing {
         // Layout the text into the remaining width on this line. Will only go to the end of the line (at most)
         // and will produce one InlineText object.
         InlineText inlineText = layoutText(
-                c, style, space.remainingWidth - fit, lbContext, false, inlineBox.getTextDirection(), tryToBreakAnywhere, space.maxAvailableWidth - fit);
+                c, style, space.remainingWidth - fit, lbContext, false, inlineBox.getTextDirection(), tryToBreakAnywhere, space.maxAvailableWidth - fit, forceOutput);
         
         if (style.hasLetterSpacing()) {
             inlineText.setLetterSpacing(style.getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c));
         }
-        
-        if (lbContext.isUnbreakable() && !current.line.isContainsContent()) {
+
+        if (lbContext.isUnbreakable() && 
+            !current.line.isContainsContent() &&
+            !forceOutput) {
+
             int delta = c.getBlockFormattingContext().getNextLineBoxDelta(c, current.line, space.maxAvailableWidth);
             
             if (delta > 0) {
@@ -444,7 +440,13 @@ public class InlineBoxing {
         if (!lbContext.isUnbreakable() ||
             (lbContext.isUnbreakable() && 
              !current.line.isContainsContent() &&
-             lbContext.getEnd() > lbContext.getStart())) {
+             lbContext.getEnd() > lbContext.getStart()) ||
+            forceOutput) {
+
+            if (forceOutput) {
+                XRLog.log(Level.SEVERE, LogMessageId.LogMessageId1Param.GENERAL_FORCED_OUTPUT_TO_AVOID_INFINITE_LOOP, lbContext.getCalculatedSubstring());
+            }
+
             // We can use the inline text by adding it to the current inline layout box.
             // We also mark the text as consumed by the line break context and reduce the width
             // we have remaining on this line.
@@ -556,8 +558,8 @@ public class InlineBoxing {
         currentIB.addInlineChild(c, iB);
         current.setContainsContent(true);
 
-        InlineText text = layoutText(c, iB.getStyle(), remainingWidth, lbContext, true, textDirection, true, maxAvailableWidth);
-        
+        InlineText text = layoutText(c, iB.getStyle(), remainingWidth, lbContext, true, textDirection, true, maxAvailableWidth, false);
+
         if (iB.getStyle().hasLetterSpacing()) {
             text.setLetterSpacing(iB.getStyle().getFloatPropertyProportionalWidth(CSSName.LETTER_SPACING, 0, c));
         }
@@ -1109,7 +1111,8 @@ public class InlineBoxing {
             boolean needFirstLetter,
             byte textDirection,
             boolean tryToBreakAnywhere,
-            int lineWidth) {
+            int lineWidth,
+            boolean forceOutput) {
 
         InlineText result = new InlineText();
         String masterText = lbContext.getMaster();
@@ -1120,8 +1123,8 @@ public class InlineBoxing {
             Breaker.breakFirstLetter(c, lbContext, remainingWidth, style);
         } else {
             BreakTextResult breakResult = 
-                    Breaker.breakText(c, lbContext, remainingWidth, style, tryToBreakAnywhere, lineWidth);
-            checkBreakResult(breakResult, lbContext, tryToBreakAnywhere);
+                    Breaker.breakText(c, lbContext, remainingWidth, style, tryToBreakAnywhere, lineWidth, forceOutput);
+            lbContext.checkConsistency(breakResult);
         }
 
         result.setMasterText(masterText);
@@ -1131,65 +1134,6 @@ public class InlineBoxing {
         result.setEndsOnSoftHyphen(lbContext.isEndsOnSoftHyphen());
 
         return result;
-    }
-
-    private static void checkBreakResult(
-            BreakTextResult breakResult,
-            LineBreakContext lbContext,
-            boolean tryToBreakAnywhere) {
-
-        switch (breakResult) {
-        case CONTINUE_CHAR_BREAKING_ON_NL:
-            if (lbContext.getStart() >= lbContext.getEnd() ||
-                !lbContext.isNeedsNewLine()) {
-                fail(breakResult, lbContext);
-            }
-            break;
-        case CONTINUE_WORD_BREAKING_ON_NL:
-            if (lbContext.getStart() >= lbContext.getEnd() ||
-                lbContext.isUnbreakable() ||
-                !lbContext.isNeedsNewLine()) {
-                fail(breakResult, lbContext);
-            }
-            break;
-        case DANGER_RECONSUME_CHAR_ON_NL:
-            if (lbContext.getStart() > lbContext.getEnd()) {
-                fail(breakResult, lbContext);
-            }
-            break;
-        case DANGER_RECONSUME_WORD_ON_NL:
-            if (lbContext.getStart() > lbContext.getEnd()) {
-                fail(breakResult, lbContext);
-            }
-            break;
-        case FINISHED:
-            if (!lbContext.isFinished() ||
-                lbContext.getStart() >= lbContext.getEnd() ||
-                lbContext.isUnbreakable() ||
-                lbContext.isNeedsNewLine()) {
-                fail(breakResult, lbContext);
-            }
-            break;
-        case WORD_UNBREAKABLE_BUT_CONSUMED:
-            if (!lbContext.isUnbreakable() ||
-                lbContext.getStart() >= lbContext.getEnd()) {
-                fail(breakResult, lbContext);
-            }
-            break;
-        case CHAR_UNBREAKABLE_BUT_CONSUMED:
-            if (!lbContext.isUnbreakable() ||
-                lbContext.getStart() >= lbContext.getEnd()) {
-                fail(breakResult, lbContext);
-            }
-            break;
-        }
-    }
-
-    private static void fail(
-            BreakTextResult breakResult,
-            LineBreakContext lbContext) {
-        // TODO: Log
-        throw new RuntimeException();
     }
 
     private static int processOutOfFlowContent(
