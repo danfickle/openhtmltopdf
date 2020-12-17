@@ -26,7 +26,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -136,7 +135,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 				String data = url.substring(idxSeparator+1);
 				byte[] res;
 				if (url.indexOf("base64,") == idxSeparator - 6 /* 6 = "base64,".length */) {
-					res = Base64.getMimeDecoder().decode(data);
+					res = ImageUtil.fromBase64Encoded(data);
 				} else {
 					res = data.getBytes(StandardCharsets.UTF_8);
 				}
@@ -438,6 +437,10 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		public String resolveURI(String baseUri, String uri) {
 			if (uri == null || uri.isEmpty())
 				return null;
+
+			if (uri.startsWith("data:")) {
+				return uri; //bypass URI "formatting" check for data uri, as we may have whitespace in the base64 encoded data
+			}
 			
 			try {
 				URI possiblyRelative = new URI(uri);

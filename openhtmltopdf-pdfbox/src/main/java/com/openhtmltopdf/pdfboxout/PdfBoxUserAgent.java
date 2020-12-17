@@ -23,14 +23,12 @@ package com.openhtmltopdf.pdfboxout;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Locale;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.swing.NaiveUserAgent;
-import com.openhtmltopdf.util.ImageUtil;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
@@ -77,10 +75,7 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
 
         if (is != null) {
             try {
-                URI uri = new URI(uriStr);
-                if (uri.getPath() != null
-                    && uri.getPath().toLowerCase(Locale.US)
-                                .endsWith(".pdf")) {
+                if (uriStr.toLowerCase(Locale.US).endsWith(".pdf")) {
                     // TODO: Implement PDF AS IMAGE
                     // PdfReader reader = _outputDevice.getReader(uri);
                     // PDFAsImage image = new PDFAsImage(uri);

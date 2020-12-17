@@ -1332,6 +1332,14 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-615-infinite-loop-break-word"));
     }
 
+    /**
+     * Test that we allow whitespaces inside the base64 encoded data uri.
+     */
+    @Test
+    public void testMoreRobustDataUriBase64() throws IOException {
+        assertTrue(vt.runTest("more-robust-data-uri-base64"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
