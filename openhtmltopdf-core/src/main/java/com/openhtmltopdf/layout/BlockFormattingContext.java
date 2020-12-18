@@ -84,6 +84,7 @@ public class BlockFormattingContext {
         getFloatManager().clear(c, this, current);
     }
 
+    @Override
     public String toString() {
         return "BlockFormattingContext: (" + _x + "," + _y + ")";
     }
