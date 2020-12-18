@@ -23,12 +23,12 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
 import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.LineBox;
@@ -53,7 +53,7 @@ public class FloatManager {
     public FloatManager(Box master) {
         this._master = master;
     }
-    
+
     private List<BoxOffset> getAddableFloats(FloatDirection direction) {
         if (getFloats(direction).isEmpty()) {
             setFloats(direction, new ArrayList<>());
@@ -342,8 +342,14 @@ public class FloatManager {
 
     private int calcDelta(CssContext cssCtx, LineBox line, BoxDistance boxDistance) {
         BlockBox floated = boxDistance.getBox();
+
         Rectangle rect = floated.getBorderEdge(floated.getAbsX(), floated.getAbsY(), cssCtx);
-        int bottom = rect.y + rect.height;
+        RectPropertySet margin = floated.getMargin(cssCtx);
+
+        // NOTE: This was not taking account of margins and thus was not clearing properly.
+        // See: https://github.com/danfickle/openhtmltopdf/pull/618
+        int bottom = (int) Math.ceil(rect.y + rect.height + margin.bottom());
+
         return bottom - line.getAbsY();
     }
 
