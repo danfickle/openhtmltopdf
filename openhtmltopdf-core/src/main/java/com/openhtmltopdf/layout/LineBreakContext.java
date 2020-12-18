@@ -19,6 +19,8 @@
  */
 package com.openhtmltopdf.layout;
 
+import com.openhtmltopdf.layout.Breaker.BreakTextResult;
+
 /**
  * A bean which serves as a way for the layout code to pass information to the
  * line breaking code and for the line breaking code to pass instructions back
@@ -37,8 +39,7 @@ public class LineBreakContext {
         CHAR_BREAKING_FINISHED, 
         WORD_BREAKING_FINISHED;
     }
-    
-    
+
     private String _master;
     private int _start;
     private int _end;
@@ -52,20 +53,53 @@ public class LineBreakContext {
     private boolean _endsOnWordBreak;
     private boolean _finishedInCharBreakingMode;
     private boolean _isFirstChar;
-    
-    public int getLast() {
-        return _master.length();
-    }
-    
+
+    // These keep track of our attempts to move to a newline
+    // before outputting the same content.
+    // Due to several infinite loop bugs, we only allow
+    // a defined number of attempts before forcing the output of
+    // text (with a log message).
+    private int _lastNewLineStartPosition;
+    private int _newlineAttemptsForLastStartPosition;
+
     public void reset() {
         _width = 0;
         _unbreakable = false;
         _needsNewLine = false;
+        _endsOnNL = false;
         _endsOnSoftHyphen = false;
         _nextWidth = 0;
         _endsOnWordBreak = false;
+        _finishedInCharBreakingMode = false;
+        _isFirstChar = false;
     }
-    
+
+    /**
+     * Record a newline attempt. This should be called 
+     * at each newline and then possibleEndlessLoop method can
+     * be called to check if excessive attempts have been made to
+     * output the same character on newlines.
+     */
+    public void newLine() {
+        if (this.getStart() == _lastNewLineStartPosition) {
+            _newlineAttemptsForLastStartPosition++;
+        } else {
+            _lastNewLineStartPosition = this.getStart();
+            _newlineAttemptsForLastStartPosition = 1;
+        }
+    }
+
+    /**
+     * @see {@link #newLine()}
+     */
+    public boolean possibleEndlessLoop() {
+        return _newlineAttemptsForLastStartPosition > 5;
+    }
+
+    public int getLast() {
+        return _master.length();
+    }
+
     public int getEnd() {
         return _end;
     }
@@ -206,4 +240,48 @@ public class LineBreakContext {
     public void setFirstCharInLine(boolean isFirstChar) {
         _isFirstChar = isFirstChar;
     }
+
+    /**
+     * Given the result of text breaking, makes some sanity preserving
+     * asserts to check the state of this object.
+     */
+    public void checkConsistency(
+            BreakTextResult breakResult) {
+
+        switch (breakResult) {
+        case CONTINUE_CHAR_BREAKING_ON_NL:
+            assert this.getStart() < this.getEnd();
+            assert !this.isUnbreakable();
+            assert this.isNeedsNewLine();
+            break;
+        case CONTINUE_WORD_BREAKING_ON_NL:
+            assert this.getStart() < this.getEnd();
+            assert !this.isUnbreakable();
+            assert this.isNeedsNewLine();
+            break;
+        case DANGER_RECONSUME_CHAR_ON_NL:
+            assert this.isUnbreakable();
+            assert this.getStart() <= this.getEnd();
+            break;
+        case DANGER_RECONSUME_WORD_ON_NL:
+            assert this.isUnbreakable();
+            assert this.getStart() <= this.getEnd();
+            break;
+        case FINISHED:
+            assert this.isFinished();
+            assert this.getStart() < this.getEnd();
+            assert !this.isUnbreakable();
+            assert !this.isNeedsNewLine();
+            break;
+        case WORD_UNBREAKABLE_BUT_CONSUMED:
+            assert this.isUnbreakable();
+            assert this.getStart() < this.getEnd();
+            break;
+        case CHAR_UNBREAKABLE_BUT_CONSUMED:
+            assert this.isUnbreakable();
+            assert this.getStart() < this.getEnd();
+            break;
+        }
+    }
+
 }

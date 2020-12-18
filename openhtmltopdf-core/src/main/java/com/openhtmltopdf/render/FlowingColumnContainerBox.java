@@ -136,8 +136,8 @@ public class FlowingColumnContainerBox extends BlockBox {
     }
 
     private void layoutFloats(TreeMap<Integer, ColumnPosition> columnMap, PersistentBFC bfc, int columnCount, int colWidth, int colGap) {
-        List<BoxOffset> floatsL = this.getPersistentBFC().getFloatManager().getFloats(FloatManager.LEFT);
-        List<BoxOffset> floatsR = this.getPersistentBFC().getFloatManager().getFloats(FloatManager.RIGHT);
+        List<BoxOffset> floatsL = this.getPersistentBFC().getFloatManager().getFloats(FloatManager.FloatDirection.LEFT);
+        List<BoxOffset> floatsR = this.getPersistentBFC().getFloatManager().getFloats(FloatManager.FloatDirection.RIGHT);
 
         layoutFloats(columnMap, floatsL, columnCount, colWidth, colGap);
         layoutFloats(columnMap, floatsR, columnCount, colWidth, colGap);
@@ -173,8 +173,8 @@ public class FlowingColumnContainerBox extends BlockBox {
         final List<PageBox> pages = c.getRootLayer().getPages();
         
         final boolean haveFloats = 
-                !this.getPersistentBFC().getFloatManager().getFloats(FloatManager.LEFT).isEmpty() ||
-                !this.getPersistentBFC().getFloatManager().getFloats(FloatManager.RIGHT).isEmpty();
+                !this.getPersistentBFC().getFloatManager().getFloats(FloatManager.FloatDirection.LEFT).isEmpty() ||
+                !this.getPersistentBFC().getFloatManager().getFloats(FloatManager.FloatDirection.RIGHT).isEmpty();
         
         // We only need the tree map if we have floats.
         final TreeMap<Integer, ColumnPosition> columnMap = haveFloats ? new TreeMap<>() : null;
