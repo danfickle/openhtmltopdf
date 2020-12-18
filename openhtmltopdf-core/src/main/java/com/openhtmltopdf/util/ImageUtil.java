@@ -25,6 +25,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 /**
  * Static utility methods for working with images. Meant to suggest "best practices" for the most straightforward
@@ -202,7 +203,13 @@ public class ImageUtil {
         g2d.dispose();
         return bi;
     }
-    
+
+    private static final Pattern WHITE_SPACE = Pattern.compile("\\s+");
+
+    public static byte[] fromBase64Encoded(String b64encoded) {
+        return Base64.getMimeDecoder().decode(WHITE_SPACE.matcher(b64encoded).replaceAll(""));
+    }
+
     /**
      * Get the binary content of an embedded base 64 image.
      *
@@ -213,7 +220,7 @@ public class ImageUtil {
         int b64Index = imageDataUri.indexOf("base64,");
         if (b64Index != -1) {
             String b64encoded = imageDataUri.substring(b64Index + "base64,".length());
-            return Base64.getMimeDecoder().decode(b64encoded);
+            return fromBase64Encoded(b64encoded);
         } else {
             XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_EMBEDDED_DATA_URI_MUST_BE_ENCODED_IN_BASE64);
         }
