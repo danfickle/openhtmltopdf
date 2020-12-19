@@ -20,6 +20,7 @@
 package com.openhtmltopdf.css.sheet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,12 +39,12 @@ import java.util.Locale;
  */
 public class StylesheetInfo {
 
-    private Stylesheet stylesheet = null;//just to be able to attach "dummy" stylesheets. Also might save a lookup if it's already looked up
+    private Stylesheet stylesheet = null;
     private String title;
     private String uri;
     private int origin = USER_AGENT;
     private String type;
-    private List<String> mediaTypes = new ArrayList<>();
+    private final List<String> mediaTypes = new ArrayList<>();
     private String content;
 
     /** Origin of stylesheet - user agent  */
@@ -54,15 +55,20 @@ public class StylesheetInfo {
 
     /** Origin of stylesheet - author  */
     public final static int AUTHOR = 2;
-    
 
     /**
      * @param m  a single media identifier
      * @return   true if the stylesheet referenced applies to the medium
      */
     public boolean appliesToMedia(String m) {
-        return m.toLowerCase(Locale.US).equals("all") || 
-            mediaTypes.contains("all") || mediaTypes.contains(m.toLowerCase(Locale.US));
+        if (mediaTypes.contains("all")) {
+            return true;
+        }
+
+        String media = m.toLowerCase(Locale.US);
+
+        return media.equals("all") ||
+               mediaTypes.contains(media);
     }
 
     /**
@@ -80,18 +86,18 @@ public class StylesheetInfo {
      * @param media  The new media value
      */
     public void setMedia(String media) {
-        String[] mediaTypes = media.split(",");
         this.mediaTypes.clear();
-        
-        for (int i = 0; i < mediaTypes.length; i++) {
-            this.mediaTypes.add(mediaTypes[i].trim().toLowerCase(Locale.US));
+
+        if (media == null || media.isEmpty()) {
+            // Common case, no media attribute, applies to all.
+            this.addMedium("all");
+        } else {
+            Arrays.stream(media.split(","))
+                  .map(mediaType -> mediaType.trim().toLowerCase(Locale.US))
+                  .forEach(this::addMedium);
         }
     }
-    
-    public void setMedia(List<String> mediaTypes) {
-        this.mediaTypes = mediaTypes;
-    }
-    
+
     public void addMedium(String medium) {
         mediaTypes.add(medium);
     }
@@ -193,7 +199,7 @@ public class StylesheetInfo {
     public void setContent(String content) {
         this.content = content;
     }
-    
+
     public boolean isInline() {
         return this.content != null;
     }

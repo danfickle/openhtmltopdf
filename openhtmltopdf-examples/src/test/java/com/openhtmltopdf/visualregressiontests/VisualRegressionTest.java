@@ -1343,6 +1343,11 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("more-robust-data-uri-base64"));
     }
 
+    @Test
+    public void testCSSImportLoop() throws IOException {
+        assertTrue(vt.runTest("css-import-loop"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

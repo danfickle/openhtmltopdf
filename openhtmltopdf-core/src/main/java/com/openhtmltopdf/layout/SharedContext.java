@@ -129,24 +129,6 @@ public class SharedContext {
     public SharedContext() {
     }
 
-
-    /**
-     * Constructor for the Context object
-     * @deprecated This stuff should go in the renderers of a specific device.
-     */
-    @Deprecated
-    public SharedContext(UserAgentCallback uac, FontResolver fr, ReplacedElementFactory ref, TextRenderer tr, float dpi) {
-        fontResolver = fr;
-        replacedElementFactory = ref;
-        setMedia("screen");
-        this.uac = uac;
-        setCss(new StyleReference(uac));
-        XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.RENDER_USING_CSS_IMPLEMENTATION_FROM, getCss().getClass().getName());
-        setTextRenderer(tr);
-        setDPI(dpi);
-    }
-
-
     public LayoutContext newLayoutContextInstance() {
         LayoutContext c = new LayoutContext(this);
         return c;

@@ -36,7 +36,6 @@ import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.lib.DOMTreeResolver;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
 import com.openhtmltopdf.css.newmatch.PageInfo;
-import com.openhtmltopdf.css.newmatch.Selector;
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.Stylesheet;
@@ -209,29 +208,6 @@ public class StyleReference {
 
     public PageInfo getPageStyle(String pageName, String pseudoPage) {
         return _matcher.getPageCascadedStyle(pageName, pseudoPage);
-    }
-
-    /**
-     * Flushes any stylesheet associated with this stylereference (based on the user agent callback) that are in cache.
-     * Deprecated for now, until we fix caching, use a new <code>StylesheetFactory</code> each run.
-     */
-    @Deprecated
-    public void flushStyleSheets() {
-        String uri = _uac.getBaseURL();
-        StylesheetInfo info = new StylesheetInfo();
-        info.setUri(uri);
-        info.setOrigin(StylesheetInfo.AUTHOR);
-        if (_stylesheetFactory.containsStylesheet(uri)) {
-            _stylesheetFactory.removeCachedStylesheet(uri);
-            XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.CSS_PARSE_REMOVING_STYLESHEET_URI_FROM_CACHE_BY_REQUEST, uri);
-        } else {
-            XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.CSS_PARSE_REQUESTED_REMOVING_STYLESHEET_URI_NOT_IN_CACHE, uri);
-        }
-    }
-    
-    @Deprecated
-    public void flushAllStyleSheets() {
-        _stylesheetFactory.flushCachedStylesheets();
     }
 
     /**

@@ -314,11 +314,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
         getFontResolver().flushFontFaceFonts();
 
-        if (Configuration.isTrue("xr.cache.stylesheets", true)) {
-            _sharedContext.getCss().flushStyleSheets();
-        } else {
-            _sharedContext.getCss().flushAllStyleSheets();
-        }
         _sharedContext.setBaseURL(url);
         _sharedContext.setNamespaceHandler(nsh);
         _sharedContext.getCss().setDocumentContext(_sharedContext, _sharedContext.getNamespaceHandler(), doc, new NullUserInterface());

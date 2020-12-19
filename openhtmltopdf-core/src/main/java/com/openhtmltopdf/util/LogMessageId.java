@@ -195,6 +195,7 @@ public interface LogMessageId {
     }
 
     enum LogMessageId2Param implements LogMessageId {
+        CSS_PARSE_TOO_MANY_STYLESHEET_IMPORTS(XRLog.CSS_PARSE, "Gave up after {} attempts to load stlyesheet at {} to avoid possible loop"),
         CSS_PARSE_COULDNT_PARSE_STYLESHEET_AT_URI(XRLog.CSS_PARSE, "Couldn't parse stylesheet at URI {}: {}"),
         CSS_PARSE_GENERIC_MESSAGE(XRLog.CSS_PARSE, "({}) {}"),
 

@@ -21,6 +21,8 @@ package com.openhtmltopdf.context;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.css.extend.StylesheetFactory;
@@ -46,21 +48,19 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
      */
     private UserAgentCallback _userAgentCallback;
 
-    private final int _cacheCapacity = 16;
+    /**
+     * This may avoid @import loops, ie. one.css includes two.css
+     * which then includes one.css.
+     */
+    private final Map<String, Integer> _seenStylesheetUris = new HashMap<>();
 
     /**
-     * an LRU cache
+     * The maximum number of times a stylesheet uri can be link or
+     * imported before we give up and conclude there is a loop.
      */
-    private final java.util.LinkedHashMap<String, Stylesheet> _cache =
-            new java.util.LinkedHashMap<String, Stylesheet>(_cacheCapacity, 0.75f, true) {
-                private static final long serialVersionUID = 1L;
+    private static final int MAX_STYLESHEET_INCLUDES = 10;
 
-                protected boolean removeEldestEntry(java.util.Map.Entry<String, Stylesheet> eldest) {
-                    return size() > _cacheCapacity;
-                }
-            };
-            
-    private CSSParser _cssParser;
+    private final CSSParser _cssParser;
 
     public StylesheetFactoryImpl(UserAgentCallback userAgentCallback) {
         _userAgentCallback = userAgentCallback;
@@ -108,74 +108,27 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
     }
 
     /**
-     * Adds a stylesheet to the factory cache. Will overwrite older entry for
-     * same key.
-     *
-     * @param key   Key to use to reference sheet later; must be unique in
-     *              factory.
-     * @param sheet The sheet to cache.
-     */
-    @Deprecated
-    public void putStylesheet(String key, Stylesheet sheet) {
-        _cache.put(key, sheet);
-    }
-
-    /**
-     * @param key
-     * @return true if a Stylesheet with this key has been put in the cache.
-     *         Note that the Stylesheet may be null.
-     */
-    //TODO: work out how to handle caching properly, with cache invalidation
-    @Deprecated
-    public boolean containsStylesheet(String key) {
-        return _cache.containsKey(key);
-    }
-
-    /**
-     * Returns a cached sheet by its key; null if no entry for that key.
-     *
-     * @param key The key for this sheet; same as key passed to
-     *            putStylesheet();
-     * @return The stylesheet
-     */
-    @Deprecated
-    public Stylesheet getCachedStylesheet(String key) {
-        return _cache.get(key);
-    }
-
-    /**
-     * Removes a cached sheet by its key.
-     *
-     * @param key The key for this sheet; same as key passed to
-     *            putStylesheet();
-     */
-    @Deprecated
-    public Object removeCachedStylesheet(String key) {
-        return _cache.remove(key);
-    }
-    
-    @Deprecated
-    public void flushCachedStylesheets() {
-        _cache.clear();
-    }
-
-    /**
-     * Returns a cached sheet by its key; loads and caches it if not in cache;
+     * Returns a sheet by its key
      * null if not able to load
+     *
      *
      * @param info The StylesheetInfo for this sheet
      * @return The stylesheet
      */
-    //TODO: this looks a bit odd
     public Stylesheet getStylesheet(StylesheetInfo info) {
         XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_REQUESTING_STYLESHEET_AT_URI, info.getUri());
 
-        Stylesheet s = getCachedStylesheet(info.getUri());
-        if (s == null && !containsStylesheet(info.getUri())) {
-            s = parse(info);
-            putStylesheet(info.getUri(), s);
+        Integer includeCount = _seenStylesheetUris.get(info.getUri());
+
+        if (includeCount != null && includeCount >= MAX_STYLESHEET_INCLUDES) {
+            // Probably an import loop.
+            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId2Param.CSS_PARSE_TOO_MANY_STYLESHEET_IMPORTS, includeCount, info.getUri());
+            return null;
         }
-        return s;
+
+        _seenStylesheetUris.merge(info.getUri(), 1, (oldV, newV) -> oldV + 1);
+
+        return parse(info);
     }
 
     public void setUserAgentCallback(UserAgentCallback userAgent) {

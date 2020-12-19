@@ -255,11 +255,9 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     }
 
     protected StylesheetInfo readStyleElement(Element style) {
-        String media = style.getAttribute("media");
-        if ("".equals(media)) {
-            media = "all";
-        }//default for HTML is "screen", but that is silly and firefox seems to assume "all"
         StylesheetInfo info = new StylesheetInfo();
+        String media = style.getAttribute("media");
+
         info.setMedia(media);
         info.setType(style.getAttribute("type"));
         info.setTitle(style.getAttribute("title"));
@@ -306,12 +304,9 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         info.setType(type);
 
         info.setOrigin(StylesheetInfo.AUTHOR);
-
         info.setUri(link.getAttribute("href"));
+
         String media = link.getAttribute("media");
-        if ("".equals(media)) {
-            media = "all";
-        }
         info.setMedia(media);
 
         String title = link.getAttribute("title");

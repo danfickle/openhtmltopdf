@@ -300,7 +300,7 @@ public class CSSParser {
                             t, new Token[] { Token.TK_STRING, Token.TK_URI }, getCurrentLine());
                 }
 
-                if (info.getMedia().size() == 0) {
+                if (info.getMedia().isEmpty()) {
                     info.addMedium("all");
                 }
                 stylesheet.addImportRule(info);
