@@ -725,7 +725,9 @@ public class NonVisualRegressionTest {
     @Test
     public void testInputWithoutNameAttribute() throws IOException {
         PDDocument doc = run("input-without-name-attribute");
-        PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
+        // Note: As of PDFBOX 2.0.22 we have the option of recreating
+        // the acro form from the widgets. We pass null to avoid this behavior.
+        PDAcroForm form = doc.getDocumentCatalog().getAcroForm(null);
         assertEquals(0, form.getFields().size());
         remove("input-without-name-attribute", doc);
     }
