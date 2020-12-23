@@ -1,6 +1,10 @@
 ## CHANGELOG
 
-### head - 1.0.6-SNAPSHOT
+### head - 1.0.7-SNAPSHOT
++ See commit log.
+
+
+### 1.0.6 (2020-December-22)
 **IMPORTANT:** [#615](https://github.com/danfickle/openhtmltopdf/issues/615) This is a bug fix release for an endless loop issue when using break-word with floating elements with a top/bottom margin.
 + [#624](https://github.com/danfickle/openhtmltopdf/pull/624) Update PDFBOX to 2.0.22 and pdfbox-graphics2d to 0.30. Thanks @rototor.
 + [#467](https://github.com/danfickle/openhtmltopdf/issues/467) Prevent possibility of CSS import loop.
