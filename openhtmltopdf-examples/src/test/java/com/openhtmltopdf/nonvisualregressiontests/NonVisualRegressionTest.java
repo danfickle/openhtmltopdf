@@ -1,6 +1,7 @@
 package com.openhtmltopdf.nonvisualregressiontests;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -29,6 +30,7 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDRadioButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.util.Charsets;
@@ -730,6 +732,17 @@ public class NonVisualRegressionTest {
         PDAcroForm form = doc.getDocumentCatalog().getAcroForm(null);
         assertEquals(0, form.getFields().size());
         remove("input-without-name-attribute", doc);
+    }
+
+    @Test
+    public void testIssue338RadioReadOnly() throws IOException {
+        PDDocument doc = run("issue-338-radio-read-only");
+        PDAcroForm form = doc.getDocumentCatalog().getAcroForm(null);
+
+        PDRadioButton radio = (PDRadioButton) form.getFields().get(0);
+        assertTrue("radio should be readonly", radio.isReadOnly());
+
+        remove("issue-338-radio-read-only", doc);
     }
 
     private static float[] getQuadPoints(PDDocument doc, int pg, int linkIndex) throws IOException {

@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.openhtmltopdf.util.LogMessageId;
 import org.apache.pdfbox.cos.COSArray;
@@ -627,13 +628,20 @@ public class PdfBoxForm {
 
         Field fObj = allFieldMap.get(groupName);
         setPartialNameToField(group.get(0).box.getElement(), fObj, field);
-        
-        List<String> values = new ArrayList<>(group.size());
-        for (Control ctrl : group) {
-            values.add(ctrl.box.getElement().getAttribute("value"));
-        }
+
+        List<String> values =
+                group.stream()
+                     .map(ctrl -> ctrl.box.getElement().getAttribute("value"))
+                     .collect(Collectors.toList());
         field.setExportValues(values);
-        
+
+        // We can not make individual members of the group readonly so only make
+        // all radio buttons in group readonly if they are all marked readonly.
+        boolean readonly =
+                group.stream()
+                     .allMatch(ctrl -> ctrl.box.getElement().hasAttribute("readonly"));
+        field.setReadOnly(readonly);
+
         List<PDAnnotationWidget> widgets = new ArrayList<>(group.size());
         
         int radioCnt = 0;
