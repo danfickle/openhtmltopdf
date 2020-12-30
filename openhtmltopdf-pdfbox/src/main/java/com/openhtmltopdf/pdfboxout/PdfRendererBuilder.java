@@ -1,7 +1,9 @@
 package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.extend.FSCacheEx;
+import com.openhtmltopdf.extend.FSCacheValue;
+import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.extend.impl.FSNoOpCacheStore;
 import com.openhtmltopdf.outputdevice.helper.AddedFont;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
@@ -10,10 +12,9 @@ import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
-
 import org.apache.pdfbox.pdmodel.PDDocument;
 
-import java.awt.FontFormatException;
+import java.awt.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -96,20 +97,23 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
             if (font.usedFor.contains(FSFontUseCase.DOCUMENT)) {
                 IdentValue fontStyle = null;
 
-                switch (font.style) {
-                case NORMAL:
-                    fontStyle = IdentValue.NORMAL;
-                    break;
-                case ITALIC:
-                    fontStyle = IdentValue.ITALIC;
-                    break;
-                case OBLIQUE:
-                    fontStyle = IdentValue.OBLIQUE;
-                    break;
-                default:
-                    fontStyle = null;
-                    break;
-                }
+				if (font.style != null) {
+					switch (font.style)
+					{
+					case NORMAL:
+						fontStyle = IdentValue.NORMAL;
+						break;
+					case ITALIC:
+						fontStyle = IdentValue.ITALIC;
+						break;
+					case OBLIQUE:
+						fontStyle = IdentValue.OBLIQUE;
+						break;
+					default:
+						fontStyle = null;
+						break;
+					}
+				}
 
 
                 // use InputStream supplier
