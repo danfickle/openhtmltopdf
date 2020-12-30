@@ -1,9 +1,7 @@
 package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.extend.FSCacheEx;
-import com.openhtmltopdf.extend.FSCacheValue;
-import com.openhtmltopdf.extend.FSSupplier;
+import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.extend.impl.FSNoOpCacheStore;
 import com.openhtmltopdf.outputdevice.helper.AddedFont;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
@@ -12,9 +10,10 @@ import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 
-import java.awt.*;
+import java.awt.FontFormatException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
