@@ -60,12 +60,10 @@ import org.apache.pdfbox.pdmodel.graphics.shading.PDShading;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import javax.imageio.ImageIO;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -794,15 +792,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     public void realizeImage(PdfBoxImage img) {
         PDImageXObject xobject;
         try {
-            if (img.isJpeg()) {
-                xobject = JPEGFactory.createFromStream(_writer,
-                        new ByteArrayInputStream(img.getBytes()));
-            } else {
-                BufferedImage buffered = ImageIO.read(new ByteArrayInputStream(
-                        img.getBytes()));
-
-                xobject = LosslessFactory.createFromImage(_writer, buffered);
-            }
+            xobject = PDImageXObject.createFromByteArray(_writer, img.getBytes(), img.getUri());
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("realizeImage", e);
         }
