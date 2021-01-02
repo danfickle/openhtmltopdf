@@ -803,15 +803,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
     public void realizeImage(PdfBoxImage img) {
         PDImageXObject xobject;
         try {
-            if (img.isJpeg()) {
-                xobject = JPEGFactory.createFromStream(_writer,
-                        new ByteArrayInputStream(img.getBytes()));
-            } else {
-                BufferedImage buffered = ImageIO.read(new ByteArrayInputStream(
-                        img.getBytes()));
-
-                xobject = LosslessFactory.createFromImage(_writer, buffered);
-            }
+            xobject = PDImageXObject.createFromByteArray(_writer, img.getBytes(), img.getUri());
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("realizeImage", e);
         }

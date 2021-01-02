@@ -66,7 +66,7 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
         if (resource != null && resource.getImage() instanceof PdfBoxImage) {
             // Make copy of PdfBoxImage so we don't stuff up the cache.
             PdfBoxImage original = (PdfBoxImage) resource.getImage();
-            PdfBoxImage copy = new PdfBoxImage(original.getBytes(), original.getUri(), original.getWidth(), original.getHeight(), original.isJpeg(), original.getXObject());
+            PdfBoxImage copy = new PdfBoxImage(original.getBytes(), original.getUri(), original.getWidth(), original.getHeight(), original.getXObject());
             return new ImageResource(resource.getImageUri(), copy);
         }
         

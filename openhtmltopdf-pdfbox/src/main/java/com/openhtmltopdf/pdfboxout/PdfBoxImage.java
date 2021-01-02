@@ -22,8 +22,6 @@ public class PdfBoxImage implements FSImage {
     private float _intrinsicWidth;
     private float _intrinsicHeight;
 
-    private final boolean _isJpeg;
-
     private PDImageXObject _xobject;
     
     public PdfBoxImage(byte[] image, String uri) throws IOException {
@@ -40,12 +38,6 @@ public class PdfBoxImage implements FSImage {
                 reader.setInput(in);
                 _intrinsicWidth = reader.getWidth(0);
                 _intrinsicHeight = reader.getHeight(0);
-
-                String type = reader.getFormatName();
-
-                _isJpeg = (type.equalsIgnoreCase("jpeg")
-                        || type.equalsIgnoreCase("jpg") || type
-                        .equalsIgnoreCase("jfif"));
             } else {
                 XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_UNRECOGNIZED_IMAGE_FORMAT_FOR_URI, uri);
                 // TODO: Avoid throw here.
@@ -58,12 +50,11 @@ public class PdfBoxImage implements FSImage {
     }
 
     public PdfBoxImage(byte[] bytes, String uri, float width, float height,
-            boolean isJpeg, PDImageXObject xobject) {
+            PDImageXObject xobject) {
         this._bytes = bytes;
         this._uri = uri;
         this._intrinsicWidth = width;
         this._intrinsicHeight = height;
-        this._isJpeg = isJpeg;
         this._xobject = xobject;
     }
 
@@ -77,7 +68,7 @@ public class PdfBoxImage implements FSImage {
             height *= factor;
         }
 
-        return new PdfBoxImage(_bytes, _uri, width, height, _isJpeg, _xobject);
+        return new PdfBoxImage(_bytes, _uri, width, height, _xobject);
     }
 
     @Override
@@ -140,9 +131,5 @@ public class PdfBoxImage implements FSImage {
     
     public String getUri() {
         return _uri;
-    }
-
-    public boolean isJpeg() {
-        return _isJpeg;
     }
 }
