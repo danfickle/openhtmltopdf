@@ -96,20 +96,23 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
             if (font.usedFor.contains(FSFontUseCase.DOCUMENT)) {
                 IdentValue fontStyle = null;
 
-                switch (font.style) {
-                case NORMAL:
-                    fontStyle = IdentValue.NORMAL;
-                    break;
-                case ITALIC:
-                    fontStyle = IdentValue.ITALIC;
-                    break;
-                case OBLIQUE:
-                    fontStyle = IdentValue.OBLIQUE;
-                    break;
-                default:
-                    fontStyle = null;
-                    break;
-                }
+				if (font.style != null) {
+					switch (font.style)
+					{
+					case NORMAL:
+						fontStyle = IdentValue.NORMAL;
+						break;
+					case ITALIC:
+						fontStyle = IdentValue.ITALIC;
+						break;
+					case OBLIQUE:
+						fontStyle = IdentValue.OBLIQUE;
+						break;
+					default:
+						fontStyle = null;
+						break;
+					}
+				}
 
 
                 // use InputStream supplier
