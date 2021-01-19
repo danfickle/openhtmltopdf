@@ -114,7 +114,11 @@ public class CalculatedStyle {
      */
     private final FSDerivedValue[] _derivedValuesById;
 
-    /**
+    public FSDerivedValue[] getderivedValuesById() {
+		return _derivedValuesById;
+	}
+
+	/**
      * The derived Font for this style
      */
     private FontSpecification _font;
