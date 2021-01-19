@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
 /**
@@ -37,6 +38,10 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	public abstract static class BaseRendererBuilderState {
         public final List<AddedFont> _fonts = new ArrayList<>(); 
         public final List<FSDOMMutator> _domMutators = new ArrayList<>();
+
+        public BiPredicate<String, ExternalResourceType> _beforeAccessController = new NaiveUserAgent.DefaultAccessController();
+        public BiPredicate<String, ExternalResourceType> _afterAccessController = new NaiveUserAgent.DefaultAccessController();
+
         public final Map<String, FSStreamFactory> _streamFactoryMap = new HashMap<>();
 		public FSUriResolver _resolver;
 		public String _html;
@@ -559,6 +564,38 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 	protected Closeable applyDiagnosticConsumer() {
 		return ThreadCtx.applyDiagnosticConsumer(state._diagnosticConsumer);
 	}
+
+    /**
+     * Allows to set <strong>one</strong> external access controller to run
+     * before the uri resolver and one to run after the uri resolver.
+     *
+     * The predicate will receive the uri and the resource type. If it returns
+     * false, the resource will not be loaded but the rendering process will
+     * attempt to continue without the resource.
+     *
+     * A default controller is registered that allows everything except file
+     * embed resources. To override the default controller, register a controller
+     * with after priority.
+     */
+    public TFinalClass useExternalResourceAccessControl(
+            BiPredicate<String, ExternalResourceType> allowExternalResource,
+            ExternalResourceControlPriority priority) {
+        if (priority == null) {
+            // Default is after as safest.
+            priority = ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI;
+        }
+
+        switch (priority) {
+        case RUN_AFTER_RESOLVING_URI:
+            state._afterAccessController = allowExternalResource;
+            break;
+        case RUN_BEFORE_RESOLVING_URI:
+            state._beforeAccessController = allowExternalResource;
+            break;
+        }
+
+        return (TFinalClass) this;
+    }
 
 	public enum TextDirection {
 		RTL, LTR

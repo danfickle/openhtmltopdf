@@ -32,6 +32,7 @@ import com.openhtmltopdf.outputdevice.helper.NullUserInterface;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -219,7 +220,7 @@ public class Java2DRenderer implements Closeable {
     }
     
     private Document loadDocument(String uri) {
-        return _sharedContext.getUserAgentCallback().getXMLResource(uri).getDocument();
+        return _sharedContext.getUserAgentCallback().getXMLResource(uri, ExternalResourceType.XML_XHTML).getDocument();
     }
     
     private void setDocument(Document doc, String url, NamespaceHandler nsh) {

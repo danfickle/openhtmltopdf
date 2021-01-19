@@ -20,7 +20,7 @@ public class FontFaceFontSupplier implements FSSupplier<InputStream> {
     
     @Override
     public InputStream supply() {
-        byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src);
+        byte[] font1 = ctx.getUserAgentCallback().getBinaryResource(src, ExternalResourceType.FONT);
         
         if (font1 == null) {
             XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT_FACE, src);

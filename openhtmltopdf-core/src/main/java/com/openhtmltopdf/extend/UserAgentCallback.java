@@ -19,6 +19,7 @@
  */
 package com.openhtmltopdf.extend;
 
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.resource.CSSResource;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
@@ -51,7 +52,11 @@ public interface UserAgentCallback {
      * @param uri Location of the CSS
      * @return A CSSResource for the content at the URI.
      */
-    CSSResource getCSSResource(String uri);
+    default CSSResource getCSSResource(String uri) {
+        return getCSSResource(uri, ExternalResourceType.CSS);
+    }
+
+    CSSResource getCSSResource(String uri, ExternalResourceType type);
 
     /**
      * Retrieves the Image at the given URI. This is a synchronous call.
@@ -59,21 +64,45 @@ public interface UserAgentCallback {
      * @param uri Location of the image
      * @return An ImageResource for the content at the URI.
      */
-    ImageResource getImageResource(String uri);
+    default ImageResource getImageResource(String uri) {
+        return getImageResource(uri, ExternalResourceType.IMAGE_RASTER);
+    }
+
+    ImageResource getImageResource(String uri, ExternalResourceType type);
+
+
+    /**
+     * @deprecated
+     * Use {@link #getXMLResource(String, ExternalResourceType)} instead.
+     */
+    @Deprecated
+    default XMLResource getXMLResource(String uri) {
+        return getXMLResource(uri, ExternalResourceType.XML_XHTML);
+    }
 
     /**
      * Retrieves the XML at the given URI. This is a synchronous call.
      *
      * @param uri Location of the XML
+     * @param type Either xhtml or svg.
      * @return A XMLResource for the content at the URI.
      */
-    XMLResource getXMLResource(String uri);
-    
+    XMLResource getXMLResource(String uri, ExternalResourceType type);
+
+    /**
+     * @deprecated
+     * Use {@link #getBinaryResource(String, ExternalResourceType)} instead.
+     */
+    @Deprecated
+    default byte[] getBinaryResource(String uri) {
+        return getBinaryResource(uri, ExternalResourceType.BINARY);
+    }
+
     /**
      * Retrieves a binary resource located at a given URI and returns its contents
      * as a byte array or <code>null</code> if the resource could not be loaded.
      */
-    byte[] getBinaryResource(String uri);
+    byte[] getBinaryResource(String uri, ExternalResourceType type);
 
     /**
      * Normally, returns true if the user agent has visited this URI. UserAgent should consider

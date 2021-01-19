@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.swing.AWTFSImage;
@@ -60,7 +61,7 @@ public class Java2DReplacedElementFactory implements ReplacedElementFactory {
         } else if (nodeName.equals("img")) {
             String srcAttr = e.getAttribute("src");
             if (!srcAttr.isEmpty() && srcAttr.endsWith(".svg") && _svgImpl != null) {
-                return new Java2DSVGReplacedElement(uac.getXMLResource(srcAttr).getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, context);
+                return new Java2DSVGReplacedElement(uac.getXMLResource(srcAttr, ExternalResourceType.XML_SVG).getDocument().getDocumentElement(), _svgImpl, cssWidth, cssHeight, box, context);
             } else if (!srcAttr.isEmpty()) {
                 return replaceImage(e, srcAttr, cssWidth, cssHeight, uac);
             }

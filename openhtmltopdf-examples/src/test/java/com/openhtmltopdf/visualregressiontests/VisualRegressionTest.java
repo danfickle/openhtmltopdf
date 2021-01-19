@@ -15,6 +15,8 @@ import com.openhtmltopdf.extend.FSStream;
 import com.openhtmltopdf.objects.zxing.ZXingObjectDrawer;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FSFontUseCase;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -1346,6 +1348,20 @@ public class VisualRegressionTest {
     @Test
     public void testCSSImportLoop() throws IOException {
         assertTrue(vt.runTest("css-import-loop"));
+    }
+
+    /**
+     * Tests banning loading of external CSS.
+     */
+    @Test
+    public void testExternalAccessControl() throws IOException {
+        assertTrue(
+          vt.runTest(
+             "external-access-control",
+             builder -> builder.useExternalResourceAccessControl(
+               (uri, type) -> type != ExternalResourceType.CSS,
+               ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)
+          ));
     }
 
     // TODO:
