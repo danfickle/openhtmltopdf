@@ -32,6 +32,8 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.extend.FSDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
@@ -177,7 +179,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         if (state._resolver != null) {
             userAgent.setUriResolver(state._resolver);
         }
-        
+
+        userAgent.setAccessController(ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI, state._beforeAccessController);
+        userAgent.setAccessController(ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI, state._afterAccessController);
+
         _sharedContext = new SharedContext();
         _sharedContext.registerWithThread();
         
@@ -281,7 +286,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     }
 
     private Document loadDocument(String uri) {
-        return _sharedContext.getUserAgentCallback().getXMLResource(uri).getDocument();
+        return _sharedContext.getUserAgentCallback().getXMLResource(uri, ExternalResourceType.XML_XHTML).getDocument();
     }
 
     private void setDocumentP(String uri) {

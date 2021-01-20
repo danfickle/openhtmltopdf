@@ -26,9 +26,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BiPredicate;
 import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
@@ -38,6 +40,8 @@ import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.extend.FSStreamFactory;
 import com.openhtmltopdf.extend.FSStream;
 import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.resource.CSSResource;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
@@ -62,6 +66,8 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     protected final LinkedHashMap<String, ImageResource> _imageCache = new LinkedHashMap<>();
     protected final FSUriResolver DEFAULT_URI_RESOLVER = new DefaultUriResolver(); 
+
+    protected final Map<ExternalResourceControlPriority, BiPredicate<String, ExternalResourceType>> _accessControllers = new EnumMap<>(ExternalResourceControlPriority.class);
 
     protected FSUriResolver _resolver = DEFAULT_URI_RESOLVER;
     protected String _baseUri;
@@ -266,9 +272,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * @return A CSSResource containing the CSS reader or null if not available.
      */
     @Override
-    public CSSResource getCSSResource(String uri) {
+    public CSSResource getCSSResource(String uri, ExternalResourceType type) {
+        if (!checkAccessAllowed(uri, type, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI)) {
+            return null;
+        }
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
-    	
+        if (!checkAccessAllowed(resolved, type, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)) {
+            return null;
+        }
+
     	if (resolved == null) {
     		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "CSS resource", uri);
     		return null;
@@ -286,11 +298,16 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * @return An ImageResource containing the image.
      */
     @Override
-    public ImageResource getImageResource(String uri) {
+    public ImageResource getImageResource(String uri, ExternalResourceType type) {
         ImageResource ir;
-        
 
+        if (!checkAccessAllowed(uri, type, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI)) {
+            return null;
+        }
 		String resolved = _resolver.resolveURI(this._baseUri, uri);
+        if (!checkAccessAllowed(resolved, type, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)) {
+            return null;
+        }
 
 		if (resolved == null) {
 			XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
@@ -345,9 +362,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * @return An XMLResource containing the image.
      */
     @Override
-    public XMLResource getXMLResource(String uri) {
+    public XMLResource getXMLResource(String uri, ExternalResourceType type) {
+        if (!checkAccessAllowed(uri, type, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI)) {
+            return null;
+        }
     	String resolved = _resolver.resolveURI(this._baseUri, uri);
-    	
+        if (!checkAccessAllowed(resolved, type, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)) {
+            return null;
+        }
+
     	if (resolved == null) {
     		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "XML resource", uri);
     		return null;
@@ -363,9 +386,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
 
     @Override
-    public byte[] getBinaryResource(String uri) {
+    public byte[] getBinaryResource(String uri, ExternalResourceType type) {
+        if (!checkAccessAllowed(uri, type, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI)) {
+            return null;
+        }
         String resolved = _resolver.resolveURI(this._baseUri, uri);
-    	
+        if (!checkAccessAllowed(resolved, type, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)) {
+            return null;
+        }
+
     	if (resolved == null) {
 			XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "binary resource", uri);
     		return null;
@@ -420,6 +449,61 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     @Override
     public void setBaseURL(String uri) {
         _baseUri = uri;
+    }
+
+    public static class DefaultAccessController
+                  implements BiPredicate<String, ExternalResourceType> {
+
+        public boolean test(String uri, ExternalResourceType resourceType) {
+            if (resourceType == null) {
+                return false;
+            }
+
+            switch (resourceType) {
+            case BINARY:
+            case CSS:
+            case FONT:
+            case IMAGE_RASTER:
+            case XML_XHTML:
+            case XML_SVG:
+            case PDF:
+            case SVG_BINARY:
+                return true;
+            case FILE_EMBED:
+                return false;
+            }
+
+            return false;
+        }
+    }
+
+    public void setAccessController(
+            ExternalResourceControlPriority prio,
+            BiPredicate<String, ExternalResourceType> controller) {
+        this._accessControllers.put(prio, controller);
+    }
+
+    public boolean checkAccessAllowed(
+            String uriOrResolved,
+            ExternalResourceType type,
+            ExternalResourceControlPriority priority) {
+        BiPredicate<String, ExternalResourceType> controller = this._accessControllers.get(priority);
+
+        if (uriOrResolved == null) {
+            return false;
+        }
+
+        if (controller == null) {
+            return true;
+        }
+
+        boolean passed = controller.test(uriOrResolved, type);
+
+        if (!passed) {
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.LOAD_RESOURCE_ACCESS_REJECTED, uriOrResolved, type);
+        }
+
+        return passed;
     }
 
     public static class DefaultUriResolver implements FSUriResolver {

@@ -217,6 +217,7 @@ public interface LogMessageId {
         LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI(XRLog.LOAD, "URI resolver rejected loading {} at ({})"),
         LOAD_COULD_NOT_READ_URI_AT_URL_MAY_BE_RELATIVE(XRLog.LOAD, "Could not read {} as a URL; may be relative. Testing using parent URL {}"),
         LOAD_WAS_ABLE_TO_READ_FROM_URI_USING_PARENT_URL(XRLog.LOAD, "Was able to read from {} using parent URL {}"),
+        LOAD_RESOURCE_ACCESS_REJECTED(XRLog.LOAD, "URI {} with type {} was rejected by resource access controller"),
 
         GENERAL_FATAL_INFINITE_LOOP_BUG_IN_LINE_BREAKING_ALGO(XRLog.GENERAL, "A fatal infinite loop bug was detected in the line breaking " +
                 "algorithm for break-word! Start-substring=[{}], end={}"),

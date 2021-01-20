@@ -21,6 +21,7 @@ package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.resource.XMLResource;
 
@@ -62,7 +63,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
                 //handle the case of linked svg from img tag
                 boolean isDataImageSvg = false;
                 if (_svgImpl != null && (srcAttr.endsWith(".svg") || (isDataImageSvg = srcAttr.startsWith("data:image/svg+xml;base64,")))) {
-                    XMLResource xml = isDataImageSvg ? XMLResource.load(new ByteArrayInputStream(ImageUtil.getEmbeddedBase64Image(srcAttr))) : uac.getXMLResource(srcAttr);
+                    XMLResource xml = isDataImageSvg ? XMLResource.load(new ByteArrayInputStream(ImageUtil.getEmbeddedBase64Image(srcAttr))) : uac.getXMLResource(srcAttr, ExternalResourceType.XML_SVG);
 
                     if (xml != null) {
                         Element svg = xml.getDocument().getDocumentElement();
@@ -77,7 +78,7 @@ public class PdfBoxReplacedElementFactory implements ReplacedElementFactory {
 
                     return null;
                 } else if (srcAttr.endsWith(".pdf")) {
-                    byte[] pdfBytes = uac.getBinaryResource(srcAttr);
+                    byte[] pdfBytes = uac.getBinaryResource(srcAttr, ExternalResourceType.PDF);
                     
                     if (pdfBytes != null) {
                         return PdfBoxPDFReplacedElement.create(_outputDevice.getWriter(), pdfBytes, e, box, c, c.getSharedContext());

@@ -29,6 +29,7 @@ import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.util.XRLog;
 
@@ -93,7 +94,7 @@ public class MathMLDrawer implements SVGDrawer {
 
         for (FontEntry entry : _availabelFontFamilies.get(family)) {
             if (entry.src != null) {
-                byte[] font1 = _sharedCtx.getUserAgentCallback().getBinaryResource(entry.src);
+                byte[] font1 = _sharedCtx.getUserAgentCallback().getBinaryResource(entry.src, ExternalResourceType.FONT);
                 if (font1 == null) {
                     XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, entry.src);
                     continue;
