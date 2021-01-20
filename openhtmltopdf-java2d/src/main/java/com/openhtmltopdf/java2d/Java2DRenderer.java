@@ -28,6 +28,7 @@ import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.AddedFont;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
 import com.openhtmltopdf.outputdevice.helper.NullUserInterface;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
@@ -98,7 +99,10 @@ public class Java2DRenderer implements Closeable {
 		if (state._resolver != null) {
 			uac.setUriResolver(state._resolver);
 		}
-		
+
+        uac.setAccessController(ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI, state._beforeAccessController);
+        uac.setAccessController(ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI, state._afterAccessController);
+
         _sharedContext = new SharedContext();
         _sharedContext.registerWithThread();
         
