@@ -3,6 +3,7 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.pdfboxout.PdfBoxLinkManager.IPdfBoxElementWithShapedLinks;
 import com.openhtmltopdf.pdfboxout.quads.KongAlgo;
 import com.openhtmltopdf.pdfboxout.quads.Triangle;
@@ -14,19 +15,26 @@ import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.w3c.dom.Element;
 
 import java.awt.*;
 import java.awt.geom.*;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
@@ -225,29 +233,91 @@ public class PdfBoxFastLinkManager {
 
 				PDAnnotationLink annot = new PDAnnotationLink();
 				annot.setAction(action);
-				if (!placeAnnotation(transform, linkShape, targetArea, annot))
+
+                AnnotationContainer annotContainer = new AnnotationContainer.PDAnnotationLinkContainer(annot);
+
+				if (!placeAnnotation(transform, linkShape, targetArea, annotContainer))
 					return;
 
-				addLinkToPage(page, annot, box, target);
+                addLinkToPage(page, annotContainer, box, target);
 			} else {
 				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_LINK, uri);
 			}
 		} else if (isURI(uri)) {
-			PDActionURI uriAct = new PDActionURI();
-			uriAct.setURI(uri);
+            AnnotationContainer annotContainer = null;
 
-			Rectangle2D targetArea = checkLinkArea(page, c, box, pageHeight, transform, linkShape);
-			if (targetArea == null) {
-				return;
-			}
-			PDAnnotationLink annot = new PDAnnotationLink();
-			annot.setAction(uriAct);
-			if (!placeAnnotation(transform, linkShape, targetArea, annot))
-				return;
+            if (!elem.hasAttribute("download")) {
+                PDActionURI uriAct = new PDActionURI();
+                uriAct.setURI(uri);
 
-			addLinkToPage(page, annot, box, null);
-		}
-	}
+                PDAnnotationLink annot = new PDAnnotationLink();
+                annot.setAction(uriAct);
+
+                annotContainer = new AnnotationContainer.PDAnnotationLinkContainer(annot);
+            } else {
+                annotContainer = createFileEmbedLinkAnnotation(elem, uri);
+            }
+
+            if (annotContainer != null) {
+                Rectangle2D targetArea = checkLinkArea(page, c, box, pageHeight, transform, linkShape);
+
+                if (targetArea == null) {
+                    return;
+                }
+
+                if (!placeAnnotation(transform, linkShape, targetArea, annotContainer)) {
+                    return;
+                }
+
+                addLinkToPage(page, annotContainer, box, null);
+            }
+        }
+    }
+
+    private AnnotationContainer createFileEmbedLinkAnnotation(
+            Element elem, String uri) {
+        byte[] file = _sharedContext.getUserAgentCallback().getBinaryResource(uri, ExternalResourceType.FILE_EMBED);
+
+        if (file != null) {
+            try {
+                PDComplexFileSpecification fs = new PDComplexFileSpecification();
+                PDEmbeddedFile embeddedFile = new PDEmbeddedFile(_od.getWriter(), new ByteArrayInputStream(file));
+
+                String contentType = elem.getAttribute("data-content-type").isEmpty() ? 
+                        "application/octet-stream" : 
+                        elem.getAttribute("data-content-type");
+
+                embeddedFile.setSubtype(contentType);
+
+                fs.setEmbeddedFile(embeddedFile);
+
+                String fileName = elem.getAttribute("download");
+
+                fs.setFile(fileName);
+                fs.setFileUnicode(fileName);
+
+                PDAnnotationFileAttachment annotationFileAttachment = new PDAnnotationFileAttachment();
+                annotationFileAttachment.setFile(fs);
+
+                // hide the pin icon used by various pdf reader for signaling an embedded file
+                PDAppearanceDictionary appearanceDictionary = new PDAppearanceDictionary();
+                PDAppearanceStream appearanceStream = new PDAppearanceStream(_od.getWriter());
+                appearanceStream.setResources(new PDResources());
+                appearanceDictionary.setNormalAppearance(appearanceStream);
+                annotationFileAttachment.setAppearance(appearanceDictionary);
+
+                return new AnnotationContainer.PDAnnotationFileAttachmentContainer(annotationFileAttachment);
+            } catch (IOException e) {
+                // TODO
+                //XRLog.exception("Was not able to create an embedded file for embedding with uri " + uri, e);
+            }
+        } else {
+            // TODO
+            //XRLog.general("Was not able to load file from uri for embedding" + uri);
+        }
+
+        return null;
+    }
 
 	private static boolean isURI(String uri) {
 		try {
@@ -260,7 +330,7 @@ public class PdfBoxFastLinkManager {
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	private boolean placeAnnotation(AffineTransform transform, Shape linkShape, Rectangle2D targetArea,
-			PDAnnotationLink annot) {
+			AnnotationContainer annot) {
 		annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 				(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 		
@@ -377,7 +447,8 @@ public class PdfBoxFastLinkManager {
 		return result;
 	}
 
-	private void addLinkToPage(PDPage page, PDAnnotationLink annot, Box anchor, Box target) {
+	private void addLinkToPage(
+          PDPage page, AnnotationContainer annot, Box anchor, Box target) {
 		PDBorderStyleDictionary styleDict = new PDBorderStyleDictionary();
 		styleDict.setWidth(0);
 		styleDict.setStyle(PDBorderStyleDictionary.STYLE_SOLID);
@@ -391,10 +462,10 @@ public class PdfBoxFastLinkManager {
 				page.setAnnotations(annots);
 			}
 
-			annots.add(annot);
+			annots.add(annot.getPdAnnotation());
 			
 			if (_pdfUa != null) {
-			    _pdfUa.addLink(anchor, target, annot, page);
+			    _pdfUa.addLink(anchor, target, annot.getPdAnnotation(), page);
 			}
 		} catch (IOException e) {
 			throw new PdfContentStreamAdapter.PdfException("processLink", e);

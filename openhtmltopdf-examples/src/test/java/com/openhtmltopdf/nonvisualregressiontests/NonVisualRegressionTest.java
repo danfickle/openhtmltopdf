@@ -24,6 +24,7 @@ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
@@ -39,6 +40,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.testcases.TestcaseRunner;
 import com.openhtmltopdf.util.Diagnostic;
@@ -1060,6 +1062,28 @@ public class NonVisualRegressionTest {
                   .allMatch(diag -> !diag.getFormattedMessage().isEmpty()));
     }
 
+    @Test
+    public void testIssue508FileEmbed() throws IOException {
+        try (PDDocument doc = run("issue-508-file-embed",
+                builder -> {
+                    // File embeds are blocked by default, allow everything.
+                    builder.useExternalResourceAccessControl((uri, type) -> true, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI);
+                    builder.useExternalResourceAccessControl((uri, type) -> true, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI);
+                })) {
+            // TODO: Renable this assertion when we have figured out a way
+            // to avoid duplicate file embeds when the link is broken
+            // up into boxes (eg. multiple lines).
+            // assertThat(doc.getPage(0).getAnnotations().size(), equalTo(1));
+
+            PDAnnotationFileAttachment fileAttach = (PDAnnotationFileAttachment) doc.getPage(0).getAnnotations().get(0);
+            assertThat(fileAttach.getFile().getFile(), equalTo("basic.css"));
+
+            // TODO:
+            // More asserts.
+
+            remove("issue-508-file-embed", doc);
+        }
+    }
 
     // TODO:
     // + More form controls.
