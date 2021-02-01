@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.cos.COSDocument;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -37,7 +40,6 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.util.Charsets;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
@@ -1070,16 +1072,22 @@ public class NonVisualRegressionTest {
                     builder.useExternalResourceAccessControl((uri, type) -> true, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI);
                     builder.useExternalResourceAccessControl((uri, type) -> true, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI);
                 })) {
-            // TODO: Renable this assertion when we have figured out a way
-            // to avoid duplicate file embeds when the link is broken
-            // up into boxes (eg. multiple lines).
-            // assertThat(doc.getPage(0).getAnnotations().size(), equalTo(1));
 
-            PDAnnotationFileAttachment fileAttach = (PDAnnotationFileAttachment) doc.getPage(0).getAnnotations().get(0);
-            assertThat(fileAttach.getFile().getFile(), equalTo("basic.css"));
+            // There should be multiple file attachment annotations because the link
+            // is broken into two boxes on multiple lines.
+            assertThat(doc.getPage(0).getAnnotations().size(), equalTo(2));
 
-            // TODO:
-            // More asserts.
+            PDAnnotationFileAttachment fileAttach1 = (PDAnnotationFileAttachment) doc.getPage(0).getAnnotations().get(0);
+            assertThat(fileAttach1.getFile().getFile(), equalTo("basic.css"));
+
+            PDAnnotationFileAttachment fileAttach2 = (PDAnnotationFileAttachment) doc.getPage(0).getAnnotations().get(1);
+            assertThat(fileAttach2.getFile().getFile(), equalTo("basic.css"));
+
+            try (COSDocument cosDoc = doc.getDocument()) {
+                // Make sure the file is only embedded once.
+                List<COSObject> files = cosDoc.getObjectsByType(COSName.FILESPEC);
+                assertThat(files.size(), equalTo(1));
+            }
 
             remove("issue-508-file-embed", doc);
         }

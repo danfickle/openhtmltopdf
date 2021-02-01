@@ -111,6 +111,7 @@ public interface LogMessageId {
         LOAD_COULD_NOT_INSTANTIATE_CUSTOM_XML_READER(XRLog.LOAD, "Could not instantiate custom XMLReader class for XML parsing: {}. " +
                 "Please check classpath. Use value 'default' in FS configuration if necessary. Will now try JDK default."),
         LOAD_UNABLE_TO_LOAD_CSS_FROM_URI(XRLog.LOAD, "Unable to load CSS from {}"),
+        LOAD_COULD_NOT_LOAD_EMBEDDED_FILE(XRLog.LOAD, "Was not able to load an embedded file for embedding with uri {}"),
         LOAD_PARSE_STYLESHEETS_TIME(XRLog.LOAD, "TIME: parse stylesheets {}ms"),
         LOAD_REQUESTING_STYLESHEET_AT_URI(XRLog.LOAD, "Requesting stylesheet: {}"),
         LOAD_UNRECOGNIZED_IMAGE_FORMAT_FOR_URI(XRLog.LOAD, "Unrecognized image format for: {}"),
@@ -161,7 +162,8 @@ public interface LogMessageId {
         EXCEPTION_COULD_NOT_LOAD_FONT_FACE(XRLog.EXCEPTION, "Could not load @font-face font: {}"),
         EXCEPTION_COULD_NOT_LOAD_DEFAULT_CSS(XRLog.EXCEPTION, "Can't load default CSS from {}. This file must be on your CLASSPATH. Please check before continuing."),
         EXCEPTION_DEFAULT_USERAGENT_IS_NOT_ABLE_TO_RESOLVE_BASE_URL_FOR(XRLog.EXCEPTION, "The default NaiveUserAgent doesn't know how to resolve the base URL for {}"),
-        EXCEPTION_FAILED_TO_LOAD_BACKGROUND_IMAGE_AT_URI(XRLog.EXCEPTION, "Failed to load background image at uri {}");
+        EXCEPTION_FAILED_TO_LOAD_BACKGROUND_IMAGE_AT_URI(XRLog.EXCEPTION, "Failed to load background image at uri {}"),
+        EXCEPTION_COULD_NOT_LOAD_EMBEDDED_FILE(XRLog.EXCEPTION, "Was not able to create an embedded file for embedding with uri {}");
 
         private final String where;
         private final String messageFormat;

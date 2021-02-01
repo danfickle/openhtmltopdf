@@ -28,6 +28,7 @@ import org.verapdf.pdfa.results.TestAssertion.Status;
 import org.verapdf.pdfa.results.TestAssertion;
 import org.verapdf.pdfa.results.ValidationResult;
 
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 
@@ -65,7 +66,11 @@ public class PdfATester {
             builder.usePdfAConformance(conform);
             builder.useFont(new File("target/test/artefacts/Karla-Bold.ttf"), "TestFont");
             builder.withHtmlContent(html, PdfATester.class.getResource("/html/").toString());
-    
+
+            // File embeds are blocked by default, allow everything.
+            builder.useExternalResourceAccessControl((uri, type) -> true, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI);
+            builder.useExternalResourceAccessControl((uri, type) -> true, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI);
+
             try (InputStream colorProfile = PdfATester.class.getResourceAsStream("/colorspaces/sRGB.icc")) {
                 byte[] colorProfileBytes = IOUtils.toByteArray(colorProfile);
                 builder.useColorProfile(colorProfileBytes);
@@ -128,5 +133,12 @@ public class PdfATester {
     public void testAllInOnePdfA2u() throws Exception {
         assertTrue(run("all-in-one", PDFAFlavour.PDFA_2_U, PdfAConformance.PDFA_2_U));
     }
-    
+
+    /**
+     * File embedding is allowed as of PDF/A3.
+     */
+    @Test
+    public void testFileEmbedA3b() throws Exception {
+        assertTrue(run("file-embed", PDFAFlavour.PDFA_3_B, PdfAConformance.PDFA_3_B));
+    }
 }
