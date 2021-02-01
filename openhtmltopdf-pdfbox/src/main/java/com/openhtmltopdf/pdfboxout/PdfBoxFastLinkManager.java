@@ -3,6 +3,7 @@ package com.openhtmltopdf.pdfboxout;
 import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.pdfboxout.PdfBoxLinkManager.IPdfBoxElementWithShapedLinks;
 import com.openhtmltopdf.pdfboxout.quads.KongAlgo;
 import com.openhtmltopdf.pdfboxout.quads.Triangle;
@@ -13,20 +14,29 @@ import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
+import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.w3c.dom.Element;
 
 import java.awt.*;
 import java.awt.geom.*;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
@@ -42,7 +52,19 @@ public class PdfBoxFastLinkManager {
 	private final Box _root;
 	private final PdfBoxFastOutputDevice _od;
 	private final List<LinkDetails> _links;
-        private PdfBoxAccessibilityHelper _pdfUa;
+    private PdfBoxAccessibilityHelper _pdfUa;
+
+    /**
+     * A map from uri to embedded file, so we don't embed files twice
+     * in case of a split link (example, two link boxes are formed when
+     * a link breaks in the middle).
+     */
+    private final Map<String, PDComplexFileSpecification> _embeddedFiles;
+
+    /**
+     * The lazily created appearance dict for emedded files.
+     */
+    private PDAppearanceDictionary _embeddedFileAppearance;
 
 	public PdfBoxFastLinkManager(SharedContext ctx, float dotsPerPoint, Box root, PdfBoxFastOutputDevice od) {
 		this._sharedContext = ctx;
@@ -51,6 +73,7 @@ public class PdfBoxFastLinkManager {
 		this._od = od;
 		this._linkTargetAreas = new HashMap<>();
 		this._links = new ArrayList<>();
+        this._embeddedFiles = new HashMap<>();
 	}
 
 	private Rectangle2D calcTotalLinkArea(RenderingContext c, Box box, float pageHeight, AffineTransform transform) {
@@ -225,29 +248,152 @@ public class PdfBoxFastLinkManager {
 
 				PDAnnotationLink annot = new PDAnnotationLink();
 				annot.setAction(action);
-				if (!placeAnnotation(transform, linkShape, targetArea, annot))
+
+                AnnotationContainer annotContainer = new AnnotationContainer.PDAnnotationLinkContainer(annot);
+
+				if (!placeAnnotation(transform, linkShape, targetArea, annotContainer))
 					return;
 
-				addLinkToPage(page, annot, box, target);
+                addLinkToPage(page, annotContainer, box, target);
 			} else {
 				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_LINK, uri);
 			}
 		} else if (isURI(uri)) {
-			PDActionURI uriAct = new PDActionURI();
-			uriAct.setURI(uri);
+            AnnotationContainer annotContainer = null;
 
-			Rectangle2D targetArea = checkLinkArea(page, c, box, pageHeight, transform, linkShape);
-			if (targetArea == null) {
-				return;
-			}
-			PDAnnotationLink annot = new PDAnnotationLink();
-			annot.setAction(uriAct);
-			if (!placeAnnotation(transform, linkShape, targetArea, annot))
-				return;
+            if (!elem.hasAttribute("download")) {
+                PDActionURI uriAct = new PDActionURI();
+                uriAct.setURI(uri);
 
-			addLinkToPage(page, annot, box, null);
-		}
-	}
+                PDAnnotationLink annot = new PDAnnotationLink();
+                annot.setAction(uriAct);
+
+                annotContainer = new AnnotationContainer.PDAnnotationLinkContainer(annot);
+            } else {
+                annotContainer = createFileEmbedLinkAnnotation(elem, uri);
+            }
+
+            if (annotContainer != null) {
+                Rectangle2D targetArea = checkLinkArea(page, c, box, pageHeight, transform, linkShape);
+
+                if (targetArea == null) {
+                    return;
+                }
+
+                if (!placeAnnotation(transform, linkShape, targetArea, annotContainer)) {
+                    return;
+                }
+
+                addLinkToPage(page, annotContainer, box, null);
+            }
+        }
+    }
+
+    /**
+     * Create a file attachment link, being careful not to embed the same
+     * file (as specified by uri) more than once.
+     *
+     * The element should have the following attributes:
+     * download="embedded-filename.ext",
+     * data-content-type="file-mime-type" which
+     * defaults to "application/octet-stream",
+     * relationship (required for PDF/A3), one of:
+     * "Source", "Supplement", "Data", "Alternative", "Unspecified",
+     * title="file description" (recommended for PDF/A3).
+     */
+    private AnnotationContainer createFileEmbedLinkAnnotation(
+            Element elem, String uri) {
+        PDComplexFileSpecification fs = _embeddedFiles.get(uri);
+
+        if (fs != null) {
+            PDAnnotationFileAttachment annotationFileAttachment = new PDAnnotationFileAttachment();
+
+            annotationFileAttachment.setFile(fs);
+            annotationFileAttachment.setAppearance(this._embeddedFileAppearance);
+
+            return new AnnotationContainer.PDAnnotationFileAttachmentContainer(annotationFileAttachment);
+        }
+
+        byte[] file = _sharedContext.getUserAgentCallback().getBinaryResource(uri, ExternalResourceType.FILE_EMBED);
+
+        if (file != null) {
+            try {
+                String contentType = elem.getAttribute("data-content-type").isEmpty() ? 
+                        "application/octet-stream" : 
+                        elem.getAttribute("data-content-type");
+
+                PDEmbeddedFile embeddedFile = new PDEmbeddedFile(_od.getWriter(), new ByteArrayInputStream(file));
+                embeddedFile.setSubtype(contentType);
+                embeddedFile.setSize(file.length);
+
+                // PDF/A3 requires a mod date for the file.
+                if (elem.hasAttribute("relationship")) {
+                    // FIXME: Should we make this specifiable.
+                    embeddedFile.setModDate(Calendar.getInstance());
+                }
+
+                String fileName = elem.getAttribute("download");
+
+                fs = new PDComplexFileSpecification();
+                fs.setEmbeddedFile(embeddedFile);
+                fs.setFile(fileName);
+                fs.setFileUnicode(fileName);
+
+                // The PDF/A3 standard requires one to specify the relationship
+                // this embedded file has to the link annotation.
+                if (elem.hasAttribute("relationship") &&
+                    Arrays.asList("Source", "Supplement", "Data", "Alternative", "Unspecified")
+                          .contains(elem.getAttribute("relationship"))) {
+                    fs.getCOSObject().setItem(
+                            COSName.getPDFName("AFRelationship"),
+                            COSName.getPDFName(elem.getAttribute("relationship")));
+                }
+
+                if (elem.hasAttribute("title")) {
+                    fs.setFileDescription(elem.getAttribute("title"));
+                }
+
+                this._embeddedFiles.put(uri, fs);
+
+                if (this._embeddedFileAppearance == null) {
+                    this._embeddedFileAppearance = createFileEmbedLinkAppearance();
+                }
+
+                PDAnnotationFileAttachment annotationFileAttachment = new PDAnnotationFileAttachment();
+
+                annotationFileAttachment.setFile(fs);
+                annotationFileAttachment.setAppearance(this._embeddedFileAppearance);
+
+                // PDF/A3 requires we explicitly list this link as associated with file.
+                if (elem.hasAttribute("relationship")) {
+                    COSArray fileRefArray = new COSArray();
+                    fileRefArray.add(fs);
+
+                    annotationFileAttachment.getCOSObject().setItem(COSName.getPDFName("AF"), fileRefArray);
+                }
+
+                return new AnnotationContainer.PDAnnotationFileAttachmentContainer(annotationFileAttachment);
+            } catch (IOException e) {
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_EMBEDDED_FILE, uri, e);
+            }
+        } else {
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_COULD_NOT_LOAD_EMBEDDED_FILE, uri);
+        }
+
+        return null;
+    }
+
+    /**
+     * Create an empty appearance stream to
+     * hide the pin icon used by various pdf reader for signaling an embedded file
+     */
+    private PDAppearanceDictionary createFileEmbedLinkAppearance() {
+        PDAppearanceDictionary appearanceDictionary = new PDAppearanceDictionary();
+        PDAppearanceStream appearanceStream = new PDAppearanceStream(_od.getWriter());
+        appearanceStream.setResources(new PDResources());
+        appearanceDictionary.setNormalAppearance(appearanceStream);
+        return appearanceDictionary;
+    }
 
 	private static boolean isURI(String uri) {
 		try {
@@ -260,7 +406,7 @@ public class PdfBoxFastLinkManager {
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	private boolean placeAnnotation(AffineTransform transform, Shape linkShape, Rectangle2D targetArea,
-			PDAnnotationLink annot) {
+			AnnotationContainer annot) {
 		annot.setRectangle(new PDRectangle((float) targetArea.getMinX(), (float) targetArea.getMinY(),
 				(float) targetArea.getWidth(), (float) targetArea.getHeight()));
 		
@@ -377,7 +523,8 @@ public class PdfBoxFastLinkManager {
 		return result;
 	}
 
-	private void addLinkToPage(PDPage page, PDAnnotationLink annot, Box anchor, Box target) {
+	private void addLinkToPage(
+          PDPage page, AnnotationContainer annot, Box anchor, Box target) {
 		PDBorderStyleDictionary styleDict = new PDBorderStyleDictionary();
 		styleDict.setWidth(0);
 		styleDict.setStyle(PDBorderStyleDictionary.STYLE_SOLID);
@@ -391,10 +538,10 @@ public class PdfBoxFastLinkManager {
 				page.setAnnotations(annots);
 			}
 
-			annots.add(annot);
+			annots.add(annot.getPdAnnotation());
 			
 			if (_pdfUa != null) {
-			    _pdfUa.addLink(anchor, target, annot, page);
+			    _pdfUa.addLink(anchor, target, annot.getPdAnnotation(), page);
 			}
 		} catch (IOException e) {
 			throw new PdfContentStreamAdapter.PdfException("processLink", e);

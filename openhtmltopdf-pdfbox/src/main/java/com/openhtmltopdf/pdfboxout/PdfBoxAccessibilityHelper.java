@@ -1210,17 +1210,17 @@ public class PdfBoxAccessibilityHelper {
         PDAnnotation annotation;
     }
 
-    public void addLink(Box anchor, Box target, PDAnnotationLink annotation, PDPage page) {
+    public void addLink(Box anchor, Box target, PDAnnotation pdAnnotation, PDPage page) {
         PDStructureElement struct = getStructualElementForBox(anchor);
         if (struct != null) {
             // We have to append the link annotationobject reference as a kid of its associated structure element.
             PDObjectReference ref = new PDObjectReference();
-            ref.setReferencedObject(annotation);
+            ref.setReferencedObject(pdAnnotation);
             struct.appendKid(ref);  
             
             // We also need to save the pair so we can add it to the number tree for reverse lookup.
             AnnotationWithStructureParent annotStructParentPair = new AnnotationWithStructureParent();
-            annotStructParentPair.annotation = annotation;
+            annotStructParentPair.annotation = pdAnnotation;
             annotStructParentPair.structureParent = struct;
             
             _pageItems._pageAnnotations.add(annotStructParentPair);

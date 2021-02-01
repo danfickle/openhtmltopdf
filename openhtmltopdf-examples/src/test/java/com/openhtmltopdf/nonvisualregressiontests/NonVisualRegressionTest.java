@@ -18,12 +18,16 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.cos.COSDocument;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
@@ -36,9 +40,9 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.util.Charsets;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.testcases.TestcaseRunner;
 import com.openhtmltopdf.util.Diagnostic;
@@ -1060,6 +1064,34 @@ public class NonVisualRegressionTest {
                   .allMatch(diag -> !diag.getFormattedMessage().isEmpty()));
     }
 
+    @Test
+    public void testIssue508FileEmbed() throws IOException {
+        try (PDDocument doc = run("issue-508-file-embed",
+                builder -> {
+                    // File embeds are blocked by default, allow everything.
+                    builder.useExternalResourceAccessControl((uri, type) -> true, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI);
+                    builder.useExternalResourceAccessControl((uri, type) -> true, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI);
+                })) {
+
+            // There should be multiple file attachment annotations because the link
+            // is broken into two boxes on multiple lines.
+            assertThat(doc.getPage(0).getAnnotations().size(), equalTo(2));
+
+            PDAnnotationFileAttachment fileAttach1 = (PDAnnotationFileAttachment) doc.getPage(0).getAnnotations().get(0);
+            assertThat(fileAttach1.getFile().getFile(), equalTo("basic.css"));
+
+            PDAnnotationFileAttachment fileAttach2 = (PDAnnotationFileAttachment) doc.getPage(0).getAnnotations().get(1);
+            assertThat(fileAttach2.getFile().getFile(), equalTo("basic.css"));
+
+            try (COSDocument cosDoc = doc.getDocument()) {
+                // Make sure the file is only embedded once.
+                List<COSObject> files = cosDoc.getObjectsByType(COSName.FILESPEC);
+                assertThat(files.size(), equalTo(1));
+            }
+
+            remove("issue-508-file-embed", doc);
+        }
+    }
 
     // TODO:
     // + More form controls.
