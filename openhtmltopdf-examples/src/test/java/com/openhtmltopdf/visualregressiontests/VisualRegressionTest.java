@@ -1364,6 +1364,17 @@ public class VisualRegressionTest {
           ));
     }
 
+    /**
+     * Transforms on inline-block or inline elements output twice,
+     * once as the non-transformed output and once as transformed.
+     * https://github.com/danfickle/openhtmltopdf/issues/642
+     */
+    @Test
+    @Ignore // Not debugged yet.
+    public void testIssue642TransformInline() throws IOException {
+        assertTrue(vt.runTest("issue-642-transform-inline"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
