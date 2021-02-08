@@ -107,10 +107,11 @@ public class JDKXRLogger implements XRLogger {
             if (!initPending) {
                 return;
             }
-            //now change this immediately, in case something fails
-            initPending = false;
-
-            initializeJDKLogManager(useParent, level, handler, formatter);
+            try {
+                initializeJDKLogManager(useParent, level, handler, formatter);
+            } finally {
+                initPending = false;
+            }
     }
 
     private void initializeJDKLogManager(boolean useParent, Level level, Handler handler, Formatter formatter) {
