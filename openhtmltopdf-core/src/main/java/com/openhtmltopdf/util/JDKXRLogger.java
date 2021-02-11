@@ -35,11 +35,11 @@ import java.util.Arrays;
  * https://github.com/danfickle/openhtmltopdf/wiki/Logging
  */
 public class JDKXRLogger implements XRLogger {
-    private boolean initPending = true;
+    private volatile boolean initPending = true;
 
     // Keep a map of Loggers so they are not garbage collected
     // which makes them lose their settings we have applied.
-    private Map<String, Logger> loggers;
+    private volatile Map<String, Logger> loggers;
 
     private final boolean useParent;
     private final Level level;
