@@ -52,8 +52,8 @@ public class XRLog {
         return loggerName;
     }
 
-    private static boolean initPending = true;
-    private static XRLogger loggerImpl;
+    private static volatile boolean initPending = true;
+    private static volatile XRLogger loggerImpl;
 
     private static volatile Boolean loggingEnabled;
 
