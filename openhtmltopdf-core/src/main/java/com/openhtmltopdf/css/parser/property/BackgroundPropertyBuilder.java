@@ -20,6 +20,7 @@
 package com.openhtmltopdf.css.parser.property;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -118,11 +119,13 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                     if (backgroundImage != null) {
                         throw new CSSParseException("A background-image value cannot be set twice", -1);
                     }
-                    
+
+                    List<PropertyValue> bgImages = Collections.singletonList(value);
+
                     backgroundImage = new PropertyDeclaration(
-                            CSSName.BACKGROUND_IMAGE, value, important, origin);
+                            CSSName.BACKGROUND_IMAGE, new PropertyValue(bgImages), important, origin);
                 }
-                
+
                 if (PrimitivePropertyBuilders.BACKGROUND_POSITIONS.get(ident.FS_ID)) {
                     processingBackgroundPosition = true;
                 }
@@ -137,9 +140,11 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                 if (backgroundImage != null) {
                     throw new CSSParseException("A background-image value cannot be set twice", -1);
                 }
-                
+
+                List<PropertyValue> bgImages = Collections.singletonList(value);
+
                 backgroundImage = new PropertyDeclaration(
-                        CSSName.BACKGROUND_IMAGE, value, important, origin);
+                        CSSName.BACKGROUND_IMAGE, new PropertyValue(bgImages), important, origin);
             }
             
             if (processingBackgroundPosition || isLength(value) || type == CSSPrimitiveValue.CSS_PERCENTAGE) {
@@ -169,8 +174,10 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
         }
         
         if (backgroundImage == null) {
+            List<PropertyValue> bgImages = Collections.singletonList(new PropertyValue(IdentValue.NONE));
+            
             backgroundImage = new PropertyDeclaration(
-                    CSSName.BACKGROUND_IMAGE, new PropertyValue(IdentValue.NONE), important, origin);
+                    CSSName.BACKGROUND_IMAGE, new PropertyValue(bgImages), important, origin);
         }
         
         if (backgroundRepeat == null) {
