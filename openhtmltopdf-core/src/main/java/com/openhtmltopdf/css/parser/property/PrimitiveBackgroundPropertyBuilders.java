@@ -5,6 +5,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
@@ -13,27 +14,64 @@ import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.GenericColor;
-import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.GenericURIWithNone;
 import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.SingleIdent;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 
 public class PrimitiveBackgroundPropertyBuilders {
-    public static class BackgroundImage extends GenericURIWithNone {
+    private static BitSet setOf(IdentValue... val) {
+        return PrimitivePropertyBuilders.setFor(val);
+    }
+
+    private abstract static class MultipleBackgroundValueBuilder extends AbstractPropertyBuilder {
+        protected abstract PropertyValue processValue(CSSName cssName, PropertyValue value);
+
         @Override
         public List<PropertyDeclaration> buildDeclarations(
             CSSName cssName, List<PropertyValue> values, int origin,
             boolean important, boolean inheritAllowed) {
 
-            checkValueCount(cssName, 1, values.size());
-            PropertyValue value = values.get(0);
+            checkValueCount(cssName, 1, Integer.MAX_VALUE, values.size());
 
+            List<PropertyValue> res;
+
+            if (values.size() == 1) {
+                PropertyValue val = values.get(0);
+                checkInheritAllowed(val, inheritAllowed);
+
+                if (val.getCssValueType() != CSSValue.CSS_INHERIT) {
+                    res = Collections.singletonList(processValue(cssName, val));
+                } else {
+                    res = Collections.singletonList(val);
+                }
+            } else {
+                res =
+                    values.stream()
+                          .peek(this::checkForbidInherit)
+                          .map(val -> processValue(cssName, val))
+                          .collect(Collectors.toList());
+            }
+
+            return Collections.singletonList(
+                     new PropertyDeclaration(cssName, new PropertyValue(res), important, origin));
+        }
+    }
+
+    public static class BackgroundImage extends MultipleBackgroundValueBuilder {
+        @Override
+        protected PropertyValue processValue(CSSName cssName, PropertyValue value) {
             if (value.getPropertyValueType() == PropertyValue.VALUE_TYPE_FUNCTION &&
                 Objects.equals(value.getFunction().getName(), "linear-gradient")) {
                 // TODO: Validation of linear-gradient args.
-                return Collections.singletonList(
-                        new PropertyDeclaration(cssName, value, important, origin));
+                return value;
             } else {
-                return super.buildDeclarations(cssName, values, origin, important, inheritAllowed);
+                checkIdentOrURIType(cssName, value);
+
+                if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+                    IdentValue ident = checkIdent(cssName, value);
+                    checkValidity(cssName, setOf(IdentValue.NONE), ident);
+                }
+
+                return value;
             }
         }
     }

@@ -1232,11 +1232,6 @@ public class CalculatedStyle {
         return isCollapseBorders() || isIdent(CSSName.EMPTY_CELLS, IdentValue.SHOW);
     }
 
-    public boolean isHasBackground() {
-        return ! (isIdent(CSSName.BACKGROUND_COLOR, IdentValue.TRANSPARENT) &&
-                isIdent(CSSName.BACKGROUND_IMAGE, IdentValue.NONE));
-    }
-
     public List<IdentValue> getTextDecorations() {
         FSDerivedValue value = valueByName(CSSName.TEXT_DECORATION);
         if (value == IdentValue.NONE) {
@@ -1399,19 +1394,39 @@ public class CalculatedStyle {
 		}
 	}
 
-    public boolean isLinearGradient() {
-        FSDerivedValue value = valueByName(CSSName.BACKGROUND_IMAGE);    	
-        return value instanceof FunctionValue &&
-               Objects.equals(((FunctionValue) value).getFunction().getName(), "linear-gradient");
+    public boolean isHasBackground() {
+        return !isIdent(CSSName.BACKGROUND_COLOR, IdentValue.TRANSPARENT) ||
+               isHasBackgroundImage();
     }
 
-    public FSLinearGradient getLinearGradient(CssContext cssContext, int boxWidth, int boxHeight) {
-        if (!isLinearGradient()) {
+    public boolean isHasBackgroundImage() {
+        List<PropertyValue> backgroundImages = getBackgroundImages();
+
+        if (backgroundImages.size() == 1) {
+            return backgroundImages.get(0).getIdentValue() != IdentValue.NONE;
+        } else {
+            return backgroundImages.stream().anyMatch(val -> val.getIdentValue() != IdentValue.NONE);
+        }
+    }
+
+    public boolean isLinearGradient(PropertyValue value) {
+        return value.getPropertyValueType() == PropertyValue.VALUE_TYPE_FUNCTION &&
+               Objects.equals(value.getFunction().getName(), "linear-gradient");
+    }
+
+    public FSLinearGradient getLinearGradient(
+            PropertyValue value, CssContext cssContext, int boxWidth, int boxHeight) {
+
+        if (!isLinearGradient(value)) {
             return null;
         }
 
-        FunctionValue value = (FunctionValue) valueByName(CSSName.BACKGROUND_IMAGE);
         return new FSLinearGradient(this, value.getFunction(), boxWidth, boxHeight, cssContext);
+    }
+
+    public List<PropertyValue> getBackgroundImages() {
+        ListValue values = (ListValue) valueByName(CSSName.BACKGROUND_IMAGE);
+        return values.getValues();
     }
 }
 

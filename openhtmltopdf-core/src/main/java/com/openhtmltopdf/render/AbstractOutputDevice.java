@@ -43,6 +43,8 @@ import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
 import java.awt.geom.Area;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -198,15 +200,25 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         BorderPainter.paint(edge, sides, style.getBorder(c), c, 0, true);
     }
 
-    private FSImage getBackgroundImage(RenderingContext c, CalculatedStyle style) {
-        if (! style.isIdent(CSSName.BACKGROUND_IMAGE, IdentValue.NONE)) {
-            String uri = style.getStringProperty(CSSName.BACKGROUND_IMAGE);
+    private FSImage getBackgroundImage(PropertyValue bgImage, RenderingContext c) {
+        if (bgImage.getIdentValue() != IdentValue.NONE) {
+            String uri = bgImage.getStringValue();
+
             try {
                 return c.getUac().getImageResource(uri).getImage();
             } catch (Exception ex) {
                 XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_FAILED_TO_LOAD_BACKGROUND_IMAGE_AT_URI, uri, ex);
             }
         }
+
+//        if (! style.isIdent(CSSName.BACKGROUND_IMAGE, IdentValue.NONE)) {
+//            String uri = style.getStringProperty(CSSName.BACKGROUND_IMAGE);
+//            try {
+//                return c.getUac().getImageResource(uri).getImage();
+//            } catch (Exception ex) {
+//                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_FAILED_TO_LOAD_BACKGROUND_IMAGE_AT_URI, uri, ex);
+//            }
+//        }
         return null;
     }
 
@@ -236,27 +248,13 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             return;
         }
 
-        FSColor backgroundColor = style.getBackgroundColor();
-        FSImage backgroundImage = null;
-        FSLinearGradient backgroundLinearGradient = null;
-        
-        if (style.isLinearGradient()) {
-            backgroundLinearGradient = style.getLinearGradient(c, (int) (bgImageContainer.width - border.width()), (int) (bgImageContainer.height - border.height()));
-        } else {
-            backgroundImage = getBackgroundImage(c, style);
-        }
-
-        // If the image width or height is zero, then there's nothing to draw.
-        // Also prevents infinte loop when trying to tile an image with zero size.
-        if (backgroundImage == null || backgroundImage.getHeight() == 0 || backgroundImage.getWidth() == 0) {
-            backgroundImage = null;
-        }
-
-        if ( (backgroundColor == null || backgroundColor == FSRGBColor.TRANSPARENT) &&
-             backgroundImage == null && backgroundLinearGradient == null) {
+        if (!style.isHasBackground()) {
             return;
         }
-        
+
+        FSColor backgroundColor = style.getBackgroundColor();
+        List<PropertyValue> bgImages = style.getBackgroundImages();
+
         Shape borderBoundsShape = BorderPainter.generateBorderBounds(backgroundBounds, border, true);
 
         // FIXME for issue 396 - generating an Area for a shape with curves is very very slow and
@@ -265,7 +263,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         Area borderBounds = border.hasBorderRadius() && c.isFastRenderer() ? null : new Area(borderBoundsShape);
 
         Shape oldclip = null;
-        
+
         if (!c.isFastRenderer()) {
             oldclip = getClip();
             if(oldclip != null) {
@@ -273,7 +271,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         	    borderBounds.intersect(new Area(oldclip));
             }
             setClip(borderBounds);
-        } else if (backgroundImage != null || backgroundLinearGradient != null) {
+        } else if (style.isHasBackgroundImage()) {
         	pushClip(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
@@ -282,77 +280,110 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             fill(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
-        if (backgroundImage != null || backgroundLinearGradient != null) {
-            Rectangle localBGImageContainer = bgImageContainer;
-            if (style.isFixedBackground()) {
-                localBGImageContainer = c.getViewportRectangle();
-            }
+        List<PropertyValue> bgImagesReversed = new ArrayList<>(bgImages);
+        Collections.reverse(bgImagesReversed);
 
-            int xoff = localBGImageContainer.x;
-            int yoff = localBGImageContainer.y;
+        for (PropertyValue bgImage : bgImagesReversed) {
+            if (style.isLinearGradient(bgImage)) {
+                FSLinearGradient backgroundLinearGradient = style.getLinearGradient(bgImage, c, (int) (bgImageContainer.width - border.width()), (int) (bgImageContainer.height - border.height()));
 
-            if (border != null) {
-                xoff += (int)border.left();
-                yoff += (int)border.top();
-            }
+                if (backgroundLinearGradient != null) {
+                    Dimension xyoff = calcInitialXYOff(bgImageContainer, border, style, c);
 
-            if (backgroundImage != null) {
-            scaleBackgroundImage(c, style, localBGImageContainer, backgroundImage);
+                    int xoff = xyoff.width;
+                    int yoff = xyoff.height;
 
-            float imageWidth = backgroundImage.getWidth();
-            float imageHeight = backgroundImage.getHeight();
-
-            BackgroundPosition position = style.getBackgroundPosition();
-            xoff += calcOffset(
-                    c, style, position.getHorizontal(), localBGImageContainer.width, imageWidth);
-            yoff += calcOffset(
-                    c, style, position.getVertical(), localBGImageContainer.height, imageHeight);
-
-            boolean hrepeat = style.isHorizontalBackgroundRepeat();
-            boolean vrepeat = style.isVerticalBackgroundRepeat();
-
-            if (! hrepeat && ! vrepeat) {
-                Rectangle imageBounds = new Rectangle(xoff, yoff, (int)imageWidth, (int)imageHeight);
-                if (imageBounds.intersects(backgroundBounds)) {
-                    drawImage(backgroundImage, xoff, yoff, style.isImageRenderingInterpolate());
+                    drawLinearGradient(backgroundLinearGradient, new Rectangle(xoff, yoff, bgImageContainer.width, bgImageContainer.height));
                 }
-            } else if (hrepeat && vrepeat) {
-                paintTiles(
-                        backgroundImage,
-                        adjustTo(backgroundBounds.x, xoff, (int)imageWidth),
-                        adjustTo(backgroundBounds.y, yoff, (int)imageHeight),
-                        backgroundBounds.x + backgroundBounds.width,
-                        backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
-            } else if (hrepeat) {
-                xoff = adjustTo(backgroundBounds.x, xoff, (int)imageWidth);
-                Rectangle imageBounds = new Rectangle(xoff, yoff, (int)imageWidth, (int)imageHeight);
-                if (imageBounds.intersects(backgroundBounds)) {
-                    paintHorizontalBand(
-                            backgroundImage,
-                            xoff,
-                            yoff,
-                            backgroundBounds.x + backgroundBounds.width, style.isImageRenderingInterpolate());
+            } else {
+                FSImage backgroundImage = getBackgroundImage(bgImage, c);
+
+                // If the image width or height is zero, then there's nothing to draw.
+                // Also prevents infinte loop when trying to tile an image with zero size.
+                if (backgroundImage != null && backgroundImage.getHeight() != 0 && backgroundImage.getWidth() != 0) {
+                    drawBgImage(c, style, backgroundBounds, bgImageContainer, border, backgroundImage);
                 }
-            } else if (vrepeat) {
-                yoff = adjustTo(backgroundBounds.y, yoff, (int)imageHeight);
-                Rectangle imageBounds = new Rectangle(xoff, yoff, (int)imageWidth, (int)imageHeight);
-                if (imageBounds.intersects(backgroundBounds)) {
-                    paintVerticalBand(
-                            backgroundImage,
-                            xoff,
-                            yoff,
-                            backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
-                }
-            } // End background image painting.
-            } else if (backgroundLinearGradient != null) {
-                drawLinearGradient(backgroundLinearGradient, new Rectangle(xoff, yoff, bgImageContainer.width, bgImageContainer.height));
             }
         }
-        
+
         if (!c.isFastRenderer()) {
         	setClip(oldclip);
-        } else if (backgroundImage != null || backgroundLinearGradient != null) {
+        } else if (style.isHasBackgroundImage()) {
         	popClip();
+        }
+    }
+
+    private Dimension calcInitialXYOff(
+            Rectangle bgImageContainer,
+            BorderPropertySet border,
+            CalculatedStyle style,
+            RenderingContext c) {
+
+        Rectangle localBGImageContainer = bgImageContainer;
+
+        if (style.isFixedBackground()) {
+            localBGImageContainer = c.getViewportRectangle();
+        }
+
+        int xoff = localBGImageContainer.x;
+        int yoff = localBGImageContainer.y;
+
+        if (border != null) {
+            xoff += (int) border.left();
+            yoff += (int) border.top();
+        }
+
+        return new Dimension(xoff, yoff);
+    }
+
+    private void drawBgImage(
+            RenderingContext c, CalculatedStyle style, Rectangle backgroundBounds,
+            Rectangle bgImageContainer, BorderPropertySet border, FSImage backgroundImage) {
+
+        Dimension xyoff = calcInitialXYOff(bgImageContainer, border, style, c);
+
+        int xoff = xyoff.width;
+        int yoff = xyoff.height;
+
+        Rectangle localBGImageContainer = style.isFixedBackground() ?
+                c.getViewportRectangle() : bgImageContainer;
+
+        scaleBackgroundImage(c, style, localBGImageContainer, backgroundImage);
+
+        float imageWidth = backgroundImage.getWidth();
+        float imageHeight = backgroundImage.getHeight();
+
+        BackgroundPosition position = style.getBackgroundPosition();
+
+        xoff += calcOffset(c, style, position.getHorizontal(), localBGImageContainer.width, imageWidth);
+        yoff += calcOffset(c, style, position.getVertical(), localBGImageContainer.height, imageHeight);
+
+        boolean hrepeat = style.isHorizontalBackgroundRepeat();
+        boolean vrepeat = style.isVerticalBackgroundRepeat();
+
+        if (!hrepeat && !vrepeat) {
+            Rectangle imageBounds = new Rectangle(xoff, yoff, (int) imageWidth, (int) imageHeight);
+            if (imageBounds.intersects(backgroundBounds)) {
+                drawImage(backgroundImage, xoff, yoff, style.isImageRenderingInterpolate());
+            }
+        } else if (hrepeat && vrepeat) {
+            paintTiles(backgroundImage, adjustTo(backgroundBounds.x, xoff, (int) imageWidth),
+                    adjustTo(backgroundBounds.y, yoff, (int) imageHeight), backgroundBounds.x + backgroundBounds.width,
+                    backgroundBounds.y + backgroundBounds.height, style.isImageRenderingInterpolate());
+        } else if (hrepeat) {
+            xoff = adjustTo(backgroundBounds.x, xoff, (int) imageWidth);
+            Rectangle imageBounds = new Rectangle(xoff, yoff, (int) imageWidth, (int) imageHeight);
+            if (imageBounds.intersects(backgroundBounds)) {
+                paintHorizontalBand(backgroundImage, xoff, yoff, backgroundBounds.x + backgroundBounds.width,
+                        style.isImageRenderingInterpolate());
+            }
+        } else if (vrepeat) {
+            yoff = adjustTo(backgroundBounds.y, yoff, (int) imageHeight);
+            Rectangle imageBounds = new Rectangle(xoff, yoff, (int) imageWidth, (int) imageHeight);
+            if (imageBounds.intersects(backgroundBounds)) {
+                paintVerticalBand(backgroundImage, xoff, yoff, backgroundBounds.y + backgroundBounds.height,
+                        style.isImageRenderingInterpolate());
+            }
         }
     }
 
