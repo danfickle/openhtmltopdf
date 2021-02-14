@@ -94,7 +94,7 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                     }
                     
                     backgroundRepeat = new PropertyDeclaration(
-                            CSSName.BACKGROUND_REPEAT, value, important, origin);
+                            CSSName.BACKGROUND_REPEAT, new PropertyValue(Collections.singletonList(value)), important, origin);
                 }
                 
                 if (PrimitivePropertyBuilders.BACKGROUND_ATTACHMENTS.get(ident.FS_ID)) {
@@ -182,7 +182,7 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
         
         if (backgroundRepeat == null) {
             backgroundRepeat = new PropertyDeclaration(
-                    CSSName.BACKGROUND_REPEAT, new PropertyValue(IdentValue.REPEAT), important, origin);
+                    CSSName.BACKGROUND_REPEAT, new PropertyValue(Collections.singletonList(new PropertyValue(IdentValue.REPEAT))), important, origin);
         }
         
         if (backgroundAttachment == null) {

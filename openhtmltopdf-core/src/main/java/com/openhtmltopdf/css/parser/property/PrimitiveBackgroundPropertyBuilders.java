@@ -304,8 +304,17 @@ public class PrimitiveBackgroundPropertyBuilders {
         }
     }
 
-    public static class BackgroundRepeat extends SingleIdent {
+    public static class BackgroundRepeat extends MultipleBackgroundValueBuilder {
         @Override
+        protected List<PropertyValue> processValue(CSSName cssName, PropertyValue value) {
+            checkIdentType(cssName, value);
+            IdentValue ident = checkIdent(cssName, value);
+
+            checkValidity(cssName, getAllowed(), ident);
+
+            return Collections.singletonList(value);
+        }
+
         protected BitSet getAllowed() {
             return PrimitivePropertyBuilders.BACKGROUND_REPEATS;
         }

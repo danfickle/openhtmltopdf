@@ -791,8 +791,8 @@ public class CalculatedStyle {
         return ! isIdent(CSSName.CLEAR, IdentValue.NONE);
     }
 
-    public IdentValue getBackgroundRepeat() {
-        return getIdent(CSSName.BACKGROUND_REPEAT);
+    public IdentValue getBackgroundRepeat(PropertyValue value) {
+        return value.getIdentValue();
     }
 
     public IdentValue getBackgroundAttachment() {
@@ -1011,14 +1011,12 @@ public class CalculatedStyle {
         return valueByName(CSSName.OVERFLOW) == IdentValue.VISIBLE;
     }
 
-    public boolean isHorizontalBackgroundRepeat() {
-        IdentValue value = getIdent(CSSName.BACKGROUND_REPEAT);
-        return value == IdentValue.REPEAT_X || value == IdentValue.REPEAT;
+    public boolean isHorizontalBackgroundRepeat(PropertyValue value) {
+        return value.getIdentValue() == IdentValue.REPEAT_X || value.getIdentValue() == IdentValue.REPEAT;
     }
 
-    public boolean isVerticalBackgroundRepeat() {
-        IdentValue value = getIdent(CSSName.BACKGROUND_REPEAT);
-        return value == IdentValue.REPEAT_Y || value == IdentValue.REPEAT;
+    public boolean isVerticalBackgroundRepeat(PropertyValue value) {
+        return value.getIdentValue() == IdentValue.REPEAT_Y || value.getIdentValue() == IdentValue.REPEAT;
     }
 
     public boolean isTopAuto() {
@@ -1412,6 +1410,7 @@ public class CalculatedStyle {
         public PropertyValue imageGradientOrNone;
 
         public BackgroundPosition backgroundPosition;
+        public PropertyValue backgroundRepeat;
     }
 
     public boolean isLinearGradient(PropertyValue value) {
@@ -1432,6 +1431,7 @@ public class CalculatedStyle {
     public List<BackgroundContainer> getBackgroundImages() {
         List<PropertyValue> images = ((ListValue) valueByName(CSSName.BACKGROUND_IMAGE)).getValues();
         List<PropertyValue> positions = ((ListValue) valueByName(CSSName.BACKGROUND_POSITION)).getValues();
+        List<PropertyValue> repeats = ((ListValue) valueByName(CSSName.BACKGROUND_REPEAT)).getValues();
 
         assert positions.size() % 2 == 0;
 
@@ -1459,6 +1459,7 @@ public class CalculatedStyle {
             // If less background-position values are provided than images,
             // they must repeat.
             bg.backgroundPosition = posPairs.get(i % posPairs.size());
+            bg.backgroundRepeat = repeats.get(i % repeats.size());
 
             backgrounds.add(bg);
         }

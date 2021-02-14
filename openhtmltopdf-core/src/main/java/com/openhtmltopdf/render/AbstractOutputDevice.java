@@ -359,8 +359,8 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         xoff += calcOffset(c, style, position.getHorizontal(), localBGImageContainer.width, imageWidth);
         yoff += calcOffset(c, style, position.getVertical(), localBGImageContainer.height, imageHeight);
 
-        boolean hrepeat = style.isHorizontalBackgroundRepeat();
-        boolean vrepeat = style.isVerticalBackgroundRepeat();
+        boolean hrepeat = style.isHorizontalBackgroundRepeat(bgImage.backgroundRepeat);
+        boolean vrepeat = style.isVerticalBackgroundRepeat(bgImage.backgroundRepeat);
 
         if (!hrepeat && !vrepeat) {
             Rectangle imageBounds = new Rectangle(xoff, yoff, (int) imageWidth, (int) imageHeight);
