@@ -1,11 +1,11 @@
 package com.openhtmltopdf.css.parser.property;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
@@ -13,6 +13,7 @@ import com.openhtmltopdf.css.parser.CSSParseException;
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
+import com.openhtmltopdf.css.parser.Token;
 import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.GenericColor;
 import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.SingleIdent;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
@@ -23,7 +24,15 @@ public class PrimitiveBackgroundPropertyBuilders {
     }
 
     private abstract static class MultipleBackgroundValueBuilder extends AbstractPropertyBuilder {
-        protected abstract PropertyValue processValue(CSSName cssName, PropertyValue value);
+        protected abstract List<PropertyValue> processValue(CSSName cssName, PropertyValue value);
+
+        protected List<PropertyValue> processValues(CSSName cssName, PropertyValue val1, PropertyValue val2) {
+            return Arrays.asList(val1, val2);
+        }
+
+        protected boolean allowsTwoValueItems() {
+            return false;
+        }
 
         @Override
         public List<PropertyDeclaration> buildDeclarations(
@@ -39,17 +48,33 @@ public class PrimitiveBackgroundPropertyBuilders {
                 checkInheritAllowed(val, inheritAllowed);
 
                 if (val.getCssValueType() != CSSValue.CSS_INHERIT) {
-                    res = Collections.singletonList(processValue(cssName, val));
+                    res = processValue(cssName, val);
                 } else {
                     return Collections.singletonList(
                             new PropertyDeclaration(cssName, val, important, origin));
                 }
             } else {
-                res =
-                    values.stream()
-                          .peek(this::checkForbidInherit)
-                          .map(val -> processValue(cssName, val))
-                          .collect(Collectors.toList());
+                res = new ArrayList<>(values.size());
+
+                for (int i = 0; i < values.size(); i++) {
+                    boolean atEnd = i == values.size() - 1;
+                    boolean beforeComma = !atEnd && values.get(i + 1).getOperator() == Token.TK_COMMA;
+
+                    PropertyValue val1 = values.get(i);
+                    PropertyValue val2 = !atEnd && !beforeComma ? values.get(i + 1) : null;
+
+                    checkForbidInherit(val1);
+
+                    if (val2 == null) {
+                        res.addAll(processValue(cssName, val1));
+                    } else if (!allowsTwoValueItems()) {
+                        checkValueCount(cssName, 1, 2);
+                    } else {
+                        checkForbidInherit(val2);
+                        res.addAll(processValues(cssName, val1, val2));
+                        i++;
+                    }
+                }
             }
 
             return Collections.singletonList(
@@ -59,11 +84,11 @@ public class PrimitiveBackgroundPropertyBuilders {
 
     public static class BackgroundImage extends MultipleBackgroundValueBuilder {
         @Override
-        protected PropertyValue processValue(CSSName cssName, PropertyValue value) {
+        protected List<PropertyValue> processValue(CSSName cssName, PropertyValue value) {
             if (value.getPropertyValueType() == PropertyValue.VALUE_TYPE_FUNCTION &&
                 Objects.equals(value.getFunction().getName(), "linear-gradient")) {
                 // TODO: Validation of linear-gradient args.
-                return value;
+                return Collections.singletonList(value);
             } else {
                 checkIdentOrURIType(cssName, value);
 
@@ -72,7 +97,7 @@ public class PrimitiveBackgroundPropertyBuilders {
                     checkValidity(cssName, setOf(IdentValue.NONE), ident);
                 }
 
-                return value;
+                return Collections.singletonList(value);
             }
         }
     }
@@ -148,44 +173,40 @@ public class PrimitiveBackgroundPropertyBuilders {
 
     }
 
-    public static class BackgroundPosition extends AbstractPropertyBuilder {
+    public static class BackgroundPosition extends MultipleBackgroundValueBuilder {
         @Override
-        public List<PropertyDeclaration> buildDeclarations(
-                CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
-            checkValueCount(cssName, 1, 2, values.size());
-
-            PropertyValue first = values.get(0);
-            PropertyValue second = null;
-            if (values.size() == 2) {
-                second = values.get(1);
-            }
-
-            checkInheritAllowed(first, inheritAllowed);
-            if (values.size() == 1 &&
-                    first.getCssValueType() == CSSValue.CSS_INHERIT) {
-                return Collections.singletonList(
-                        new PropertyDeclaration(cssName, first, important, origin));
-            }
-
-            if (second != null) {
-                checkInheritAllowed(second, false);
-            }
-
+        protected List<PropertyValue> processValue(CSSName cssName, PropertyValue first) {
             checkIdentLengthOrPercentType(cssName, first);
-            if (second == null) {
-                if (isLength(first) || first.getPrimitiveType() == CSSPrimitiveValue.CSS_PERCENTAGE) {
-                    List<PropertyValue> responseValues = new ArrayList<>(2);
-                    responseValues.add(first);
-                    responseValues.add(new PropertyValue(
-                            CSSPrimitiveValue.CSS_PERCENTAGE, 50.0f, "50%"));
-                    return Collections.singletonList(new PropertyDeclaration(
-                                CSSName.BACKGROUND_POSITION,
-                                new PropertyValue(responseValues), important, origin));
-                }
-            } else {
-                checkIdentLengthOrPercentType(cssName, second);
+
+            if (isLength(first) || first.getPrimitiveType() == CSSPrimitiveValue.CSS_PERCENTAGE) {
+                return Arrays.asList(first, createValueForIdent(IdentValue.CENTER));
             }
 
+            assert first.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT;
+
+            IdentValue firstIdent = checkIdent(cssName, first);
+            checkValidity(cssName, getAllowed(), firstIdent);
+
+            if (firstIdent == IdentValue.TOP ||
+                firstIdent == IdentValue.BOTTOM) {
+                return Arrays.asList(
+                        createValueForIdent(IdentValue.CENTER),
+                        createValueForIdent(firstIdent));
+            } else {
+                assert firstIdent == IdentValue.CENTER ||
+                       firstIdent == IdentValue.LEFT ||
+                       firstIdent == IdentValue.RIGHT;
+
+                return Arrays.asList(
+                        createValueForIdent(firstIdent),
+                        createValueForIdent(IdentValue.CENTER));
+            }
+        }
+
+        @Override
+        protected List<PropertyValue> processValues(CSSName cssName, PropertyValue first, PropertyValue second) {
+            checkIdentLengthOrPercentType(cssName, first);
+            checkIdentLengthOrPercentType(cssName, second);
 
             IdentValue firstIdent = null;
             if (first.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
@@ -194,64 +215,79 @@ public class PrimitiveBackgroundPropertyBuilders {
             }
 
             IdentValue secondIdent = null;
-            if (second == null) {
-                secondIdent = IdentValue.CENTER;
-            } else if (second.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+            if (second.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
                 secondIdent = checkIdent(cssName, second);
                 checkValidity(cssName, getAllowed(), secondIdent);
             }
 
             if (firstIdent == null && secondIdent == null) {
-                return Collections.singletonList(new PropertyDeclaration(
-                        CSSName.BACKGROUND_POSITION, new PropertyValue(values), important, origin));
+                assert isLength(first) || first.getPrimitiveType() == CSSPrimitiveValue.CSS_PERCENTAGE;
+                assert isLength(second) || second.getPrimitiveType() == CSSPrimitiveValue.CSS_PERCENTAGE;
+
+                return Arrays.asList(first, second);
             } else if (firstIdent != null && secondIdent != null) {
                 if (firstIdent == IdentValue.TOP || firstIdent == IdentValue.BOTTOM ||
-                        secondIdent == IdentValue.LEFT || secondIdent == IdentValue.RIGHT) {
+                    secondIdent == IdentValue.LEFT || secondIdent == IdentValue.RIGHT) {
+                    // CSS Standard allows to swap ident order.
                     IdentValue temp = firstIdent;
                     firstIdent = secondIdent;
                     secondIdent = temp;
                 }
 
+                // Check that we don't have "left left" or "bottom top"
                 checkIdentPosition(cssName, firstIdent, secondIdent);
 
-                return createTwoPercentValueResponse(
-                        getPercentForIdent(firstIdent),
-                        getPercentForIdent(secondIdent),
-                        important,
-                        origin);
+                assert firstIdent == IdentValue.CENTER ||
+                       firstIdent == IdentValue.LEFT ||
+                       firstIdent == IdentValue.RIGHT;
+
+                assert secondIdent == IdentValue.CENTER ||
+                       secondIdent == IdentValue.TOP ||
+                       secondIdent == IdentValue.BOTTOM;
+
+                return Arrays.asList(
+                        createValueForIdent(firstIdent),
+                        createValueForIdent(secondIdent));
             } else {
+                // Check that we don't have "70% left" or "bottom 40%"
                 checkIdentPosition(cssName, firstIdent, secondIdent);
-
-                List<PropertyValue> responseValues = new ArrayList<>(2);
 
                 if (firstIdent == null) {
-                    responseValues.add(first);
-                    responseValues.add(createValueForIdent(secondIdent));
-                } else {
-                    responseValues.add(createValueForIdent(firstIdent));
-                    responseValues.add(second);
-                }
+                    assert isLength(first) || first.getPrimitiveType() == CSSPrimitiveValue.CSS_PERCENTAGE;
+                    assert secondIdent != null;
 
-                return Collections.singletonList(new PropertyDeclaration(
-                        CSSName.BACKGROUND_POSITION,
-                        new PropertyValue(responseValues), important, origin));
+                    return Arrays.asList(first, createValueForIdent(secondIdent));
+                } else {
+                    assert firstIdent != null;
+                    assert isLength(second) || second.getPrimitiveType() == CSSPrimitiveValue.CSS_PERCENTAGE;
+
+                    return Arrays.asList(createValueForIdent(firstIdent), second);
+                }
             }
+        }
+
+        @Override
+        protected boolean allowsTwoValueItems() {
+            return true;
         }
 
         private void checkIdentPosition(CSSName cssName, IdentValue firstIdent, IdentValue secondIdent) {
             if (firstIdent == IdentValue.TOP || firstIdent == IdentValue.BOTTOM ||
-                    secondIdent == IdentValue.LEFT || secondIdent == IdentValue.RIGHT) {
+                secondIdent == IdentValue.LEFT || secondIdent == IdentValue.RIGHT) {
                 throw new CSSParseException("Invalid combination of keywords in " + cssName, -1);
             }
         }
 
         private float getPercentForIdent(IdentValue ident) {
-            float percent = 0.0f;
+            float percent;
 
             if (ident == IdentValue.CENTER) {
                 percent = 50.f;
             } else if (ident == IdentValue.BOTTOM || ident == IdentValue.RIGHT) {
                 percent = 100.0f;
+            } else {
+                assert ident == IdentValue.TOP || ident == IdentValue.LEFT;
+                percent = 0.0f;
             }
 
             return percent;
@@ -261,24 +297,6 @@ public class PrimitiveBackgroundPropertyBuilders {
             float percent = getPercentForIdent(ident);
             return new PropertyValue(
                     CSSPrimitiveValue.CSS_PERCENTAGE, percent, percent + "%");
-        }
-
-        private List<PropertyDeclaration> createTwoPercentValueResponse(
-                float percent1, float percent2, boolean important, int origin) {
-            PropertyValue value1 = new PropertyValue(
-                    CSSPrimitiveValue.CSS_PERCENTAGE, percent1, percent1 + "%");
-            PropertyValue value2 = new PropertyValue(
-                    CSSPrimitiveValue.CSS_PERCENTAGE, percent2, percent2 + "%");
-
-            List<PropertyValue> values = new ArrayList<>(2);
-            values.add(value1);
-            values.add(value2);
-
-            PropertyDeclaration result = new PropertyDeclaration(
-                    CSSName.BACKGROUND_POSITION,
-                    new PropertyValue(values), important, origin);
-
-            return Collections.singletonList(result);
         }
 
         private BitSet getAllowed() {

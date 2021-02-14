@@ -30,6 +30,8 @@ import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.BackgroundPosition;
 import com.openhtmltopdf.css.style.BackgroundSize;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.CalculatedStyle.BackgroundContainer;
+import com.openhtmltopdf.css.style.CalculatedStyle.BackgroundImageType;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.FSLinearGradient;
@@ -211,14 +213,6 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             }
         }
 
-//        if (! style.isIdent(CSSName.BACKGROUND_IMAGE, IdentValue.NONE)) {
-//            String uri = style.getStringProperty(CSSName.BACKGROUND_IMAGE);
-//            try {
-//                return c.getUac().getImageResource(uri).getImage();
-//            } catch (Exception ex) {
-//                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_FAILED_TO_LOAD_BACKGROUND_IMAGE_AT_URI, uri, ex);
-//            }
-//        }
         return null;
     }
 
@@ -253,7 +247,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         }
 
         FSColor backgroundColor = style.getBackgroundColor();
-        List<PropertyValue> bgImages = style.getBackgroundImages();
+        List<BackgroundContainer> bgImages = style.getBackgroundImages();
 
         Shape borderBoundsShape = BorderPainter.generateBorderBounds(backgroundBounds, border, true);
 
@@ -280,12 +274,10 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             fill(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
-        List<PropertyValue> bgImagesReversed = new ArrayList<>(bgImages);
-        Collections.reverse(bgImagesReversed);
-
-        for (PropertyValue bgImage : bgImagesReversed) {
-            if (style.isLinearGradient(bgImage)) {
-                FSLinearGradient backgroundLinearGradient = style.getLinearGradient(bgImage, c, (int) (bgImageContainer.width - border.width()), (int) (bgImageContainer.height - border.height()));
+        for (BackgroundContainer bgImage : bgImages) {
+            if (bgImage.type == BackgroundImageType.GRADIENT) {
+                FSLinearGradient backgroundLinearGradient = 
+                        style.getLinearGradient(bgImage.imageGradientOrNone, c, (int) (bgImageContainer.width - border.width()), (int) (bgImageContainer.height - border.height()));
 
                 if (backgroundLinearGradient != null) {
                     Dimension xyoff = calcInitialXYOff(bgImageContainer, border, style, c);
@@ -295,13 +287,17 @@ public abstract class AbstractOutputDevice implements OutputDevice {
 
                     drawLinearGradient(backgroundLinearGradient, new Rectangle(xoff, yoff, bgImageContainer.width, bgImageContainer.height));
                 }
+            } else if (bgImage.type == BackgroundImageType.NONE) {
+                // Do nothing...
             } else {
-                FSImage backgroundImage = getBackgroundImage(bgImage, c);
+                assert bgImage.type == BackgroundImageType.URI;
+
+                FSImage backgroundImage = getBackgroundImage(bgImage.imageGradientOrNone, c);
 
                 // If the image width or height is zero, then there's nothing to draw.
                 // Also prevents infinte loop when trying to tile an image with zero size.
                 if (backgroundImage != null && backgroundImage.getHeight() != 0 && backgroundImage.getWidth() != 0) {
-                    drawBgImage(c, style, backgroundBounds, bgImageContainer, border, backgroundImage);
+                    drawBgImage(c, style, backgroundBounds, bgImageContainer, border, backgroundImage, bgImage);
                 }
             }
         }
@@ -337,8 +333,13 @@ public abstract class AbstractOutputDevice implements OutputDevice {
     }
 
     private void drawBgImage(
-            RenderingContext c, CalculatedStyle style, Rectangle backgroundBounds,
-            Rectangle bgImageContainer, BorderPropertySet border, FSImage backgroundImage) {
+            RenderingContext c,
+            CalculatedStyle style,
+            Rectangle backgroundBounds,
+            Rectangle bgImageContainer,
+            BorderPropertySet border,
+            FSImage backgroundImage,
+            BackgroundContainer bgImage) {
 
         Dimension xyoff = calcInitialXYOff(bgImageContainer, border, style, c);
 
@@ -353,7 +354,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         float imageWidth = backgroundImage.getWidth();
         float imageHeight = backgroundImage.getHeight();
 
-        BackgroundPosition position = style.getBackgroundPosition();
+        BackgroundPosition position = bgImage.backgroundPosition;
 
         xoff += calcOffset(c, style, position.getHorizontal(), localBGImageContainer.width, imageWidth);
         yoff += calcOffset(c, style, position.getVertical(), localBGImageContainer.height, imageHeight);

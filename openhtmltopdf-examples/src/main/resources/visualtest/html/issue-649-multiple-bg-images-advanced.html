@@ -2,7 +2,7 @@
 <head>
 <style>
 @page {
-  size: 400px 400px;
+  size: 400px 1400px;
   margin: 10px;
 }
 body {
@@ -10,7 +10,7 @@ body {
   max-width: 360px;
 }
 #one {
-  height: 300px;
+  height: 200px;
   background-image: url(../../demos/images/cc0-cat.png), url(../../demos/images/flyingsaucer.png), none;
   background-repeat: no-repeat;
   border: 1px solid blue;
@@ -20,13 +20,30 @@ body {
   border: 1px solid red;
   background-image: inherit;
 }
-
+#three {
+  border: 1px solid purple;
+  height: 100px;
+  background-image: url(../../demos/images/cc0-cat.png), url(../../demos/images/flyingsaucer.png);
+  background-repeat: no-repeat;
+  background-position: right, 25% bottom;
+}
+#four {
+  border: 1px solid orange;
+  height: 100px;
+  background-repeat: no-repeat;
+  background-image: url(../../demos/images/cc0-cat.png), linear-gradient(to top, red, blue);
+  background-position: 20% top;
+}
 </style>
 </head>
 <body>
 <div id="one">
   <div id="two"></div>
 </div>
+
+<div id="three"></div>
+
+<div id="four"></div>
 
 </body>
 </html>
