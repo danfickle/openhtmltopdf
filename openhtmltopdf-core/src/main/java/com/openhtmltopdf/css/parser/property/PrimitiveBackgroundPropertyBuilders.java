@@ -41,7 +41,8 @@ public class PrimitiveBackgroundPropertyBuilders {
                 if (val.getCssValueType() != CSSValue.CSS_INHERIT) {
                     res = Collections.singletonList(processValue(cssName, val));
                 } else {
-                    res = Collections.singletonList(val);
+                    return Collections.singletonList(
+                            new PropertyDeclaration(cssName, val, important, origin));
                 }
             } else {
                 res =
