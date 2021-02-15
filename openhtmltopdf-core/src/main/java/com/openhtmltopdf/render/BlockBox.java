@@ -999,10 +999,6 @@ public class BlockBox extends Box implements InlinePaintable {
             c.pushLayer(this);
         }
 
-        if (style.isFixedBackground()) {
-            c.getRootLayer().setFixedBackground(true);
-        }
-
         calcClearance(c);
 
         if (isRoot() || getStyle().establishesBFC() || isMarginAreaRoot()) {

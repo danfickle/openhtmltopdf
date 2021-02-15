@@ -795,14 +795,6 @@ public class CalculatedStyle {
         return value.getIdentValue();
     }
 
-    public IdentValue getBackgroundAttachment() {
-        return getIdent(CSSName.BACKGROUND_ATTACHMENT);
-    }
-
-    public boolean isFixedBackground() {
-        return getIdent(CSSName.BACKGROUND_ATTACHMENT) == IdentValue.FIXED;
-    }
-
     public boolean isInline() {
         return isIdent(CSSName.DISPLAY, IdentValue.INLINE) &&
                 ! (isFloated() || isAbsolute() || isFixed() || isRunning());

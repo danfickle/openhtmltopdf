@@ -15,7 +15,6 @@ import com.openhtmltopdf.css.parser.CSSValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.parser.Token;
 import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.GenericColor;
-import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.SingleIdent;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 
 public class PrimitiveBackgroundPropertyBuilders {
@@ -304,7 +303,7 @@ public class PrimitiveBackgroundPropertyBuilders {
         }
     }
 
-    public static class BackgroundRepeat extends MultipleBackgroundValueBuilder {
+    private abstract static class MultipleIdentValue extends MultipleBackgroundValueBuilder {
         @Override
         protected List<PropertyValue> processValue(CSSName cssName, PropertyValue value) {
             checkIdentType(cssName, value);
@@ -315,12 +314,17 @@ public class PrimitiveBackgroundPropertyBuilders {
             return Collections.singletonList(value);
         }
 
+        protected abstract BitSet getAllowed();
+    }
+
+    public static class BackgroundRepeat extends MultipleIdentValue {
+        @Override
         protected BitSet getAllowed() {
             return PrimitivePropertyBuilders.BACKGROUND_REPEATS;
         }
     }
 
-    public static class BackgroundAttachment extends SingleIdent {
+    public static class BackgroundAttachment extends MultipleIdentValue {
         @Override
         protected BitSet getAllowed() {
             return PrimitivePropertyBuilders.BACKGROUND_ATTACHMENTS;

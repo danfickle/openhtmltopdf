@@ -86,7 +86,8 @@ public class PrimitivePropertyBuilders {
 
     // scroll | fixed | inherit
     public static final BitSet BACKGROUND_ATTACHMENTS = setFor(
-            new IdentValue[] { IdentValue.SCROLL, IdentValue.FIXED });
+            new IdentValue[] { IdentValue.SCROLL
+                    /*, IdentValue.FIXED - removed broken support for fixed in PR#650 by @danfickle */ });
 
     // left | right | top | bottom | center
     public static final BitSet BACKGROUND_POSITIONS = setFor(

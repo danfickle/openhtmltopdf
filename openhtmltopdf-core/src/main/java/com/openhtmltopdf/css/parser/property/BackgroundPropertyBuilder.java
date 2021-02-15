@@ -20,6 +20,7 @@
 package com.openhtmltopdf.css.parser.property;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -101,11 +102,11 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                     if (backgroundAttachment != null) {
                         throw new CSSParseException("A background-attachment value cannot be set twice", -1);
                     }
-                    
+
                     backgroundAttachment = new PropertyDeclaration(
-                            CSSName.BACKGROUND_ATTACHMENT, value, important, origin);
+                            CSSName.BACKGROUND_ATTACHMENT, new PropertyValue(Collections.singletonList(value)), important, origin);
                 }
-                
+
                 if (ident == IdentValue.TRANSPARENT) {
                     if (backgroundColor != null) {
                         throw new CSSParseException("A background-color value cannot be set twice", -1);
@@ -172,25 +173,24 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
             backgroundColor = new PropertyDeclaration(
                     CSSName.BACKGROUND_COLOR, new PropertyValue(IdentValue.TRANSPARENT), important, origin);
         }
-        
+
         if (backgroundImage == null) {
             List<PropertyValue> bgImages = Collections.singletonList(new PropertyValue(IdentValue.NONE));
-            
+
             backgroundImage = new PropertyDeclaration(
                     CSSName.BACKGROUND_IMAGE, new PropertyValue(bgImages), important, origin);
         }
-        
+
         if (backgroundRepeat == null) {
             backgroundRepeat = new PropertyDeclaration(
                     CSSName.BACKGROUND_REPEAT, new PropertyValue(Collections.singletonList(new PropertyValue(IdentValue.REPEAT))), important, origin);
         }
-        
+
         if (backgroundAttachment == null) {
             backgroundAttachment = new PropertyDeclaration(
-                    CSSName.BACKGROUND_ATTACHMENT, new PropertyValue(IdentValue.SCROLL), important, origin);
-            
+                    CSSName.BACKGROUND_ATTACHMENT, new PropertyValue(Collections.singletonList(new PropertyValue(IdentValue.SCROLL))), important, origin);
         }
-        
+
         if (backgroundPosition == null) {
             List<PropertyValue> v = new ArrayList<>(2);
             v.add(new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 0.0f, "0%"));
@@ -198,14 +198,9 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
             backgroundPosition = new PropertyDeclaration(
                     CSSName.BACKGROUND_POSITION, new PropertyValue(v), important, origin);
         }
-        
-        result = new ArrayList<>(5);
-        result.add(backgroundColor);
-        result.add(backgroundImage);
-        result.add(backgroundRepeat);
-        result.add(backgroundAttachment);
-        result.add(backgroundPosition);
-        
-        return result;
+
+        return Arrays.asList(
+           backgroundColor, backgroundImage, backgroundRepeat,
+           backgroundAttachment, backgroundPosition);
     }
 }

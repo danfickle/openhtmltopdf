@@ -280,7 +280,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
                         style.getLinearGradient(bgImage.imageGradientOrNone, c, (int) (bgImageContainer.width - border.width()), (int) (bgImageContainer.height - border.height()));
 
                 if (backgroundLinearGradient != null) {
-                    Dimension xyoff = calcInitialXYOff(bgImageContainer, border, style, c);
+                    Dimension xyoff = calcInitialXYOff(bgImage, bgImageContainer, border, style, c);
 
                     int xoff = xyoff.width;
                     int yoff = xyoff.height;
@@ -310,16 +310,13 @@ public abstract class AbstractOutputDevice implements OutputDevice {
     }
 
     private Dimension calcInitialXYOff(
+            BackgroundContainer bgImage,
             Rectangle bgImageContainer,
             BorderPropertySet border,
             CalculatedStyle style,
             RenderingContext c) {
 
         Rectangle localBGImageContainer = bgImageContainer;
-
-        if (style.isFixedBackground()) {
-            localBGImageContainer = c.getViewportRectangle();
-        }
 
         int xoff = localBGImageContainer.x;
         int yoff = localBGImageContainer.y;
@@ -341,13 +338,12 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             FSImage backgroundImage,
             BackgroundContainer bgImage) {
 
-        Dimension xyoff = calcInitialXYOff(bgImageContainer, border, style, c);
+        Dimension xyoff = calcInitialXYOff(bgImage, bgImageContainer, border, style, c);
 
         int xoff = xyoff.width;
         int yoff = xyoff.height;
 
-        Rectangle localBGImageContainer = style.isFixedBackground() ?
-                c.getViewportRectangle() : bgImageContainer;
+        Rectangle localBGImageContainer = bgImageContainer;
 
         scaleBackgroundImage(c, style, localBGImageContainer, backgroundImage);
 
