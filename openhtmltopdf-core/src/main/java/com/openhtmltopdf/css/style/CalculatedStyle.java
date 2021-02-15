@@ -313,39 +313,6 @@ public class CalculatedStyle {
         }
     }
 
-    public BackgroundSize getBackgroundSize() {
-        if (_backgroundSize == null) {
-            _backgroundSize = createBackgroundSize();
-        }
-
-        return _backgroundSize;
-    }
-
-    private BackgroundSize createBackgroundSize() {
-        FSDerivedValue value = valueByName(CSSName.BACKGROUND_SIZE);
-        if (value instanceof IdentValue) {
-            IdentValue ident = (IdentValue)value;
-            if (ident == IdentValue.COVER) {
-                return new BackgroundSize(false, true, false);
-            } else if (ident == IdentValue.CONTAIN) {
-                return new BackgroundSize(true, false, false);
-            }
-        } else {
-            ListValue valueList = (ListValue)value;
-            List<PropertyValue> values = valueList.getValues();
-            boolean firstAuto = values.get(0).getIdentValue() == IdentValue.AUTO;
-            boolean secondAuto = values.get(1).getIdentValue() == IdentValue.AUTO;
-
-            if (firstAuto && secondAuto) {
-                return new BackgroundSize(false, false, true);
-            } else {
-                return new BackgroundSize(values.get(0), values.get(1));
-            }
-        }
-
-        throw new RuntimeException("internal error");
-    }
-
     public List<CounterData> getCounterReset() {
         FSDerivedValue value = valueByName(CSSName.COUNTER_RESET);
 
@@ -1402,6 +1369,7 @@ public class CalculatedStyle {
         public PropertyValue imageGradientOrNone;
 
         public BackgroundPosition backgroundPosition;
+        public BackgroundSize backgroundSize;
         public PropertyValue backgroundRepeat;
     }
 
@@ -1424,12 +1392,19 @@ public class CalculatedStyle {
         List<PropertyValue> images = ((ListValue) valueByName(CSSName.BACKGROUND_IMAGE)).getValues();
         List<PropertyValue> positions = ((ListValue) valueByName(CSSName.BACKGROUND_POSITION)).getValues();
         List<PropertyValue> repeats = ((ListValue) valueByName(CSSName.BACKGROUND_REPEAT)).getValues();
+        List<PropertyValue> sizes = ((ListValue) valueByName(CSSName.BACKGROUND_SIZE)).getValues();
 
         assert positions.size() % 2 == 0;
+        assert sizes.size() % 2 == 0;
 
         List<BackgroundPosition> posPairs = new ArrayList<>(positions.size() / 2);
         for (int i = 0; i < positions.size(); i += 2) {
             posPairs.add(new BackgroundPosition(positions.get(i), positions.get(i + 1)));
+        }
+
+        List<BackgroundSize> sizePairs = new ArrayList<>(sizes.size() / 2);
+        for (int i = 0; i < sizes.size(); i += 2) {
+            sizePairs.add(new BackgroundSize(sizes.get(i), sizes.get(i + 1)));
         }
 
         List<BackgroundContainer> backgrounds = new ArrayList<>(images.size());
@@ -1451,6 +1426,7 @@ public class CalculatedStyle {
             // If less background-position values are provided than images,
             // they must repeat.
             bg.backgroundPosition = posPairs.get(i % posPairs.size());
+            bg.backgroundSize = sizePairs.get(i % sizePairs.size());
             bg.backgroundRepeat = repeats.get(i % repeats.size());
 
             backgrounds.add(bg);

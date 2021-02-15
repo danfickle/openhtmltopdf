@@ -104,72 +104,62 @@ public class PrimitiveBackgroundPropertyBuilders {
     public static class BackgroundColor extends GenericColor {
     }
 
-    public static class BackgroundSize extends AbstractPropertyBuilder {
-        private static final BitSet ALL_ALLOWED = PrimitivePropertyBuilders.setFor(new IdentValue[] {
+    public static class BackgroundSize extends MultipleBackgroundValueBuilder {
+        private static final BitSet ALL_ALLOWED = setOf(
                 IdentValue.AUTO, IdentValue.CONTAIN, IdentValue.COVER
-        });
+        );
 
         @Override
-        public List<PropertyDeclaration> buildDeclarations(CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
-            checkValueCount(cssName, 1, 2, values.size());
-
-            PropertyValue first = values.get(0);
-            PropertyValue second = null;
-            if (values.size() == 2) {
-                second = values.get(1);
-            }
-
-            checkInheritAllowed(first, inheritAllowed);
-            if (values.size() == 1 &&
-                    first.getCssValueType() == CSSValue.CSS_INHERIT) {
-                return Collections.singletonList(
-                        new PropertyDeclaration(cssName, first, important, origin));
-            }
-
-            if (second != null) {
-                checkInheritAllowed(second, false);
-            }
-
+        protected List<PropertyValue> processValue(CSSName cssName, PropertyValue first) {
             checkIdentLengthOrPercentType(cssName, first);
-            if (second == null) {
-                if (first.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
-                    IdentValue firstIdent = checkIdent(cssName, first);
-                    checkValidity(cssName, ALL_ALLOWED, firstIdent);
 
-                    if (firstIdent == IdentValue.CONTAIN || firstIdent == IdentValue.COVER) {
-                        return Collections.singletonList(
-                                new PropertyDeclaration(cssName, first, important, origin));
-                    } else {
-                        return PrimitivePropertyBuilders.createTwoValueResponse(CSSName.BACKGROUND_SIZE, first, first, origin, important);
-                    }
-                } else {
-                    return PrimitivePropertyBuilders.createTwoValueResponse(CSSName.BACKGROUND_SIZE, first, new PropertyValue(IdentValue.AUTO), origin, important);
-                }
+            if (first.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+                IdentValue firstIdent = checkIdent(cssName, first);
+                checkValidity(cssName, ALL_ALLOWED, firstIdent);
+
+                assert firstIdent == IdentValue.AUTO ||
+                       firstIdent == IdentValue.COVER ||
+                       firstIdent == IdentValue.CONTAIN;
+
+                // Items are expected to always return a pair so just repeat the ident.
+                return Arrays.asList(first, first);
             } else {
-                checkIdentLengthOrPercentType(cssName, second);
+                assert isLength(first) || first.getPrimitiveType() == CSSPrimitiveValue.CSS_PERCENTAGE;
 
-                if (first.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
-                    IdentValue firstIdent = checkIdent(cssName, first);
-                    if (firstIdent != IdentValue.AUTO) {
-                        throw new CSSParseException("The only ident value allowed here is 'auto'", -1);
-                    }
-                } else if (first.getFloatValue() < 0.0f) {
-                    throw new CSSParseException(cssName + " values cannot be negative", -1);
-                }
-
-                if (second.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
-                    IdentValue secondIdent = checkIdent(cssName, second);
-                    if (secondIdent != IdentValue.AUTO) {
-                        throw new CSSParseException("The only ident value allowed here is 'auto'", -1);
-                    }
-                } else if (second.getFloatValue() < 0.0f) {
-                    throw new CSSParseException(cssName + " values cannot be negative", -1);
-                }
-
-                return PrimitivePropertyBuilders.createTwoValueResponse(CSSName.BACKGROUND_SIZE, first, second, origin, important);
+                return Arrays.asList(first, new PropertyValue(IdentValue.AUTO));
             }
         }
 
+        @Override
+        protected List<PropertyValue> processValues(CSSName cssName, PropertyValue first, PropertyValue second) {
+            checkIdentLengthOrPercentType(cssName, first);
+            checkIdentLengthOrPercentType(cssName, second);
+
+            if (first.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+                IdentValue firstIdent = checkIdent(cssName, first);
+                if (firstIdent != IdentValue.AUTO) {
+                    throw new CSSParseException("The only ident value allowed here is 'auto'", -1);
+                }
+            } else if (first.getFloatValue() < 0.0f) {
+                throw new CSSParseException(cssName + " values cannot be negative", -1);
+            }
+
+            if (second.getPrimitiveType() == CSSPrimitiveValue.CSS_IDENT) {
+                IdentValue secondIdent = checkIdent(cssName, second);
+                if (secondIdent != IdentValue.AUTO) {
+                    throw new CSSParseException("The only ident value allowed here is 'auto'", -1);
+                }
+            } else if (second.getFloatValue() < 0.0f) {
+                throw new CSSParseException(cssName + " values cannot be negative", -1);
+            }
+
+            return Arrays.asList(first, second);
+        }
+
+        @Override
+        protected boolean allowsTwoValueItems() {
+            return true;
+        }
     }
 
     public static class BackgroundPosition extends MultipleBackgroundValueBuilder {

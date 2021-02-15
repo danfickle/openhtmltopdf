@@ -345,7 +345,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
 
         Rectangle localBGImageContainer = bgImageContainer;
 
-        scaleBackgroundImage(c, style, localBGImageContainer, backgroundImage);
+        scaleBackgroundImage(c, style, localBGImageContainer, backgroundImage, bgImage);
 
         float imageWidth = backgroundImage.getWidth();
         float imageHeight = backgroundImage.getHeight();
@@ -444,8 +444,8 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         }
     }
 
-    private void scaleBackgroundImage(CssContext c, CalculatedStyle style, Rectangle backgroundContainer, FSImage image) {
-        BackgroundSize backgroundSize = style.getBackgroundSize();
+    private void scaleBackgroundImage(CssContext c, CalculatedStyle style, Rectangle backgroundContainer, FSImage image, BackgroundContainer bgImage) {
+        BackgroundSize backgroundSize = bgImage.backgroundSize;
 
         if (! backgroundSize.isBothAuto()) {
             if (backgroundSize.isCover() || backgroundSize.isContain()) {
