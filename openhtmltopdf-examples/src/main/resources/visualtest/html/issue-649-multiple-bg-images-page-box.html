@@ -1,0 +1,31 @@
+<html>
+<head>
+<style>
+@page {
+  size: 400px 300px;
+  margin: 10px;
+  background-image: url(../../demos/images/cc0-cat.png);
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+@page:first {
+  background-image: url(../../demos/images/cc0-cat.png), url(../../demos/images/flyingsaucer.png);
+  background-repeat: no-repeat;
+  background-size: 150px auto, auto 40%;
+  background-position: left top, right bottom;
+}
+body {
+  margin: 10px;
+  max-width: 360px;
+}
+#one {
+  page-break-before: always;
+  background: red;
+  height: 10px;
+}
+</style>
+</head>
+<body>
+<div id="one"></div>
+</body>
+</html>
