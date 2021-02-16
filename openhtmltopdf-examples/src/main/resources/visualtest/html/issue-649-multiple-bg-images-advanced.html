@@ -2,7 +2,7 @@
 <head>
 <style>
 @page {
-  size: 400px 1400px;
+  size: 400px 1100px;
   margin: 10px;
 }
 body {
@@ -35,6 +35,7 @@ body {
   background-position: 20% top;
 }
 #five {
+  border: 1px solid pink;
   height: 200px;
   background-image: url(../../demos/images/cc0-cat.png), url(../../demos/images/flyingsaucer.png), none;
   background-repeat: no-repeat, repeat-y;
@@ -42,12 +43,18 @@ body {
   background-attachment: scroll;
 }
 #six {
+  border: 1px solid green;
   height: 200px;
   background-image: url(../../demos/images/cc0-cat.png), url(../../demos/images/flyingsaucer.png), none;
   background-repeat: no-repeat;
   background-position: left, right;
   background-attachment: scroll;
   background-size: cover, 25% 70%;
+}
+#seven {
+  border: 1px solid black;
+  height: 150px;
+  background: gray url(../../demos/images/cc0-cat.png) center bottom no-repeat;
 }
 </style>
 </head>
@@ -63,6 +70,8 @@ body {
 <div id="five"></div>
 
 <div id="six"></div>
+
+<div id="seven"></div>
 
 </body>
 </html>

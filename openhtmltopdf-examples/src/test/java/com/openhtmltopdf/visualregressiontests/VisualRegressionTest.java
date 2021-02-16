@@ -1387,7 +1387,6 @@ public class VisualRegressionTest {
      * Tests that the other background-* properties allow multiple values.
      */
     @Test
-    @Ignore // WIP
     public void testIssue649MultipleBgImagesAdvanced() throws IOException {
         assertTrue(vt.runTest("issue-649-multiple-bg-images-advanced"));
     }
