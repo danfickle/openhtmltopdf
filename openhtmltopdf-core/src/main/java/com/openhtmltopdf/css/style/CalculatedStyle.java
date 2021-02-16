@@ -21,6 +21,7 @@
 package com.openhtmltopdf.css.style;
 
 import java.awt.Cursor;
+import java.lang.annotation.Documented;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +56,8 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.WebDoc;
+import com.openhtmltopdf.util.WebDocLocations;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRRuntimeException;
 
@@ -1388,6 +1391,11 @@ public class CalculatedStyle {
         return new FSLinearGradient(this, value.getFunction(), boxWidth, boxHeight, cssContext);
     }
 
+    /**
+     * Gets the values of the background properties and combines in a list
+     * of BackgroundContainer values.
+     */
+    @WebDoc(WebDocLocations.CSS_BACKGROUND_PROPERTIES)
     public List<BackgroundContainer> getBackgroundImages() {
         List<PropertyValue> images = ((ListValue) valueByName(CSSName.BACKGROUND_IMAGE)).getValues();
         List<PropertyValue> positions = ((ListValue) valueByName(CSSName.BACKGROUND_POSITION)).getValues();

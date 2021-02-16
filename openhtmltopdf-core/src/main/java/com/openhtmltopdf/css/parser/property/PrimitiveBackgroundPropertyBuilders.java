@@ -16,7 +16,10 @@ import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.parser.Token;
 import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders.GenericColor;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
+import com.openhtmltopdf.util.WebDoc;
+import com.openhtmltopdf.util.WebDocLocations;
 
+@WebDoc(WebDocLocations.CSS_BACKGROUND_PROPERTIES)
 public class PrimitiveBackgroundPropertyBuilders {
     private static BitSet setOf(IdentValue... val) {
         return PrimitivePropertyBuilders.setFor(val);

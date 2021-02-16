@@ -31,7 +31,10 @@ import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
+import com.openhtmltopdf.util.WebDoc;
+import com.openhtmltopdf.util.WebDocLocations;
 
+@WebDoc(WebDocLocations.CSS_BACKGROUND_PROPERTIES)
 public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
     // [<'background-color'> || <'background-image'> || <'background-repeat'> || 
     // <'background-attachment'> || <'background-position'>] | inherit 
