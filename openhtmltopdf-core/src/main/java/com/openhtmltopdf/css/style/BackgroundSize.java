@@ -19,22 +19,12 @@
  */
 package com.openhtmltopdf.css.style;
 
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 
 public class BackgroundSize {
-    private boolean _contain;
-    private boolean _cover;
-    private boolean _bothAuto;
-
-    private PropertyValue _width;
-    private PropertyValue _height;
-
-
-    public BackgroundSize(boolean contain, boolean cover, boolean bothAuto) {
-        _contain = contain;
-        _cover = cover;
-        _bothAuto = bothAuto;
-    }
+    private final PropertyValue _width;
+    private final PropertyValue _height;
 
     public BackgroundSize(PropertyValue width, PropertyValue height) {
         _width = width;
@@ -42,15 +32,16 @@ public class BackgroundSize {
     }
 
     public boolean isContain() {
-        return _contain;
+        return _width.getIdentValue() == IdentValue.CONTAIN;
     }
 
     public boolean isCover() {
-        return _cover;
+        return _width.getIdentValue() == IdentValue.COVER;
     }
 
     public boolean isBothAuto() {
-        return _bothAuto;
+        return _width.getIdentValue() == IdentValue.AUTO &&
+               _height.getIdentValue() == IdentValue.AUTO;
     }
 
     public PropertyValue getWidth() {

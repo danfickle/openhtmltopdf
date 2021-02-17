@@ -869,26 +869,6 @@ public class Layer {
         return result;
     }
 
-    @Deprecated // Not used.
-    private boolean containsFixedLayer() {
-        for (Layer child : getChildren()) {
-            if (child.getMaster().getStyle().isFixed() || child.containsFixedLayer()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Deprecated
-    public boolean containsFixedContent() {
-        return _fixedBackground || containsFixedLayer();
-    }
-
-    @Deprecated // We not longer support fixed background.
-    public void setFixedBackground(boolean b) {
-        _fixedBackground = b;
-    }
-
     /**
      * The resulting list should not be modified.
      */

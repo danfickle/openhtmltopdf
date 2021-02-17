@@ -196,6 +196,10 @@ public abstract class AbstractPropertyBuilder implements PropertyBuilder {
         }
     }
 
+    protected void checkForbidInherit(CSSPrimitiveValue value) {
+        checkInheritAllowed(value, false);
+    }
+
     protected List<PropertyDeclaration> checkInheritAll(CSSName[] all, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
         if (values.size() == 1) {
             CSSPrimitiveValue value = values.get(0);

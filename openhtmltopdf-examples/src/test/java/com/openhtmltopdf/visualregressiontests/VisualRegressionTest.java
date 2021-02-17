@@ -1375,6 +1375,30 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-642-transform-inline"));
     }
 
+    /**
+     * Tests that the background-image property allows multiple values.
+     */
+    @Test
+    public void testIssue649MultipleBgImages() throws IOException {
+        assertTrue(vt.runTest("issue-649-multiple-bg-images"));
+    }
+
+    /**
+     * Tests that the other background-* properties allow multiple values.
+     */
+    @Test
+    public void testIssue649MultipleBgImagesAdvanced() throws IOException {
+        assertTrue(vt.runTest("issue-649-multiple-bg-images-advanced"));
+    }
+
+    /**
+     * Tests that multiple background images can be used in a page at-rule.
+     */
+    @Test
+    public void testIssue649MultipleBgImagesPageBox() throws IOException {
+        assertTrue(vt.runTest("issue-649-multiple-bg-images-page-box"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

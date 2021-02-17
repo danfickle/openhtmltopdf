@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import com.openhtmltopdf.css.parser.CSSParser;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.parser.property.BackgroundPropertyBuilder;
+import com.openhtmltopdf.css.parser.property.PrimitiveBackgroundPropertyBuilders;
 import com.openhtmltopdf.css.parser.property.BorderPropertyBuilders;
 import com.openhtmltopdf.css.parser.property.BorderSpacingPropertyBuilder;
 import com.openhtmltopdf.css.parser.property.ContentPropertyBuilder;
@@ -146,7 +147,7 @@ public final class CSSName implements Comparable<CSSName> {
                     PRIMITIVE,
                     "transparent",
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.BackgroundColor()
+                    new PrimitiveBackgroundPropertyBuilders.BackgroundColor()
             );
 
     /**
@@ -158,7 +159,7 @@ public final class CSSName implements Comparable<CSSName> {
                     PRIMITIVE,
                     "none",
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.BackgroundImage()
+                    new PrimitiveBackgroundPropertyBuilders.BackgroundImage()
             );
 
     /**
@@ -170,7 +171,7 @@ public final class CSSName implements Comparable<CSSName> {
                     PRIMITIVE,
                     "repeat",
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.BackgroundRepeat()
+                    new PrimitiveBackgroundPropertyBuilders.BackgroundRepeat()
             );
 
     /**
@@ -182,7 +183,7 @@ public final class CSSName implements Comparable<CSSName> {
                     PRIMITIVE,
                     "scroll",
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.BackgroundAttachment()
+                    new PrimitiveBackgroundPropertyBuilders.BackgroundAttachment()
             );
 
     /**
@@ -194,7 +195,7 @@ public final class CSSName implements Comparable<CSSName> {
                     PRIMITIVE,
                     "0% 0%",
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.BackgroundPosition()
+                    new PrimitiveBackgroundPropertyBuilders.BackgroundPosition()
             );
 
     public final static CSSName BACKGROUND_SIZE =
@@ -203,7 +204,7 @@ public final class CSSName implements Comparable<CSSName> {
                 PRIMITIVE,
                 "auto auto",
                 NOT_INHERITED,
-                new PrimitivePropertyBuilders.BackgroundSize()
+                new PrimitiveBackgroundPropertyBuilders.BackgroundSize()
         );
 
     /**

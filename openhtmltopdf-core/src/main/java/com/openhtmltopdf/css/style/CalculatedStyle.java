@@ -21,6 +21,9 @@
 package com.openhtmltopdf.css.style;
 
 import java.awt.Cursor;
+import java.lang.annotation.Documented;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -53,6 +56,8 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.WebDoc;
+import com.openhtmltopdf.util.WebDocLocations;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRRuntimeException;
 
@@ -309,47 +314,6 @@ public class CalculatedStyle {
         } else {
             return asColor(CSSName.BACKGROUND_COLOR);
         }
-    }
-
-    public BackgroundSize getBackgroundSize() {
-        if (_backgroundSize == null) {
-            _backgroundSize = createBackgroundSize();
-        }
-
-        return _backgroundSize;
-    }
-
-    private BackgroundSize createBackgroundSize() {
-        FSDerivedValue value = valueByName(CSSName.BACKGROUND_SIZE);
-        if (value instanceof IdentValue) {
-            IdentValue ident = (IdentValue)value;
-            if (ident == IdentValue.COVER) {
-                return new BackgroundSize(false, true, false);
-            } else if (ident == IdentValue.CONTAIN) {
-                return new BackgroundSize(true, false, false);
-            }
-        } else {
-            ListValue valueList = (ListValue)value;
-            List<PropertyValue> values = valueList.getValues();
-            boolean firstAuto = values.get(0).getIdentValue() == IdentValue.AUTO;
-            boolean secondAuto = values.get(1).getIdentValue() == IdentValue.AUTO;
-
-            if (firstAuto && secondAuto) {
-                return new BackgroundSize(false, false, true);
-            } else {
-                return new BackgroundSize(values.get(0), values.get(1));
-            }
-        }
-
-        throw new RuntimeException("internal error");
-    }
-
-    public BackgroundPosition getBackgroundPosition() {
-        ListValue result = (ListValue) valueByName(CSSName.BACKGROUND_POSITION);
-        List<PropertyValue> values = result.getValues();
-
-        return new BackgroundPosition(
-                values.get(0), values.get(1));
     }
 
     public List<CounterData> getCounterReset() {
@@ -797,16 +761,8 @@ public class CalculatedStyle {
         return ! isIdent(CSSName.CLEAR, IdentValue.NONE);
     }
 
-    public IdentValue getBackgroundRepeat() {
-        return getIdent(CSSName.BACKGROUND_REPEAT);
-    }
-
-    public IdentValue getBackgroundAttachment() {
-        return getIdent(CSSName.BACKGROUND_ATTACHMENT);
-    }
-
-    public boolean isFixedBackground() {
-        return getIdent(CSSName.BACKGROUND_ATTACHMENT) == IdentValue.FIXED;
+    public IdentValue getBackgroundRepeat(PropertyValue value) {
+        return value.getIdentValue();
     }
 
     public boolean isInline() {
@@ -1017,14 +973,12 @@ public class CalculatedStyle {
         return valueByName(CSSName.OVERFLOW) == IdentValue.VISIBLE;
     }
 
-    public boolean isHorizontalBackgroundRepeat() {
-        IdentValue value = getIdent(CSSName.BACKGROUND_REPEAT);
-        return value == IdentValue.REPEAT_X || value == IdentValue.REPEAT;
+    public boolean isHorizontalBackgroundRepeat(PropertyValue value) {
+        return value.getIdentValue() == IdentValue.REPEAT_X || value.getIdentValue() == IdentValue.REPEAT;
     }
 
-    public boolean isVerticalBackgroundRepeat() {
-        IdentValue value = getIdent(CSSName.BACKGROUND_REPEAT);
-        return value == IdentValue.REPEAT_Y || value == IdentValue.REPEAT;
+    public boolean isVerticalBackgroundRepeat(PropertyValue value) {
+        return value.getIdentValue() == IdentValue.REPEAT_Y || value.getIdentValue() == IdentValue.REPEAT;
     }
 
     public boolean isTopAuto() {
@@ -1232,11 +1186,6 @@ public class CalculatedStyle {
         return isCollapseBorders() || isIdent(CSSName.EMPTY_CELLS, IdentValue.SHOW);
     }
 
-    public boolean isHasBackground() {
-        return ! (isIdent(CSSName.BACKGROUND_COLOR, IdentValue.TRANSPARENT) &&
-                isIdent(CSSName.BACKGROUND_IMAGE, IdentValue.NONE));
-    }
-
     public List<IdentValue> getTextDecorations() {
         FSDerivedValue value = valueByName(CSSName.TEXT_DECORATION);
         if (value == IdentValue.NONE) {
@@ -1399,19 +1348,101 @@ public class CalculatedStyle {
 		}
 	}
 
-    public boolean isLinearGradient() {
-        FSDerivedValue value = valueByName(CSSName.BACKGROUND_IMAGE);    	
-        return value instanceof FunctionValue &&
-               Objects.equals(((FunctionValue) value).getFunction().getName(), "linear-gradient");
+    public boolean isHasBackground() {
+        return !isIdent(CSSName.BACKGROUND_COLOR, IdentValue.TRANSPARENT) ||
+               isHasBackgroundImage();
     }
 
-    public FSLinearGradient getLinearGradient(CssContext cssContext, int boxWidth, int boxHeight) {
-        if (!isLinearGradient()) {
+    public boolean isHasBackgroundImage() {
+        List<PropertyValue> backgroundImages = ((ListValue) valueByName(CSSName.BACKGROUND_IMAGE)).getValues();
+
+        if (backgroundImages.size() == 1) {
+            return backgroundImages.get(0).getIdentValue() != IdentValue.NONE;
+        } else {
+            return backgroundImages.stream().anyMatch(val -> val.getIdentValue() != IdentValue.NONE);
+        }
+    }
+
+    public enum BackgroundImageType {
+        URI, GRADIENT, NONE;
+    }
+
+    public static class BackgroundContainer {
+        public BackgroundImageType type;
+        public PropertyValue imageGradientOrNone;
+
+        public BackgroundPosition backgroundPosition;
+        public BackgroundSize backgroundSize;
+        public PropertyValue backgroundRepeat;
+    }
+
+    public boolean isLinearGradient(PropertyValue value) {
+        return value.getPropertyValueType() == PropertyValue.VALUE_TYPE_FUNCTION &&
+               Objects.equals(value.getFunction().getName(), "linear-gradient");
+    }
+
+    public FSLinearGradient getLinearGradient(
+            PropertyValue value, CssContext cssContext, int boxWidth, int boxHeight) {
+
+        if (!isLinearGradient(value)) {
             return null;
         }
 
-        FunctionValue value = (FunctionValue) valueByName(CSSName.BACKGROUND_IMAGE);
         return new FSLinearGradient(this, value.getFunction(), boxWidth, boxHeight, cssContext);
+    }
+
+    /**
+     * Gets the values of the background properties and combines in a list
+     * of BackgroundContainer values.
+     */
+    @WebDoc(WebDocLocations.CSS_BACKGROUND_PROPERTIES)
+    public List<BackgroundContainer> getBackgroundImages() {
+        List<PropertyValue> images = ((ListValue) valueByName(CSSName.BACKGROUND_IMAGE)).getValues();
+        List<PropertyValue> positions = ((ListValue) valueByName(CSSName.BACKGROUND_POSITION)).getValues();
+        List<PropertyValue> repeats = ((ListValue) valueByName(CSSName.BACKGROUND_REPEAT)).getValues();
+        List<PropertyValue> sizes = ((ListValue) valueByName(CSSName.BACKGROUND_SIZE)).getValues();
+
+        assert positions.size() % 2 == 0;
+        assert sizes.size() % 2 == 0;
+
+        List<BackgroundPosition> posPairs = new ArrayList<>(positions.size() / 2);
+        for (int i = 0; i < positions.size(); i += 2) {
+            posPairs.add(new BackgroundPosition(positions.get(i), positions.get(i + 1)));
+        }
+
+        List<BackgroundSize> sizePairs = new ArrayList<>(sizes.size() / 2);
+        for (int i = 0; i < sizes.size(); i += 2) {
+            sizePairs.add(new BackgroundSize(sizes.get(i), sizes.get(i + 1)));
+        }
+
+        List<BackgroundContainer> backgrounds = new ArrayList<>(images.size());
+
+        for (int i = 0; i < images.size(); i++) {
+            BackgroundContainer bg = new BackgroundContainer();
+            PropertyValue img = images.get(i);
+
+            if (isLinearGradient(img)) {
+                bg.type = BackgroundImageType.GRADIENT;
+            } else if (img.getIdentValue() == IdentValue.NONE) {
+                bg.type = BackgroundImageType.NONE;
+            } else {
+                bg.type = BackgroundImageType.URI;
+            }
+
+            bg.imageGradientOrNone = img;
+
+            // If less background-position values are provided than images,
+            // they must repeat.
+            bg.backgroundPosition = posPairs.get(i % posPairs.size());
+            bg.backgroundSize = sizePairs.get(i % sizePairs.size());
+            bg.backgroundRepeat = repeats.get(i % repeats.size());
+
+            backgrounds.add(bg);
+        }
+
+        // Pre-reverse the images, from back to front.
+        Collections.reverse(backgrounds);
+        return backgrounds;
     }
 }
 

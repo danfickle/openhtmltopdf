@@ -20,6 +20,8 @@
 package com.openhtmltopdf.css.parser.property;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -29,7 +31,10 @@ import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
+import com.openhtmltopdf.util.WebDoc;
+import com.openhtmltopdf.util.WebDocLocations;
 
+@WebDoc(WebDocLocations.CSS_BACKGROUND_PROPERTIES)
 public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
     // [<'background-color'> || <'background-image'> || <'background-repeat'> || 
     // <'background-attachment'> || <'background-position'>] | inherit 
@@ -93,18 +98,18 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                     }
                     
                     backgroundRepeat = new PropertyDeclaration(
-                            CSSName.BACKGROUND_REPEAT, value, important, origin);
+                            CSSName.BACKGROUND_REPEAT, new PropertyValue(Collections.singletonList(value)), important, origin);
                 }
                 
                 if (PrimitivePropertyBuilders.BACKGROUND_ATTACHMENTS.get(ident.FS_ID)) {
                     if (backgroundAttachment != null) {
                         throw new CSSParseException("A background-attachment value cannot be set twice", -1);
                     }
-                    
+
                     backgroundAttachment = new PropertyDeclaration(
-                            CSSName.BACKGROUND_ATTACHMENT, value, important, origin);
+                            CSSName.BACKGROUND_ATTACHMENT, new PropertyValue(Collections.singletonList(value)), important, origin);
                 }
-                
+
                 if (ident == IdentValue.TRANSPARENT) {
                     if (backgroundColor != null) {
                         throw new CSSParseException("A background-color value cannot be set twice", -1);
@@ -118,11 +123,13 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                     if (backgroundImage != null) {
                         throw new CSSParseException("A background-image value cannot be set twice", -1);
                     }
-                    
+
+                    List<PropertyValue> bgImages = Collections.singletonList(value);
+
                     backgroundImage = new PropertyDeclaration(
-                            CSSName.BACKGROUND_IMAGE, value, important, origin);
+                            CSSName.BACKGROUND_IMAGE, new PropertyValue(bgImages), important, origin);
                 }
-                
+
                 if (PrimitivePropertyBuilders.BACKGROUND_POSITIONS.get(ident.FS_ID)) {
                     processingBackgroundPosition = true;
                 }
@@ -137,9 +144,11 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
                 if (backgroundImage != null) {
                     throw new CSSParseException("A background-image value cannot be set twice", -1);
                 }
-                
+
+                List<PropertyValue> bgImages = Collections.singletonList(value);
+
                 backgroundImage = new PropertyDeclaration(
-                        CSSName.BACKGROUND_IMAGE, value, important, origin);
+                        CSSName.BACKGROUND_IMAGE, new PropertyValue(bgImages), important, origin);
             }
             
             if (processingBackgroundPosition || isLength(value) || type == CSSPrimitiveValue.CSS_PERCENTAGE) {
@@ -167,23 +176,24 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
             backgroundColor = new PropertyDeclaration(
                     CSSName.BACKGROUND_COLOR, new PropertyValue(IdentValue.TRANSPARENT), important, origin);
         }
-        
+
         if (backgroundImage == null) {
+            List<PropertyValue> bgImages = Collections.singletonList(new PropertyValue(IdentValue.NONE));
+
             backgroundImage = new PropertyDeclaration(
-                    CSSName.BACKGROUND_IMAGE, new PropertyValue(IdentValue.NONE), important, origin);
+                    CSSName.BACKGROUND_IMAGE, new PropertyValue(bgImages), important, origin);
         }
-        
+
         if (backgroundRepeat == null) {
             backgroundRepeat = new PropertyDeclaration(
-                    CSSName.BACKGROUND_REPEAT, new PropertyValue(IdentValue.REPEAT), important, origin);
+                    CSSName.BACKGROUND_REPEAT, new PropertyValue(Collections.singletonList(new PropertyValue(IdentValue.REPEAT))), important, origin);
         }
-        
+
         if (backgroundAttachment == null) {
             backgroundAttachment = new PropertyDeclaration(
-                    CSSName.BACKGROUND_ATTACHMENT, new PropertyValue(IdentValue.SCROLL), important, origin);
-            
+                    CSSName.BACKGROUND_ATTACHMENT, new PropertyValue(Collections.singletonList(new PropertyValue(IdentValue.SCROLL))), important, origin);
         }
-        
+
         if (backgroundPosition == null) {
             List<PropertyValue> v = new ArrayList<>(2);
             v.add(new PropertyValue(CSSPrimitiveValue.CSS_PERCENTAGE, 0.0f, "0%"));
@@ -191,14 +201,9 @@ public class BackgroundPropertyBuilder extends AbstractPropertyBuilder {
             backgroundPosition = new PropertyDeclaration(
                     CSSName.BACKGROUND_POSITION, new PropertyValue(v), important, origin);
         }
-        
-        result = new ArrayList<>(5);
-        result.add(backgroundColor);
-        result.add(backgroundImage);
-        result.add(backgroundRepeat);
-        result.add(backgroundAttachment);
-        result.add(backgroundPosition);
-        
-        return result;
+
+        return Arrays.asList(
+           backgroundColor, backgroundImage, backgroundRepeat,
+           backgroundAttachment, backgroundPosition);
     }
 }
