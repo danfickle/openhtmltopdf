@@ -160,7 +160,7 @@ public class ListItemPainter {
             x += -text.getLayoutWidth();
         }
         if (box.getStyle().getDirection() == IdentValue.RTL){
-            x += markerData.getReferenceLine().getWidth();x
+            x += markerData.getReferenceLine().getWidth();
         }
         c.getOutputDevice().setColor(box.getStyle().getColor());
         c.getOutputDevice().setFont(box.getStyle().getFSFont(c));
