@@ -25,6 +25,9 @@ import java.awt.Rectangle;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.bidi.BidiSplitter;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -383,9 +386,12 @@ public class BlockBox extends Box implements InlinePaintable {
                 text);
 
         MarkerData.TextMarker result = new MarkerData.TextMarker();
-        result.setText(text);
         result.setLayoutWidth(w);
-
+        if (getStyle().getDirection() == IdentValue.RTL) {
+            BidiReorderer bidi = c.getBidiReorderer();
+            text = bidi.reorderRTLTextToLTR(text);
+        }
+        result.setText(text);
         return result;
     }
 

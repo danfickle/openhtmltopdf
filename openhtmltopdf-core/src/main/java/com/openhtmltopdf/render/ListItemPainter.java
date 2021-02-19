@@ -152,11 +152,16 @@ public class ListItemPainter {
 
     private static void drawText(RenderingContext c, BlockBox box, IdentValue listStyle) {
         MarkerData.TextMarker text = box.getMarkerData().getTextMarker();
-        
         int x = getReferenceX(c, box);
-        x += -text.getLayoutWidth();
         int y = getReferenceBaseline(c, box);
-
+        // calculations for numbered lists
+        MarkerData markerData = box.getMarkerData();
+        if (box.getStyle().getDirection() == IdentValue.LTR) {
+            x += -text.getLayoutWidth();
+        }
+        if (box.getStyle().getDirection() == IdentValue.RTL){
+            x += markerData.getReferenceLine().getWidth();x
+        }
         c.getOutputDevice().setColor(box.getStyle().getColor());
         c.getOutputDevice().setFont(box.getStyle().getFSFont(c));
         if (c.getOutputDevice() instanceof AbstractOutputDevice) {
