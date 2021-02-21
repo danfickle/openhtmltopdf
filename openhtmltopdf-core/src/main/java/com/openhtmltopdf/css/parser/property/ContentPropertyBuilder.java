@@ -99,6 +99,6 @@ public class ContentPropertyBuilder extends AbstractPropertyBuilder {
         String name = function.getName();
         return name.equals("attr") || name.equals("counter") || name.equals("counters") ||
             name.equals("element") || name.startsWith("-fs") || name.equals("target-counter") ||
-            name.equals("leader");
+            name.equals("leader") || name.startsWith("target-text");
     }
 }
