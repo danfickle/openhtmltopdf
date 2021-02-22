@@ -25,6 +25,7 @@ import java.awt.RenderingHints;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.FSImage;
 
 /**
@@ -154,14 +155,22 @@ public class ListItemPainter {
         MarkerData.TextMarker text = box.getMarkerData().getTextMarker();
         int x = getReferenceX(c, box);
         int y = getReferenceBaseline(c, box);
+
         // calculations for numbered lists
         MarkerData markerData = box.getMarkerData();
-        if (box.getStyle().getDirection() == IdentValue.LTR) {
+
+        // Chrome uses the direction determined for the ol for all list-items.
+        IdentValue direction = box.getParent().getStyle().getDirection();
+
+        if (direction == IdentValue.RTL){
+            x = markerData.getReferenceLine() != null ?
+                 x + markerData.getReferenceLine().getWidth() :
+                 box.getParent().getAbsX() + box.getParent().getWidth() - (int) box.getParent().getPadding(c).right();
+        } else {
+            assert direction == IdentValue.LTR || direction == IdentValue.AUTO;
             x += -text.getLayoutWidth();
         }
-        if (box.getStyle().getDirection() == IdentValue.RTL){
-            x += markerData.getReferenceLine().getWidth();
-        }
+
         c.getOutputDevice().setColor(box.getStyle().getColor());
         c.getOutputDevice().setFont(box.getStyle().getFSFont(c));
         if (c.getOutputDevice() instanceof AbstractOutputDevice) {

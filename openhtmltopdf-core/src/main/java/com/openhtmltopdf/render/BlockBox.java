@@ -378,7 +378,14 @@ public class BlockBox extends Box implements InlinePaintable {
         int listCounter = getListCounter();
         text = CounterFunction.createCounterText(listStyle, listCounter);
 
-        text += ".  ";
+        IdentValue listDirection = getParent().getStyle().getDirection();
+
+        if (listDirection == IdentValue.RTL) {
+            text = "  .".concat(text);
+        } else {
+            assert listDirection == IdentValue.LTR || listDirection == IdentValue.AUTO;
+            text = text.concat(".  ");
+        }
 
         int w = c.getTextRenderer().getWidth(
                 c.getFontContext(),
@@ -386,12 +393,10 @@ public class BlockBox extends Box implements InlinePaintable {
                 text);
 
         MarkerData.TextMarker result = new MarkerData.TextMarker();
+
         result.setLayoutWidth(w);
-        if (getStyle().getDirection() == IdentValue.RTL) {
-            BidiReorderer bidi = c.getBidiReorderer();
-            text = bidi.reorderRTLTextToLTR(text);
-        }
         result.setText(text);
+
         return result;
     }
 
