@@ -17,6 +17,12 @@
         content: url(../../demos/images/flyingsaucer.png) "..." url(../../demos/images/flyingsaucer.png);
     }
 }
+table {
+  line-height: 100%;
+}
+table tr {
+  font-size: small;
+}
 body {
     margin: 10px;
     max-width: 340px;
@@ -37,12 +43,28 @@ body {
     background-color: orange;
     content: url(../../demos/images/flyingsaucer.png) "..." url(../../demos/images/flyingsaucer.png);
 }
+#four::after {
+  content: "Table: " target-text(attr(href)) leader(dotted) target-counter(attr(href), page);
+}
+#five::after {
+  content: target-text(attr(href)) leader(dotted) target-counter(attr(href), page);
+}
 </style>
 </head>
 <body>
   <a id="zero" href="#three" style="display: inline-block;width: 100%;"></a>
+  <a id="four" href="#table" style="display: inline-block;width: 100%;"></a>
+  <a id="five" href="#title" style="display: inline-block;width: 100%;"></a>
   <div id="one">ONE</div>
   <div id="two" data-msg="HELLO"> WORLD</div>
   <div id="three" style="page-break-before: always;width: 150%; background-color: gray;color: white;">With images: </div>
+  <h1 id="title" style="font-size: medium">Title 1</h1>
+  <table>
+    <caption id="table" style="font-size: x-small">Population by country</caption>
+    <thead><tr><th>Country</th><th>World share</th></tr></thead>
+    <tbody><tr><td>China</td><td>18.47%</td></tr></tbody>
+    <tbody><tr><td>India</td><td>17.70%</td></tr></tbody>
+    <tbody><tr><td>United States</td><td>4.25%</td></tr></tbody>
+    </table>
 </body>
 </html>

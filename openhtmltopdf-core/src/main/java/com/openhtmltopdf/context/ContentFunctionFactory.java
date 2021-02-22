@@ -44,6 +44,7 @@ public class ContentFunctionFactory {
         _functions.add(new PageCounterFunction());
         _functions.add(new PagesCounterFunction());
         _functions.add(new TargetCounterFunction());
+        _functions.add(new TargetTextFunction());
         _functions.add(new LeaderFunction());
         _functions.add(new FsIfCutOffFunction());
     }
@@ -228,6 +229,56 @@ public class ContentFunctionFactory {
                 }
             }
             
+            return false;
+        }
+    }
+
+
+    private static class TargetTextFunction implements ContentFunction {
+        @Override
+        public boolean isStatic() {
+            return false;
+        }
+
+        @Override
+        public String calculate(RenderingContext c, FSFunction function, InlineText text) {
+            String uri = text.getParent().getElement().getAttribute("href");
+            if (uri != null && uri.startsWith("#")) {
+                String anchor = uri.substring(1);
+                Box target = c.getBoxById(anchor);
+                if (target != null) {
+                    StringBuilder strBuilder = new StringBuilder();
+                    target.collectText(c, strBuilder);
+                    return strBuilder.toString();
+                }
+            }
+            return "";
+        }
+
+        @Override
+        public String calculate(LayoutContext c, FSFunction function) {
+            return null;
+        }
+
+        @Override
+        public String getLayoutReplacementText() {
+            return "ABCABC";
+        }
+
+        @Override
+        public boolean canHandle(LayoutContext c, FSFunction function) {
+            if (c.isPrint() && function.getName().equals("target-text")) {
+                List<PropertyValue> parameters = function.getParameters();
+                if(parameters.size() == 1) {
+                    FSFunction f = parameters.get(0).getFunction();
+                    if (f == null ||
+                            f.getParameters().size() != 1 ||
+                            ! f.getParameters().get(0).getStringValue().equals("href")) {
+                        return false;
+                    }
+                    return true;
+                }
+            }
             return false;
         }
     }
