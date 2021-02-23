@@ -511,6 +511,15 @@ public class TextVisualRegressionTest {
     }
 
     /**
+     * Tests that list numbers are placed correctly for RTL ol elements.
+     * https://github.com/danfickle/openhtmltopdf/pull/655
+     */
+    @Test
+    public void testPr655RtlNumericList() throws IOException {
+        assertTrue(vtester.runTest("pr-655-rtl-numeric-list", TestSupport.WITH_ARABIC));
+    }
+
+    /**
      * Tests that rtl and bidi with text-align: justify works correctly.
      */
     @Test

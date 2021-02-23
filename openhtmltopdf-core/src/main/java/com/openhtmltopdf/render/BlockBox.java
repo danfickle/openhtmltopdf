@@ -25,6 +25,9 @@ import java.awt.Rectangle;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.openhtmltopdf.bidi.BidiReorderer;
+import com.openhtmltopdf.bidi.BidiSplitter;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -375,7 +378,14 @@ public class BlockBox extends Box implements InlinePaintable {
         int listCounter = getListCounter();
         text = CounterFunction.createCounterText(listStyle, listCounter);
 
-        text += ".  ";
+        IdentValue listDirection = getParent().getStyle().getDirection();
+
+        if (listDirection == IdentValue.RTL) {
+            text = "  .".concat(text);
+        } else {
+            assert listDirection == IdentValue.LTR || listDirection == IdentValue.AUTO;
+            text = text.concat(".  ");
+        }
 
         int w = c.getTextRenderer().getWidth(
                 c.getFontContext(),
@@ -383,8 +393,9 @@ public class BlockBox extends Box implements InlinePaintable {
                 text);
 
         MarkerData.TextMarker result = new MarkerData.TextMarker();
-        result.setText(text);
+
         result.setLayoutWidth(w);
+        result.setText(text);
 
         return result;
     }

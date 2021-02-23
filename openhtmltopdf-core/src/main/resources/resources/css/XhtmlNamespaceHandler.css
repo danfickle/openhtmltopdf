@@ -76,6 +76,11 @@ small           { font-size: .83em }
 s, strike, del  { text-decoration: line-through }
 ol, ul, dir,
 menu            { padding-left: 40px }
+ol[dir="rtl"] {
+  /* Use padding-inline-start when available. */
+  padding-right: 40px;
+  padding-left: 0;
+}
 dd              { margin-left: 40px }
 ul              { list-style-type: disc }
 ol              { list-style-type: decimal }
