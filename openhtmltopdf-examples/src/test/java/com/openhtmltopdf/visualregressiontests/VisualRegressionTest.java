@@ -1376,6 +1376,15 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Combinations of inline-blocks with other display and positioned
+     * content.
+     */
+    @Test
+    public void testIssue642InlineBlocks() throws IOException {
+        assertTrue(vt.runTest("issue-642-inline-blocks"));
+    }
+
+    /**
      * Tests that the background-image property allows multiple values.
      */
     @Test
