@@ -120,13 +120,15 @@ public class DisplayListPainter {
 				OperatorSetClip setClip = (OperatorSetClip) dli;
 				setClip(c, setClip);
 			} else if (dli instanceof BlockBox) {
-			    // Inline blocks need to be painted as a layer.
-			    BlockBox bb = (BlockBox) dli;
-			    List<PageBox> pageBoxes = bb.getContainingLayer().getPages();
-			    DisplayListCollector dlCollector = new DisplayListCollector(pageBoxes);
-			    DisplayListPageContainer pageInstructions = dlCollector.collectInlineBlock(c, bb, EnumSet.noneOf(CollectFlags.class), c.getShadowPageNumber());
-			
-			    paint(c, pageInstructions);
+                // Inline blocks need to be painted as a layer, if not already done so.
+                BlockBox bb = (BlockBox) dli;
+                if (!bb.getStyle().requiresLayer()) {
+                    List<PageBox> pageBoxes = bb.getContainingLayer().getPages();
+                    DisplayListCollector dlCollector = new DisplayListCollector(pageBoxes);
+                    DisplayListPageContainer pageInstructions = dlCollector.collectInlineBlock(c, bb, EnumSet.noneOf(CollectFlags.class), c.getShadowPageNumber());
+
+                    paint(c, pageInstructions);
+               }
 			} else {
                 InlinePaintable paintable = (InlinePaintable) dli;
                 Object token = c.getOutputDevice().startStructure(StructureType.INLINE, (Box) dli);

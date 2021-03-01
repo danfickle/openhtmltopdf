@@ -1,0 +1,56 @@
+<html>
+<head>
+<style>
+@page {
+  size: 150px 200px;
+  margin: 0;
+  margin-top: 20px;
+
+  @top-left {
+    content: element(runner);
+  }
+}
+@page:first {
+  size: 150px 500px;
+  @top-left {
+    content: none;
+  }
+  margin-top: 0;
+}
+body {
+  margin: 10px;
+  max-width: 130px;
+}
+</style>
+</head>
+<body>
+<!-- inline block running element -->
+<div style="display: inline-block; position: running(runner);">
+SIX<span style="display: inline-block; transform: rotate(-20deg);">TEEN</span>
+</div>
+<!-- fixed inline block -->
+<div style="position:fixed;top:0;left:0;display:inline-block;">ONE</div>
+<!-- inline block inside fixed -->
+<div style="position:fixed;top:50px;left:0;">TWO <span style="display:inline-block;">THREE</span></div>
+<!-- absolute inline block -->
+<div style="position:absolute;top:100px;left:0;display:inline-block;">FOUR</div>
+<!-- inline block inside absolute -->
+<div style="position:absolute;top:150px;left:0;">FIVE <span style="display:inline-block;">SIX</span></div>
+<div></div>
+<div style="margin-top: 200px;">SPACER</div>
+<!-- inline block inside table -->
+<table><tr><td><span style="display: inline-block;">SEVEN</span></td></tr></table>
+<!-- floating inline block -->
+<span style="display: inline-block;float: left;">EIGHT</span>
+<!-- cleared inline block -->
+<span style="display: block; clear: both;"><span style="display: inline-block;">NINE</span></span>
+<!-- absolute inside inline block -->
+<span style="display: inline-block; position: relative; width: 90%;">TEN <div style="position: absolute; top: 0; right: 0;">ELEVEN</div></span>
+<!-- transformed inline block inside transformed inline block -->
+<span style="display: inline-block; transform: scale(2, 1); margin-left: 30px;">TWELVE<span style="display: inline-block; transform: rotate(180deg);">THIRTEEN</span></span>
+<div style="page-break-before: always; margin-top: 100px;">NEW PAGE</div>
+<!-- inline block on new page -->
+<span style="display: inline-block; transform: scale(2, 1); margin-left: 30px;">FOURTEEN<span style="display: inline-block; transform: rotate(180deg);">FIFTEEN</span></span>
+
+</body>
+</html>

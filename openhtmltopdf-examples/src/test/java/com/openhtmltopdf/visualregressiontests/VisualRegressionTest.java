@@ -1367,12 +1367,21 @@ public class VisualRegressionTest {
     /**
      * Transforms on inline-block or inline elements output twice,
      * once as the non-transformed output and once as transformed.
+     * Also affected inline-blocks with a z-index.
      * https://github.com/danfickle/openhtmltopdf/issues/642
      */
     @Test
-    @Ignore // Not debugged yet.
     public void testIssue642TransformInline() throws IOException {
         assertTrue(vt.runTest("issue-642-transform-inline"));
+    }
+
+    /**
+     * Combinations of inline-blocks with other display and positioned
+     * content.
+     */
+    @Test
+    public void testIssue642InlineBlocks() throws IOException {
+        assertTrue(vt.runTest("issue-642-inline-blocks"));
     }
 
     /**
