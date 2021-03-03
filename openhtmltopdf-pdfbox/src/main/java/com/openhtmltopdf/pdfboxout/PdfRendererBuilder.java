@@ -173,6 +173,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 */
 	public PdfRendererBuilder usePdfAConformance(PdfAConformance pdfAConformance) {
 		this.state._pdfAConformance = pdfAConformance;
+		this.state._pdfVersion = pdfAConformance.getPdfVersion();
 		return this;
 	}
 	
@@ -301,18 +302,20 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * PDF/A-1, PDF/A-2 and PDF/A-3
 	 */
 	public enum PdfAConformance {
-		NONE(-1, ""),
-		PDFA_1_A(1, "A"), PDFA_1_B(1, "B"),
-		PDFA_2_A(2, "A"), PDFA_2_B(2, "B"), PDFA_2_U(2, "U"),
-		PDFA_3_A(3, "A"), PDFA_3_B(3, "B"), PDFA_3_U(3, "U");
+		NONE(-1, "", 0f),
+		PDFA_1_A(1, "A", 1.4f), PDFA_1_B(1, "B", 1.4f),
+		PDFA_2_A(2, "A", 1.7f), PDFA_2_B(2, "B", 1.7f), PDFA_2_U(2, "U", 1.7f),
+		PDFA_3_A(3, "A", 1.7f), PDFA_3_B(3, "B", 1.7f), PDFA_3_U(3, "U", 1.7f);
 
-		PdfAConformance(int part, String value) {
+		PdfAConformance(int part, String value, float pdfVersion) {
 			this.part = part;
 			this.value = value;
+			this.pdfVersion = pdfVersion;
 		}
 
 		private final int part;
 		private final String value;
+		private final float pdfVersion;
 		
 		public String getConformanceValue() {
 		    return this.value;
@@ -320,6 +323,10 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 
 		public int getPart() {
 			return this.part;
+		}
+
+		public float getPdfVersion() {
+			return this.pdfVersion;
 		}
 	}
 }

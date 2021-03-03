@@ -42,6 +42,7 @@ public interface LogMessageId {
         GENERAL_PDF_SPECIFIED_FONTS_DONT_CONTAIN_A_SPACE_CHARACTER(XRLog.GENERAL, "Specified fonts don't contain a space character!"),
         GENERAL_PDF_USING_FAST_MODE(XRLog.GENERAL, "Using fast-mode renderer. Prepare to fly."),
         GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_TITLE_PROVIDED(XRLog.GENERAL, "No document title provided. Document will not be PDF/UA compliant."),
+        GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_DESCRIPTION_PROVIDED(XRLog.GENERAL, "No document description provided. Document will not be PDF/UA compliant."),
         GENERAL_PDF_USING_GET_REQUEST_FOR_FORM(XRLog.GENERAL, "Using GET request method for form. You probably meant to add a method=\"post\" attribute to your form"),
         GENERAL_PDF_ACROBAT_READER_DOES_NOT_SUPPORT_FORMS_WITH_FILE_INPUT(XRLog.GENERAL, "Acrobat Reader does not support forms with file input controls"),
 
