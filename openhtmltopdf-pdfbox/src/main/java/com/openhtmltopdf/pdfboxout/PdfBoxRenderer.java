@@ -804,7 +804,8 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                 XMPSchema pdfUa = createPdfaSchema("PDF/UA Universal Accessibility Schema", "http://www.aiim.org/pdfua/ns/id/", "pdfuaid" , pdfUaProperties);
                 pdfAExt.addBagValue("schemas", pdfUa);
                 pdfAExt.addNamespace("http://www.aiim.org/pdfua/ns/id/", "pdfuaid");
-                pdfAExt.setTextPropertyValue("pdfuaid:part", "1");
+                pdfAExt.setPrefix("pdfuaid");
+                pdfAExt.setTextPropertyValue("part", "1");
             }
 
             PDMetadata metadataStream = new PDMetadata(document);
@@ -825,9 +826,8 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             serializer.serialize(metadata, baos, true);
             String xmp = baos.toString("UTF-8");
-            // Fixes for bad XML generation
-            xmp = xmp.replace("lang=", "xml:lang=");
-            xmp = xmp.replace("pdfaExtension:pdfuaid:part", "pdfuaid:part");
+            // Fix for bad XML generation by some transformers
+            xmp = xmp.replace(" lang=\"x-default\"", " xml:lang=\"x-default\"");
             metadataStream.importXMPMetadata(xmp.getBytes(StandardCharsets.UTF_8));
 
             if (_colorProfile != null) {
