@@ -35,6 +35,7 @@ import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.extend.FSDOMMutator;
+import com.openhtmltopdf.outputdevice.helper.NullUserInterface;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
@@ -65,11 +66,7 @@ import org.apache.pdfbox.pdmodel.encryption.PDEncryption;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.apache.xmpbox.XMPMetadata;
-import org.apache.xmpbox.schema.AdobePDFSchema;
-import org.apache.xmpbox.schema.DublinCoreSchema;
-import org.apache.xmpbox.schema.PDFAIdentificationSchema;
-import org.apache.xmpbox.schema.XMPBasicSchema;
-import org.apache.xmpbox.schema.XMPSchema;
+import org.apache.xmpbox.schema.*;
 import org.apache.xmpbox.type.BadFieldValueException;
 import org.apache.xmpbox.xml.XmpSerializer;
 import org.w3c.dom.Document;
@@ -84,6 +81,8 @@ import javax.xml.transform.stream.StreamResult;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
@@ -604,10 +603,8 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         firePreWrite(pageCount); // opportunity to adjust meta data
         setDidValues(doc); // set PDF header fields from meta data
         
-        if (_pdfUaConformance) {
-            addPdfUaXMPSchema(doc);
-        } else if (_pdfAConformance != PdfAConformance.NONE) {
-            addPdfASchema(doc, _pdfAConformance.getPart(), _pdfAConformance.getConformanceValue());
+        if (_pdfUaConformance || _pdfAConformance != PdfAConformance.NONE) {
+            addPdfASchema(doc, _pdfAConformance, _pdfUaConformance);
         }
         
         DisplayListCollector dlCollector = new DisplayListCollector(_root.getLayer().getPages());
@@ -685,8 +682,8 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         firePreWrite(pageCount); // opportunity to adjust meta data
         setDidValues(doc); // set PDF header fields from meta data
 
-        if (_pdfAConformance != PdfAConformance.NONE) {
-            addPdfASchema(doc, _pdfAConformance.getPart(), _pdfAConformance.getConformanceValue());
+        if (_pdfUaConformance || _pdfAConformance != PdfAConformance.NONE) {
+            addPdfASchema(doc, _pdfAConformance, _pdfUaConformance);
         }
 
         for (int i = 0; i < pageCount; i++) {
@@ -712,107 +709,105 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
     // Kindly provided by GurpusMaximus at:
     // https://stackoverflow.com/questions/49682339/how-can-i-create-an-accessible-pdf-with-java-pdfbox-2-0-8-library-that-is-also-v
-    private void addPdfUaXMPSchema(PDDocument doc) {
-        try 
-        {
-            PDDocumentCatalog catalog = doc.getDocumentCatalog();
-            String lang = _doc.getDocumentElement().getAttribute("lang");
-            catalog.setLanguage(!lang.isEmpty() ? lang : "EN-US");
-            catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
-            catalog.getViewerPreferences().setDisplayDocTitle(true);
-            
-            PDMarkInfo markInfo = new PDMarkInfo();
-            markInfo.setMarked(true);
-            catalog.setMarkInfo(markInfo);
-            
-            PDDocumentInformation info = doc.getDocumentInformation();
-            String title = info.getTitle() != null ? info.getTitle() : "";
-            
-            if (title.isEmpty()) {
-                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_TITLE_PROVIDED);
-            }
-            
-            XMPMetadata xmp = XMPMetadata.createXMPMetadata();
-            xmp.createAndAddDublinCoreSchema();
-            xmp.getDublinCoreSchema().setTitle(title);
-            String metaDescription = _outputDevice.getMetadataByName("description");
-            xmp.getDublinCoreSchema().setDescription(metaDescription != null ? metaDescription : title);
-            xmp.createAndAddPDFAExtensionSchemaWithDefaultNS();
-            xmp.getPDFExtensionSchema().addNamespace(
-                    "http://www.aiim.org/pdfa/ns/schema#", "pdfaSchema");
-            xmp.getPDFExtensionSchema().addNamespace(
-                    "http://www.aiim.org/pdfa/ns/property#", "pdfaProperty");
-            xmp.getPDFExtensionSchema().addNamespace(
-                    "http://www.aiim.org/pdfua/ns/id/", "pdfuaid");
-            XMPSchema uaSchema = new XMPSchema(XMPMetadata.createXMPMetadata(),
-                    "pdfaSchema", "pdfaSchema", "pdfaSchema");
-            uaSchema.setTextPropertyValue("schema",
-                    "PDF/UA Universal Accessibility Schema");
-            uaSchema.setTextPropertyValue("namespaceURI",
-                    "http://www.aiim.org/pdfua/ns/id/");
-            uaSchema.setTextPropertyValue("prefix", "pdfuaid");
-            XMPSchema uaProp = new XMPSchema(XMPMetadata.createXMPMetadata(),
-                    "pdfaProperty", "pdfaProperty", "pdfaProperty");
-            uaProp.setTextPropertyValue("name", "part");
-            uaProp.setTextPropertyValue("valueType", "Integer");
-            uaProp.setTextPropertyValue("category", "internal");
-            uaProp.setTextPropertyValue("description",
-                    "Indicates, which part of ISO 14289 standard is followed");
-            uaSchema.addUnqualifiedSequenceValue("property", uaProp);
-            xmp.getPDFExtensionSchema().addBagValue("schemas", uaSchema);
-            xmp.getPDFExtensionSchema().setPrefix("pdfuaid");
-            xmp.getPDFExtensionSchema().setTextPropertyValue("part", "1");
-            XmpSerializer serializer = new XmpSerializer();
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            serializer.serialize(xmp, baos, true);
-            PDMetadata metadata = new PDMetadata(doc);
-            metadata.importXMPMetadata(baos.toByteArray());
-            doc.getDocumentCatalog().setMetadata(metadata);
-        } catch (IOException|TransformerException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void addPdfASchema(PDDocument document, int part, String conformance) {
+    private void addPdfASchema(PDDocument document, PdfAConformance pdfAConformance, boolean isPdfUa) {
         PDDocumentInformation information = document.getDocumentInformation();
         XMPMetadata metadata = XMPMetadata.createXMPMetadata();
 
         try {
+            // NOTE: These XMP metadata MUST match up with the document information dictionary
+            // to be a valid PDF/A document, As per ISO 19005-1:2005/Cor.1:2007, 6.7.2
             String title = information.getTitle();
             String author = information.getAuthor();
             String subject = information.getSubject();
             String keywords = information.getKeywords();
+            String creator = information.getCreator();
             String producer = information.getProducer();
-            
-            // NOTE: The XMP metadata MUST match up with the document information dictionary
-            // to be a valid PDF/A document.
-            
-            PDFAIdentificationSchema pdfaid = metadata.createAndAddPFAIdentificationSchema();
-            pdfaid.setConformance(conformance);
-            pdfaid.setPart(part);
+            Calendar creationDate = information.getCreationDate();
+            Calendar modDate = information.getModificationDate();
 
-            AdobePDFSchema pdfSchema = metadata.createAndAddAdobePDFSchema();
-            if (keywords != null) {
-                pdfSchema.setKeywords(keywords);
+            if (isPdfUa && (title == null || title.isEmpty())) {
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_TITLE_PROVIDED);
             }
-            if (producer != null) {
-                pdfSchema.setProducer(producer);
+
+            if (pdfAConformance != PdfAConformance.NONE) {
+                PDFAIdentificationSchema pdfaid = metadata.createAndAddPFAIdentificationSchema();
+                pdfaid.setConformance(pdfAConformance.getConformanceValue());
+                pdfaid.setPart(pdfAConformance.getPart());
+
+                AdobePDFSchema pdfSchema = metadata.createAndAddAdobePDFSchema();
+                pdfSchema.setPDFVersion(String.valueOf(pdfAConformance.getPdfVersion()));
+                if (keywords != null) {
+                    pdfSchema.setKeywords(keywords);
+                }
+                if (producer != null) {
+                    pdfSchema.setProducer(producer);
+                }
+
+                XMPBasicSchema xmpBasicSchema = metadata.createAndAddXMPBasicSchema();
+                if (creator != null) {
+                    xmpBasicSchema.setCreatorTool(creator);
+                }
+                if (creationDate != null) {
+                    xmpBasicSchema.setCreateDate(creationDate);
+                }
+                if (modDate != null) {
+                    xmpBasicSchema.setModifyDate(modDate);
+                }
+
+
+                DublinCoreSchema dc = metadata.createAndAddDublinCoreSchema();
+                dc.setFormat("application/pdf");
+                if (author != null) {
+                    dc.addCreator(author);
+                }
+                if (title != null) {
+                    dc.setTitle(title);
+                }
+                if (subject != null) {
+                    dc.setDescription(subject);
+                } else if (isPdfUa) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_DESCRIPTION_PROVIDED);
+                }
             }
-            
-            XMPBasicSchema xmpBasicSchema = metadata.createAndAddXMPBasicSchema();
-            xmpBasicSchema.setCreateDate(information.getCreationDate());
-            
-            DublinCoreSchema dc = metadata.createAndAddDublinCoreSchema();
-            if (author != null) {
-                dc.addCreator(author);
+
+            PDFAExtensionSchema pdfAExt = metadata.createAndAddPDFAExtensionSchemaWithDefaultNS();
+            pdfAExt.addNamespace("http://www.aiim.org/pdfa/ns/extension/", "pdfaExtension");
+            pdfAExt.addNamespace("http://www.aiim.org/pdfa/ns/schema#", "pdfaSchema");
+            pdfAExt.addNamespace("http://www.aiim.org/pdfa/ns/property#", "pdfaProperty");
+
+            if (pdfAConformance != PdfAConformance.NONE) {
+                // Description of Adobe PDF Schema
+                List<XMPSchema> pdfProperties = new ArrayList<>(3);
+                pdfProperties.add(
+                        createPdfaProperty("internal", "The PDF file version.", "PDFVersion", "Text"));
+                pdfProperties.add(
+                        createPdfaProperty("external", "Keywords.", "Keywords", "Text"));
+                pdfProperties.add(
+                        createPdfaProperty("internal", "The name of the tool that created the PDF document.", "Producer", "AgentName"));
+                pdfAExt.addBagValue("schemas",
+                        createPdfaSchema("Adobe PDF Schema", "http://ns.adobe.com/pdf/1.3/", "pdf", pdfProperties));
+
+                // Description of PDF/A ID Schema
+                List<XMPSchema> pdfaidProperties = new ArrayList<>(2);
+                pdfaidProperties.add(
+                        createPdfaProperty("internal", "Part of PDF/A standard", "part", "Integer"));
+                pdfaidProperties.add(
+                        createPdfaProperty("internal", "Conformance level of PDF/A standard", "conformance", "Text"));
+                pdfAExt.addBagValue("schemas",
+                        createPdfaSchema("PDF/A ID Schema", "http://www.aiim.org/pdfa/ns/id/", "pdfaid", pdfaidProperties));
             }
-            if (title != null) {
-                dc.setTitle(title);
+            if (isPdfUa) {
+                // Description of PDF/UA
+                List<XMPSchema> pdfUaProperties = new ArrayList<>(1);
+                pdfUaProperties.add(
+                        createPdfaProperty("internal", "Indicates, which part of ISO 14289 standard is followed", "part", "Integer"));
+                XMPSchema pdfUa = createPdfaSchema("PDF/UA Universal Accessibility Schema", "http://www.aiim.org/pdfua/ns/id/", "pdfuaid" , pdfUaProperties);
+                pdfAExt.addBagValue("schemas", pdfUa);
+                pdfAExt.addNamespace("http://www.aiim.org/pdfua/ns/id/", "pdfuaid");
+                pdfAExt.setPrefix("pdfuaid");
+                pdfAExt.setTextPropertyValue("part", "1");
             }
-            if (subject != null) {
-                dc.setDescription(subject);
-            }
-            
+
             PDMetadata metadataStream = new PDMetadata(document);
             PDMarkInfo markInfo = new PDMarkInfo();
             markInfo.setMarked(true);
@@ -830,7 +825,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             XmpSerializer serializer = new XmpSerializer();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             serializer.serialize(metadata, baos, true);
-            metadataStream.importXMPMetadata( baos.toByteArray() );
+            String xmp = baos.toString("UTF-8");
+            // Fix for bad XML generation by some transformers
+            xmp = xmp.replace(" lang=\"x-default\"", " xml:lang=\"x-default\"");
+            metadataStream.importXMPMetadata(xmp.getBytes(StandardCharsets.UTF_8));
 
             if (_colorProfile != null) {
                 ByteArrayInputStream colorProfile = new ByteArrayInputStream(_colorProfile);
@@ -844,6 +842,30 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         } catch (BadFieldValueException | IOException | TransformerException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // Creates an XML Schema to be used in the PDFA Extension
+    private XMPSchema createPdfaSchema(String schema, String namespace, String prefix, List<XMPSchema> properties) {
+        XMPSchema xmpSchema = new XMPSchema(XMPMetadata.createXMPMetadata(),
+                "pdfaSchema", "pdfaSchema", "pdfaSchema");
+        xmpSchema.setTextPropertyValue("schema", schema);
+        xmpSchema.setTextPropertyValue("namespaceURI", namespace);
+        xmpSchema.setTextPropertyValue("prefix", prefix);
+        for (XMPSchema property : properties) {
+            xmpSchema.addUnqualifiedSequenceValue("property", property);
+        }
+        return xmpSchema;
+    }
+
+    // Creates an XML Property to be used in the PDFA Extension
+    private XMPSchema createPdfaProperty(String category, String description, String name, String valueType) {
+        XMPSchema xmpSchema = new XMPSchema(XMPMetadata.createXMPMetadata(),
+                "pdfaProperty", "pdfaProperty", "pdfaProperty");
+        xmpSchema.setTextPropertyValue("name", name);
+        xmpSchema.setTextPropertyValue("valueType", valueType);
+        xmpSchema.setTextPropertyValue("category", category);
+        xmpSchema.setTextPropertyValue("description", description);
+        return xmpSchema;
     }
 
     // Sets the document information dictionary values from html metadata
