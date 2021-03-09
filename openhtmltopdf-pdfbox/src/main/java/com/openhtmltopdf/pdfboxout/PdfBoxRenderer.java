@@ -35,23 +35,23 @@ import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.extend.FSDOMMutator;
-import com.openhtmltopdf.outputdevice.helper.NullUserInterface;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import com.openhtmltopdf.render.BlockBox;
+import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.render.ViewportBox;
 import com.openhtmltopdf.render.displaylist.DisplayListCollector;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer;
 import com.openhtmltopdf.render.displaylist.DisplayListPainter;
+import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
 import com.openhtmltopdf.render.displaylist.DisplayListContainer.DisplayListPageContainer;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
@@ -83,10 +83,15 @@ import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class PdfBoxRenderer implements Closeable, PageSupplier {
     // See discussion of units at top of PdfBoxOutputDevice.
@@ -1039,6 +1044,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         return _dotsPerPoint;
     }
 
+    /**
+     * @deprecated unused, unmaintained and untested.
+     */
+    @Deprecated
     public List<PagePosition> findPagePositionsByID(Pattern pattern) {
         return _outputDevice.findPagePositionsByID(newLayoutContext(), pattern);
     }
@@ -1109,5 +1118,215 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     	PDPage page = new PDPage(new PDRectangle(pageWidth, pageHeight));
     	doc.addPage(page);
     	return page;
+    }
+
+    /**
+     * Start page to end page and then top to bottom on page.
+     */
+    private final Comparator<PagePosition> PAGE_POSITION_COMPARATOR =
+       Comparator.comparingInt(PagePosition::getPageNo)
+                 .thenComparing(Comparator.comparingDouble(PagePosition::getY).reversed());
+
+    /**
+     * Returns the last Y postion in bottom-up PDF units
+     * on the last page of content.
+     * 
+     * <strong>WARNING:</strong> NOT transform aware.
+     */
+    public float getLastYPositionOfContent() {
+        List<PagePosition> positions = getPagePositions();
+
+        if (positions.isEmpty()) {
+            return 0;
+        }
+
+        return positions.get(positions.size() - 1).getY();
+    }
+
+    /**
+     * Returns a list of page positions for all layers in the document.
+     * The page positions are sorted from first page to last and then top to bottom.
+     * The page position values are in bottom-up PDF units.
+     *
+     * <strong>WARNING:</strong> NOT transform aware. Transformed layers will return page
+     * positions that are not correct.
+     */
+    public List<PagePosition> getPagePositions() {
+        if (getRootBox() == null) {
+            this.layout();
+        }
+
+        Layer rootLayer = getRootBox().getLayer();
+
+        int[] whiches = new int[] { Layer.NEGATIVE, Layer.AUTO, Layer.ZERO, Layer.POSITIVE };
+
+        List<Layer> layers =
+        Arrays.stream(whiches)
+              .mapToObj(rootLayer::collectLayers)
+              .flatMap(List::stream)
+              .collect(Collectors.toList());
+
+        RenderingContext ctx = newRenderingContext();
+        List<PageBox> pages = rootLayer.getPages();
+
+        List<PagePosition> ret = new ArrayList<>();
+
+        ret.addAll(getLayerPagePositions(rootLayer, pages, ctx, "root"));
+
+        layers.stream()
+              .map(layer -> getLayerPagePositions(
+                      layer, pages, ctx, createLayerId(layer)))
+              .forEach(ret::addAll);
+
+        Collections.sort(ret, PAGE_POSITION_COMPARATOR);
+
+        return ret;
+    }
+
+    private String createLayerId(Layer layer) {
+        CalculatedStyle style = layer.getMaster().getStyle();
+        String type;
+
+        if (style.isFixed()) {
+            type = "fixed";
+        } else if (style.isAbsolute()) {
+            type = "absolute";
+        } else if (style.isRelative()) {
+            type = "relative";
+        } else {
+            type = "layer";
+        }
+
+        String element = layer.getMaster().getElement() == null ? "anonymous" :
+               layer.getMaster().getElement().getNodeName();
+
+        return type + '#' + element;
+    }
+
+    /**
+     * Returns a list of page positions for a single layer.
+     * The page positions are sorted from first page to last and then top to bottom.
+     * The page position values are in bottom-up PDF units.
+     * An id may be supplied to set on the page position.
+     * Compare to {@link #getPagePositions()} which will return page
+     * positions for all layers.
+     *
+     * <strong>WARNING:</strong> NOT transform aware. A transformed layer will return page
+     * positions that are not correct.
+     */
+    public List<PagePosition> getLayerPagePositions(Layer layer, String id) {
+        RenderingContext ctx = newRenderingContext();
+        List<PageBox> pages = layer.getPages();
+
+        List<PagePosition> ret = getLayerPagePositions(layer, pages, ctx, id);
+
+        Collections.sort(ret, PAGE_POSITION_COMPARATOR);
+
+        return ret;
+    }
+
+    private List<PagePosition> getLayerPagePositions(
+            Layer layer, List<PageBox> pages, RenderingContext ctx, String id) {
+
+        // FIXME: This method is not transform aware.
+
+        Box box = layer.getMaster();
+
+        int start = findStartPage(ctx, layer, pages);
+        int end = findEndPage(ctx, layer, pages);
+
+        if (box.getStyle().isFixed()) {
+            PageBox page = pages.get(start);
+
+            float x = box.getAbsX() + page.getMarginBorderPadding(ctx, CalculatedStyle.LEFT);
+            float w = box.getEffectiveWidth();
+            float y = page.getMarginBorderPadding(ctx, CalculatedStyle.BOTTOM) +
+                        (page.getPaintingBottom() - box.getAbsY() - box.getHeight());
+            float h = box.getHeight();
+
+            return IntStream.range(0, pages.size())
+                            .mapToObj(pageNo -> createPagePosition(id, pageNo, x, w, y, h))
+                            .collect(Collectors.toList());
+        }
+
+        List<PagePosition> ret = new ArrayList<>((end - start) + 1);
+
+        for (int i = start; i <= end; i++) {
+            PageBox page = pages.get(i);
+
+            float x = box.getAbsX() + page.getMarginBorderPadding(ctx, CalculatedStyle.LEFT);
+            float w = box.getEffectiveWidth();
+
+            float y;
+            float h;
+
+            if (start != end) {
+                if (i != start && i != end) {
+                    y = page.getMarginBorderPadding(ctx, CalculatedStyle.BOTTOM);
+                    h = page.getContentHeight(ctx);
+                } else if (i == end) {
+                    h = (box.getAbsY() + box.getHeight()) - page.getPaintingTop();
+                    y = page.getMarginBorderPadding(ctx, CalculatedStyle.BOTTOM) +
+                        page.getContentHeight(ctx) - h;
+                } else {
+                    assert i == start;
+                    y = page.getMarginBorderPadding(ctx, CalculatedStyle.BOTTOM);
+                    h = page.getPaintingBottom() - box.getAbsY();
+                }
+            } else {
+                y = page.getMarginBorderPadding(ctx, CalculatedStyle.BOTTOM) +
+                     (page.getPaintingBottom() - box.getAbsY() - box.getHeight());
+                h = box.getHeight();
+            }
+
+            PagePosition pos = createPagePosition(id, i, x, w, y, h);
+
+            ret.add(pos);
+        }
+
+        return ret;
+    }
+
+    private PagePosition createPagePosition(
+            String id, int pageNo, float x, float w, float y, float h) {
+
+        PagePosition pos = new PagePosition();
+
+        pos.setId(id);
+        pos.setPageNo(pageNo);
+        pos.setX(x / _dotsPerPoint);
+        pos.setY(y / _dotsPerPoint);
+        pos.setWidth(w / _dotsPerPoint);
+        pos.setHeight(h / _dotsPerPoint);
+
+        return pos;
+    }
+
+    /**
+     * Returns the start page for a layer. Transform aware.
+     */
+    private int findStartPage(RenderingContext c, Layer layer, List<PageBox> pages) {
+        int start = PagedBoxCollector.findStartPage(c, layer.getMaster(), pages);
+
+        // Floats maybe outside the master box.
+        for (BlockBox floater : layer.getFloats()) {
+            start = Math.min(start, PagedBoxCollector.findStartPage(c, floater, pages));
+        }
+
+        return start;
+    }
+
+    /**
+     * Returns the end page number for a layer. Transform aware.
+     */
+    private int findEndPage(RenderingContext c, Layer layer, List<PageBox> pages) {
+        int end = PagedBoxCollector.findEndPage(c, layer.getMaster(), pages);
+
+        // Floats may be outside the master box.
+        for (BlockBox floater : layer.getFloats()) {
+            end = Math.max(end, PagedBoxCollector.findEndPage(c, floater, pages));
+        }
+
+        return end;
     }
 }

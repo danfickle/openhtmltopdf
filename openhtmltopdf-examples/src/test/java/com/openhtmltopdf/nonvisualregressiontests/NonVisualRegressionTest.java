@@ -6,9 +6,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 
+import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +26,8 @@ import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
@@ -43,6 +47,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
+import com.openhtmltopdf.pdfboxout.PagePosition;
+import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.testcases.TestcaseRunner;
 import com.openhtmltopdf.util.Diagnostic;
@@ -71,20 +77,30 @@ public class NonVisualRegressionTest {
             System.err.println("Failed to render resource (" + fileName + ")");
             e.printStackTrace();
         }
-        
+
+        writePdfToFile(fileName, actual);
+    }
+
+    private static void writePdfToFile(String fileName, ByteArrayOutputStream actual) throws IOException {
         FileUtils.writeByteArrayToFile(new File(OUT_PATH, fileName + ".pdf"), actual.toByteArray());
     }
-    
-    private static PDDocument run(String fileName, BuilderConfig config) throws IOException {
+
+    private static String loadHtml(String fileName) throws IOException {
         String absResPath = RES_PATH + fileName + ".html";
-        
-        byte[] htmlBytes = IOUtils
-                .toByteArray(TestcaseRunner.class.getResourceAsStream(absResPath));
-        
-        String html = new String(htmlBytes, Charsets.UTF_8);
+
+        try (InputStream is = TestcaseRunner.class.getResourceAsStream(absResPath)) {
+            byte[] htmlBytes = IOUtils
+                      .toByteArray(is);
+
+            return new String(htmlBytes, Charsets.UTF_8);
+        }
+    }
+
+    private static PDDocument run(String fileName, BuilderConfig config) throws IOException {
+        String html = loadHtml(fileName);
 
         render(fileName, html, config);
-        
+
         return load(fileName);
     }
     
@@ -1091,6 +1107,65 @@ public class NonVisualRegressionTest {
 
             remove("issue-508-file-embed", doc);
         }
+    }
+
+    /**
+     * Tests the PdfBoxRenderer::getPagePositions and
+     * PdfBoxRenderer::getLastYPositionOfContent apis.
+     * It does this by drawing a rect around each layer and comparing
+     * with the expected document.
+     */
+    @Test
+    public void testIssue427GetBodyPagePositions() throws IOException {
+        String filename = "issue-427-body-page-positions";
+        String html = loadHtml(filename);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+        PdfRendererBuilder builder = new PdfRendererBuilder();
+
+        builder.withHtmlContent(html, null);
+        builder.useFastMode();
+        builder.toStream(os);
+
+        float lastContentLine;
+
+        try (PdfBoxRenderer renderer = builder.buildPdfRenderer()) {
+            renderer.createPDFWithoutClosing();
+
+            List<PagePosition> posList = renderer.getPagePositions();
+            lastContentLine = renderer.getLastYPositionOfContent();
+
+            int i = -1;
+            PDPageContentStream stream = null;
+            for (PagePosition pos : posList) {
+                if (i != pos.getPageNo()) {
+                    if (stream != null) {
+                        stream.close();
+                    }
+
+                    stream = new PDPageContentStream(renderer.getPdfDocument(), 
+                            renderer.getPdfDocument().getPage(pos.getPageNo()), AppendMode.APPEND, false, false);
+                    stream.setLineWidth(1f);
+                    stream.setStrokingColor(Color.ORANGE);
+
+                    i = pos.getPageNo();
+                }
+
+
+                stream.addRect(pos.getX(), pos.getY(), pos.getWidth(), pos.getHeight());
+                stream.stroke();
+            }
+
+            if (stream != null) {
+                stream.close();
+            }
+
+            renderer.getPdfDocument().save(os);
+            writePdfToFile(filename, os);
+        }
+
+        assertTrue(TestSupport.comparePdfs(os.toByteArray(), filename));
+        assertEquals(111.48, lastContentLine, 0.5);
     }
 
     // TODO:

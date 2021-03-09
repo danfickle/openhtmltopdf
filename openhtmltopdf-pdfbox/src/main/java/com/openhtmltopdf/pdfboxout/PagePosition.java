@@ -74,4 +74,10 @@ public class PagePosition {
     public void setId(String id) {
         _id = id;
     }
+
+    @Override
+    public String toString() {
+        return String.format("PagePosition [_id=%s, _pageNo=%s, _x=%s, _width=%s, _y=%s, _height=%s]",
+                _id, _pageNo, _x, _width, _y, _height);
+    }
 }
