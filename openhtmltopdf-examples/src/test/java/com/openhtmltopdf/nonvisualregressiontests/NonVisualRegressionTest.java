@@ -1132,7 +1132,7 @@ public class NonVisualRegressionTest {
         try (PdfBoxRenderer renderer = builder.buildPdfRenderer()) {
             renderer.createPDFWithoutClosing();
 
-            List<PagePosition> posList = renderer.getPagePositions();
+            List<PagePosition> posList = renderer.getAllLayerPagePositions();
             lastContentLine = renderer.getLastYPositionOfContent();
 
             int i = -1;

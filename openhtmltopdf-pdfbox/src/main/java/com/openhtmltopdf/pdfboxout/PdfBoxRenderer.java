@@ -1134,7 +1134,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
      * <strong>WARNING:</strong> NOT transform aware.
      */
     public float getLastYPositionOfContent() {
-        List<PagePosition> positions = getPagePositions();
+        List<PagePosition> positions = getAllLayerPagePositions();
 
         if (positions.isEmpty()) {
             return 0;
@@ -1151,7 +1151,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
      * <strong>WARNING:</strong> NOT transform aware. Transformed layers will return page
      * positions that are not correct.
      */
-    public List<PagePosition> getPagePositions() {
+    public List<PagePosition> getAllLayerPagePositions() {
         if (getRootBox() == null) {
             this.layout();
         }
@@ -1171,11 +1171,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
         List<PagePosition> ret = new ArrayList<>();
 
-        ret.addAll(getLayerPagePositions(rootLayer, pages, ctx, "root"));
+        ret.addAll(getLayerPagePositions(rootLayer, pages, ctx));
 
         layers.stream()
-              .map(layer -> getLayerPagePositions(
-                      layer, pages, ctx, createLayerId(layer)))
+              .map(layer -> getLayerPagePositions(layer, pages, ctx))
               .forEach(ret::addAll);
 
         Collections.sort(ret, PAGE_POSITION_COMPARATOR);
@@ -1183,42 +1182,22 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         return ret;
     }
 
-    private String createLayerId(Layer layer) {
-        CalculatedStyle style = layer.getMaster().getStyle();
-        String type;
-
-        if (style.isFixed()) {
-            type = "fixed";
-        } else if (style.isAbsolute()) {
-            type = "absolute";
-        } else if (style.isRelative()) {
-            type = "relative";
-        } else {
-            type = "layer";
-        }
-
-        String element = layer.getMaster().getElement() == null ? "anonymous" :
-               layer.getMaster().getElement().getNodeName();
-
-        return type + '#' + element;
-    }
-
     /**
      * Returns a list of page positions for a single layer.
      * The page positions are sorted from first page to last and then top to bottom.
      * The page position values are in bottom-up PDF units.
      * An id may be supplied to set on the page position.
-     * Compare to {@link #getPagePositions()} which will return page
+     * Compare to {@link #getAllLayerPagePositions()} which will return page
      * positions for all layers.
      *
      * <strong>WARNING:</strong> NOT transform aware. A transformed layer will return page
      * positions that are not correct.
      */
-    public List<PagePosition> getLayerPagePositions(Layer layer, String id) {
+    public List<PagePosition> getLayerPagePositions(Layer layer) {
         RenderingContext ctx = newRenderingContext();
         List<PageBox> pages = layer.getPages();
 
-        List<PagePosition> ret = getLayerPagePositions(layer, pages, ctx, id);
+        List<PagePosition> ret = getLayerPagePositions(layer, pages, ctx);
 
         Collections.sort(ret, PAGE_POSITION_COMPARATOR);
 
@@ -1226,7 +1205,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     }
 
     private List<PagePosition> getLayerPagePositions(
-            Layer layer, List<PageBox> pages, RenderingContext ctx, String id) {
+            Layer layer, List<PageBox> pages, RenderingContext ctx) {
 
         // FIXME: This method is not transform aware.
 
@@ -1245,7 +1224,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             float h = box.getHeight();
 
             return IntStream.range(0, pages.size())
-                            .mapToObj(pageNo -> createPagePosition(id, pageNo, x, w, y, h))
+                            .mapToObj(pageNo -> createPagePosition(null, layer, pageNo, x, y, w, h))
                             .collect(Collectors.toList());
         }
 
@@ -1279,7 +1258,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                 h = box.getHeight();
             }
 
-            PagePosition pos = createPagePosition(id, i, x, w, y, h);
+            PagePosition pos = createPagePosition(null, layer, i, x, y, w, h);
 
             ret.add(pos);
         }
@@ -1288,18 +1267,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     }
 
     private PagePosition createPagePosition(
-            String id, int pageNo, float x, float w, float y, float h) {
+            String id, Layer layer, int pageNo, float x, float y, float w, float h) {
 
-        PagePosition pos = new PagePosition();
-
-        pos.setId(id);
-        pos.setPageNo(pageNo);
-        pos.setX(x / _dotsPerPoint);
-        pos.setY(y / _dotsPerPoint);
-        pos.setWidth(w / _dotsPerPoint);
-        pos.setHeight(h / _dotsPerPoint);
-
-        return pos;
+        return new PagePosition(
+                id, layer, pageNo, x / _dotsPerPoint, y / _dotsPerPoint, w / _dotsPerPoint, h / _dotsPerPoint);
     }
 
     /**

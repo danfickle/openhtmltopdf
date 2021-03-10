@@ -19,65 +19,59 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
+import com.openhtmltopdf.layout.Layer;
+
 public class PagePosition {
-    private String _id;
-    private int _pageNo;
-    private float _x;
-    private float _width;
-    private float _y;
-    private float _height;
-    
+    private final String _id;
+    private final Layer _layer;
+    private final int _pageNo;
+    private final float _x;
+    private final float _y;
+    private final float _width;
+    private final float _height;
+
+    public PagePosition(String id, Layer layer, int pageNo, float x, float y, float width, float height) {
+        this._id = id;
+        this._layer = layer;
+        this._pageNo = pageNo;
+        this._x = x;
+        this._y = y;
+        this._width = width;
+        this._height = height;
+    }
+
     public int getPageNo() {
         return _pageNo;
     }
-    
-    public void setPageNo(int pageNo) {
-        _pageNo = pageNo;
-    }
-    
+
     public float getX() {
         return _x;
     }
-    
-    public void setX(float x) {
-        _x = x;
-    }
-    
-    public float getWidth() {
-        return _width;
-    }
-    
-    public void setWidth(float width) {
-        _width = width;
-    }
-    
+
     public float getY() {
         return _y;
     }
-    
-    public void setY(float y) {
-        _y = y;
+
+    public float getWidth() {
+        return _width;
     }
-    
+
     public float getHeight() {
         return _height;
-    }
-    
-    public void setHeight(float height) {
-        _height = height;
     }
 
     public String getId() {
         return _id;
     }
 
-    public void setId(String id) {
-        _id = id;
+    public Layer getLayer() {
+        return _layer;
     }
 
     @Override
     public String toString() {
-        return String.format("PagePosition [_id=%s, _pageNo=%s, _x=%s, _width=%s, _y=%s, _height=%s]",
-                _id, _pageNo, _x, _width, _y, _height);
+        return String.format(
+                "PagePosition [_id=%s, _layer=%s, _pageNo=%s, _x=%s, _y=%s, _width=%s, _height=%s]",
+                _id, _layer, _pageNo, _x, _y, _width, _height);
     }
 }

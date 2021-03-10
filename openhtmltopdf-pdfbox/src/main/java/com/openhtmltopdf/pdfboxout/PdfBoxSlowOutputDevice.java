@@ -1364,15 +1364,8 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
         x /= _dotsPerPoint;
         y /= _dotsPerPoint;
 
-        PagePosition result = new PagePosition();
-        result.setId(id);
-        result.setPageNo(page.getPageNo());
-        result.setX(x);
-        result.setY(y);
-        result.setWidth(box.getEffectiveWidth() / _dotsPerPoint);
-        result.setHeight(box.getHeight() / _dotsPerPoint);
-
-        return result;
+        return new PagePosition(
+                id, null, page.getPageNo(), x, y, box.getEffectiveWidth() / _dotsPerPoint, box.getHeight() / _dotsPerPoint);
     }
 
     public void setRenderingContext(RenderingContext result) {
