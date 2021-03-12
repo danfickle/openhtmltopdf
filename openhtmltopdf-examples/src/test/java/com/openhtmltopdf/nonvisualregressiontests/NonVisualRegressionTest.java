@@ -46,6 +46,7 @@ import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
 import com.openhtmltopdf.pdfboxout.PagePosition;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
@@ -1132,12 +1133,12 @@ public class NonVisualRegressionTest {
         try (PdfBoxRenderer renderer = builder.buildPdfRenderer()) {
             renderer.createPDFWithoutClosing();
 
-            List<PagePosition> posList = renderer.getAllLayerPagePositions();
-            lastContentLine = renderer.getLastYPositionOfContent();
+            List<PagePosition<Layer>> posList = renderer.getLayersPositions();
+            lastContentLine = renderer.getLastContentBottom();
 
             int i = -1;
             PDPageContentStream stream = null;
-            for (PagePosition pos : posList) {
+            for (PagePosition<Layer> pos : posList) {
                 if (i != pos.getPageNo()) {
                     if (stream != null) {
                         stream.close();

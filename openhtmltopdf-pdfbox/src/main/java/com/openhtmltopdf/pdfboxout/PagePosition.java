@@ -19,20 +19,18 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-import com.openhtmltopdf.layout.Layer;
-
-public class PagePosition {
+public class PagePosition<T> {
     private final String _id;
-    private final Layer _layer;
+    private final T _element;
     private final int _pageNo;
     private final float _x;
     private final float _y;
     private final float _width;
     private final float _height;
 
-    public PagePosition(String id, Layer layer, int pageNo, float x, float y, float width, float height) {
+    public PagePosition(String id, T element, int pageNo, float x, float y, float width, float height) {
         this._id = id;
-        this._layer = layer;
+        this._element = element;
         this._pageNo = pageNo;
         this._x = x;
         this._y = y;
@@ -64,14 +62,14 @@ public class PagePosition {
         return _id;
     }
 
-    public Layer getLayer() {
-        return _layer;
+    public T getElement() {
+        return _element;
     }
 
     @Override
     public String toString() {
         return String.format(
-                "PagePosition [_id=%s, _layer=%s, _pageNo=%s, _x=%s, _y=%s, _width=%s, _height=%s]",
-                _id, _layer, _pageNo, _x, _y, _width, _height);
+                "PagePosition [_id=%s, _element=%s, _pageNo=%s, _x=%s, _y=%s, _width=%s, _height=%s]",
+                _id, _element, _pageNo, _x, _y, _width, _height);
     }
 }

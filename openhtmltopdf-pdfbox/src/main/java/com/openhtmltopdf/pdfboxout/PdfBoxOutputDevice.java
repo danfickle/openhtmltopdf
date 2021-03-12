@@ -183,7 +183,7 @@ public interface PdfBoxOutputDevice extends OutputDevice {
     void drawWithGraphics(float x, float y, float width, float height,
             OutputDeviceGraphicsDrawer renderer);
 
-    List<PagePosition> findPagePositionsByID(CssContext c, Pattern pattern);
+    List<PagePosition<Box>> findPagePositionsByID(CssContext c, Pattern pattern);
 
     void setRenderingContext(RenderingContext result);
 
