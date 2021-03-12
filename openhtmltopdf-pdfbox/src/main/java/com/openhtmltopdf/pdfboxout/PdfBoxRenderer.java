@@ -1124,7 +1124,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                  .thenComparing(Comparator.comparingDouble(PagePosition<?>::getY).reversed());
 
     /**
-     * Returns the last Y postion in bottom-up PDF units
+     * Returns the bottom Y postion in bottom-up PDF units
      * on the last page of content.
      * 
      * <strong>WARNING:</strong> NOT transform aware.
@@ -1182,7 +1182,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
      * Returns a list of page positions for a single layer.
      * The page positions are sorted from first page to last and then top to bottom.
      * The page position values are in bottom-up PDF units.
-     * An id may be supplied to set on the page position.
+     *
      * Compare to {@link #getLayersPositions()} which will return page
      * positions for all layers.
      *
