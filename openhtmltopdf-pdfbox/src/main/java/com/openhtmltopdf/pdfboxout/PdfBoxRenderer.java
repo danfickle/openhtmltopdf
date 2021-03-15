@@ -316,8 +316,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         for (FSDOMMutator domMutator : _domMutators)
             domMutator.mutateDocument(doc);
 
-        getFontResolver().flushFontFaceFonts();
-
         _sharedContext.setBaseURL(url);
         _sharedContext.setNamespaceHandler(nsh);
         _sharedContext.getCss().setDocumentContext(_sharedContext, _sharedContext.getNamespaceHandler(), doc, new NullUserInterface());

@@ -182,7 +182,6 @@ public class Java2DFontResolver implements FontResolver {
     }
     
     @Deprecated
-    @Override
     public void flushCache() {
         instanceHash.clear();
         availableFontsHash.clear();
@@ -266,7 +265,7 @@ public class Java2DFontResolver implements FontResolver {
     private FontFamily<FontDescription> getFontFamily(String fontFamilyName) {
         FontFamily<FontDescription> fontFamily = _fontFamilies.get(fontFamilyName);
         if (fontFamily == null) {
-            fontFamily = new FontFamily<>();
+            fontFamily = new FontFamily<>(fontFamilyName);
             _fontFamilies.put(fontFamilyName, fontFamily);
         }
         return fontFamily;

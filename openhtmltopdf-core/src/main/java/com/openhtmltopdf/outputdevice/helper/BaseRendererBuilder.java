@@ -616,6 +616,17 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
         /** Main document (PDF or Java2D) */
         DOCUMENT,
         SVG,
-        MATHML
+        MATHML,
+        /**
+         * Use as a fallback font after all supplied fonts have been tried but before
+         * the built-in fonts have been attempted.
+         */
+        FALLBACK_PRE,
+        /**
+         * Use as a fallback fonts after all supplied fonts and the built-in fonts have been
+         * tried. The same font should not be registered with both <code>FALLBACK_PRE</code>
+         * and <code>FALLBACK_FINAL</code>.
+         */
+        FALLBACK_FINAL;
     }
 }

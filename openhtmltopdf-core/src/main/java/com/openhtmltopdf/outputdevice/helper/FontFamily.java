@@ -8,9 +8,15 @@ import java.util.List;
 import com.openhtmltopdf.css.constants.IdentValue;
 
 public class FontFamily<T extends MinimalFontDescription> {
-    private List<T> _fontDescriptions;
+    private final List<T> _fontDescriptions = new ArrayList<>(3);
+    private final String _family;
 
-    public FontFamily() {
+    public FontFamily(String family) {
+        this._family = family;
+    }
+
+    public String getFamily() {
+        return _family;
     }
 
     public List<T> getFontDescriptions() {
@@ -18,27 +24,12 @@ public class FontFamily<T extends MinimalFontDescription> {
     }
 
     public void addFontDescription(T descr) {
-        if (_fontDescriptions == null) {
-            _fontDescriptions = new ArrayList<>();
-        }
         _fontDescriptions.add(descr);
-        Collections.sort(_fontDescriptions,
-                new Comparator<T>() {
-                    public int compare(T o1, T o2) {
-                        return o1.getWeight() - o2.getWeight();
-                    }
-        });
-    }
-    
-    public void setName(String fontFamilyName) {
+        Collections.sort(_fontDescriptions, Comparator.comparing(T::getWeight));
     }
 
     public T match(int desiredWeight, IdentValue style) {
-        if (_fontDescriptions == null) {
-            throw new RuntimeException("fontDescriptions is null");
-        }
-
-        List<T> candidates = new ArrayList<>();
+        List<T> candidates = new ArrayList<>(_fontDescriptions.size());
 
         for (T description : _fontDescriptions) {
             if (description.getStyle() == style) {
@@ -46,7 +37,7 @@ public class FontFamily<T extends MinimalFontDescription> {
             }
         }
 
-        if (candidates.size() == 0) {
+        if (candidates.isEmpty()) {
             if (style == IdentValue.ITALIC) {
                 return match(desiredWeight, IdentValue.OBLIQUE);
             } else if (style == IdentValue.OBLIQUE) {
