@@ -547,6 +547,35 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
     }
 
     /**
+     * <p>Add a font programmatically. If the font is NOT subset, it will be downloaded
+     * when the renderer is run, otherwise, assuming a font-metrics cache has been configured,
+     * the font will only be downloaded if required. Therefore, the user could add many fonts,
+     * confident that only those that are needed will be downloaded and processed.</p>
+     *
+     * <p>The InputStream returned by the supplier will be closed by the caller. Fonts
+     * should generally be subset (Java2D renderer ignores this argument),
+     * except when used in form controls. FSSupplier is a lambda compatible interface.</p>
+     *
+     * <p>Fonts can also be added using a font-face at-rule in the CSS (not
+     * recommended for Java2D usage).</p>
+     * 
+     * <p><strong>IMPORTANT:</strong> This method is not recommended for use with Java2D.
+     * To add fonts for use by Java2D, SVG, etc see:
+     * {@link #useFont(File, String, Integer, FontStyle, boolean, Set)}</p>
+     * 
+     * <p>For gotchas related to font handling please see:
+     * <a href="https://github.com/danfickle/openhtmltopdf/wiki/Fonts">Wiki: Fonts</a></p>
+     *
+     * @return this for method chaining
+     */
+    public TFinalClass useFont(
+            FSSupplier<InputStream> supplier, String fontFamily, Integer fontWeight,
+            FontStyle fontStyle, boolean subset, Set<FSFontUseCase> useFontFlags) {
+        state._fonts.add(new AddedFont(supplier, null, fontWeight, fontFamily, subset, fontStyle, useFontFlags));
+        return (TFinalClass) this;
+    }
+
+    /**
      * Simpler overload for
      * {@link #useFont(FSSupplier, String, Integer, FontStyle, boolean)}
      *

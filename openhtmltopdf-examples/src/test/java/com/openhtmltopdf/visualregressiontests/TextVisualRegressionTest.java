@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Map;
@@ -697,6 +698,23 @@ public class TextVisualRegressionTest {
                     EnumSet.of(FSFontUseCase.DOCUMENT));
             builder.useFont(
                     new File("target/test/visual-tests/Karla-Bold.ttf"),
+                    "Karla", 700, FontStyle.NORMAL, true,
+                    EnumSet.of(FSFontUseCase.FALLBACK_PRE));
+        }));
+    }
+
+    /**
+     * Tests the ability to use fallback fonts via input streams.
+     */
+    @Test
+    public void testIssue641FontFallbackInputStream() throws IOException {
+        assertTrue(vtester.runTest("issue-641-font-fallback", builder -> {
+            builder.useFont(
+                    () -> TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/SourceSansPro-Regular.ttf"),
+                    "SourceSans", 400, FontStyle.NORMAL, true,
+                    EnumSet.of(FSFontUseCase.DOCUMENT));
+            builder.useFont(
+                    () -> TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf"),
                     "Karla", 700, FontStyle.NORMAL, true,
                     EnumSet.of(FSFontUseCase.FALLBACK_PRE));
         }));
