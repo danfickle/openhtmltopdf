@@ -43,11 +43,6 @@ public class FontUtil {
         return fontWeight != null ? FontResolverHelper.convertWeightToInt(fontWeight) : 400;
     }
 
-    public static String getHashName(
-            String name, IdentValue weight, IdentValue style) {
-        return name + "-" + weight + "-" + style;
-    }
-
     public static void tryClose(Closeable obj) {
         try {
             obj.close();

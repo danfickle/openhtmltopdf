@@ -8,7 +8,7 @@ import java.util.List;
 import com.openhtmltopdf.css.constants.IdentValue;
 
 public class FontFamily<T extends MinimalFontDescription> {
-    private final List<T> _fontDescriptions = new ArrayList<>(3);
+    private final List<T> _fontDescriptions = new ArrayList<>(4);
     private final String _family;
 
     public FontFamily(String family) {
@@ -29,22 +29,34 @@ public class FontFamily<T extends MinimalFontDescription> {
     }
 
     public T match(int desiredWeight, IdentValue style) {
-        List<T> candidates = new ArrayList<>(_fontDescriptions.size());
-
-        for (T description : _fontDescriptions) {
-            if (description.getStyle() == style) {
-                candidates.add(description);
-            }
+        if (_fontDescriptions.isEmpty()) {
+            return null;
+        } else if (_fontDescriptions.size() == 1) {
+            return _fontDescriptions.get(0);
         }
 
+        List<T> candidates = new ArrayList<>(_fontDescriptions.size());
+
+        // First try only matching style.
+        getStyleMatches(style, candidates);
+
+        // Then try changing italic to oblique.
+        if (candidates.isEmpty() && style == IdentValue.ITALIC) {
+            getStyleMatches(IdentValue.OBLIQUE, candidates);
+        }
+
+        // Then try changing oblique to normal.
+        if (candidates.isEmpty() && style == IdentValue.OBLIQUE) {
+            getStyleMatches(IdentValue.NORMAL, candidates);
+        }
+
+        // Still nothing!
         if (candidates.isEmpty()) {
-            if (style == IdentValue.ITALIC) {
-                return match(desiredWeight, IdentValue.OBLIQUE);
-            } else if (style == IdentValue.OBLIQUE) {
-                return match(desiredWeight, IdentValue.NORMAL);
-            } else {
-                candidates.addAll(_fontDescriptions);
-            }
+             candidates.addAll(_fontDescriptions);
+        }
+
+        if (candidates.size() == 1) {
+            return candidates.get(0);
         }
 
         T result = findByWeight(candidates, desiredWeight, SM_EXACT);
@@ -56,6 +68,14 @@ public class FontFamily<T extends MinimalFontDescription> {
                 return findByWeight(candidates, desiredWeight, SM_LIGHTER_OR_DARKER);
             } else {
                 return findByWeight(candidates, desiredWeight, SM_DARKER_OR_LIGHTER);
+            }
+        }
+    }
+
+    private void getStyleMatches(IdentValue style, List<T> candidates) {
+        for (T description : _fontDescriptions) {
+            if (description.getStyle() == style) {
+                candidates.add(description);
             }
         }
     }

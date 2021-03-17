@@ -27,12 +27,11 @@ import com.openhtmltopdf.pdfboxout.PDFontSupplier;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 
 public class MainFontStore extends AbstractFontStore implements Closeable {
-    final Map<String, FontFamily<FontDescription>> _fontFamilies = new HashMap<>();
-    final Map<String, FontDescription> _fontCache = new HashMap<>();
-    final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
-    final PDDocument _doc;
-    final SharedContext _sharedContext;
-    final List<TrueTypeCollection> _collectionsToClose = new ArrayList<>();
+    private final Map<String, FontFamily<FontDescription>> _fontFamilies = new HashMap<>();
+    private final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
+    private final PDDocument _doc;
+    private final SharedContext _sharedContext;
+    private final List<TrueTypeCollection> _collectionsToClose = new ArrayList<>();
 
     public MainFontStore(
        SharedContext sharedContext,
@@ -78,13 +77,7 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
                 subset,
                 _fontMetricsCache);
 
-        if (!subset) {
-            if (descr.realizeFont()) {
-                fontFamily.addFontDescription(descr);
-            }
-        } else {
-            fontFamily.addFontDescription(descr);
-        }
+        addFontToFamily(subset, fontFamily, descr);
     }
 
     /**
@@ -116,13 +109,7 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
                     subset,
                     _fontMetricsCache);
 
-        if (!subset) {
-            if (description.realizeFont()) {
-                fontFamily.addFontDescription(description);
-            }
-        } else {
-            fontFamily.addFontDescription(description);
-        }
+        addFontToFamily(subset, fontFamily, description);
     }
 
     public void addFont(
@@ -144,13 +131,7 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
                 subset,
                 _fontMetricsCache);
 
-        if (!subset) {
-            if (descr.realizeFont()) {
-                fontFamily.addFontDescription(descr);
-            }
-        } else {
-            fontFamily.addFontDescription(descr);
-        }
+        addFontToFamily(subset, fontFamily, descr);
     }
 
     public void addFont(
@@ -174,6 +155,24 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
                 subset,
                 _fontMetricsCache);
 
+        addFontToFamily(subset, fontFamily, descr);
+    }
+
+    @Override
+    public FontDescription resolveFont(
+            SharedContext ctx, String fontFamily, float size, IdentValue weight, IdentValue style, IdentValue variant) {
+
+        String normalizedFontFamily = FontUtil.normalizeFontFamily(fontFamily);
+        FontFamily<FontDescription> family = _fontFamilies.get(normalizedFontFamily);
+
+        if (family != null) {
+            return family.match(FontResolverHelper.convertWeightToInt(weight), style);
+        }
+
+        return null;
+    }
+
+    private void addFontToFamily(boolean subset, FontFamily<FontDescription> fontFamily, FontDescription descr) {
         if (!subset) {
             if (descr.realizeFont()) {
                 fontFamily.addFontDescription(descr);
@@ -183,33 +182,7 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
         }
     }
 
-    @Override
-    public FontDescription resolveFont(
-            SharedContext ctx, String fontFamily, float size, IdentValue weight, IdentValue style, IdentValue variant) {
-
-        String normalizedFontFamily = FontUtil.normalizeFontFamily(fontFamily);
-        String cacheKey = FontUtil.getHashName(normalizedFontFamily, weight, style);
-        FontDescription result = _fontCache.get(cacheKey);
-
-        if (result != null) {
-            return result;
-        }
-
-        FontFamily<FontDescription> family = _fontFamilies.get(normalizedFontFamily);
-
-        if (family != null) {
-            result = family.match(FontResolverHelper.convertWeightToInt(weight), style);
-
-            if (result != null) {
-                _fontCache.put(cacheKey, result);
-                return result;
-            }
-        }
-
-        return null;
-    }
-
-    FontFamily<FontDescription> getFontFamily(String fontFamilyName) {
+    private FontFamily<FontDescription> getFontFamily(String fontFamilyName) {
         return _fontFamilies.computeIfAbsent(fontFamilyName, name -> new FontFamily<>(fontFamilyName));
     }
 
