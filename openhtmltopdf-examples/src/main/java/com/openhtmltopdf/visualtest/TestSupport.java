@@ -13,13 +13,19 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.util.Diagnostic;
+
+import org.apache.pdfbox.io.IOUtils;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
@@ -30,8 +36,11 @@ import com.openhtmltopdf.extend.FSObjectDrawerFactory;
 import com.openhtmltopdf.extend.FSTextBreaker;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.TextDirection;
+import com.openhtmltopdf.pdfboxout.visualtester.PdfVisualTester;
+import com.openhtmltopdf.pdfboxout.visualtester.PdfVisualTester.PdfCompareResult;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
+import com.openhtmltopdf.testcases.TestcaseRunner;
 import com.openhtmltopdf.util.XRLogger;
 import com.openhtmltopdf.visualtest.Java2DVisualTester.Java2DBuilderConfig;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
@@ -230,4 +239,42 @@ public class TestSupport {
     }
 
     public static final BuilderConfig WITH_SHAPES_DRAWER = (builder) -> { builder.useObjectDrawerFactory(new ShapesObjectDrawerFactory()); };
+
+    public static boolean comparePdfs(byte[] actualPdfBytes, String resource) throws IOException {
+        File outputPath = new File("target/test/visual-tests/test-output/");
+
+        byte[] expectedPdfBytes;
+        try (InputStream expectedIs = TestcaseRunner.class.getResourceAsStream("/visualtest/expected/" + resource + ".pdf")) {
+            expectedPdfBytes = IOUtils.toByteArray(expectedIs);
+        }
+
+        List<PdfCompareResult> problems = PdfVisualTester.comparePdfDocuments(expectedPdfBytes, actualPdfBytes, resource, false);
+
+        if (!problems.isEmpty()) {
+            System.err.println("Found problems with test case (" + resource + "):");
+            System.err.println(problems.stream().map(p -> p.logMessage).collect(Collectors.joining("\n    ", "[\n    ", "\n]")));
+
+            File outPdf = new File(outputPath, resource + "---actual.pdf");
+            Files.write(outPdf.toPath(), actualPdfBytes);
+        }
+
+        if (problems.stream().anyMatch(p -> p.testImages != null)) {
+            System.err.println("For test case (" + resource + ") writing diff images to '" + outputPath + "'");
+        }
+
+        for (PdfCompareResult result : problems) {
+            if (result.testImages != null) {
+                File output = new File(outputPath, resource + "---" + result.pageNumber + "---diff.png");
+                ImageIO.write(result.testImages.createDiff(), "png", output);
+
+                output = new File(outputPath, resource + "---" + result.pageNumber + "---actual.png");
+                ImageIO.write(result.testImages.getActual(), "png", output);
+
+                output = new File(outputPath, resource + "---" + result.pageNumber + "---expected.png");
+                ImageIO.write(result.testImages.getExpected(), "png", output);
+            }
+        }
+
+        return problems.isEmpty();
+    }
 }

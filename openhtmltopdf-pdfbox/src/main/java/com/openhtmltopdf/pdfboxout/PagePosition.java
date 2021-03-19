@@ -19,59 +19,57 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
-public class PagePosition {
-    private String _id;
-    private int _pageNo;
-    private float _x;
-    private float _width;
-    private float _y;
-    private float _height;
-    
+public class PagePosition<T> {
+    private final String _id;
+    private final T _element;
+    private final int _pageNo;
+    private final float _x;
+    private final float _y;
+    private final float _width;
+    private final float _height;
+
+    public PagePosition(String id, T element, int pageNo, float x, float y, float width, float height) {
+        this._id = id;
+        this._element = element;
+        this._pageNo = pageNo;
+        this._x = x;
+        this._y = y;
+        this._width = width;
+        this._height = height;
+    }
+
     public int getPageNo() {
         return _pageNo;
     }
-    
-    public void setPageNo(int pageNo) {
-        _pageNo = pageNo;
-    }
-    
+
     public float getX() {
         return _x;
     }
-    
-    public void setX(float x) {
-        _x = x;
-    }
-    
-    public float getWidth() {
-        return _width;
-    }
-    
-    public void setWidth(float width) {
-        _width = width;
-    }
-    
+
     public float getY() {
         return _y;
     }
-    
-    public void setY(float y) {
-        _y = y;
+
+    public float getWidth() {
+        return _width;
     }
-    
+
     public float getHeight() {
         return _height;
-    }
-    
-    public void setHeight(float height) {
-        _height = height;
     }
 
     public String getId() {
         return _id;
     }
 
-    public void setId(String id) {
-        _id = id;
+    public T getElement() {
+        return _element;
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "PagePosition [_id=%s, _element=%s, _pageNo=%s, _x=%s, _y=%s, _width=%s, _height=%s]",
+                _id, _element, _pageNo, _x, _y, _width, _height);
     }
 }

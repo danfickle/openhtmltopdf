@@ -1,0 +1,33 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+  margin: 20px;
+}
+body {
+  margin: 5px;
+  padding: 10px;
+}
+</style>
+</head>
+<body>
+
+<div>Page one</div>
+This is a test!
+
+<div style="position: fixed; left: 140px; top: 3cm;">Fixed layer</div>
+
+<div style="page-break-before: always;">This is page two.</div>
+
+<div style="position: absolute; left: 70px; top: 300px;">Absolute layer on page two</div>
+
+<div style="page-break-before: always;">This is page three.</div>
+
+<div style="position: relative; height: 50px;">
+  Relative
+  <div style="position: absolute; top: 25px; left: 5px;">Abs in rel</div>
+</div>
+
+</body>
+</html>

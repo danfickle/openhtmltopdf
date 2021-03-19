@@ -53,8 +53,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
-import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
-import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.shading.PDShading;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
@@ -71,6 +69,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements OutputDevice, PdfBoxOutputDevice {
     //
@@ -1182,34 +1181,23 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
-    public List<PagePosition> findPagePositionsByID(CssContext c, Pattern pattern) {
+    public List<PagePosition<Box>> findPagePositionsByID(CssContext c, Pattern pattern) {
         Map<String, Box> idMap = _sharedContext.getIdMap();
         if (idMap == null) {
             return Collections.emptyList();
         }
 
-        List<PagePosition> result = new ArrayList<>();
-        for (Entry<String, Box> entry : idMap.entrySet()) {
-            String id = (String) entry.getKey();
-            if (pattern.matcher(id).find()) {
-                Box box = (Box) entry.getValue();
-                PagePosition pos = calcPDFPagePosition(c, id, box);
-                if (pos != null) {
-                    result.add(pos);
-                }
-            }
-        }
-
-        Collections.sort(result, new Comparator<PagePosition>() {
-            public int compare(PagePosition p1, PagePosition p2) {
-                return p1.getPageNo() - p2.getPageNo();
-            }
-        });
-
-        return result;
+        return
+        idMap.entrySet()
+             .stream()
+             .filter(entry -> pattern.matcher(entry.getKey()).find())
+             .map(entry -> calcPDFPagePosition(c, entry.getKey(), entry.getValue()))
+             .filter(Objects::nonNull)
+             .sorted(Comparator.comparing(PagePosition<Box>::getPageNo))
+             .collect(Collectors.toList());
     }
 
-    private PagePosition calcPDFPagePosition(CssContext c, String id, Box box) {
+    private PagePosition<Box> calcPDFPagePosition(CssContext c, String id, Box box) {
         PageBox page = _root.getLayer().getLastPage(c, box);
         if (page == null) {
             return null;
@@ -1220,15 +1208,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         x /= _dotsPerPoint;
         y /= _dotsPerPoint;
 
-        PagePosition result = new PagePosition();
-        result.setId(id);
-        result.setPageNo(page.getPageNo());
-        result.setX(x);
-        result.setY(y);
-        result.setWidth(box.getEffectiveWidth() / _dotsPerPoint);
-        result.setHeight(box.getHeight() / _dotsPerPoint);
-
-        return result;
+        return new PagePosition<Box>(
+                id, box, page.getPageNo(), x, y, box.getEffectiveWidth() / _dotsPerPoint, box.getHeight() / _dotsPerPoint);
     }
 
     @Override

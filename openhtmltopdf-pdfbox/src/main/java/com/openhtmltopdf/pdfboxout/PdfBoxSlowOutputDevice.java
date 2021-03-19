@@ -1326,26 +1326,26 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
-    public List<PagePosition> findPagePositionsByID(CssContext c, Pattern pattern) {
+    public List<PagePosition<Box>> findPagePositionsByID(CssContext c, Pattern pattern) {
         Map<String, Box> idMap = _sharedContext.getIdMap();
         if (idMap == null) {
             return Collections.emptyList();
         }
 
-        List<PagePosition> result = new ArrayList<>();
+        List<PagePosition<Box>> result = new ArrayList<>();
         for (Entry<String, Box> entry : idMap.entrySet()) {
             String id = (String) entry.getKey();
             if (pattern.matcher(id).find()) {
                 Box box = (Box) entry.getValue();
-                PagePosition pos = calcPDFPagePosition(c, id, box);
+                PagePosition<Box> pos = calcPDFPagePosition(c, id, box);
                 if (pos != null) {
                     result.add(pos);
                 }
             }
         }
 
-        Collections.sort(result, new Comparator<PagePosition>() {
-            public int compare(PagePosition p1, PagePosition p2) {
+        Collections.sort(result, new Comparator<PagePosition<Box>>() {
+            public int compare(PagePosition<Box> p1, PagePosition<Box> p2) {
                 return p1.getPageNo() - p2.getPageNo();
             }
         });
@@ -1353,7 +1353,7 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
         return result;
     }
 
-    private PagePosition calcPDFPagePosition(CssContext c, String id, Box box) {
+    private PagePosition<Box> calcPDFPagePosition(CssContext c, String id, Box box) {
         PageBox page = _root.getLayer().getLastPage(c, box);
         if (page == null) {
             return null;
@@ -1364,15 +1364,8 @@ public class PdfBoxSlowOutputDevice extends AbstractOutputDevice implements Outp
         x /= _dotsPerPoint;
         y /= _dotsPerPoint;
 
-        PagePosition result = new PagePosition();
-        result.setId(id);
-        result.setPageNo(page.getPageNo());
-        result.setX(x);
-        result.setY(y);
-        result.setWidth(box.getEffectiveWidth() / _dotsPerPoint);
-        result.setHeight(box.getHeight() / _dotsPerPoint);
-
-        return result;
+        return new PagePosition<>(
+                id, box, page.getPageNo(), x, y, box.getEffectiveWidth() / _dotsPerPoint, box.getHeight() / _dotsPerPoint);
     }
 
     public void setRenderingContext(RenderingContext result) {
