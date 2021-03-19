@@ -1,6 +1,10 @@
 ## CHANGELOG
 
-### head - 1.0.7-SNAPSHOT
+### head - 1.0.8-SNAPSHOT
++ See commit log
+
+
+### 1.0.7 (2021-March-19)
 + [#650](https://github.com/danfickle/openhtmltopdf/pull/650) Support for multiple background images on the one element. Thanks for requesting @baedorf.
 + [#669](https://github.com/danfickle/openhtmltopdf/pull/669) Support fallback fonts. Thanks for requesting @asu2 and assisting @draco1023. 
 + [#640](https://github.com/danfickle/openhtmltopdf/pull/640) Implement file embeds via the download attribute on links. Thanks for original PR @syjer and for requesting @lindamarieb and @vader.
