@@ -8,6 +8,8 @@ import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
+import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontGroup;
+import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
@@ -93,7 +95,9 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
                 }
             }
 
-            if (font.usedFor.contains(FSFontUseCase.DOCUMENT)) {
+            if (font.usedFor.contains(FSFontUseCase.DOCUMENT) ||
+                font.usedFor.contains(FSFontUseCase.FALLBACK_PRE) ||
+                font.usedFor.contains(FSFontUseCase.FALLBACK_FINAL)) {
                 IdentValue fontStyle = null;
 
 				if (font.style != null) {
@@ -114,19 +118,27 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 					}
 				}
 
+                FontGroup group;
+                if (font.usedFor.contains(FSFontUseCase.FALLBACK_PRE)) {
+                    group = FontGroup.PRE_BUILT_IN_FALLBACK;
+                } else if (font.usedFor.contains(FSFontUseCase.FALLBACK_FINAL)) {
+                    group = FontGroup.FINAL_FALLBACK;
+                } else {
+                    group = FontGroup.MAIN;
+                }
 
                 // use InputStream supplier
                 if (font.supplier != null) {
-                    resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset);
+                    resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset, group);
                 }
                 // use PDFont supplier
                 else if (font.pdfontSupplier != null) {
-                    resolver.addFont((PDFontSupplier) font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset);
+                    resolver.addFont((PDFontSupplier) font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset, group);
                 }
                 // load via font File
                 else {
                     try {
-                        resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset);
+                        resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset, group);
                     } catch (Exception e) {
                         XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
                     }

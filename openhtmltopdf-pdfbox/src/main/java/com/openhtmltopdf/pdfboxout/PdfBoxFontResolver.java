@@ -30,23 +30,21 @@ import com.openhtmltopdf.extend.FSCacheValue;
 import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.extend.FontResolver;
 import com.openhtmltopdf.layout.SharedContext;
-import com.openhtmltopdf.outputdevice.helper.FontFaceFontSupplier;
-import com.openhtmltopdf.outputdevice.helper.FontFamily;
-import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.outputdevice.helper.MinimalFontDescription;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
+import com.openhtmltopdf.pdfboxout.fontstore.AbstractFontStore;
+import com.openhtmltopdf.pdfboxout.fontstore.FallbackFontStore;
+import com.openhtmltopdf.pdfboxout.fontstore.FontUtil;
+import com.openhtmltopdf.pdfboxout.fontstore.MainFontStore;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.fontbox.ttf.TrueTypeCollection;
-import org.apache.fontbox.ttf.TrueTypeCollection.TrueTypeFontProcessor;
-import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -56,28 +54,35 @@ import java.util.*;
 import java.util.logging.Level;
 
 /**
- * This class handles all font resolving for the PDF generation. Please note that at the moment only subsetting/embedding
- * of fonts work. So you should always set embedded/subset=true for now.
+ * This class handles all font resolving for the PDF generation.
  */
 public class PdfBoxFontResolver implements FontResolver {
-    private Map<String, FontFamily<FontDescription>> _fontFamilies;
-    private Map<String, FontDescription> _fontCache = new HashMap<>();
+    public enum FontGroup {
+        MAIN,
+        PRE_BUILT_IN_FALLBACK,
+        FINAL_FALLBACK;
+    }
+
     private final PDDocument _doc;
-    private final SharedContext _sharedContext;
-    private final List<TrueTypeCollection> _collectionsToClose = new ArrayList<>();
-    private final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
-    private final PdfAConformance _pdfAConformance;
-    private final boolean _pdfUaConform;
+    private final MainFontStore _suppliedFonts;
+    private final FallbackFontStore _preBuiltinFallbackFonts;
+    private final AbstractFontStore _builtinFonts;
+    private final FallbackFontStore _finalFallbackFonts;
 
     public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, PdfAConformance pdfAConformance, boolean pdfUaConform) {
-        _sharedContext = sharedContext;
-        _doc = doc;
-        _fontMetricsCache = pdfMetricsCache;
-        _pdfAConformance = pdfAConformance;
-        _pdfUaConform = pdfUaConform;
- 
-        // All fonts are required to be embedded in PDF/A documents, so we don't add the built-in fonts, if conformance is required.
-        _fontFamilies = (_pdfAConformance == PdfAConformance.NONE && !pdfUaConform) ? createInitialFontMap() : new HashMap<>();
+        this._doc = doc;
+
+        this._suppliedFonts = new MainFontStore(sharedContext, doc, pdfMetricsCache);
+
+        this._preBuiltinFallbackFonts = new FallbackFontStore(sharedContext, doc, pdfMetricsCache);
+
+        // All fonts are required to be embedded in PDF/A documents, so we don't add
+        // the built-in fonts, if conformance is required.
+        this._builtinFonts = (pdfAConformance == PdfAConformance.NONE && !pdfUaConform) ? 
+                new AbstractFontStore.BuiltinFontStore(doc) :
+                new AbstractFontStore.EmptyFontStore();
+
+        this._finalFallbackFonts = new FallbackFontStore(sharedContext, doc, pdfMetricsCache);
     }
 
     @Override
@@ -85,48 +90,14 @@ public class PdfBoxFontResolver implements FontResolver {
         return resolveFont(renderingContext, spec.families, spec.size, spec.fontWeight, spec.fontStyle, spec.variant);
     }
 
-	/**
-	 * Free all font resources (i.e. open files), the document should already be
-	 * closed.
-	 */
-	public void close() {
-		_fontCache.clear();
-
-		// Close all still open TrueTypeCollections
-		for (TrueTypeCollection collection : _collectionsToClose) {
-			try {
-				collection.close();
-			} catch (IOException e) {
-				//e.printStackTrace();
-			}
-		}
-		_collectionsToClose.clear();
-	}
-
-    @Deprecated
-    @Override
-    public void flushCache() {
-        _fontFamilies = createInitialFontMap();
-        close();
-        _fontCache = new HashMap<>();
-    }
-
-    @Deprecated
-    public void flushFontFaceFonts() {
-        _fontCache = new HashMap<>();
-
-        for (Iterator<FontFamily<FontDescription>> i = _fontFamilies.values().iterator(); i.hasNext(); ) {
-            FontFamily<FontDescription> family = i.next();
-            for (Iterator<FontDescription> j = family.getFontDescriptions().iterator(); j.hasNext(); ) {
-                FontDescription d = j.next();
-                if (d.isFromFontFace()) {
-                    j.remove();
-                }
-            }
-            if (family.getFontDescriptions().size() == 0) {
-                i.remove();
-            }
-        }
+    /**
+     * Free all font resources (i.e. open files), the document should already be
+     * closed.
+     */
+    public void close() {
+        FontUtil.tryClose(this._suppliedFonts);
+        FontUtil.tryClose(this._preBuiltinFallbackFonts);
+        FontUtil.tryClose(this._finalFallbackFonts);
     }
 
     public void importFontFaces(List<FontFaceRule> fontFaces) {
@@ -139,8 +110,6 @@ public class PdfBoxFontResolver implements FontResolver {
             }
 
             boolean noSubset = style.isIdent(CSSName.FS_FONT_SUBSET, IdentValue.COMPLETE_FONT);
-//            boolean embedded = style.isIdent(CSSName.FS_PDF_FONT_EMBED, IdentValue.EMBED);
-//            String encoding = style.getStringProperty(CSSName.FS_PDF_FONT_ENCODING);
 
             String fontFamily = null;
             IdentValue fontWeight = null;
@@ -161,14 +130,22 @@ public class PdfBoxFontResolver implements FontResolver {
                 fontStyle = style.getIdent(CSSName.FONT_STYLE);
             }
 
-            addFontFaceFont(fontFamily, fontWeight, fontStyle, src.asString(), !noSubset);
+            this._suppliedFonts.addFontFaceFont(fontFamily, fontWeight, fontStyle, src.asString(), !noSubset);
         }
+    }
+
+    /**
+     * @deprecated Use {@link #addFontDirectory(String, boolean, FontGroup)}
+     */
+    @Deprecated
+    public void addFontDirectory(String dir, boolean embedded) throws IOException {
+        addFontDirectory(dir, embedded, FontGroup.MAIN);
     }
 
     /**
      * Add all fonts in the given directory
      */
-    public void addFontDirectory(String dir, boolean embedded) throws IOException {
+    public void addFontDirectory(String dir, boolean embedded, FontGroup fontGroup) throws IOException {
         File f = new File(dir);
         if (f.isDirectory()) {
             File[] files = f.listFiles(new FilenameFilter() {
@@ -180,88 +157,116 @@ public class PdfBoxFontResolver implements FontResolver {
 
             assert files != null;
             for (File file : files) {
-                addFont(file, file.getName(), 400, IdentValue.NORMAL, embedded);
+                addFont(file, file.getName(), 400, IdentValue.NORMAL, embedded, fontGroup);
             }
         }
     }
 
     /**
-     * Add a font using a FontBox TrueTypeFont.
+     * Adds a font collection (.ttc in an input stream) to a
+     * specific font group.
      */
-    private void addFont(TrueTypeFont trueTypeFont, String fontFamilyNameOverride,
-                        Integer fontWeightOverride, IdentValue fontStyleOverride, boolean subset) throws IOException {
+    public void addFontCollection(
+            FSSupplier<InputStream> supplier,
+            String fontFamilyNameOverride,
+            Integer fontWeightOverride,
+            IdentValue fontStyleOverride,
+            boolean subset,
+            FontGroup fontGroup) throws IOException {
 
+        try (InputStream inputStream = supplier.supply()) {
+            TrueTypeCollection collection = new TrueTypeCollection(inputStream);
 
-        PDFont font = PDType0Font.load(_doc, trueTypeFont, subset);
-
-		addFontLazy(new PDFontSupplier(font), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
-    }
-    
-	/**
-	 * Add a font with a lazy loaded PDFont
-	 */
-    private void addFontLazy(FSSupplier<PDFont> font, String fontFamilyNameOverride, Integer fontWeightOverride, IdentValue fontStyleOverride, boolean subset) {
-        FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
-        FontDescription descr = new FontDescription(
-                _doc,
-                font,
-                normalizeFontStyle(fontStyleOverride),
-                normalizeFontWeight(fontWeightOverride),
-                fontFamilyNameOverride,
-                false,   // isFromFontFace
-                subset,
-                _fontMetricsCache);
-
-        if (!subset) {
-            if (descr.realizeFont()) {
-                fontFamily.addFontDescription(descr);
+            if (fontGroup == FontGroup.MAIN) {
+                this._suppliedFonts.addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+            } else {
+                getFallbackFontStore(fontGroup).addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
             }
-        } else {
-            fontFamily.addFontDescription(descr);
         }
     }
-
-    /**
-	 * Add fonts using a FontBox TrueTypeCollection.
-	 */
-	private void addFontCollection(TrueTypeCollection collection, final String fontFamilyNameOverride,
-			final Integer fontWeightOverride, final IdentValue fontStyleOverride, final boolean subset)
-			throws IOException {
-		collection.processAllFonts(new TrueTypeFontProcessor() {
-			@Override
-			public void process(TrueTypeFont ttf) throws IOException {
-				addFont(ttf, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
-			}
-		});
-        _collectionsToClose.add(collection);
-	}
 
 	/**
 	 * Add fonts using a .ttc TrueTypeCollection
+	 * @deprecated Use {@link #addFontCollection(FSSupplier, String, Integer, IdentValue, boolean, FontGroup)}
 	 */
+    @Deprecated
 	public void addFontCollection(FSSupplier<InputStream> supplier, final String fontFamilyNameOverride,
 			final Integer fontWeightOverride, final IdentValue fontStyleOverride, final boolean subset)
 			throws IOException {
 		try (InputStream inputStream = supplier.supply()){
 			TrueTypeCollection collection = new TrueTypeCollection(inputStream);
-			addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+            this._suppliedFonts.addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
 		}
     }
 
     /**
-     * Add fonts using a .ttc TrueTypeCollection
+     * Adds a font collection (.ttc file) to a specific group.
      */
+    public void addFontCollection(
+            File file,
+            String fontFamilyNameOverride,
+            Integer fontWeightOverride,
+            IdentValue fontStyleOverride,
+            boolean subset,
+            FontGroup fontGroup) throws IOException {
+
+        TrueTypeCollection collection = new TrueTypeCollection(file);
+
+        if (fontGroup == FontGroup.MAIN) {
+            this._suppliedFonts.addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+        } else {
+            getFallbackFontStore(fontGroup).addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+        }
+    }
+
+    /**
+     * Add fonts using a .ttc TrueTypeCollection
+     * @deprecated Use {@link #addFontCollection(File, String, Integer, IdentValue, boolean, FontGroup)}
+     */
+    @Deprecated
     public void addFontCollection(File file, final String fontFamilyNameOverride,
                                   final Integer fontWeightOverride, final IdentValue fontStyleOverride, final boolean subset)
             throws IOException {
 		TrueTypeCollection collection = new TrueTypeCollection(file);
-		addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+        this._suppliedFonts.addFontCollection(collection, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+    }
+
+    /**
+     * Add a font file (truetype) to a specific font group. 
+     */
+    public void addFont(
+            File fontFile,
+            String fontFamilyNameOverride,
+            Integer fontWeightOverride,
+            IdentValue fontStyleOverride,
+            boolean subset,
+            FontGroup fontGroup) throws IOException {
+
+        if (fontFile.getName().toLowerCase(Locale.US).endsWith(".ttc")) {
+            // Specialcase for TrueTypeCollections
+            addFontCollection(fontFile, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset, fontGroup);
+        } else if (fontGroup == FontGroup.MAIN) {
+            this._suppliedFonts.addFontLazy(new FilePDFontSupplier(fontFile, _doc), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+        } else {
+            getFallbackFontStore(fontGroup).addFontLazy(new FilePDFontSupplier(fontFile, _doc), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+        }
+    }
+
+    private FallbackFontStore getFallbackFontStore(FontGroup fontGroup) {
+        assert fontGroup == FontGroup.PRE_BUILT_IN_FALLBACK ||
+               fontGroup == FontGroup.FINAL_FALLBACK;
+
+        return fontGroup == FontGroup.PRE_BUILT_IN_FALLBACK ?
+                this._preBuiltinFallbackFonts :
+                this._finalFallbackFonts;
     }
 
 	/**
 	 * Add a font using a existing file. If the file is a TrueTypeCollection, it
 	 * will be handled as such.
+	 * @deprecated Use {@link #addFont(File, String, Integer, IdentValue, boolean, FontGroup)}
 	 */
+    @Deprecated
 	public void addFont(File fontFile, final String fontFamilyNameOverride, final Integer fontWeightOverride,
 			final IdentValue fontStyleOverride, final boolean subset) throws IOException {
 		/*
@@ -275,7 +280,7 @@ public class PdfBoxFontResolver implements FontResolver {
 		/*
 		 * We load the font using the file.
 		 */
-		addFontLazy(new FilePDFontSupplier(fontFile, _doc), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+        this._suppliedFonts.addFontLazy(new FilePDFontSupplier(fontFile, _doc), fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
 	}
 
 	/**
@@ -301,106 +306,82 @@ public class PdfBoxFontResolver implements FontResolver {
 		}
 	}
 
-	/**
-	 * Add a font using a InputStream. The given file must be a TrueType Font
-	 * (.ttf). If you know the underlying stream is a .ttc file you should use
-	 * {@link #addFontCollection(FSSupplier, String, Integer, IdentValue, boolean)}
-	 */
-	public void addFont(FSSupplier<InputStream> supplier, String fontFamilyNameOverride, Integer fontWeightOverride,
-			IdentValue fontStyleOverride, boolean subset) {
-		FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
+    /**
+     * Adds a font specified by an input stream (truetype) to a specific font group.
+     */
+    public void addFont(
+            FSSupplier<InputStream> supplier,
+            String fontFamilyNameOverride,
+            Integer fontWeightOverride,
+            IdentValue fontStyleOverride,
+            boolean subset,
+            FontGroup fontGroup) {
 
-		FontDescription descr = new FontDescription(
-		        _doc,
-		        supplier,
-		        normalizeFontWeight(fontWeightOverride),
-		        normalizeFontStyle(fontStyleOverride),
-		        fontFamilyNameOverride,
-		        false, // isFromFontFace
-		        subset,
-		        _fontMetricsCache);
-
-		if (!subset) {
-			if (descr.realizeFont()) {
-				fontFamily.addFontDescription(descr);
-			}
-		} else {
-			fontFamily.addFontDescription(descr);
-		}
-	}
-	
-	/**
-	 * Add a font using a <b>PDFontSupplier</b>. Use this method if you need special rules for font-loading (like using a font-cache) 
-	 * and subclass the {@link PDFontSupplier}.
-	 */
-	public void addFont(PDFontSupplier supplier, String fontFamilyNameOverride, Integer fontWeightOverride,
-			IdentValue fontStyleOverride, boolean subset) {
-		// would have prefered to used FSSupplier<PDFont> but sadly that would give us an error
-		// because the type-ereasure clashes with addFont(FSSupplier<InputStream> ...)
-		FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyNameOverride);
-
-		FontDescription descr = new FontDescription(
-		        _doc,
-		        supplier,
-		        normalizeFontStyle(fontStyleOverride),
-		        normalizeFontWeight(fontWeightOverride),
-		        fontFamilyNameOverride,
-		        false, // isFromFontFace
-		        subset,
-		        _fontMetricsCache);
-
-		if (!subset) {
-			if (descr.realizeFont()) {
-				fontFamily.addFontDescription(descr);
-			}
-		} else {
-			fontFamily.addFontDescription(descr);
-		}
-	}
-	
-    private int normalizeFontWeight(IdentValue fontWeight) {
-        return fontWeight != null ? FontResolverHelper.convertWeightToInt(fontWeight) : 400;
-    }
-    
-    private int normalizeFontWeight(Integer fontWeight) {
-        return fontWeight != null ? fontWeight : 400;
-    }
-    
-    private IdentValue normalizeFontStyle(IdentValue fontStyle) {
-        return fontStyle != null ? fontStyle : IdentValue.NORMAL;
-    }
-    
-    private void addFontFaceFont(String fontFamilyName, IdentValue fontWeight, IdentValue fontStyle, String uri, boolean subset) {
-        FSSupplier<InputStream> fontSupplier = new FontFaceFontSupplier(_sharedContext, uri);
-        FontFamily<FontDescription> fontFamily = getFontFamily(fontFamilyName);
-        
-        FontDescription description = new FontDescription(
-                    _doc,
-                    fontSupplier,
-                    normalizeFontWeight(fontWeight),
-                    normalizeFontStyle(fontStyle),
-                    fontFamilyName,
-                    true,  // isFromFontFace
-                    subset,
-                    _fontMetricsCache);
-        
-        if (!subset) {
-            if (description.realizeFont()) {
-                fontFamily.addFontDescription(description);
-            }
+        if (fontGroup == FontGroup.MAIN) {
+            this._suppliedFonts.addFont(
+                    supplier, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
         } else {
-            fontFamily.addFontDescription(description);
+            getFallbackFontStore(fontGroup).addFont(supplier, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
         }
     }
 
-    private FontFamily<FontDescription> getFontFamily(String fontFamilyName) {
-        FontFamily<FontDescription> fontFamily = _fontFamilies.get(fontFamilyName);
-        if (fontFamily == null) {
-            fontFamily = new FontFamily<>();
-            _fontFamilies.put(fontFamilyName, fontFamily);
-        }
-        return fontFamily;
+    /**
+     * Add a font using a InputStream. The given file must be a TrueType Font
+     * (.ttf). If you know the underlying stream is a .ttc file you should use
+     * {@link #addFontCollection(FSSupplier, String, Integer, IdentValue, boolean)}
+     * 
+     * @deprecated Use {@link #addFont(FSSupplier, String, Integer, IdentValue, boolean, FontGroup)}
+     */
+    @Deprecated
+    public void addFont(
+       FSSupplier<InputStream> supplier,
+       String fontFamilyNameOverride,
+       Integer fontWeightOverride,
+       IdentValue fontStyleOverride,
+       boolean subset) {
+
+       this._suppliedFonts.addFont(
+               supplier, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
     }
+
+    /**
+     * Add a font specified by a PDFontSupplier to a specific font group.
+     */
+    public void addFont(
+            PDFontSupplier supplier,
+            String fontFamilyNameOverride,
+            Integer fontWeightOverride,
+            IdentValue fontStyleOverride,
+            boolean subset,
+            FontGroup fontGroup) {
+
+        if (fontGroup == FontGroup.MAIN) {
+            this._suppliedFonts.addFont(supplier, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+        } else {
+            getFallbackFontStore(fontGroup).addFont(supplier, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+        }
+    }
+
+    /**
+     * Add a font using a <b>PDFontSupplier</b>. Use this method if you need special rules for font-loading (like using a font-cache) 
+     * and subclass the {@link PDFontSupplier}.
+     * 
+     * @deprecated Use {@link #addFont(PDFontSupplier, String, Integer, IdentValue, boolean, FontGroup)}
+     */
+    @Deprecated
+    public void addFont(
+            PDFontSupplier supplier,
+            String fontFamilyNameOverride,
+            Integer fontWeightOverride,
+            IdentValue fontStyleOverride,
+            boolean subset) {
+
+        this._suppliedFonts.addFont(supplier, fontFamilyNameOverride, fontWeightOverride, fontStyleOverride, subset);
+    }
+
+
+
+
 
     private FSFont resolveFont(SharedContext ctx, String[] families, float size, IdentValue weight, IdentValue style, IdentValue variant) {
         if (!(style == IdentValue.NORMAL || style == IdentValue.OBLIQUE || style == IdentValue.ITALIC)) {
@@ -408,155 +389,57 @@ public class PdfBoxFontResolver implements FontResolver {
         }
 
         List<FontDescription> fonts = new ArrayList<>(3);
-        
+
+        // Supplied fonts
         if (families != null) {
-            for (int i = 0; i < families.length; i++) {
-                FontDescription font = resolveFont(ctx, families[i], size, weight, style, variant);
-                if (font != null) {
-                   fonts.add(font);
-                }
+            resolveFamilyFont(ctx, families, size, weight, style, variant, fonts, _suppliedFonts);
+        }
+
+        // Pre-builtin fallback fonts.
+        fonts.addAll(_preBuiltinFallbackFonts.resolveFonts(ctx, families, size, weight, style, variant));
+
+        // Built-in fonts.
+        if (families != null) {
+            resolveFamilyFont(ctx, families, size, weight, style, variant, fonts, _builtinFonts);
+
+            FontDescription serif = _builtinFonts.resolveFont(ctx, "Serif", size, weight, style, variant);
+            if (serif != null) {
+                fonts.add(serif);
             }
         }
 
-        if (_pdfAConformance == PdfAConformance.NONE &&
-            !_pdfUaConform) {
-            // We don't have a final fallback font for PDF/A documents as serif may not be available
-            // unless the user has explicitly embedded it.
-            
-            // For now, we end up with "Serif" built-in font.
-            // Q: Should this change?
-            // Q: Should we have a final automatically added font?
-            fonts.add(resolveFont(ctx, "Serif", size, weight, style, variant));
-        }
-        
+        // Post built-in fallback fonts.
+        fonts.addAll(_finalFallbackFonts.resolveFonts(ctx, families, size, weight, style, variant));
+
         return new PdfBoxFSFont(fonts, size);
     }
 
-    private String normalizeFontFamily(String fontFamily) {
-        String result = fontFamily;
-        // strip off the "s if they are there
-        if (result.startsWith("\"")) {
-            result = result.substring(1);
-        }
-        if (result.endsWith("\"")) {
-            result = result.substring(0, result.length() - 1);
-        }
+    private void resolveFamilyFont(
+            SharedContext ctx,
+            String[] families,
+            float size,
+            IdentValue weight,
+            IdentValue style,
+            IdentValue variant,
+            List<FontDescription> fonts,
+            AbstractFontStore store) {
 
-        // normalize the font name
-        if (result.equalsIgnoreCase("serif")) {
-            result = "Serif";
-        }
-        else if (result.equalsIgnoreCase("sans-serif")) {
-            result = "SansSerif";
-        }
-        else if (result.equalsIgnoreCase("monospace")) {
-            result = "Monospaced";
-        }
+        for (int i = 0; i < families.length; i++) {
+            FontDescription font = store.resolveFont(ctx, families[i], size, weight, style, variant);
 
-        return result;
-    }
-
-    private FontDescription resolveFont(SharedContext ctx, String fontFamily, float size, IdentValue weight, IdentValue style, IdentValue variant) {
-        String normalizedFontFamily = normalizeFontFamily(fontFamily);
-        String cacheKey = getHashName(normalizedFontFamily, weight, style);
-        FontDescription result = _fontCache.get(cacheKey);
-
-        if (result != null) {
-            return result;
-        }
-
-        FontFamily<FontDescription> family = _fontFamilies.get(normalizedFontFamily);
-
-        if (family != null) {
-            result = family.match(FontResolverHelper.convertWeightToInt(weight), style);
-
-            if (result != null) {
-                _fontCache.put(cacheKey, result);
-                return result;
+            if (font != null) {
+               fonts.add(font);
             }
         }
-
-        return null;
     }
 
-    protected static String getHashName(
-            String name, IdentValue weight, IdentValue style) {
-        return name + "-" + weight + "-" + style;
-    }
+    
 
-    private static Map<String, FontFamily<FontDescription>> createInitialFontMap() {
-        HashMap<String, FontFamily<FontDescription>> result = new HashMap<>();
-        addCourier(result);
-        addTimes(result);
-        addHelvetica(result);
-        addSymbol(result);
-        addZapfDingbats(result);
-            // Try and load the iTextAsian fonts
-//            if(PdfBoxFontResolver.class.getClassLoader().getResource("com/lowagie/text/pdf/fonts/cjkfonts.properties") != null) {
-//                addCJKFonts(result);
-//            }
 
-        return result;
-    }
 
-    private static void addCourier(HashMap<String, FontFamily<FontDescription>> result) {
-        FontFamily<FontDescription> courier = new FontFamily<>();
-        courier.setName("Courier");
+    
 
-        courier.addFontDescription(new FontDescription(PDType1Font.COURIER_BOLD_OBLIQUE, IdentValue.OBLIQUE, 700));
-        courier.addFontDescription(new FontDescription(PDType1Font.COURIER_OBLIQUE, IdentValue.OBLIQUE, 400));
-        courier.addFontDescription(new FontDescription(PDType1Font.COURIER_BOLD, IdentValue.NORMAL, 700));
-        courier.addFontDescription(new FontDescription(PDType1Font.COURIER, IdentValue.NORMAL, 400));
-
-        result.put("DialogInput", courier);
-        result.put("Monospaced", courier);
-        result.put("Courier", courier);
-    }
-
-    private static void addTimes(HashMap<String, FontFamily<FontDescription>> result) {
-        FontFamily<FontDescription> times = new FontFamily<>();
-        times.setName("Times");
-
-        times.addFontDescription(new FontDescription(PDType1Font.TIMES_BOLD_ITALIC, IdentValue.ITALIC, 700));
-        times.addFontDescription(new FontDescription(PDType1Font.TIMES_ITALIC, IdentValue.ITALIC, 400));
-        times.addFontDescription(new FontDescription(PDType1Font.TIMES_BOLD, IdentValue.NORMAL, 700));
-        times.addFontDescription(new FontDescription(PDType1Font.TIMES_ROMAN, IdentValue.NORMAL, 400));
-
-        result.put("Serif", times);
-        result.put("TimesRoman", times);
-    }
-
-    private static void addHelvetica(HashMap<String, FontFamily<FontDescription>> result) {
-        FontFamily<FontDescription> helvetica = new FontFamily<>();
-        helvetica.setName("Helvetica");
-
-        helvetica.addFontDescription(new FontDescription(PDType1Font.HELVETICA_BOLD_OBLIQUE, IdentValue.OBLIQUE, 700));
-        helvetica.addFontDescription(new FontDescription(PDType1Font.HELVETICA_OBLIQUE, IdentValue.OBLIQUE, 400));
-        helvetica.addFontDescription(new FontDescription(PDType1Font.HELVETICA_BOLD, IdentValue.NORMAL, 700));
-        helvetica.addFontDescription(new FontDescription(PDType1Font.HELVETICA, IdentValue.NORMAL, 400));
-
-        result.put("Dialog", helvetica);
-        result.put("SansSerif", helvetica);
-        result.put("Helvetica", helvetica);
-    }
-
-    private static void addSymbol(Map<String, FontFamily<FontDescription>> result) {
-        FontFamily<FontDescription> fontFamily = new FontFamily<>();
-        fontFamily.setName("Symbol");
-
-        fontFamily.addFontDescription(new FontDescription(PDType1Font.SYMBOL, IdentValue.NORMAL, 400));
-
-        result.put("Symbol", fontFamily);
-    }
-
-    private static void addZapfDingbats(Map<String, FontFamily<FontDescription>> result) {
-        FontFamily<FontDescription> fontFamily = new FontFamily<>();
-        fontFamily.setName("ZapfDingbats");
-
-        fontFamily.addFontDescription(new FontDescription(PDType1Font.ZAPF_DINGBATS, IdentValue.NORMAL, 400));
-
-        result.put("ZapfDingbats", fontFamily);
-    }
+    
     
 /* TODO: CJK Fonts
     // fontFamilyName, fontName, encoding
@@ -627,22 +510,23 @@ public class PdfBoxFontResolver implements FontResolver {
 
         private final boolean _isFromFontFace;
         private final boolean _isSubset;
+
         private PdfBoxRawPDFontMetrics _metrics;
         private final FSCacheEx<String, FSCacheValue> _metricsCache;
 
         /**
          * Create a font description from one of the PDF built-in fonts.
          */
-        private FontDescription(PDFont font, IdentValue style, int weight) {
+        public FontDescription(PDFont font, IdentValue style, int weight) {
             this(null, font, style, weight);
         }
-        
+
         /**
          * Create a font description from an input stream supplier.
          * The input stream will only be accessed if {@link #getFont()} or 
          * {@link #getFontMetrics()} (and the font metrics were not available from cache) are called.
          */
-        private FontDescription(
+        public FontDescription(
                 PDDocument doc, FSSupplier<InputStream> supplier,
                 int weight, IdentValue style, String family,
                 boolean isFromFontFace, boolean isSubset,
@@ -685,7 +569,7 @@ public class PdfBoxFontResolver implements FontResolver {
          * Creates a font description from a PDFont supplier. The supplier will only be called upon
          * if {@link #getFont()} or {@link #getFontMetrics()} (and the font metrics were not available from cache) are called.
          */
-        private FontDescription(
+        public FontDescription(
                 PDDocument doc, FSSupplier<PDFont> fontSupplier,
                 IdentValue style, int weight, String family, 
                 boolean isFromFontFace, boolean isSubset,
@@ -700,6 +584,10 @@ public class PdfBoxFontResolver implements FontResolver {
             _isSubset = isSubset;
             _metricsCache = metricsCache;
             _metrics = getFontMetricsFromCache(family, weight, style);
+        }
+
+        public String getFamily() {
+            return _family;
         }
 
         private String createFontMetricsCacheKey(String family, int weight, IdentValue style) {
@@ -726,7 +614,7 @@ public class PdfBoxFontResolver implements FontResolver {
             }
         }
 
-        private boolean realizeFont() {
+        public boolean realizeFont() {
             if (_font == null && _fontSupplier != null) {
                 XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_LOADING_FONT_FROM_SUPPLIER, _family, "PDFont");
 

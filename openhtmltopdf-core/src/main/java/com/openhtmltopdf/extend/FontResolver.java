@@ -26,7 +26,4 @@ import com.openhtmltopdf.render.FSFont;
 
 public interface FontResolver {
     public FSFont resolveFont(SharedContext renderingContext, FontSpecification spec);
-    
-    @Deprecated
-    public void flushCache();
 }

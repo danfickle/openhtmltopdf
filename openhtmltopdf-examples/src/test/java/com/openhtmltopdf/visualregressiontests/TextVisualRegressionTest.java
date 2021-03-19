@@ -8,7 +8,9 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
@@ -22,6 +24,7 @@ import org.w3c.dom.Element;
 import com.openhtmltopdf.extend.FSObjectDrawer;
 import com.openhtmltopdf.extend.FSObjectDrawerFactory;
 import com.openhtmltopdf.extend.OutputDevice;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FSFontUseCase;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.visualtest.TestSupport;
@@ -681,5 +684,39 @@ public class TextVisualRegressionTest {
              builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "Karla", 700, FontStyle.NORMAL, true);
              builder.useObjectDrawerFactory(new WatermarkDrawerFactory());
          }));
+    }
+
+    /**
+     * Tests the ability to use fallback fonts.
+     */
+    @Test
+    public void testIssue641FontFallback() throws IOException {
+        assertTrue(vtester.runTest("issue-641-font-fallback", builder -> {
+            builder.useFont(
+                    new File("target/test/visual-tests/SourceSansPro-Regular.ttf"),
+                    "SourceSans", 400, FontStyle.NORMAL, true,
+                    EnumSet.of(FSFontUseCase.DOCUMENT));
+            builder.useFont(
+                    new File("target/test/visual-tests/Karla-Bold.ttf"),
+                    "Karla", 700, FontStyle.NORMAL, true,
+                    EnumSet.of(FSFontUseCase.FALLBACK_PRE));
+        }));
+    }
+
+    /**
+     * Tests the ability to use fallback fonts via input streams.
+     */
+    @Test
+    public void testIssue641FontFallbackInputStream() throws IOException {
+        assertTrue(vtester.runTest("issue-641-font-fallback", builder -> {
+            builder.useFont(
+                    () -> TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/SourceSansPro-Regular.ttf"),
+                    "SourceSans", 400, FontStyle.NORMAL, true,
+                    EnumSet.of(FSFontUseCase.DOCUMENT));
+            builder.useFont(
+                    () -> TextVisualRegressionTest.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf"),
+                    "Karla", 700, FontStyle.NORMAL, true,
+                    EnumSet.of(FSFontUseCase.FALLBACK_PRE));
+        }));
     }
 }
