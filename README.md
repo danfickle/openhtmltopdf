@@ -68,7 +68,19 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 ## CHANGELOG
 
 ### head - 1.0.7-SNAPSHOT
-+ See commit log.
++ [#650](https://github.com/danfickle/openhtmltopdf/pull/650) Support for multiple background images on the one element. Thanks for requesting @baedorf.
++ [#669](https://github.com/danfickle/openhtmltopdf/pull/669) Support fallback fonts. Thanks for requesting @asu2 and assisting @draco1023. 
++ [#640](https://github.com/danfickle/openhtmltopdf/pull/640) Implement file embeds via the download attribute on links. Thanks for original PR @syjer and for requesting @lindamarieb and @vader.
++ [#666](https://github.com/danfickle/openhtmltopdf/pull/666) API to get the bottom-most y position of rendered content to be able to position follow on content with other tools. Thanks for extensive reviewing of PR @stechio and for request by @DSW-AK.
++ [#664](https://github.com/danfickle/openhtmltopdf/pull/664) Improved support for PDF/A and PDF/UA standards. Thanks for PR @qligier.
++ [#653](https://github.com/danfickle/openhtmltopdf/pull/653) Fix for inline-block elements with a z-index or transform were being output twice. Thanks for reporting @hannes123bsi.
++ [#655](https://github.com/danfickle/openhtmltopdf/pull/655) Correct layout of ordered lists in RTL direction. Thanks for PR @johnnyaug.
++ [#658](https://github.com/danfickle/openhtmltopdf/pull/658) Implement `target-text` function for `content` property. Thanks for PR @BenjaminVega.
++ [#647](https://github.com/danfickle/openhtmltopdf/pull/647) Fix race condition in setting up logger in multi-threaded environments. Thanks for PR @syjer.
++ [#638](https://github.com/danfickle/openhtmltopdf/pull/638) Ability to plug-in external resource control based on resource type and url. Thanks for original PR @syjer.
++ [#628](https://github.com/danfickle/openhtmltopdf/pull/628) Use enhanced image embedding methods from PDF-BOX. Thanks for PR @rototor and your work in PDF-BOX implementing this.
++ [#627](https://github.com/danfickle/openhtmltopdf/pull/627) Fix regression where a null font style was causing NPE. Thaks for PR @rototor.
++ [#338](https://github.com/danfickle/openhtmltopdf/issues/338) Implement read-only radio button group. Thanks for investigating, reporting and patience @ThoSchCon, @aleks-shbln, @dmitry-weirdo, @syjer and @paulito-bandito.
 
 
 ### 1.0.6 (2020-December-22)
