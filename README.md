@@ -67,7 +67,13 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 
 ## CHANGELOG
 
-### head - 1.0.8-SNAPSHOT
+### head - 1.0.9-SNAPSHOT
++ See commit log.
+
+
+### 1.0.8 (2021-March-22)
+**SECURITY RELEASE**
+
 + [#675](https://github.com/danfickle/openhtmltopdf/issues/675) Update PDFBOX to 2.0.23 to avoid CVEs. Thanks for reporting @Samuel3.
 
 NOTE: These CVEs relate to the loading of untrusted PDFs in PDFBOX and thus this project is not directly affected. However, it is not a good idea to have CVEs on your classpath.
