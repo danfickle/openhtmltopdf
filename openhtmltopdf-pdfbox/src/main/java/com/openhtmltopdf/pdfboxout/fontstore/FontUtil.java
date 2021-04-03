@@ -7,6 +7,14 @@ import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 
 public class FontUtil {
+    public static final String FQSeparator = "/";
+
+    public static String getFontFQName(String fontFamily, Integer fontWeight, IdentValue fontStyle) {
+        return fontFamily + FQSeparator
+                + normalizeFontStyle(fontStyle) + FQSeparator
+                + normalizeFontWeight(fontWeight);
+    }
+
     public static String normalizeFontFamily(String fontFamily) {
         String result = fontFamily;
         // strip off the "s if they are there

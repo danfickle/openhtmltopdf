@@ -24,10 +24,12 @@ import com.openhtmltopdf.outputdevice.helper.FontFaceFontSupplier;
 import com.openhtmltopdf.outputdevice.helper.FontFamily;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PDFontSupplier;
+import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontCache;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 
 public class MainFontStore extends AbstractFontStore implements Closeable {
     private final Map<String, FontFamily<FontDescription>> _fontFamilies = new HashMap<>();
+    private final FontCache _fontCache;
     private final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
     private final PDDocument _doc;
     private final SharedContext _sharedContext;
@@ -35,12 +37,14 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
 
     public MainFontStore(
        SharedContext sharedContext,
-       PDDocument doc, 
-       FSCacheEx<String, FSCacheValue> pdfMetricsCache) {
+       PDDocument doc,
+       FSCacheEx<String, FSCacheValue> pdfMetricsCache,
+       FontCache fontCache) {
 
         this._sharedContext = sharedContext;
         this._doc = doc;
         this._fontMetricsCache = pdfMetricsCache;
+        this._fontCache = fontCache;
     }
 
     public void close() throws IOException {
@@ -75,7 +79,8 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
                 fontFamilyNameOverride,
                 false,   // isFromFontFace
                 subset,
-                _fontMetricsCache);
+                _fontMetricsCache,
+                _fontCache);
 
         addFontToFamily(subset, fontFamily, descr);
     }
@@ -107,7 +112,8 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
                     fontFamilyName,
                     true,  // isFromFontFace
                     subset,
-                    _fontMetricsCache);
+                    _fontMetricsCache,
+                    _fontCache);
 
         addFontToFamily(subset, fontFamily, description);
     }
@@ -129,7 +135,8 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
                 fontFamilyNameOverride,
                 false, // isFromFontFace
                 subset,
-                _fontMetricsCache);
+                _fontMetricsCache,
+                _fontCache);
 
         addFontToFamily(subset, fontFamily, descr);
     }
@@ -153,9 +160,14 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
                 fontFamilyNameOverride,
                 false, // isFromFontFace
                 subset,
-                _fontMetricsCache);
+                _fontMetricsCache,
+                _fontCache);
 
         addFontToFamily(subset, fontFamily, descr);
+    }
+
+    public Map<String, PDFont> getFontCache() {
+        return _fontCache;
     }
 
     @Override
