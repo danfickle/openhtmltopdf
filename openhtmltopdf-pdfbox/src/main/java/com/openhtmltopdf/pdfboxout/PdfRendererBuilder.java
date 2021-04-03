@@ -29,7 +29,7 @@ import com.openhtmltopdf.util.XRLog;
 
 public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, PdfRendererBuilderState> {
     public PdfRendererBuilder() {
-        super(new PdfRendererBuilderState());
+        this(new PdfRendererBuilderState());
     }
 
 	protected PdfRendererBuilder(PdfRendererBuilderState state) {
