@@ -3,6 +3,7 @@ package com.openhtmltopdf.objects.pdf;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.apache.pdfbox.cos.COSArray;
@@ -11,7 +12,6 @@ import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.multipdf.LayerUtility;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
-import org.apache.pdfbox.util.Charsets;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.extend.OutputDevice;
@@ -52,13 +52,13 @@ public class MergeBackgroundPdfDrawer extends PdfDrawerBase
             COSStream saveStateAndPlacePageBackgroundStream = (COSStream) cosArray.get(0);
             OutputStream saveAndPlaceStream = saveStateAndPlacePageBackgroundStream
                     .createOutputStream();
-            saveAndPlaceStream.write("q\n".getBytes(Charsets.US_ASCII));
+            saveAndPlaceStream.write("q\n".getBytes(StandardCharsets.US_ASCII));
             COSName name = page.getResources().add(pdFormXObject);
             name.writePDF(saveAndPlaceStream);
             saveAndPlaceStream.write(' ');
-            saveAndPlaceStream.write("Do\n".getBytes(Charsets.US_ASCII));
-            saveAndPlaceStream.write("Q\n".getBytes(Charsets.US_ASCII));
-            saveAndPlaceStream.write("q\n".getBytes(Charsets.US_ASCII));
+            saveAndPlaceStream.write("Do\n".getBytes(StandardCharsets.US_ASCII));
+            saveAndPlaceStream.write("Q\n".getBytes(StandardCharsets.US_ASCII));
+            saveAndPlaceStream.write("q\n".getBytes(StandardCharsets.US_ASCII));
             saveAndPlaceStream.close();
 
         }

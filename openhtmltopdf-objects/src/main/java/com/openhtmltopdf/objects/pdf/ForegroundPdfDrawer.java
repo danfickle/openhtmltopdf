@@ -9,12 +9,12 @@ import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.multipdf.LayerUtility;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
-import org.apache.pdfbox.util.Charsets;
 import org.w3c.dom.Element;
 
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class ForegroundPdfDrawer extends PdfDrawerBase
@@ -50,12 +50,12 @@ public class ForegroundPdfDrawer extends PdfDrawerBase
 
             COSStream restoreStateAndPlaceWatermark = (COSStream) cosArray.get(cosArray.size() - 1);
             OutputStream watermarkOutputStream = restoreStateAndPlaceWatermark.createOutputStream();
-            watermarkOutputStream.write("Q\nq\n".getBytes(Charsets.US_ASCII));
+            watermarkOutputStream.write("Q\nq\n".getBytes(StandardCharsets.US_ASCII));
             COSName name = page.getResources().add(pdFormXObject);
             name.writePDF(watermarkOutputStream);
             watermarkOutputStream.write(' ');
-            watermarkOutputStream.write("Do\n".getBytes(Charsets.US_ASCII));
-            watermarkOutputStream.write("Q\n".getBytes(Charsets.US_ASCII));
+            watermarkOutputStream.write("Do\n".getBytes(StandardCharsets.US_ASCII));
+            watermarkOutputStream.write("Q\n".getBytes(StandardCharsets.US_ASCII));
             watermarkOutputStream.close();
         }
         catch (IOException e1)
