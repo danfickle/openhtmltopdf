@@ -690,8 +690,7 @@ public class PdfBoxForm {
         final int FLAG_USE_HTML_SUBMIT = 1 << 2;
         
         PDPushButton btn = new PDPushButton(acro);
-        btn.setPushButton(true);
-        
+
         if (ctrl.box.getElement().hasAttribute("name")) {
             // Buttons can't have a value so we create a hidden text field instead.
             PDTextField field = new PDTextField(acro);
