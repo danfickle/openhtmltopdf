@@ -3,7 +3,6 @@ package com.openhtmltopdf.benchmark;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.util.XRLog;
 import org.apache.pdfbox.io.IOUtils;
-import org.apache.pdfbox.util.Charsets;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Mode;
@@ -18,6 +17,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -77,7 +77,7 @@ public class RenderTextBenchmark {
     private String readContent(String path) {
         try (InputStream htmlIs = RenderTextBenchmark.class.getResourceAsStream(path)) {
             byte[] htmlBytes = IOUtils.toByteArray(htmlIs);
-            return new String(htmlBytes, Charsets.UTF_8);
+            return new String(htmlBytes, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

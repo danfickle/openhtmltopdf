@@ -3,11 +3,11 @@ package com.openhtmltopdf.testcases;
 import static com.openhtmltopdf.testcases.TestcaseRunner.buildObjectDrawerFactory;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.Charsets;
 import org.junit.Test;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
@@ -42,7 +42,7 @@ public class ConcateOutputTest {
 	private static void renderPDF(String testCaseFile, PDDocument document) throws Exception {
 		byte[] htmlBytes = IOUtils
 				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
-		String html = new String(htmlBytes, Charsets.UTF_8);
+		String html = new String(htmlBytes, StandardCharsets.UTF_8);
 		PdfRendererBuilder builder = new PdfRendererBuilder();
 		builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
 		builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
