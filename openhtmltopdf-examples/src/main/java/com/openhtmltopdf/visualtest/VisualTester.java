@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,7 +13,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.io.IOUtils;
-import org.apache.pdfbox.util.Charsets;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.visualtester.PdfVisualTester;
@@ -91,7 +91,7 @@ public class VisualTester {
         
         try (InputStream htmlIs = TestcaseRunner.class.getResourceAsStream(absResPath)) {
             byte[] htmlBytes = IOUtils.toByteArray(htmlIs);
-            html = new String(htmlBytes, Charsets.UTF_8);
+            html = new String(htmlBytes, StandardCharsets.UTF_8);
         }
 
         StringBuilder sb = logToStringBuilder();
@@ -100,7 +100,7 @@ public class VisualTester {
         if (actualPdfBytes == null) {
             System.err.println("When running test (" + resource + "), rendering failed, writing log to failure file.");
             File output = new File(this.outputPath, resource + ".failure.txt");
-            FileUtils.writeByteArrayToFile(output, sb.toString().getBytes(Charsets.UTF_8));
+            FileUtils.writeByteArrayToFile(output, sb.toString().getBytes(StandardCharsets.UTF_8));
             return false;
         }
 

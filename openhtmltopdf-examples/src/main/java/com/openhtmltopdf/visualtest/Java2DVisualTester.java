@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +25,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.io.IOUtils;
-import org.apache.pdfbox.util.Charsets;
 
 import com.openhtmltopdf.java2d.api.BufferedImagePageProcessor;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
@@ -139,7 +139,7 @@ public class Java2DVisualTester {
         if (actual == null) {
             System.err.println("When running test (" + resource + ") on single-page mode, rendering failed, writing log to failure file.");
             File output = new File(this.outputPath, resource + ".failure.txt");
-            FileUtils.writeByteArrayToFile(output, sb.toString().getBytes(Charsets.UTF_8));
+            FileUtils.writeByteArrayToFile(output, sb.toString().getBytes(StandardCharsets.UTF_8));
             return false;
         } else if (TestcaseRunner.class.getResource(absExpPath) == null) {
             System.err.println("When running test (" + resource + ") on single-page mode, nothing to compare against as resource (" + absExpPath + ") does not exist.");
@@ -178,7 +178,7 @@ public class Java2DVisualTester {
     private String readHtml(String absResPath) throws IOException {
         try (InputStream htmlIs = TestcaseRunner.class.getResourceAsStream(absResPath)) {
             byte[] htmlBytes = IOUtils.toByteArray(htmlIs);
-            return new String(htmlBytes, Charsets.UTF_8);
+            return new String(htmlBytes, StandardCharsets.UTF_8);
         }
     }
 
@@ -197,7 +197,7 @@ public class Java2DVisualTester {
         if (actualPages == null) {
             System.err.println("When running test (" + resource + "), rendering failed, writing log to failure file.");
             File output = new File(this.outputPath, resource + ".failure.txt");
-            FileUtils.writeByteArrayToFile(output, sb.toString().getBytes(Charsets.UTF_8));
+            FileUtils.writeByteArrayToFile(output, sb.toString().getBytes(StandardCharsets.UTF_8));
             return false;
         }
 

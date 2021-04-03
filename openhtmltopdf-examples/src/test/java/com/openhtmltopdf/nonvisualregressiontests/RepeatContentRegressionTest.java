@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,7 +22,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.util.Charsets;
 import org.junit.Test;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -150,7 +150,7 @@ public class RepeatContentRegressionTest {
 
         try (InputStream is = TestcaseRunner.class.getResourceAsStream(absResPath)) {
             byte[] htmlBytes = IOUtils.toByteArray(is);
-            String htmlWithProof = new String(htmlBytes, Charsets.UTF_8);
+            String htmlWithProof = new String(htmlBytes, StandardCharsets.UTF_8);
 
             String[] parts = htmlWithProof.split(Pattern.quote("======="));
             String html = parts[0];

@@ -2,10 +2,10 @@ package com.openhtmltopdf.documentation.generator;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.apache.pdfbox.io.IOUtils;
-import org.apache.pdfbox.util.Charsets;
 
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -22,13 +22,13 @@ public class TemplateAuthorGuideGenerator {
 		
 		byte[] markdownBytes = IOUtils
 				.toByteArray(TemplateAuthorGuideGenerator.class.getResourceAsStream("/documentation/documentation.md"));
-		String md = new String(markdownBytes, Charsets.UTF_8);
+		String md = new String(markdownBytes, StandardCharsets.UTF_8);
 		
 		String html = markdown(md);
 		
 		byte[] hdrBytes = IOUtils
 				.toByteArray(TemplateAuthorGuideGenerator.class.getResourceAsStream("/documentation/documentation-header.htm"));
-		String hdr = new String(hdrBytes, Charsets.UTF_8);
+		String hdr = new String(hdrBytes, StandardCharsets.UTF_8);
 		
 		// FileUtils.writeStringToFile(new File("./docs-xxxx.htm"), hdr + html + "</body></html>\n");
 		
