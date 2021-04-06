@@ -402,7 +402,8 @@ public class PdfBoxForm {
 
         String fontName = pair.fontName;
         if (fontName == null)
-            fontName = "Helv";
+            return;
+
         String fontInstruction = "/" + fontName + " 0 Tf";
         field.setDefaultAppearance(fontInstruction + ' ' + colorOperator);
     }

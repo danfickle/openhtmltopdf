@@ -169,6 +169,7 @@ public class PdfBoxPerDocumentFormState {
             int start = 0;
             PDAcroForm acro = new PDAcroForm(writer);
 
+            acro.setDefaultAppearance("/Helv 0 Tf 0 g");
             acro.setNeedAppearances(Boolean.TRUE);
             acro.setDefaultResources(resources);
         
