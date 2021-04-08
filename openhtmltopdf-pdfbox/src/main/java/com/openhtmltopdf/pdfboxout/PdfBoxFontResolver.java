@@ -73,7 +73,7 @@ public class PdfBoxFontResolver implements FontResolver {
     private final AbstractFontStore _builtinFonts;
     private final FallbackFontStore _finalFallbackFonts;
 
-    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FontCache fontCache, FSCacheEx<String, FSCacheValue> pdfMetricsCache, PdfAConformance pdfAConformance, boolean pdfUaConform) {
+    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, FontCache fontCache, PdfAConformance pdfAConformance, boolean pdfUaConform) {
         this._doc = doc;
 
         this._suppliedFonts = new MainFontStore(sharedContext, doc, pdfMetricsCache, fontCache);
@@ -539,7 +539,7 @@ public class PdfBoxFontResolver implements FontResolver {
         }
 
         protected String key(String family, Integer weight, IdentValue style) {
-            return FontUtil.getFontFQName(family, weight, style);
+            return FontUtil.getFontQName(family, weight, style);
         }
     }
 

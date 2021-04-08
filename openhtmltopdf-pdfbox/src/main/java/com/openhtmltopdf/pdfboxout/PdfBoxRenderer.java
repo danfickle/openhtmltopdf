@@ -201,7 +201,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         userAgent.setSharedContext(_sharedContext);
         _outputDevice.setSharedContext(_sharedContext);
 
-        PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, state._fontCache, state._caches.get(CacheStore.PDF_FONT_METRICS), state._pdfAConformance, state._pdfUaConform);
+        PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, state._caches.get(CacheStore.PDF_FONT_METRICS), state._fontCache, state._pdfAConformance, state._pdfUaConform);
         _sharedContext.setFontResolver(fontResolver);
 
         PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, state._svgImpl, state._objectDrawerFactory, state._mathmlImpl);
@@ -274,9 +274,9 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     }
 
     /**
-     * Creates a new renderer builder inheriting this configuration.
+     * Creates a new builder inheriting this configuration.
      */
-    public PdfRendererBuilder createBuilder() {
+    public PdfRendererBuilder toBuilder() {
         PdfRendererBuilderState newState = state.clone();
         /*
          * NOTE: Old input references are cleared to ensure a clean new run.

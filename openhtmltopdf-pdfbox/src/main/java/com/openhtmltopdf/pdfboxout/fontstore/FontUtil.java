@@ -7,11 +7,22 @@ import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 
 public class FontUtil {
-    public static final String FQSeparator = "/";
+    public static final String QNameSeparator = "/";
 
-    public static String getFontFQName(String fontFamily, Integer fontWeight, IdentValue fontStyle) {
-        return fontFamily + FQSeparator
-                + normalizeFontStyle(fontStyle) + FQSeparator
+    /**
+     * Gets the qualified name for the given font coordinates.
+     * 
+     * @param fontFamily
+     * @param fontWeight
+     * @param fontStyle
+     * @implNote The result is built according to this rule (ABNF):
+     *           <pre>
+     * fontQName = fontFamily {@link #QNameSeparator} fontStyle QNameSeparator fontWeight</pre>
+     *           where the font coordinates are normalized.
+     */
+    public static String getFontQName(String fontFamily, Integer fontWeight, IdentValue fontStyle) {
+        return normalizeFontFamily(fontFamily) + QNameSeparator
+                + normalizeFontStyle(fontStyle) + QNameSeparator
                 + normalizeFontWeight(fontWeight);
     }
 
