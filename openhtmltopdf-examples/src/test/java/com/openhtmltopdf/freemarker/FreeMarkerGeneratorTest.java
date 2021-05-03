@@ -3,10 +3,10 @@ package com.openhtmltopdf.freemarker;
 import com.openhtmltopdf.freemarker.FreeMarkerGenerator.FreemarkerRootObject;
 import com.openhtmltopdf.util.XRLog;
 import freemarker.template.TemplateException;
-import org.apache.pdfbox.util.Charsets;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 public class FreeMarkerGeneratorTest {
@@ -21,7 +21,7 @@ public class FreeMarkerGeneratorTest {
 		String html = freeMarkerGenerator.generateHTML("featuredocumentation.ftl", Locale.GERMAN, object);
 		byte[] pdf = freeMarkerGenerator.generatePDF(html);
 		FileOutputStream fileOutputStream = new FileOutputStream(new File(targetDir, "featuredocumentation.html"));
-		fileOutputStream.write(html.getBytes(Charsets.UTF_8));
+		fileOutputStream.write(html.getBytes(StandardCharsets.UTF_8));
 		fileOutputStream.close();
 		fileOutputStream = new FileOutputStream(new File(targetDir, "featuredocumentation.pdf"));
 		fileOutputStream.write(pdf);

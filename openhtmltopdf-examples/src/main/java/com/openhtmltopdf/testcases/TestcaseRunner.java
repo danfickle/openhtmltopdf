@@ -5,6 +5,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
@@ -15,7 +16,6 @@ import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.util.Diagnostic;
 import org.apache.pdfbox.io.IOUtils;
-import org.apache.pdfbox.util.Charsets;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
@@ -149,7 +149,7 @@ public class TestcaseRunner {
 
 		byte[] htmlBytes = IOUtils
 				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
-		String html = new String(htmlBytes, Charsets.UTF_8);
+		String html = new String(htmlBytes, StandardCharsets.UTF_8);
 		OutputStream outputStream = new ByteArrayOutputStream(4096);
 
 		// We wan't to throw if we get a warning or severe log message.
@@ -254,7 +254,7 @@ public class TestcaseRunner {
 			return;
 		byte[] htmlBytes = IOUtils
 				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
-		String html = new String(htmlBytes, Charsets.UTF_8);
+		String html = new String(htmlBytes, StandardCharsets.UTF_8);
 		String outDir = prepareOutDir();
 		String testCaseOutputFile = outDir + "/" + testCaseFile + ".pdf";
 		String testCaseOutputPNGFile = outDir + "/" + testCaseFile + ".png";

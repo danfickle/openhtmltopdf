@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,7 +42,6 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDRadioButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.util.Charsets;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
 import org.junit.Test;
@@ -93,7 +93,7 @@ public class NonVisualRegressionTest {
             byte[] htmlBytes = IOUtils
                       .toByteArray(is);
 
-            return new String(htmlBytes, Charsets.UTF_8);
+            return new String(htmlBytes, StandardCharsets.UTF_8);
         }
     }
 
