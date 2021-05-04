@@ -46,6 +46,8 @@ import com.openhtmltopdf.visualtest.Java2DVisualTester.Java2DBuilderConfig;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
 public class TestSupport {
+    public static final String FONT_FILES_PATH = "target/test/visual-tests/";
+
     /**
      * Output the font file as a regular file so we don't have to use streams.
      * @throws IOException
@@ -54,15 +56,28 @@ public class TestSupport {
         File outputDirectory = new File("target/test/visual-tests/test-output/j2d/");
         outputDirectory.mkdirs();
 
-        File fontFile = new File("target/test/visual-tests/" + resource);
-        
+        File fontFile = new File(FONT_FILES_PATH + resource);
+
         if (!fontFile.exists()) {
             try (InputStream in = TestSupport.class.getResourceAsStream("/visualtest/html/fonts/" + resource)) {
                 Files.copy(in, fontFile.toPath());
             }
         }
     }
-    
+
+    public static File fontFileKarlaBold() {
+        return new File(FONT_FILES_PATH + "Karla-Bold.ttf");
+    }
+
+    public static File fontFileNotoNaskhArabicRegular() {
+        return new File(FONT_FILES_PATH + "NotoNaskhArabic-Regular.ttf");
+    }
+
+    public static File fontFileSourceSansProRegular() {
+        return new File(FONT_FILES_PATH + "SourceSansPro-Regular.ttf");
+    }
+
+
     /**
      * Output the test fonts from classpath to files in target so we can use them 
      * without streams.
@@ -153,25 +168,25 @@ public class TestSupport {
             this.matcher = SPACES.matcher(newText);
         }
     }
-    
+
     public static final BuilderConfig WITH_FONT = (builder) -> {
-        builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "TestFont");
+        builder.useFont(fontFileKarlaBold(), "TestFont");
         builder.useUnicodeLineBreaker(new SimpleTextBreaker());
     };
-    
+
     public static final Java2DBuilderConfig J2D_WITH_FONT = (builder) -> {
-        builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "TestFont");
+        builder.useFont(fontFileKarlaBold(), "TestFont");
         builder.useUnicodeLineBreaker(new SimpleTextBreaker());
     };
-    
+
     public static final BuilderConfig WITH_EXTRA_FONT = (builder) -> {
         WITH_FONT.configure(builder);
-        builder.useFont(new File("target/test/visual-tests/SourceSansPro-Regular.ttf"), "ExtraFont");
+        builder.useFont(fontFileSourceSansProRegular(), "ExtraFont");
     };
     
     public static final BuilderConfig WITH_ARABIC = (builder) -> {
         WITH_FONT.configure(builder);
-        builder.useFont(new File("target/test/visual-tests/NotoNaskhArabic-Regular.ttf"), "arabic");
+        builder.useFont(fontFileNotoNaskhArabicRegular(), "arabic");
         builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
         builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
         builder.useUnicodeLineBreaker(new ICUBreakers.ICULineBreaker(Locale.US)); // Overrides WITH_FONT
