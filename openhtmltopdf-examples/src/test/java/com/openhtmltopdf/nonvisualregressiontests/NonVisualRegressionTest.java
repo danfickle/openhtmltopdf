@@ -24,12 +24,15 @@ import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSObject;
+import org.apache.pdfbox.cos.COSObjectKey;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
@@ -44,10 +47,12 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
+import com.openhtmltopdf.pdfboxout.PDFontSupplier;
 import com.openhtmltopdf.pdfboxout.PagePosition;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -61,7 +66,12 @@ import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 public class NonVisualRegressionTest {
     private static final String RES_PATH = "/visualtest/html/";
     private static final String OUT_PATH = "target/test/visual-tests/test-output/";
-    
+
+    @BeforeClass
+    public static void configureTests() throws IOException {
+        TestSupport.makeFontFiles();
+    }
+
     private static void render(String fileName, String html, BuilderConfig config) throws IOException {
         ByteArrayOutputStream actual = new ByteArrayOutputStream();
         
@@ -1167,6 +1177,56 @@ public class NonVisualRegressionTest {
 
         assertTrue(TestSupport.comparePdfs(os.toByteArray(), filename));
         assertEquals(111.48, lastContentLine, 0.5);
+    }
+
+    /**
+     * Tests that it is possible to use a PDDocument multiple times
+     * without re-embedding required fonts.
+     * PR#684, Issue#683
+     */
+    @Test
+    public void testPr684FontReuse() throws IOException {
+        String html1 = loadHtml("pr-684-font-reuse-1");
+        String html2 = loadHtml("pr-684-font-reuse-2");
+
+        try (PDDocument doc = new PDDocument()) {
+            PDFont font = PDType0Font.load(doc, TestSupport.fontFileKarlaBold());
+            PDFontSupplier supplier = new PDFontSupplier(font);
+
+            try (PdfBoxRenderer renderer = new PdfRendererBuilder()
+                    .usePDDocument(doc)
+                    .withHtmlContent(html1, null)
+                    .useFont(supplier, "MyFont")
+                    .buildPdfRenderer()) {
+                renderer.createPDFWithoutClosing();
+            }
+
+            try (PdfBoxRenderer renderer = new PdfRendererBuilder()
+                    .usePDDocument(doc)
+                    .withHtmlContent(html2, null)
+                    .useFont(supplier, "MyFont")
+                    .buildPdfRenderer()) {
+                renderer.createPDFWithoutClosing();
+            }
+
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            doc.save(os);
+            writePdfToFile("pr-684-font-reuse", os);
+        }
+
+        try (PDDocument doc = load("pr-684-font-reuse")) {
+            try (COSDocument cos = doc.getDocument()) {
+                COSName name1 = doc.getPage(0).getResources().getFontNames().iterator().next();
+                COSName name2 = doc.getPage(1).getResources().getFontNames().iterator().next();
+
+                COSObjectKey fnt1 = cos.getKey(doc.getPage(0).getResources().getFont(name1).getCOSObject());
+                COSObjectKey fnt2 = cos.getKey(doc.getPage(1).getResources().getFont(name2).getCOSObject());
+
+                assertEquals(fnt1, fnt2);
+            }
+
+            remove("pr-684-font-reuse", doc);
+        }
     }
 
     // TODO:
