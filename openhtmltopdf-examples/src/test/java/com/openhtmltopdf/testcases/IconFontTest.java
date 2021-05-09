@@ -1,9 +1,19 @@
 package com.openhtmltopdf.testcases;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
-import org.junit.Test;
+import com.openhtmltopdf.testlistener.PrintingRunner;
+import com.openhtmltopdf.visualtest.TestSupport;
 
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@RunWith(PrintingRunner.class)
 public class IconFontTest {
+    @BeforeClass
+    public static void configure() {
+        TestSupport.quietLogs();
+    }
 
     /**
      * Icon fonts sometimes contain no space character. They should still be

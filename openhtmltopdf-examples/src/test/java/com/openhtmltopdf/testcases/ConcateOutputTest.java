@@ -8,7 +8,9 @@ import java.nio.charset.StandardCharsets;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
@@ -18,8 +20,15 @@ import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
+import com.openhtmltopdf.testlistener.PrintingRunner;
+import com.openhtmltopdf.visualtest.TestSupport;
 
+@RunWith(PrintingRunner.class)
 public class ConcateOutputTest {
+    @BeforeClass
+    public static void configure() {
+        TestSupport.quietLogs();
+    }
 
 	@Test
 	public void testConcateOutput() throws Exception {

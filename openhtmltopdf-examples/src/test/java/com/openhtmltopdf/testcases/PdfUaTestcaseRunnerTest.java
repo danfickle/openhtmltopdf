@@ -8,9 +8,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.apache.pdfbox.io.IOUtils;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.testlistener.PrintingRunner;
+import com.openhtmltopdf.visualtest.TestSupport;
 
 /**
  * Tests for PDF accessiblility (PDF/UA, WCAG, Section 508).
@@ -21,7 +25,13 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
  *
  *  If you don't want to confirm all, please at least confirm the all-in-one testcase!
  */
+@RunWith(PrintingRunner.class)
 public class PdfUaTestcaseRunnerTest {
+    @BeforeClass
+    public static void configure() {
+        TestSupport.quietLogs();
+    }
+
     private static void run(String testCase) throws Exception {
 
         byte[] htmlBytes = null;

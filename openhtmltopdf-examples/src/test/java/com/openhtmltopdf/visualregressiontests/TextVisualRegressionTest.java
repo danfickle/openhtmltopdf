@@ -8,7 +8,6 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Map;
@@ -19,6 +18,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.extend.FSObjectDrawer;
@@ -27,17 +27,20 @@ import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FSFontUseCase;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder.FontStyle;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.testlistener.PrintingRunner;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester;
 
+@RunWith(PrintingRunner.class)
 public class TextVisualRegressionTest {
     private VisualTester vtester;
-    
+
     @BeforeClass
     public static void makeFontFiles() throws IOException {
+        TestSupport.quietLogs();
         TestSupport.makeFontFiles();
     }
-    
+
     @Before
     public void configureTester() {
         File outputDirectory = new File("target/test/visual-tests/test-output/");

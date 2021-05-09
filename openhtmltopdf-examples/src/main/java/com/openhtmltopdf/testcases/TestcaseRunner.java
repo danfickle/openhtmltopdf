@@ -178,7 +178,9 @@ public class TestcaseRunner {
 				if (level.equals(Level.WARNING) || level.equals(Level.SEVERE)) {
 					warnings.add(new RuntimeException(where + ": " + msg));
 				}
-				delegate.log(where, level, msg);
+				if (!level.equals(Level.INFO)) {
+				    delegate.log(where, level, msg);
+				}
 			}
 		});
 

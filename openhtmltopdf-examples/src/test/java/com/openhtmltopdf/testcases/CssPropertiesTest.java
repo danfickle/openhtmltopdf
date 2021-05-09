@@ -1,7 +1,11 @@
 package com.openhtmltopdf.testcases;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import com.openhtmltopdf.testlistener.PrintingRunner;
+
+@RunWith(PrintingRunner.class)
 public class CssPropertiesTest {
 	@Test
 	public void testColorProperty() throws Exception {

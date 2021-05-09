@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartBarDiagramObjectDrawer;
@@ -30,14 +32,17 @@ import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgExternalResourceMode;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgScriptMode;
+import com.openhtmltopdf.testlistener.PrintingRunner;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester;
 
+@RunWith(PrintingRunner.class)
 public class VisualRegressionTest {
     private VisualTester vt;
 
     @BeforeClass
     public static void configureTests() throws IOException {
+        TestSupport.quietLogs();
         TestSupport.makeFontFiles();
     }
 

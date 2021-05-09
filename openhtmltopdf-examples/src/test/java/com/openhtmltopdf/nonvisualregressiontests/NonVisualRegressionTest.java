@@ -44,7 +44,9 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
@@ -52,16 +54,23 @@ import com.openhtmltopdf.pdfboxout.PagePosition;
 import com.openhtmltopdf.pdfboxout.PdfBoxRenderer;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.testcases.TestcaseRunner;
+import com.openhtmltopdf.testlistener.PrintingRunner;
 import com.openhtmltopdf.util.Diagnostic;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.visualregressiontests.VisualRegressionTest;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
+@RunWith(PrintingRunner.class)
 public class NonVisualRegressionTest {
     private static final String RES_PATH = "/visualtest/html/";
     private static final String OUT_PATH = "target/test/visual-tests/test-output/";
-    
+
+    @BeforeClass
+    public static void configure() {
+        TestSupport.quietLogs();
+    }
+
     private static void render(String fileName, String html, BuilderConfig config) throws IOException {
         ByteArrayOutputStream actual = new ByteArrayOutputStream();
         

@@ -9,17 +9,27 @@ import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
+import com.openhtmltopdf.testlistener.PrintingRunner;
+import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
+@RunWith(PrintingRunner.class)
 public class JsoupNonVisualRegressionTest {
     private static final String RES_PATH = "/visualtest/html/";
     private static final String OUT_PATH = "target/test/visual-tests/test-output/";
+
+    @BeforeClass
+    public static void configure() {
+        TestSupport.quietLogs();
+    }
 
     private static void render(String fileName, BuilderConfig config) throws IOException {
          String resource = RES_PATH + fileName + ".html";

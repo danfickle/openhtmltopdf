@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.util.Diagnostic;
+import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.w3c.dom.Element;
@@ -106,7 +107,10 @@ public class TestSupport {
         @Override
         public void log(String where, Level level, String msg) {
             sb.append(where + ": " + level + ": " + msg + "\n");
-            delegate.log(where, level, msg);
+
+            if (!level.equals(Level.INFO)) {
+              delegate.log(where, level, msg);
+            }
         }
     }
     
@@ -276,5 +280,9 @@ public class TestSupport {
         }
 
         return problems.isEmpty();
+    }
+
+    public static void quietLogs() {
+        XRLog.listRegisteredLoggers().forEach(log -> XRLog.setLevel(log, Level.WARNING));
     }
 }

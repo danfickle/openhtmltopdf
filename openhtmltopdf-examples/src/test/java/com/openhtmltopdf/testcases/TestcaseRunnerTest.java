@@ -1,9 +1,13 @@
 package com.openhtmltopdf.testcases;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import com.openhtmltopdf.testlistener.PrintingRunner;
 
 import java.io.File;
 
+@RunWith(PrintingRunner.class)
 public class TestcaseRunnerTest {
 
 	@Test
