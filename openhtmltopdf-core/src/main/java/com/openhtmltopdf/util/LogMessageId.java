@@ -12,7 +12,6 @@ public interface LogMessageId {
 
         RENDER_BUG_FONT_DIDNT_CONTAIN_EXPECTED_CHARACTER(XRLog.RENDER, "BUG. Font didn't contain expected character."),
         RENDER_FONT_LIST_IS_EMPTY(XRLog.RENDER, "Font list is empty."),
-        RENDER_FONT_IS_NULL(XRLog.RENDER, "Font is null."),
 
         LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES(XRLog.LOAD, "Unable to disable XML External Entities, which might put you at risk to XXE attacks"),
         LOAD_COULD_NOT_SET_VALIDATION_NAMESPACE_FEATURES_FOR_XML_PARSER(XRLog.LOAD, "Could not set validation/namespace features for XML parser, exception thrown."),
@@ -56,8 +55,7 @@ public interface LogMessageId {
         EXCEPTION_TRIED_TO_OPEN_A_PASSWORD_PROTECTED_DOCUMENT_AS_SRC_FOR_IMG(XRLog.EXCEPTION, "Tried to open a password protected document as src for an img!"),
         EXCEPTION_COULD_NOT_READ_PDF_AS_SRC_FOR_IMG(XRLog.EXCEPTION, "Could not read pdf passed as src for img element!"),
         EXCEPTION_COULD_NOT_PARSE_DEFAULT_STYLESHEET(XRLog.EXCEPTION, "Could not parse default stylesheet"),
-        EXCEPTION_SELECTOR_BAD_SIBLING_AXIS(XRLog.EXCEPTION, "Bad sibling axis"),
-        EXCEPTION_FONT_METRICS_NOT_AVAILABLE(XRLog.EXCEPTION, "Font metrics not available. Probably a bug.");
+        EXCEPTION_SELECTOR_BAD_SIBLING_AXIS(XRLog.EXCEPTION, "Bad sibling axis");
 
         private final String where;
         private final String messageFormat;
@@ -103,7 +101,7 @@ public interface LogMessageId {
         RENDER_OP_MUST_NOT_BE_USED_BY_FAST_RENDERER(XRLog.RENDER, "{} MUST not be used by the fast renderer. Please consider reporting this bug."),
         RENDER_UNKNOWN_PAINT(XRLog.RENDER, "Unknown paint: {}"),
         RENDER_USING_CSS_IMPLEMENTATION_FROM(XRLog.RENDER, "Using CSS implementation from: {}"),
-
+        RENDER_FONT_IS_NULL(XRLog.RENDER, "Font is null for font-description: {}"),
 
         MATCH_TRYING_TO_APPEND_CONDITIONS_TO_PSEUDO_ELEMENT(XRLog.MATCH, "Trying to append conditions to pseudoElement {}"),
         MATCH_MATCHER_CREATED_WITH_SELECTOR(XRLog.MATCH, "Matcher created with {} selectors"),
@@ -148,6 +146,7 @@ public interface LogMessageId {
         GENERAL_PDF_A_ELEMENT_DOES_NOT_HAVE_OPTION_CHILDREN(XRLog.GENERAL, "A <{}> element does not have <option> children"),
         GENERAL_FORCED_OUTPUT_TO_AVOID_INFINITE_LOOP(XRLog.GENERAL, "Forced text ({}) output after trying to move to next line unsuccessfully. Probably a bug."),
 
+        EXCEPTION_FONT_METRICS_NOT_AVAILABLE(XRLog.EXCEPTION, "Font metrics not available for font-description: {}"),
         EXCEPTION_URI_SYNTAX_WHILE_LOADING_EXTERNAL_SVG_RESOURCE(XRLog.EXCEPTION, "URI syntax exception while loading external svg resource: {}"),
         EXCEPTION_SVG_ERROR_HANDLER(XRLog.EXCEPTION, "SVG {}"),
         EXCEPTION_PDF_IN_WRITING_METHOD(XRLog.EXCEPTION, "Exception in PDF writing method: {}"),

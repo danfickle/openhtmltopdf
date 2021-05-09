@@ -42,7 +42,15 @@ public class PdfBoxTextRenderer implements TextRenderer {
     private static float TEXT_MEASURING_DELTA = 0.01f;
 
     private BidiReorderer _reorderer;
-    
+
+    // These will mean only first missing font/metrics
+    // is logged but they should have already got a loading warning.
+    // Quiet the font is missing log message.
+    private boolean _loggedMissingFont = false;
+
+    // Quiet the font metrics not available message.
+    private boolean _loggedMissingMetrics = false;
+
     public void setup(FontContext context, BidiReorderer reorderer) {
         this._reorderer = reorderer;
     }
@@ -75,7 +83,10 @@ public class PdfBoxTextRenderer implements TextRenderer {
                 PdfBoxRawPDFontMetrics metrics = des.getFontMetrics();
 
                 if (metrics == null) {
-                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_FONT_METRICS_NOT_AVAILABLE);
+                    if (!_loggedMissingMetrics) {
+                        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_FONT_METRICS_NOT_AVAILABLE, des);
+                        _loggedMissingMetrics = true;
+                    }
                     continue;
                 }
                 
@@ -337,7 +348,10 @@ public class PdfBoxTextRenderer implements TextRenderer {
                    result = fd.getFont().getStringWidth(effectiveString) / 1000f * font.getSize2D();
                    break;
                  } else {
-                     XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.RENDER_FONT_IS_NULL);
+                     if (!_loggedMissingFont) {
+                         XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.RENDER_FONT_IS_NULL, fd);
+                         _loggedMissingFont = true;
+                     }
                  }
               }
             }
