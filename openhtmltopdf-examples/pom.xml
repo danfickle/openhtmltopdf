@@ -145,7 +145,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>${open.deploy.plugin.version}</version>
         <configuration>
           <skip>true</skip>
         </configuration>
@@ -178,7 +177,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
       </plugin>
       <!-- Create an all-in JAR for running JMH benchmarks -->
       <plugin>
