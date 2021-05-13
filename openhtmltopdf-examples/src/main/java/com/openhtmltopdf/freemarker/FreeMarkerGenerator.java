@@ -62,32 +62,23 @@ public class FreeMarkerGenerator {
 		return stringWriter.toString();
 	}
 
-	public void generateHTMLToFile(String templateName, Locale locale, FreemarkerRootObject object, File htmlFile)
-			throws IOException, TemplateException {
-		FileOutputStream output = new FileOutputStream(htmlFile);
-		Writer fw = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-		cfg.getTemplate(templateName, locale, "UTF-8").process(object, fw);
-		fw.close();
-		output.close();
-	}
+    public void generateHTMLToFile(
+        String templateName, Locale locale, FreemarkerRootObject object, File htmlFile)
+        throws IOException, TemplateException {
+        try (FileOutputStream output = new FileOutputStream(htmlFile);
+             Writer fw = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
 
-	public byte[] generatePDF(final String html) throws IOException {
-		return generatePDF(new ICallableWithPdfBuilder() {
-			@Override
-			public void apply(PdfRendererBuilder builder) {
-				builder.withHtmlContent(html, "/freemarker");
-			}
-		});
-	}
+            cfg.getTemplate(templateName, locale, "UTF-8").process(object, fw);
+        }
+    }
 
-	public byte[] generatePDF(final File htmlFile) throws IOException {
-		return generatePDF(new ICallableWithPdfBuilder() {
-			@Override
-			public void apply(PdfRendererBuilder builder) {
-				builder.withFile(htmlFile);
-			}
-		});
-	}
+    public byte[] generatePDF(final String html) throws IOException {
+        return generatePDF(builder -> builder.withHtmlContent(html, "/freemarker"));
+    }
+
+    public byte[] generatePDF(final File htmlFile) throws IOException {
+        return generatePDF(builder -> builder.withFile(htmlFile));
+    }
 
 	private byte[] generatePDF(ICallableWithPdfBuilder callWithBuilder) throws IOException {
 		PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -115,21 +106,21 @@ public class FreeMarkerGenerator {
 		});
 		StandardObjectDrawerFactory objectDrawerFactory = new StandardObjectDrawerFactory();
 		builder.useObjectDrawerFactory(objectDrawerFactory);
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		builder.toStream(outputStream);
-		callWithBuilder.apply(builder);
+		
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            builder.toStream(outputStream);
+            callWithBuilder.apply(builder);
 
-		PdfBoxRenderer pdfBoxRenderer = builder.buildPdfRenderer();
-		try {
-			pdfBoxRenderer.layout();
-			pdfBoxRenderer.createPDF();
-		} finally {
-			pdfBoxRenderer.close();
-		}
-		outputStream.close();
-		return outputStream.toByteArray();
-	}
+            try (PdfBoxRenderer pdfBoxRenderer = builder.buildPdfRenderer()) {
+                pdfBoxRenderer.layout();
+                pdfBoxRenderer.createPDF();
+            }
 
+            return outputStream.toByteArray();
+        }
+    }
+
+    @FunctionalInterface
 	interface ICallableWithPdfBuilder {
 		void apply(PdfRendererBuilder builder);
 	}

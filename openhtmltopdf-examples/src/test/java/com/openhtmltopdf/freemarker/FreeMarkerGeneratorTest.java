@@ -7,11 +7,17 @@ import com.openhtmltopdf.visualtest.TestSupport;
 
 import freemarker.template.TemplateException;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.*;
+import static org.junit.Assert.assertEquals;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
@@ -22,20 +28,35 @@ public class FreeMarkerGeneratorTest {
         TestSupport.quietLogs();
     }
 
+    private File targetDir;
+
+    @Before
+    public void makeTarget() {
+        this.targetDir = new File("target/test/freemarker");
+        this.targetDir.mkdirs();
+    }
+
     @Test
     public void testFreeMarkerGenerator() throws IOException, TemplateException {
-        File targetDir = new File("target/test/freemarker");
-        targetDir.mkdirs();
         FreeMarkerGenerator freeMarkerGenerator = new FreeMarkerGenerator();
         FreemarkerRootObject object = new FreemarkerRootObject();
+
         String html = freeMarkerGenerator.generateHTML("featuredocumentation.ftl", Locale.GERMAN, object);
         byte[] pdf = freeMarkerGenerator.generatePDF(html);
-        FileOutputStream fileOutputStream = new FileOutputStream(new File(targetDir, "featuredocumentation.html"));
-        fileOutputStream.write(html.getBytes(StandardCharsets.UTF_8));
-        fileOutputStream.close();
-        fileOutputStream = new FileOutputStream(new File(targetDir, "featuredocumentation.pdf"));
-        fileOutputStream.write(pdf);
-        fileOutputStream.close();
+
+        try (FileOutputStream fileOutputStream = new FileOutputStream(new File(targetDir, "featuredocumentation.html"))) {
+            fileOutputStream.write(html.getBytes(StandardCharsets.UTF_8));
+        }
+
+        File pdfFile = new File(targetDir, "featuredocumentation.pdf");
+
+        try (FileOutputStream fileOutputStream = new FileOutputStream(pdfFile)) {
+            fileOutputStream.write(pdf);
+        }
+
+        try (PDDocument doc = PDDocument.load(pdfFile)) {
+            assertEquals(6, doc.getNumberOfPages());
+        }
     }
 
     @Test
@@ -45,16 +66,25 @@ public class FreeMarkerGeneratorTest {
          * the report...
          */
         XRLog.setLoggingEnabled(false);
-        File targetDir = new File("target/test/freemarker");
-        targetDir.mkdirs();
+
         FreeMarkerGenerator freeMarkerGenerator = new FreeMarkerGenerator();
         FreemarkerRootObject object = new FreemarkerRootObject();
+
         File htmlFile = new File(targetDir, "many_pages.html");
         freeMarkerGenerator.generateHTMLToFile("many_pages.ftl", Locale.GERMAN, object, htmlFile);
+
         byte[] pdf = freeMarkerGenerator.generatePDF(htmlFile);
-        FileOutputStream fileOutputStream = new FileOutputStream(new File(targetDir, "many_pages.pdf"));
-        fileOutputStream.write(pdf);
-        fileOutputStream.close();
+
+        File pdfFile = new File(targetDir, "many_pages.pdf");
+
+        try (FileOutputStream fileOutputStream = new FileOutputStream(pdfFile)) {
+            fileOutputStream.write(pdf);
+        }
+
+        try (PDDocument doc = PDDocument.load(pdfFile)) {
+            assertEquals(31, doc.getNumberOfPages());
+        }
+
         XRLog.setLoggingEnabled(true);
     }
 }
