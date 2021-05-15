@@ -56,14 +56,14 @@ public class TestSupport {
         outputDirectory.mkdirs();
 
         File fontFile = new File("target/test/visual-tests/" + resource);
-        
+
         if (!fontFile.exists()) {
             try (InputStream in = TestSupport.class.getResourceAsStream("/visualtest/html/fonts/" + resource)) {
-                Files.copy(in, fontFile.toPath());
+                Files.write(fontFile.toPath(), IOUtils.toByteArray(in));
             }
         }
     }
-    
+
     /**
      * Output the test fonts from classpath to files in target so we can use them 
      * without streams.
@@ -73,7 +73,7 @@ public class TestSupport {
         makeFontFile("NotoNaskhArabic-Regular.ttf");
         makeFontFile("SourceSansPro-Regular.ttf");
     }
-    
+
     public static class StringBuilderLogger implements XRLogger {
         private final StringBuilder sb;
         private final XRLogger delegate;
