@@ -1,9 +1,13 @@
 package com.openhtmltopdf.testcases;
 
 import static com.openhtmltopdf.testcases.TestcaseRunner.buildObjectDrawerFactory;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.io.MemoryUsageSetting;
@@ -12,8 +16,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
 import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
+import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
@@ -30,39 +36,49 @@ public class ConcateOutputTest {
         TestSupport.quietLogs();
     }
 
-	@Test
-	public void testConcateOutput() throws Exception {
-		File targetFile = new File("target/test/concatoutput/concated.pdf");
-		targetFile.getParentFile().mkdirs();
-		PDDocument doc = new PDDocument(MemoryUsageSetting.setupMixed(1000000));
+    @Test
+    public void testConcateOutput() throws Exception {
+        File targetFile = new File("target/test/concatoutput/concated.pdf");
+        targetFile.getParentFile().mkdirs();
 
-		for (String testCaseFile : new String[] { "color", "background-color",
-				"FSPageBreakMinHeightSample", "math-ml", "multi-column-layout", "simplerotate",
-				"svg-inline", "svg-sizes", "transform", "RepeatedTableSample",
-				"RepeatedTableTransformSample" }) {
-			renderPDF(testCaseFile, doc);
-		}
+        try (PDDocument doc = new PDDocument(MemoryUsageSetting.setupMixed(1_000_000))) {
+            for (String testCaseFile : Arrays.asList(
+                    "color", "background-color", "FSPageBreakMinHeightSample",
+                    "math-ml", "multi-column-layout", "simplerotate", "svg-inline", "svg-sizes", "transform",
+                    "RepeatedTableSample", "RepeatedTableTransformSample" )) {
+                renderPDF(testCaseFile, doc);
+            }
 
-		doc.save(targetFile);
-		doc.close();
+            assertEquals(27, doc.getNumberOfPages());
 
-	}
+            doc.save(targetFile);
+        }
+    }
 
-	private static void renderPDF(String testCaseFile, PDDocument document) throws Exception {
-		byte[] htmlBytes = IOUtils
-				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
-		String html = new String(htmlBytes, StandardCharsets.UTF_8);
-		PdfRendererBuilder builder = new PdfRendererBuilder();
-		builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
-		builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
-		builder.defaultTextDirection(BaseRendererBuilder.TextDirection.LTR);
-		builder.useSVGDrawer(new BatikSVGDrawer());
-		builder.useMathMLDrawer(new MathMLDrawer());
-		builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
-		builder.useObjectDrawerFactory(buildObjectDrawerFactory());
-		builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
-		builder.usePDDocument(document);
-		PdfBoxRenderer pdfBoxRenderer = builder.buildPdfRenderer();
-		pdfBoxRenderer.createPDFWithoutClosing();
-	}
+    private static void renderPDF(String testCaseFile, PDDocument document) throws IOException {
+        String html;
+        try (InputStream is = TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html")) {
+            byte[] htmlBytes = IOUtils.toByteArray(is);
+            html = new String(htmlBytes, StandardCharsets.UTF_8);
+        }
+
+        try (SVGDrawer svg = new BatikSVGDrawer();
+             SVGDrawer mathMl = new MathMLDrawer()) {
+
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+            builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
+            builder.defaultTextDirection(BaseRendererBuilder.TextDirection.LTR);
+            builder.useSVGDrawer(svg);
+            builder.useMathMLDrawer(mathMl);
+            builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+            builder.useObjectDrawerFactory(buildObjectDrawerFactory());
+            builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
+            builder.usePDDocument(document);
+
+            try (PdfBoxRenderer pdfBoxRenderer = builder.buildPdfRenderer()) {
+                pdfBoxRenderer.createPDFWithoutClosing();
+            }
+        }
+    }
 }
