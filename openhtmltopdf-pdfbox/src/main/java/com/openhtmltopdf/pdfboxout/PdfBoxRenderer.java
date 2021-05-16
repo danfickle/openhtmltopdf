@@ -149,6 +149,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
         _pdfDoc = state.pddocument != null ? state.pddocument : new PDDocument();
         _pdfDoc.setVersion(state._pdfVersion);
+        _pdfVersion = state._pdfVersion;
 
         _producer = state._producer;
 
@@ -498,10 +499,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                     firstPage.getWidth(c) / _dotsPerPoint,
                     firstPage.getHeight(c) / _dotsPerPoint);
 
-            if (_pdfVersion != 0f) {
-                _pdfDoc.setVersion(_pdfVersion);
-            }
-        
             if (_pdfEncryption != null) {
                 _pdfDoc.setEncryptionDictionary(_pdfEncryption);
             }
@@ -548,10 +545,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                     firstPage.getWidth(c) / _dotsPerPoint,
                     firstPage.getHeight(c) / _dotsPerPoint);
 
-            if (_pdfVersion != 0f) {
-                _pdfDoc.setVersion(_pdfVersion);
-            }
-        
             if (_pdfEncryption != null) {
                 _pdfDoc.setEncryptionDictionary(_pdfEncryption);
             }

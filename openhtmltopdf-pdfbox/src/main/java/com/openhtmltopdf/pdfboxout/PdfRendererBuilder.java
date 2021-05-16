@@ -185,7 +185,9 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 */
 	public PdfRendererBuilder usePdfAConformance(PdfAConformance pdfAConformance) {
 		this.state._pdfAConformance = pdfAConformance;
-		this.state._pdfVersion = pdfAConformance.getPdfVersion();
+        if (pdfAConformance.getPdfVersion() != 0f) {
+            this.state._pdfVersion = pdfAConformance.getPdfVersion();
+        }
 		return this;
 	}
 	

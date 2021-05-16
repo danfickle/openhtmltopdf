@@ -2,6 +2,7 @@ package com.openhtmltopdf.testcases;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,27 +29,21 @@ import com.openhtmltopdf.visualtest.TestSupport;
 @RunWith(PrintingRunner.class)
 public class PdfUaTestcaseRunnerTest {
     @BeforeClass
-    public static void configure() {
+    public static void configure() throws IOException {
+        Files.createDirectories(Paths.get("./target/test/manual/pdfua-test-cases/"));
+
+        TestSupport.makeFontFiles();
         TestSupport.quietLogs();
     }
 
-    private static void run(String testCase) throws Exception {
-
+    private static void run(String testCase) throws IOException {
         byte[] htmlBytes = null;
         try (InputStream is = PdfUaTestcaseRunnerTest.class.getResourceAsStream("/testcases/pdfua/" + testCase + ".html")) {
             htmlBytes = IOUtils.toByteArray(is);
         }
         String html = new String(htmlBytes, StandardCharsets.UTF_8);
-        
-        Files.createDirectories(Paths.get("target/test/visual-tests/"));
-        if (!Files.exists(Paths.get("target/test/visual-tests/Karla-Bold.ttf"))) {
-            try (InputStream in = PdfUaTestcaseRunnerTest.class.getResourceAsStream("/visualtest/html/fonts/Karla-Bold.ttf")) {
-                Files.copy(in, Paths.get("target/test/visual-tests/Karla-Bold.ttf"));
-            }
-        }
-        
-        Files.createDirectories(Paths.get("./target/pdfua-test-cases/"));
-        try (FileOutputStream os = new FileOutputStream("./target/pdfua-test-cases/" + testCase + ".pdf")) {
+
+        try (FileOutputStream os = new FileOutputStream("./target/test/manual/pdfua-test-cases/" + testCase + ".pdf")) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
             builder.testMode(true);
@@ -59,7 +54,7 @@ public class PdfUaTestcaseRunnerTest {
             builder.run();
         }
     }
-    
+
     @Test
     public void testAllInOne() throws Exception {
         run("all-in-one");
