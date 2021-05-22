@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -95,13 +96,41 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     }
     
     public static class DefaultHttpStreamFactory implements FSStreamFactory {
+        final static int CONNECTION_TIMEOUT = 10_000;
+        final static int READ_TIMEOUT = 30_000;
+
+        final int connectTimeout;
+        final int readTimeout;
+
+        /**
+         * Create a FSStreamFactory for http, https with specified timeouts.
+         * Uses URLConnection to perform requests.
+         * Zero value for timeout specifies no timeout.
+         */
+        public DefaultHttpStreamFactory(int connectTimeout, int readTimeout) {
+            this.connectTimeout = connectTimeout;
+            this.readTimeout = readTimeout;
+        }
+
+        /**
+         * Create a FSStreamFactory with 10 second connect timeout and
+         * 30 second read timeout.
+         */
+        public DefaultHttpStreamFactory() {
+            this(CONNECTION_TIMEOUT, READ_TIMEOUT);
+        }
 
 		@Override
 		public FSStream getUrl(String uri) {
 			InputStream is = null;
 			
 	        try {
-	            is = new URL(uri).openStream();
+                URLConnection conn = new URL(uri).openConnection();
+                conn.setConnectTimeout(this.connectTimeout);
+                conn.setReadTimeout(this.readTimeout);
+                conn.connect();
+
+                is = conn.getInputStream();
 	        } catch (java.net.MalformedURLException e) {
 				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_MALFORMED_URL, uri, e);
 	        } catch (java.io.FileNotFoundException e) {
