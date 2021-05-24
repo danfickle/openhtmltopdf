@@ -485,31 +485,34 @@ public class LayoutContext implements CssContext {
          * @return true if a counter was found and incremented
          */
         private boolean incrementCounter(CounterData cd) {
-            if ("list-item".equals(cd.getName())) {//reserved name for list-item counter in CSS3
+            // list-item is a reserved name for list-item counter in CSS3
+            if ("list-item".equals(cd.getName())) {
                 incrementListItemCounter(cd.getValue());
                 return true;
             } else {
-                Integer currentValue = (Integer) _counters.get(cd.getName());
+                Integer currentValue = _counters.get(cd.getName());
                 if (currentValue == null) {
-                    if (_parent == null) return false;
+                    if (_parent == null) {
+                        return false;
+                    }
                     return _parent.incrementCounter(cd);
                 } else {
-                    _counters.put(cd.getName(), new Integer(currentValue.intValue() + cd.getValue()));
+                    _counters.put(cd.getName(), currentValue + cd.getValue());
                     return true;
                 }
             }
         }
 
         private void incrementListItemCounter(int increment) {
-            Integer currentValue = (Integer) _counters.get("list-item");
+            Integer currentValue = _counters.get("list-item");
             if (currentValue == null) {
-                currentValue = new Integer(0);
+                currentValue = 0;
             }
-            _counters.put("list-item", new Integer(currentValue.intValue() + increment));
+            _counters.put("list-item", currentValue + increment);
         }
 
         private void resetCounter(CounterData cd) {
-            _counters.put(cd.getName(), new Integer(cd.getValue()));
+            _counters.put(cd.getName(), cd.getValue());
         }
 
         public int getCurrentCounterValue(String name) {

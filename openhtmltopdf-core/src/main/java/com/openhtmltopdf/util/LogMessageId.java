@@ -201,6 +201,7 @@ public interface LogMessageId {
         CSS_PARSE_COULDNT_PARSE_STYLESHEET_AT_URI(XRLog.CSS_PARSE, "Couldn't parse stylesheet at URI {}: {}"),
         CSS_PARSE_GENERIC_MESSAGE(XRLog.CSS_PARSE, "({}) {}"),
 
+        XML_FEATURE_NOT_ABLE_TO_SET(XRLog.LOAD, "Could not set XML/SAX feature. This may be a security issue if using untrusted XML. Feature: {} -> {}"),
         XML_ENTITIES_SAX_FEATURE_SET(XRLog.XML_ENTITIES, "SAX Parser feature: {} set to {}"),
         XML_ENTITIES_ENTITY_PUBLIC_NOT_FOUND_OR_LOCAL(XRLog.XML_ENTITIES, "Entity public: {} -> {}"),
         XML_ENTITIES_ENTITY_CANT_FIND_LOCAL_REFERENCE(XRLog.XML_ENTITIES, "Can't find a local reference for Entity for public ID: {}" +
