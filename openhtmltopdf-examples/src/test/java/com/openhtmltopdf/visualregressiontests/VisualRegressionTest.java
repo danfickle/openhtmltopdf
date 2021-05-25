@@ -1413,6 +1413,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-649-multiple-bg-images-page-box"));
     }
 
+    /**
+     * Tests that we support CSS footnotes.
+     */
+    @Test
+    @Ignore // Footnotes not implemented.
+    public void testIssue364FootnotesBasicExample() throws IOException {
+        assertTrue(vt.runTest("issue-364-footnotes-basic"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
