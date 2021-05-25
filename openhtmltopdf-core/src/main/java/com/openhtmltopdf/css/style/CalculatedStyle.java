@@ -868,6 +868,10 @@ public class CalculatedStyle {
         return isIdent(CSSName.FLOAT, IdentValue.RIGHT);
     }
 
+    public boolean isFootnote() {
+        return isIdent(CSSName.FLOAT, IdentValue.FOOTNOTE);
+    }
+
     public boolean isRelative() {
         return isIdent(CSSName.POSITION, IdentValue.RELATIVE);
     }

@@ -2400,6 +2400,10 @@ public class BlockBox extends Box implements InlinePaintable {
             return maxPositive != 0 || maxNegative != 0;
         }
     }
+
+    public void setFootnoteData(FootnoteData footnoteData) {
+        // TODO Auto-generated method stub
+    }
 }
 
 /*

@@ -257,6 +257,11 @@ public class IdentValue implements FSDerivedValue {
     public static final IdentValue COLUMN = addValue("column");
 
     /**
+     * CSS footnotes for use in float: footnote
+     */
+    public static final IdentValue FOOTNOTE = addValue("footnote");
+
+    /**
      * Constructor for the IdentValue object
      *
      * @param ident PARAM

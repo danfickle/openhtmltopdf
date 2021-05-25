@@ -63,6 +63,7 @@ import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FloatedBoxData;
 import com.openhtmltopdf.render.FlowingColumnBox;
 import com.openhtmltopdf.render.FlowingColumnContainerBox;
+import com.openhtmltopdf.render.FootnoteData;
 import com.openhtmltopdf.render.InlineBox;
 
 /**
@@ -1038,7 +1039,11 @@ public class BoxBuilder {
 
     private static BlockBox createBlockBox(
             CalculatedStyle style, ChildBoxInfo info, boolean generated) {
-    	if (style.isFloated() && !(style.isAbsolute() || style.isFixed())) {
+        if (style.isFootnote()) {
+            BlockBox result = new BlockBox();
+            result.setFootnoteData(new FootnoteData());
+            return result;
+        } else if (style.isFloated() && !(style.isAbsolute() || style.isFixed())) {
             BlockBox result;
             if (style.isTable() || style.isInlineTable()) {
                 result = new TableBox();
