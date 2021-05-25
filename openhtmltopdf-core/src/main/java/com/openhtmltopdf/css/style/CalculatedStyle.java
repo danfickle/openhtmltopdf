@@ -50,12 +50,14 @@ import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.css.style.derived.NumberValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.css.value.FontSpecification;
+import com.openhtmltopdf.layout.counter.RootCounterContext;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.WebDoc;
 import com.openhtmltopdf.util.WebDocLocations;
 import com.openhtmltopdf.util.XRLog;
@@ -191,7 +193,7 @@ public class CalculatedStyle {
      * @param matched the CascadedStyle to apply
      * @return The derived child style
      */
-    public synchronized CalculatedStyle deriveStyle(CascadedStyle matched) {
+    public CalculatedStyle deriveStyle(CascadedStyle matched) {
         String fingerprint = matched.getFingerprint();
         CalculatedStyle cs = _childCache.get(fingerprint);
 
@@ -199,6 +201,11 @@ public class CalculatedStyle {
             cs = new CalculatedStyle(this, matched);
             _childCache.put(fingerprint, cs);
         }
+
+        RootCounterContext cc = ThreadCtx.get().sharedContext().getGlobalCounterContext();
+        cc.resetCounterValue(cs);
+        cc.incrementCounterValue(cs);
+
         return cs;
     }
 

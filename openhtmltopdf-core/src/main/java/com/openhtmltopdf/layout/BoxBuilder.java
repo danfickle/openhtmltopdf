@@ -52,6 +52,9 @@ import com.openhtmltopdf.css.sheet.StylesheetInfo;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
+import com.openhtmltopdf.layout.counter.AbstractCounterContext;
+import com.openhtmltopdf.layout.counter.CounterContext;
+import com.openhtmltopdf.layout.counter.RootCounterContext;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.newtable.TableColumn;
@@ -704,7 +707,9 @@ public class BoxBuilder {
         return false;
     }
 
-    private static CounterFunction makeCounterFunction(FSFunction function, LayoutContext c, CalculatedStyle style) {
+    private static CounterFunction makeCounterFunction(
+            FSFunction function, LayoutContext c, CalculatedStyle style) {
+
         if (function.getName().equals("counter")) {
             List<PropertyValue> params = function.getParameters();
             if (params.size() < 1 || params.size() > 2) {
@@ -737,7 +742,19 @@ public class BoxBuilder {
                 }
             }
 
-            int counterValue = c.getCounterContext(style).getCurrentCounterValue(counter);
+            if ("footnote".equals(s)) {
+                RootCounterContext rootCc = c.getSharedContext().getGlobalCounterContext();
+
+                //rootCc.resetCounterValue(style);
+                //rootCc.incrementCounterValue(style);
+
+                int counterValue = rootCc.getCurrentCounterValue(s);
+                return new CounterFunction(counterValue, listStyleType);
+            }
+
+            AbstractCounterContext cc = c.getCounterContext(style);
+
+            int counterValue = cc.getCurrentCounterValue(counter);
 
             return new CounterFunction(counterValue, listStyleType);
         } else if (function.getName().equals("counters")) {
@@ -935,6 +952,7 @@ public class BoxBuilder {
                         });
                     calculatedStyle = parentStyle.deriveStyle(newPeStyle);
                 }
+
                 c.resolveCounters(calculatedStyle);
             }
 

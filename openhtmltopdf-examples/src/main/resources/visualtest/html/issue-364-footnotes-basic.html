@@ -3,7 +3,6 @@
 <style>
 @page {
     size: 300px 300px;
-    counter-reset: footnote 0;
 }
 
 @page {
@@ -12,17 +11,37 @@
         float: bottom;
     }
 }
-
-::footnote-call { counter-increment: footnote; }
-span.footnote { float: footnote; }
-.footnote::footnote-call { content: counter(footnote) " "; }
-.footnote::footnote-marker { content: counter(footnote) ". "; }
+body {
+  font-size: 18px;
+}
+::footnote-call {
+  counter-increment: footnote 3;
+}
+span.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  font-family: sans-serif;
+  font-size: 14px;
+  padding: 2px;
+  color: red;
+  background-color: black;
+  content: "[" counter(footnote) "]";
+}
+.footnote::footnote-marker {
+  color: blue;
+  content: counter(footnote) ". ";
+}
 </style>
 </head>
 <body>
 <p>
   This text needs some footnotes. <span class="footnote">This is a footnote.</span>
   Also a footnote for this sentence. <span class="footnote">Another <strong>footnote</strong>!</span>
+</p>
+
+<p style="page-break-before: always;">
+  Footnote numbers should be 3, 6 and 9. <span class="footnote">Just to be silly.</span>
 </p>
 </body>
 </html>
