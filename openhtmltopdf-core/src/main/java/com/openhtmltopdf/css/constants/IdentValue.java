@@ -260,6 +260,7 @@ public class IdentValue implements FSDerivedValue {
      * CSS footnotes for use in float: footnote
      */
     public static final IdentValue FOOTNOTE = addValue("footnote");
+    public static final IdentValue FS_FOOTNOTE_BODY = addValue("-fs-footnote-body");
 
     /**
      * Constructor for the IdentValue object

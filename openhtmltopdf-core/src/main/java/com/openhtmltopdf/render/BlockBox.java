@@ -112,6 +112,8 @@ public class BlockBox extends Box implements InlinePaintable {
     
     private boolean _isReplaced;
 
+    private FootnoteData _footnoteData;
+
     public BlockBox() {
         super();
     }
@@ -2402,7 +2404,11 @@ public class BlockBox extends Box implements InlinePaintable {
     }
 
     public void setFootnoteData(FootnoteData footnoteData) {
-        // TODO Auto-generated method stub
+        this._footnoteData = footnoteData;
+    }
+
+    public boolean isFootnoteBody() {
+        return _footnoteData != null;
     }
 }
 

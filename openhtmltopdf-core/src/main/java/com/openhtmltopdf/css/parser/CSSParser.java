@@ -47,6 +47,9 @@ public class CSSParser {
         SUPPORTED_PSEUDO_ELEMENTS.add("before");
         SUPPORTED_PSEUDO_ELEMENTS.add("after");
 
+        SUPPORTED_PSEUDO_ELEMENTS.add("footnote-call");
+        SUPPORTED_PSEUDO_ELEMENTS.add("footnote-marker");
+
         CSS21_PSEUDO_ELEMENTS = new HashSet<>();
         CSS21_PSEUDO_ELEMENTS.add("first-line");
         CSS21_PSEUDO_ELEMENTS.add("first-letter");

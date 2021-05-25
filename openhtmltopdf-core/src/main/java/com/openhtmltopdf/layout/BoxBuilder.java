@@ -65,6 +65,7 @@ import com.openhtmltopdf.render.FlowingColumnBox;
 import com.openhtmltopdf.render.FlowingColumnContainerBox;
 import com.openhtmltopdf.render.FootnoteData;
 import com.openhtmltopdf.render.InlineBox;
+import com.openhtmltopdf.util.OpenUtil;
 
 /**
  * This class is responsible for creating the box tree from the DOM.  This is
@@ -95,10 +96,10 @@ public class BoxBuilder {
         c.getParagraphSplitter().splitRoot(c, document);
         c.getParagraphSplitter().runBidiOnParagraphs(c);
     }
-    
+
     public static BlockBox createRootBox(LayoutContext c, Document document) {
         splitParagraphs(c, document);
-    	
+
         Element root = document.getDocumentElement();
 
         CalculatedStyle style = c.getSharedContext().getStyle(root);
@@ -120,6 +121,8 @@ public class BoxBuilder {
 
     public static void createChildren(LayoutContext c, BlockBox parent) {
         if (parent.shouldBeReplaced()) {
+            // Don't create boxes for elements in a SVG element.
+            // This avoids many warnings and improves performance.
             parent.setChildrenContentType(BlockBox.CONTENT_EMPTY);
             return;
         }
@@ -132,7 +135,7 @@ public class BoxBuilder {
 
         boolean parentIsNestingTableContent = isNestingTableContent(parent.getStyle().getIdent(
                 CSSName.DISPLAY));
-        
+
         if (!parentIsNestingTableContent && !info.isContainsTableContent()) {
             resolveChildren(c, parent, children, info);
         } else {
@@ -780,7 +783,7 @@ public class BoxBuilder {
     }
 
     private static String getAttributeValue(FSFunction attrFunc, Element e) {
-        PropertyValue value = (PropertyValue) attrFunc.getParameters().get(0);
+        PropertyValue value = attrFunc.getParameters().get(0);
         return e.getAttribute(value.getStringValue());
     }
 
@@ -891,11 +894,10 @@ public class BoxBuilder {
 
     public static BlockBox getRunningBlock(LayoutContext c, PropertyValue value) {
         List<PropertyValue> params = value.getFunction().getParameters();
-        String ident = ((PropertyValue)params.get(0)).getStringValue();
+        String ident = params.get(0).getStringValue();
         PageElementPosition position = null;
         if (params.size() == 2) {
-            position = PageElementPosition.valueOf(
-                    ((PropertyValue)params.get(1)).getStringValue());
+            position = PageElementPosition.valueOf(params.get(1).getStringValue());
         }
         if (position == null) {
             position = PageElementPosition.FIRST;
@@ -907,13 +909,16 @@ public class BoxBuilder {
     private static void insertGeneratedContent(
             LayoutContext c, Element element, CalculatedStyle parentStyle,
             String peName, List<Styleable> children, ChildBoxInfo info) {
+
         CascadedStyle peStyle = c.getCss().getPseudoElementStyle(element, peName);
+
         if (peStyle != null) {
             PropertyDeclaration contentDecl = peStyle.propertyByName(CSSName.CONTENT);
             PropertyDeclaration counterResetDecl = peStyle.propertyByName(CSSName.COUNTER_RESET);
             PropertyDeclaration counterIncrDecl = peStyle.propertyByName(CSSName.COUNTER_INCREMENT);
 
             CalculatedStyle calculatedStyle = null;
+
             if (contentDecl != null || counterResetDecl != null || counterIncrDecl != null) {
                 calculatedStyle = parentStyle.deriveStyle(peStyle);
                 if (calculatedStyle.isDisplayNone()) return;
@@ -1125,152 +1130,226 @@ public class BoxBuilder {
         return result;
     }
 
+    private static class CreateChildrenContext {
+        CreateChildrenContext(
+            boolean needStartText, boolean needEndText,
+            CalculatedStyle parentStyle, boolean inline) {
+            this.needStartText = needStartText;
+            this.needEndText = needEndText;
+            this.parentStyle = parentStyle;
+            this.inline = inline;
+        }
+
+        boolean needStartText;
+        boolean needEndText;
+        boolean inline;
+
+        InlineBox previousIB = null;
+        final CalculatedStyle parentStyle;
+    }
+
+    private static void createElementChild(
+            LayoutContext c,
+            Element parent,
+            BlockBox blockParent,
+            Node working,
+            List<Styleable> children,
+            ChildBoxInfo info,
+            CreateChildrenContext context) {
+
+        Styleable child = null;
+        SharedContext sharedContext = c.getSharedContext();
+        Element element = (Element) working;
+        CalculatedStyle style = sharedContext.getStyle(element);
+
+        if (style.isDisplayNone()) {
+            return;
+        }
+
+        resolveElementCounters(c, working, element, style);
+
+        if (style.isIdent(CSSName.DISPLAY, IdentValue.TABLE_COLUMN) ||
+            style.isIdent(CSSName.DISPLAY, IdentValue.TABLE_COLUMN_GROUP)) {
+
+            if ((blockParent != null) &&
+                (blockParent.getStyle().isTable() || blockParent.getStyle().isInlineTable())) {
+                TableBox table = (TableBox) blockParent;
+                addColumnOrColumnGroup(c, table, element, style);
+            }
+
+            return;
+        }
+
+        if (style.isFootnote()) {
+            List<Styleable> footnoteChildren = new ArrayList<>();
+            ChildBoxInfo footnoteChildInfo = new ChildBoxInfo();
+
+            // Create the out-of-flow footnote-body box as a block box.
+            BlockBox footnoteBody = new BlockBox();
+            footnoteBody.setElement(element);
+            footnoteBody.setFootnoteData(new FootnoteData());
+            footnoteBody.setStyle(style.createAnonymousStyle(IdentValue.FS_FOOTNOTE_BODY));
+
+            // The footnote marker followed by footnote element children.
+            insertGeneratedContent(c, element, style, "footnote-marker", footnoteChildren, footnoteChildInfo);
+            createChildren(c, footnoteBody, element, footnoteChildren, footnoteChildInfo, style.isInline());
+
+            // This is purely a marker box for the footnote so we
+            // can figure out in layout when to add the footnote body.
+            InlineBox iB = createInlineBox("", parent, context.parentStyle, null);
+            iB.setStartsHere(true);
+            iB.setEndsHere(true);
+            iB.setFootnote(footnoteBody);
+            children.add(iB);
+            context.previousIB = iB;
+
+            // This is the official marker content that can generate zero or more boxes
+            // depending on user for ::footnote-call pseudo element.
+            insertGeneratedContent(c, element, style, "footnote-call", children, info);
+
+        } else if (style.isInline()) {
+
+            if (context.needStartText) {
+                context.needStartText = false;
+                InlineBox iB = createInlineBox("", parent, context.parentStyle, null);
+                iB.setStartsHere(true);
+                iB.setEndsHere(false);
+                children.add(iB);
+                context.previousIB = iB;
+            }
+
+            createChildren(c, null, element, children, info, true);
+
+            if (context.inline) {
+                if (context.previousIB != null) {
+                    context.previousIB.setEndsHere(false);
+                }
+                context.needEndText = true;
+            }
+        } else {
+            if (style.hasColumns() && c.isPrint()) {
+                child = new FlowingColumnContainerBox();
+            } else {
+                child = createBlockBox(style, info, false);
+            }
+
+            child.setStyle(style);
+            child.setElement(element);
+
+            if (style.hasColumns() && c.isPrint()) {
+                createColumnContainer(c, child, element, style);
+            }
+
+            if (style.isListItem()) {
+                BlockBox block = (BlockBox) child;
+                block.setListCounter(c.getCounterContext(style).getCurrentCounterValue("list-item"));
+            }
+
+            if (style.isTable() || style.isInlineTable()) {
+                TableBox table = (TableBox) child;
+                table.ensureChildren(c);
+
+                child = reorderTableContent(c, table);
+            }
+
+            if (!info.isContainsBlockLevelContent()
+                    && !style.isLayedOutInInlineContext()) {
+                info.setContainsBlockLevelContent(true);
+            }
+
+            BlockBox block = (BlockBox) child;
+
+            if (block.getStyle().mayHaveFirstLine()) {
+                block.setFirstLineStyle(c.getCss().getPseudoElementStyle(element,
+                        "first-line"));
+            }
+            if (block.getStyle().mayHaveFirstLetter()) {
+                block.setFirstLetterStyle(c.getCss().getPseudoElementStyle(element,
+                        "first-letter"));
+            }
+
+            // I think we need to do this to evaluate counters correctly
+            block.ensureChildren(c);
+        }
+
+        if (child != null) {
+            children.add(child);
+        }
+    }
+
+    private static void createColumnContainer(
+         LayoutContext c, Styleable child, Element element, CalculatedStyle style) {
+
+        FlowingColumnContainerBox cont = (FlowingColumnContainerBox) child;
+        cont.setOnlyChild(c, new FlowingColumnBox(cont));
+        cont.getChild().setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
+        cont.getChild().setElement(element);
+        cont.getChild().ensureChildren(c);
+    }
+
+    private static void resolveElementCounters(
+         LayoutContext c, Node working, Element element, CalculatedStyle style) {
+
+        Integer attrValue = null;
+
+        if ("ol".equals(working.getNodeName()) && element.hasAttribute("start")) {
+            attrValue = OpenUtil.parseIntegerOrNull(element.getAttribute("start"));
+        } else if ("li".equals(working.getNodeName()) && element.hasAttribute("value")) {
+            attrValue = OpenUtil.parseIntegerOrNull(element.getAttribute("value"));
+        }
+
+        if (attrValue != null) {
+            c.resolveCounters(style, attrValue - 1);
+        } else {
+            c.resolveCounters(style, null);
+        }
+    }
+
     private static void createChildren(
             LayoutContext c, BlockBox blockParent, Element parent,
             List<Styleable> children, ChildBoxInfo info, boolean inline) {
-        SharedContext sharedContext = c.getSharedContext();
 
+        SharedContext sharedContext = c.getSharedContext();
         CalculatedStyle parentStyle = sharedContext.getStyle(parent);
 
         insertGeneratedContent(c, parent, parentStyle, "before", children, info);
 
         Node working = parent.getFirstChild();
-        boolean needStartText = inline;
-        boolean needEndText = inline;
+        CreateChildrenContext context = null;
+
         if (working != null) {
-            InlineBox previousIB = null;
+            context = new CreateChildrenContext(inline, inline, parentStyle, inline);
+
             do {
-                Styleable child = null;
                 short nodeType = working.getNodeType();
+
                 if (nodeType == Node.ELEMENT_NODE) {
-                    Element element = (Element) working;
-                    CalculatedStyle style = sharedContext.getStyle(element);
-
-                    if (style.isDisplayNone()) {
-                        continue;
-                    }
-
-                    Integer start = null;
-					if ("ol".equals(working.getNodeName())) {
-						Node startAttribute = working.getAttributes().getNamedItem("start");
-						if (startAttribute != null) {
-							try {
-								start = Integer.valueOf(Integer.parseInt(startAttribute.getNodeValue()) - 1);
-							} catch (NumberFormatException e) {
-								// ignore
-							}
-						}
-					} else if ("li".equals(working.getNodeName())) {
-						Node valueAttribute = working.getAttributes().getNamedItem("value");
-						if (valueAttribute != null) {
-							try {
-								start = Integer.valueOf(Integer.parseInt(valueAttribute.getNodeValue()) - 1);
-							} catch (NumberFormatException e) {
-								// ignore
-							}
-						}
-					}
-
-	                c.resolveCounters(style, start);
-
-                    if (style.isIdent(CSSName.DISPLAY, IdentValue.TABLE_COLUMN)
-                            || style.isIdent(CSSName.DISPLAY, IdentValue.TABLE_COLUMN_GROUP)) {
-                        if ((blockParent != null) &&
-                                (blockParent.getStyle().isTable() || blockParent.getStyle().isInlineTable())) {
-                            TableBox table = (TableBox) blockParent;
-                            addColumnOrColumnGroup(c, table, element, style);
-                        }
-
-                        continue;
-                    }
-
-                    if (style.isInline()) {
-                        if (needStartText) {
-                            needStartText = false;
-                            InlineBox iB = createInlineBox("", parent, parentStyle, null);
-                            iB.setStartsHere(true);
-                            iB.setEndsHere(false);
-                            children.add(iB);
-                            previousIB = iB;
-                        }
-                        createChildren(c, null, element, children, info, true);
-                        if (inline) {
-                            if (previousIB != null) {
-                                previousIB.setEndsHere(false);
-                            }
-                            needEndText = true;
-                        }
-                    } else {
-                    	if (style.hasColumns() && c.isPrint()) {
-                            child = new FlowingColumnContainerBox();
-                    	} else {
-                    		child = createBlockBox(style, info, false);
-                    	}
-                    	
-                        child.setStyle(style);
-                        child.setElement(element);
-                        
-                        if (style.hasColumns() && c.isPrint()) {
-                            FlowingColumnContainerBox cont = (FlowingColumnContainerBox) child;
-                            cont.setOnlyChild(c, new FlowingColumnBox(cont));
-                            cont.getChild().setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
-                            cont.getChild().setElement(element);
-                            cont.getChild().ensureChildren(c);
-                        }
-                        
-                        if (style.isListItem()) {
-                            BlockBox block = (BlockBox) child;
-                            block.setListCounter(c.getCounterContext(style).getCurrentCounterValue("list-item"));
-                        }
-
-                        if (style.isTable() || style.isInlineTable()) {
-                            TableBox table = (TableBox) child;
-                            table.ensureChildren(c);
-
-                            child = reorderTableContent(c, table);
-                        }
-
-                        if (!info.isContainsBlockLevelContent()
-                                && !style.isLayedOutInInlineContext()) {
-                            info.setContainsBlockLevelContent(true);
-                        }
-
-                        BlockBox block = (BlockBox) child;
-                        if (block.getStyle().mayHaveFirstLine()) {
-                            block.setFirstLineStyle(c.getCss().getPseudoElementStyle(element,
-                                    "first-line"));
-                        }
-                        if (block.getStyle().mayHaveFirstLetter()) {
-                            block.setFirstLetterStyle(c.getCss().getPseudoElementStyle(element,
-                                    "first-letter"));
-                        }
-                        //I think we need to do this to evaluate counters correctly
-                        block.ensureChildren(c);
-                    }
+                    createElementChild(
+                            c, parent, blockParent, working, children, info, context);
                 } else if (nodeType == Node.TEXT_NODE || nodeType == Node.CDATA_SECTION_NODE) {
-                    needStartText = false;
-                    needEndText = false;
+                    context.needStartText = false;
+                    context.needEndText = false;
 
                     Text textNode = (Text) working;
 
                     // Ignore the text belonging to a textarea.
                     if (!textNode.getParentNode().getNodeName().equals("textarea")) {
-                      	previousIB = doBidi(c, textNode, parent, parentStyle, previousIB, children);
+                        context.previousIB = doBidi(c, textNode, parent, parentStyle, context.previousIB, children);
                     }
-                    child = null;
-                }
-
-                if (child != null) {
-                    children.add(child);
                 }
             } while ((working = working.getNextSibling()) != null);
         }
+
+        boolean needStartText = context != null ? context.needStartText : inline;
+        boolean needEndText = context != null ? context.needEndText : inline;
+
         if (needStartText || needEndText) {
             InlineBox iB = createInlineBox("", parent, parentStyle, null);
             iB.setStartsHere(needStartText);
             iB.setEndsHere(needEndText);
             children.add(iB);
         }
+
         insertGeneratedContent(c, parent, parentStyle, "after", children, info);
     }
 
@@ -1439,10 +1518,6 @@ public class BoxBuilder {
         }
 
         createAnonymousBlock(c, parent, inline, savedParents);
-    }
-
-    private static void createAnonymousInlineBlock(SharedContext c, Box parent, List<Styleable> inline, List<InlineBox> savedParents) {
-        createAnonymousBlock(c, parent, inline, savedParents, IdentValue.INLINE_BLOCK);
     }
 
     private static void createAnonymousBlock(SharedContext c, Box parent, List<Styleable> inline, List<InlineBox> savedParents) {
