@@ -48,6 +48,7 @@ import com.openhtmltopdf.render.InlineLayoutBox;
 import com.openhtmltopdf.render.InlineText;
 import com.openhtmltopdf.render.LineBox;
 import com.openhtmltopdf.render.MarkerData;
+import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.StrutMetrics;
 import com.openhtmltopdf.render.TextDecoration;
 import com.openhtmltopdf.util.XRLog;
@@ -78,7 +79,9 @@ public class InlineBoxing {
         InlineLayoutBox layoutBox;
     }
 
-    public static void layoutContent(LayoutContext c, BlockBox box, int initialY, int breakAtLine) {
+    public static void layoutContent(
+            LayoutContext c, BlockBox box, int initialY, int breakAtLine) {
+
         Element blockElement = box.getElement();
         Paragraph para = c.getParagraphSplitter().lookupBlockElement(blockElement);
         byte blockLayoutDirection = para.getActualDirection();
@@ -86,7 +89,7 @@ public class InlineBoxing {
         SpaceVariables space = new SpaceVariables(box.getContentWidth());
         StateVariables current = new StateVariables();
         StateVariables previous = new StateVariables();
-        
+
         current.line = newLine(c, initialY, box);
         current.line.setDirectionality(blockLayoutDirection);
 
@@ -145,7 +148,12 @@ public class InlineBoxing {
                 InlineBox inlineBox = (InlineBox)node;
 
                 CalculatedStyle style = inlineBox.getStyle();
-                
+
+                if (inlineBox.hasFootnote() && c.isPrint()) {
+                    PageBox page = c.getRootLayer().getPage(c, current.line.getAbsY());
+                    page.addFootnoteBody(c, inlineBox.getFootnoteBody());
+                }
+
                 if (inlineBox.isStartsHere()) {
                     startInlineBox(c, space, current, previous, openInlineBoxes, iBMap, inlineBox, style);
                 }

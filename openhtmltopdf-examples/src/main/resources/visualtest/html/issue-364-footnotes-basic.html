@@ -2,13 +2,14 @@
 <head>
 <style>
 @page {
-    size: 300px 300px;
+    size: 300px 600px;
 }
 
 @page {
     @footnote {
         border-top: 2px solid green;
         float: bottom;
+        border: 1px solid green;
     }
 }
 body {
@@ -19,6 +20,8 @@ body {
 }
 span.footnote {
   float: footnote;
+  color: orange;
+  border: 1px solid purple;
 }
 .footnote::footnote-call {
   font-family: sans-serif;
@@ -36,12 +39,12 @@ span.footnote {
 </head>
 <body>
 <p>
-  This text needs some footnotes. <span class="footnote">This is a footnote.</span>
-  Also a footnote for this sentence. <span class="footnote">Another <strong>footnote</strong>!</span>
+  This text needs some footnotes. <span id="1" class="footnote">This is a footnote.</span>
+  Also a footnote for this sentence. <span id="2" class="footnote">Another <strong>footnote</strong>!</span>
 </p>
 
-<p style="page-break-before: always;">
-  Footnote numbers should be 3, 6 and 9. <span class="footnote">Just to be silly.</span>
+<p style="">
+  Footnote numbers should be 3, 6 and 9. <span id="3" class="footnote">Just to be silly this is a really long footnote that will need wrapping and such.</span>
 </p>
 </body>
 </html>

@@ -43,7 +43,6 @@ import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.counter.AbstractCounterContext;
 import com.openhtmltopdf.layout.counter.CounterContext;
-import com.openhtmltopdf.layout.counter.RootCounterContext;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
@@ -67,6 +66,8 @@ public class LayoutContext implements CssContext {
 
     private LinkedList<BlockFormattingContext> _bfcs;
     private LinkedList<Layer> _layers;
+
+    private Layer _footnoteLayer;
 
     private FontContext _fontContext;
 
@@ -493,5 +494,13 @@ public class LayoutContext implements CssContext {
 
     public void setBreakAtLineContext(BreakAtLineContext breakAtLineContext) {
         _breakAtLineContext = breakAtLineContext;
+    }
+
+    public void setFootnoteLayer(Layer footnoteLayer) {
+        _footnoteLayer = footnoteLayer;
+    }
+
+    public Layer getFootnoteLayer() {
+        return _footnoteLayer;
     }
 }

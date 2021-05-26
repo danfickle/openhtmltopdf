@@ -112,8 +112,6 @@ public class BlockBox extends Box implements InlinePaintable {
     
     private boolean _isReplaced;
 
-    private FootnoteData _footnoteData;
-
     public BlockBox() {
         super();
     }
@@ -991,9 +989,9 @@ public class BlockBox extends Box implements InlinePaintable {
         boolean pushedLayer = false;
 
         if (isRoot()) {
-        	pushedLayer = true;
+            pushedLayer = true;
             c.pushLayer(this);
-            
+
             if (c.isPrint()) {
             	if (!style.isIdent(CSSName.PAGE, IdentValue.AUTO)) {
             		c.setPageName(style.getStringProperty(CSSName.PAGE));
@@ -1063,9 +1061,9 @@ public class BlockBox extends Box implements InlinePaintable {
         setTx(tx);
         setTy(ty);
         c.translate(getTx(), getTy());
-        if (! isReplaced())
+        if (! isReplaced()) {
             layoutChildren(c, contentStart);
-        else {
+        } else {
             setState(Box.DONE);
         }
         c.translate(-getTx(), -getTy());
@@ -2401,14 +2399,6 @@ public class BlockBox extends Box implements InlinePaintable {
         public boolean hasMargin() {
             return maxPositive != 0 || maxNegative != 0;
         }
-    }
-
-    public void setFootnoteData(FootnoteData footnoteData) {
-        this._footnoteData = footnoteData;
-    }
-
-    public boolean isFootnoteBody() {
-        return _footnoteData != null;
     }
 }
 

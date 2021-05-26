@@ -53,7 +53,6 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.layout.counter.AbstractCounterContext;
-import com.openhtmltopdf.layout.counter.CounterContext;
 import com.openhtmltopdf.layout.counter.RootCounterContext;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
@@ -66,7 +65,6 @@ import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FloatedBoxData;
 import com.openhtmltopdf.render.FlowingColumnBox;
 import com.openhtmltopdf.render.FlowingColumnContainerBox;
-import com.openhtmltopdf.render.FootnoteData;
 import com.openhtmltopdf.render.InlineBox;
 import com.openhtmltopdf.util.OpenUtil;
 
@@ -745,9 +743,6 @@ public class BoxBuilder {
             if ("footnote".equals(s)) {
                 RootCounterContext rootCc = c.getSharedContext().getGlobalCounterContext();
 
-                //rootCc.resetCounterValue(style);
-                //rootCc.incrementCounterValue(style);
-
                 int counterValue = rootCc.getCurrentCounterValue(s);
                 return new CounterFunction(counterValue, listStyleType);
             }
@@ -1064,7 +1059,6 @@ public class BoxBuilder {
             CalculatedStyle style, ChildBoxInfo info, boolean generated) {
         if (style.isFootnote()) {
             BlockBox result = new BlockBox();
-            result.setFootnoteData(new FootnoteData());
             return result;
         } else if (style.isFloated() && !(style.isAbsolute() || style.isFixed())) {
             BlockBox result;
@@ -1204,13 +1198,27 @@ public class BoxBuilder {
 
             // Create the out-of-flow footnote-body box as a block box.
             BlockBox footnoteBody = new BlockBox();
+
             footnoteBody.setElement(element);
-            footnoteBody.setFootnoteData(new FootnoteData());
-            footnoteBody.setStyle(style.createAnonymousStyle(IdentValue.FS_FOOTNOTE_BODY));
+            footnoteBody.setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
+            footnoteBody.setChildrenContentType(BlockBox.CONTENT_INLINE);
+            footnoteBody.setContainingBlock(c.getFootnoteLayer().getMaster().getContainingBlock());
+
+            Layer layer = new Layer(footnoteBody, c, true);
+
+            footnoteBody.setLayer(layer);
+            footnoteBody.setContainingLayer(layer);
+            c.pushLayer(layer);
 
             // The footnote marker followed by footnote element children.
             insertGeneratedContent(c, element, style, "footnote-marker", footnoteChildren, footnoteChildInfo);
             createChildren(c, footnoteBody, element, footnoteChildren, footnoteChildInfo, style.isInline());
+
+            footnoteBody.setInlineContent(footnoteChildren);
+
+            footnoteChildInfo.setContainsBlockLevelContent(false);
+
+            c.popLayer();
 
             // This is purely a marker box for the footnote so we
             // can figure out in layout when to add the footnote body.
@@ -1219,7 +1227,6 @@ public class BoxBuilder {
             iB.setEndsHere(true);
             iB.setFootnote(footnoteBody);
             children.add(iB);
-            context.previousIB = iB;
 
             // This is the official marker content that can generate zero or more boxes
             // depending on user for ::footnote-call pseudo element.

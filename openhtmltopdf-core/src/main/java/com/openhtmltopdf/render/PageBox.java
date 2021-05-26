@@ -24,9 +24,11 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
@@ -38,6 +40,7 @@ import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.extend.StructureType;
@@ -46,6 +49,7 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.render.simplepainter.SimplePainter;
+import com.openhtmltopdf.util.LambdaUtil;
 import com.openhtmltopdf.util.ThreadCtx;
 
 public class PageBox {
@@ -86,7 +90,10 @@ public class PageBox {
     
     private int _basePagePdfPageIndex;
     private int _shadowPageCount;
-    
+
+    private final List<BlockBox> _footnotes = new ArrayList<>();
+    private int _totalFootnoteHeight;
+
     public void setBasePagePdfPageIndex(int idx) {
         this._basePagePdfPageIndex = idx;
     }
@@ -316,8 +323,8 @@ public class PageBox {
      */
     public int getMaxShadowPagesForXPos(CssContext c, int x) {
         IdentValue dir = getCutOffPageDirection();
-        float fx = (float) x;
-        float fw = (float) getContentWidth(c);
+        float fx = x;
+        float fw = getContentWidth(c);
         
         if (fw == 0f) {
             return 0;
@@ -436,6 +443,27 @@ public class PageBox {
             }
         }
         currentMarginAreaContainer = null;
+    }
+    
+    public void paintFootnoteArea(RenderingContext c) {
+        int start = getBottom() - _totalFootnoteHeight;
+        int x = getMarginBorderPadding(c, CalculatedStyle.LEFT);
+
+        if (!_footnotes.isEmpty()) {
+            // TODO: Not running structure type!
+            for (BlockBox bx : _footnotes) {
+                Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, bx);
+
+                bx.setAbsX(x);
+                bx.setAbsY(start);
+                bx.calcChildLocations();
+
+                SimplePainter painter = new SimplePainter(0, 0);
+                painter.paintLayer(c, bx.getLayer());
+                start += bx.getHeight();
+                c.getOutputDevice().endStructure(token);
+            }
+        }
     }
 
     public MarginBoxName[] getCurrentMarginBoxNames() {
@@ -855,5 +883,14 @@ public class PageBox {
             
             return new Point(left, top);
         }
+    }
+
+    public void addFootnoteBody(LayoutContext c, BlockBox footnoteBody) {
+        footnoteBody.layout(c);
+
+        int height = footnoteBody.getHeight();
+        _totalFootnoteHeight += height;
+
+        _footnotes.add(footnoteBody);
     }
 }

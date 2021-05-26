@@ -111,13 +111,18 @@ public class Matcher {
     }
     
     public PageInfo getPageCascadedStyle(String pageName, String pseudoPage) {
-        List<PropertyDeclaration>  props = new ArrayList<>();
+        List<PropertyDeclaration> props = new ArrayList<>();
         Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes = new HashMap<>();
+        List<PropertyDeclaration> footnote = new ArrayList<>();
 
         for (PageRule pageRule : _pageRules) {
             if (pageRule.applies(pageName, pseudoPage)) {
                 props.addAll(pageRule.getRuleset().getPropertyDeclarations());
                 marginBoxes.putAll(pageRule.getMarginBoxes());
+
+                if (pageRule.getFootnoteAreaProperties() != null) {
+                    footnote.addAll(pageRule.getFootnoteAreaProperties());
+                }
             }
         }
         
@@ -128,7 +133,7 @@ public class Matcher {
             style = new CascadedStyle(props.iterator());
         }
         
-        return new PageInfo(props, style, marginBoxes);
+        return new PageInfo(props, style, marginBoxes, footnote);
     }
     
     public List<FontFaceRule> getFontFaceRules() {

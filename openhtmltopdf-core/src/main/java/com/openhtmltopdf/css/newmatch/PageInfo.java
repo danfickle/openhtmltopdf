@@ -20,28 +20,36 @@
 package com.openhtmltopdf.css.newmatch;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.constants.MarginBoxName;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 
 public class PageInfo {
-    private final List<PropertyDeclaration> _properties;
     private final CascadedStyle _pageStyle;
     private final Map<MarginBoxName, List<PropertyDeclaration>> _marginBoxes;
-    
+
+    private final List<PropertyDeclaration> _properties;
     private final List<PropertyDeclaration> _xmpPropertyList;
-    
-    public PageInfo(List<PropertyDeclaration> properties, CascadedStyle pageStyle, Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes) {
+    private final List<PropertyDeclaration> _footnote;
+
+    public PageInfo(
+            List<PropertyDeclaration> properties,
+            CascadedStyle pageStyle,
+            Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes,
+            List<PropertyDeclaration> footnote) {
         _properties = properties;
         _pageStyle = pageStyle;
         _marginBoxes = marginBoxes;
-        
+        _footnote = footnote;
+
         _xmpPropertyList = marginBoxes.remove(MarginBoxName.FS_PDF_XMP_METADATA);
     }
 
@@ -56,10 +64,25 @@ public class PageInfo {
     public List<PropertyDeclaration> getProperties() {
         return _properties;
     }
-    
+
+    public CascadedStyle createFootnoteAreaStyle() {
+        if (_footnote == null || _footnote.isEmpty()) {
+            return new CascadedStyle(Collections.singletonList(
+                    CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.BLOCK)).iterator());
+        }
+
+        List<PropertyDeclaration> all = new ArrayList<>(2 + _footnote.size());
+
+        all.add(CascadedStyle.createLayoutPropertyDeclaration(CSSName.POSITION, IdentValue.ABSOLUTE));
+        all.add(CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.BLOCK));
+        all.addAll(this._footnote);
+
+        return new CascadedStyle(all.iterator());
+    }
+
     public CascadedStyle createMarginBoxStyle(MarginBoxName marginBox, boolean alwaysCreate) {
         List<PropertyDeclaration> marginProps = _marginBoxes.get(marginBox);
-        
+
         if ((marginProps == null || marginProps.size() == 0) && ! alwaysCreate) {
             return null;
         }
@@ -97,9 +120,8 @@ public class PageInfo {
         
         return false;
     }
-    
-    public List<PropertyDeclaration> getXMPPropertyList()
-    {
+
+    public List<PropertyDeclaration> getXMPPropertyList() {
         return _xmpPropertyList;
     }
 }

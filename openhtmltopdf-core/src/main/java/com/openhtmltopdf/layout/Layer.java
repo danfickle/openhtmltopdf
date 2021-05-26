@@ -101,12 +101,25 @@ public class Layer {
     private AffineTransform _ctm;
     private final boolean _hasLocalTransform;
 
+    private boolean _isolated;
+
     /**
      * Creates the root layer.
      */
     public Layer(Box master, CssContext c) {
         this(null, master, c);
         setStackingContext(true);
+    }
+
+    public Layer(Box master, CssContext c, boolean isolated) {
+        this(master, c);
+        if (isolated) {
+            setIsolated(true);
+        }
+    }
+
+    private void setIsolated(boolean b) {
+        _isolated = b;
     }
 
     /**
@@ -278,7 +291,7 @@ public class Layer {
 
         for (Layer child : children) {
             if (! child.isStackingContext()) {
-                if (child.isForDeletion()) {
+                if (child.isForDeletion() || child._isolated) {
                     // Do nothing...
                 } else if (which == AUTO && child.isZIndexAuto()) {
             		result.add(child);
@@ -301,7 +314,7 @@ public class Layer {
         List<Layer> children = getChildren();
 
         for (Layer target : children) {
-            if (target.isForDeletion()) {
+            if (target.isForDeletion() || target._isolated) {
                 // Do nothing...
             } else if (target.isStackingContext()) {
             	if (!target.isZIndexAuto()) {

@@ -26,6 +26,7 @@ import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
@@ -343,7 +344,15 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     public void layout() {
         LayoutContext c = newLayoutContext();
         BlockBox root = BoxBuilder.createRootBox(c, _doc);
-        root.setContainingBlock(new ViewportBox(getInitialExtents(c)));
+        Box viewport = new ViewportBox(getInitialExtents(c));
+
+        BlockBox footnoteArea = new BlockBox();
+        footnoteArea.setStyle(new EmptyStyle());
+        footnoteArea.setContainingBlock(viewport);
+        Layer footnoteLayer = new Layer(footnoteArea, c, true);
+        c.setFootnoteLayer(footnoteLayer);
+
+        root.setContainingBlock(viewport);
         root.layout(c);
         Dimension dim = root.getLayer().getPaintingDimension(c);
         root.getLayer().trimEmptyPages(c, dim.height);
@@ -904,6 +913,8 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         c.setInPageMargins(true);
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         c.setInPageMargins(false);
+        
+        page.paintFootnoteArea(c);
         
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
