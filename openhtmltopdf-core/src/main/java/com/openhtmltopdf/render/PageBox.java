@@ -24,7 +24,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.w3c.dom.Element;
@@ -91,7 +90,7 @@ public class PageBox {
     private int _basePagePdfPageIndex;
     private int _shadowPageCount;
 
-    private final List<BlockBox> _footnotes = new ArrayList<>();
+    private BlockBox _footnoteArea;
     private int _totalFootnoteHeight;
 
     public void setBasePagePdfPageIndex(int idx) {
@@ -444,25 +443,23 @@ public class PageBox {
         }
         currentMarginAreaContainer = null;
     }
-    
+
     public void paintFootnoteArea(RenderingContext c) {
         int start = getBottom() - _totalFootnoteHeight;
         int x = getMarginBorderPadding(c, CalculatedStyle.LEFT);
 
-        if (!_footnotes.isEmpty()) {
-            // TODO: Not running structure type!
-            for (BlockBox bx : _footnotes) {
-                Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, bx);
+        if (_footnoteArea != null) {
+            // FIXME: Wrong StructureType here.
+            Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, _footnoteArea);
 
-                bx.setAbsX(x);
-                bx.setAbsY(start);
-                bx.calcChildLocations();
+            _footnoteArea.setAbsX(x);
+            _footnoteArea.setAbsY(start);
+            _footnoteArea.calcChildLocations();
 
-                SimplePainter painter = new SimplePainter(0, 0);
-                painter.paintLayer(c, bx.getLayer());
-                start += bx.getHeight();
-                c.getOutputDevice().endStructure(token);
-            }
+            SimplePainter painter = new SimplePainter(0, 0);
+            painter.paintLayer(c, _footnoteArea.getLayer());
+
+            c.getOutputDevice().endStructure(token);
         }
     }
 
@@ -885,12 +882,62 @@ public class PageBox {
         }
     }
 
+    private void createFootnoteArea(LayoutContext c) {
+        CalculatedStyle style = new EmptyStyle().deriveStyle(_pageInfo.createFootnoteAreaStyle());
+        Element root = c.getRootLayer().getMaster().getElement();
+        Element me = root.getOwnerDocument().createElement("fs-footnote");
+        Node child = root.getFirstChild();
+
+        Element body = null;
+
+        // Try to use body if available otherwise last child of root element.
+        while (child != null) {
+            if (child instanceof Element) {
+                body = (Element) child;
+                if (child.getNodeName().equals("body")) {
+                    break;
+                }
+            }
+            child = child.getNextSibling();
+        }
+
+        body.appendChild(me);
+
+        _footnoteArea = new BlockBox();
+        _footnoteArea.setContainingBlock(new ViewportBox(new Rectangle(0, 0, getContentWidth(c), 0)));
+        _footnoteArea.setStyle(style);
+        _footnoteArea.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+        _footnoteArea.setElement(me);
+
+        Layer footnoteLayer = new Layer(_footnoteArea, c, true);
+        _footnoteArea.setLayer(footnoteLayer);
+        _footnoteArea.setContainingLayer(footnoteLayer);
+    }
+
+    private void correctLayer(Box parent, Layer l) {
+        LambdaUtil.descendants(parent)
+          .forEach(box -> {
+              box.setLayer(null);
+              box.setContainingLayer(l);
+          });
+    }
+
     public void addFootnoteBody(LayoutContext c, BlockBox footnoteBody) {
-        footnoteBody.layout(c);
+        if (_footnoteArea == null) {
+            createFootnoteArea(c);
+        }
 
-        int height = footnoteBody.getHeight();
-        _totalFootnoteHeight += height;
+        footnoteBody.setContainingBlock(_footnoteArea.getContainingBlock());
+        _footnoteArea.addChild(footnoteBody);
 
-        _footnotes.add(footnoteBody);
+        // FIXME: Not very efficient to layout all footnotes again after one
+        // is added.
+        _footnoteArea.layout(c);
+
+        // FIXME: The layer for _footnoteArea may swap around in BlockBox::layout
+        // so just fix up all descendants to point to the correct layer.
+        correctLayer(_footnoteArea, _footnoteArea.getLayer());
+
+        _totalFootnoteHeight = _footnoteArea.getHeight();
     }
 }

@@ -1005,9 +1005,15 @@ public class BlockBox extends Box implements InlinePaintable {
             // FIXME: HACK. Some boxes can be layed out many times (to satisfy page constraints for example).
             // If this happens we just mark our old layer for deletion and create a new layer.
             // Not sure this is right, but doesn't break any correct tests.
-            this.getLayer().setForDeletion(true);
+            boolean isIsolated = getLayer().isIsolated();
+            getLayer().setForDeletion(true);
+
             pushedLayer = true;
-            c.pushLayer(this);
+            if (isIsolated) {
+                c.pushLayerIsolated(this);
+            } else {
+                c.pushLayer(this);
+            }
         }
 
         calcClearance(c);

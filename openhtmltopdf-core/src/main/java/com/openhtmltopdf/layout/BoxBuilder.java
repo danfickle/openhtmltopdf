@@ -1202,7 +1202,7 @@ public class BoxBuilder {
             footnoteBody.setElement(element);
             footnoteBody.setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
             footnoteBody.setChildrenContentType(BlockBox.CONTENT_INLINE);
-            footnoteBody.setContainingBlock(c.getFootnoteLayer().getMaster().getContainingBlock());
+            footnoteBody.setContainingBlock(null);
 
             Layer layer = new Layer(footnoteBody, c, true);
 

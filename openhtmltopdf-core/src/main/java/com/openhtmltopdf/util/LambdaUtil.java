@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.InlineLayoutBox;
 
 public class LambdaUtil {
     private LambdaUtil() { }
@@ -24,6 +25,37 @@ public class LambdaUtil {
             list.add(bx.getParent());
             bx = bx.getParent();
         }
+        return list.stream();
+    }
+
+    private static void descendants(Box bx, List<Box> out) {
+        if (bx != null && bx.getChildren() != null) {
+            out.addAll(bx.getChildren());
+            for (Box box : bx.getChildren()) {
+                descendants(box, out);
+
+                if (box instanceof InlineLayoutBox) {
+                    List<Object> inlineChilds = ((InlineLayoutBox) box).getInlineChildren();
+
+                    if (inlineChilds != null) {
+                        for (Object obj : inlineChilds) {
+                            if (obj instanceof Box) {
+                                out.add((Box) obj);
+                                descendants((Box) obj, out);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * A stream of all descendant boxes not including InlineText objects.
+     */
+    public static Stream<Box> descendants(Box bx) {
+        List<Box> list = new ArrayList<>();
+        descendants(bx, list);
         return list.stream();
     }
 

@@ -264,6 +264,10 @@ public class LayoutContext implements CssContext {
         _bfcs.removeLast();
     }
 
+    public void pushLayerIsolated(Box master) {
+        pushLayer(new Layer(master, this, true));
+    }
+
     public void pushLayer(Box master) {
         Layer layer = null;
 

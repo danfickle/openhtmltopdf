@@ -1545,4 +1545,8 @@ public class Layer {
     private void setLastRequestedPage(PageBox lastRequestedPage) {
         _lastRequestedPage = lastRequestedPage;
     }
+
+    public boolean isIsolated() {
+        return _isolated;
+    }
 }
