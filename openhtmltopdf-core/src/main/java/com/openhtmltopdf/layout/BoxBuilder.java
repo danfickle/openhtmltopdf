@@ -971,6 +971,11 @@ public class BoxBuilder {
         List<Styleable> inlineBoxes = createGeneratedContentList(
                 c, element, property, peName, style, CONTENT_LIST_DOCUMENT, childInfo);
 
+        return wrapGeneratedContent(element, peName, style, info, childInfo, inlineBoxes);
+    }
+
+    private static List<Styleable> wrapGeneratedContent(Element element, String peName, CalculatedStyle style,
+            ChildBoxInfo info, ChildBoxInfo childInfo, List<Styleable> inlineBoxes) {
         if (childInfo.isContainsBlockLevelContent()) {
             List<Styleable> inlines = new ArrayList<>();
 
@@ -1282,10 +1287,10 @@ public class BoxBuilder {
 
         // Create the out-of-flow footnote-body box as a block box.
         BlockBox footnoteBody = new BlockBox();
+        CalculatedStyle footnoteBodyStyle = style.createAnonymousStyle(IdentValue.BLOCK);
 
         footnoteBody.setElement(element);
-        footnoteBody.setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
-        footnoteBody.setChildrenContentType(BlockBox.CONTENT_INLINE);
+        footnoteBody.setStyle(footnoteBodyStyle);
         footnoteBody.setContainingBlock(null);
 
         Layer layer = new Layer(footnoteBody, c, true);
@@ -1296,12 +1301,9 @@ public class BoxBuilder {
         c.pushLayer(layer);
 
         // The footnote marker followed by footnote element children.
-        insertGeneratedContent(c, element, style, "footnote-marker", footnoteChildren, footnoteChildInfo);
-        createChildren(c, footnoteBody, element, footnoteChildren, footnoteChildInfo, style.isInline());
-
-        footnoteBody.setInlineContent(footnoteChildren);
-
-        footnoteChildInfo.setContainsBlockLevelContent(false);
+        insertGeneratedContent(c, element, footnoteBodyStyle, "footnote-marker", footnoteChildren, footnoteChildInfo);
+        createChildren(c, footnoteBody, element, footnoteChildren, footnoteChildInfo, footnoteBodyStyle.isInline());
+        resolveChildren(c, footnoteBody, footnoteChildren, footnoteChildInfo);
 
         c.popLayer();
 
@@ -1600,6 +1602,13 @@ public class BoxBuilder {
 
         public void setLayoutRunningBlocks(boolean layoutRunningBlocks) {
             _layoutRunningBlocks = layoutRunningBlocks;
+        }
+
+        @Override
+        public String toString() {
+            return String.format(
+                    "ChildBoxInfo [_containsBlockLevelContent=%s, _containsTableContent=%s, _layoutRunningBlocks=%s]",
+                    _containsBlockLevelContent, _containsTableContent, _layoutRunningBlocks);
         }
     }
 }
