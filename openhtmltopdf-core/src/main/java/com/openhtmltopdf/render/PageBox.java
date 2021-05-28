@@ -445,7 +445,7 @@ public class PageBox {
     }
 
     public void paintFootnoteArea(RenderingContext c) {
-        int start = getBottom() - _totalFootnoteHeight;
+        int start = getHeight(c) - (_totalFootnoteHeight + getMarginBorderPadding(c, CalculatedStyle.BOTTOM));
         int x = getMarginBorderPadding(c, CalculatedStyle.LEFT);
 
         if (_footnoteArea != null) {
@@ -882,29 +882,68 @@ public class PageBox {
         }
     }
 
-    private void createFootnoteArea(LayoutContext c) {
-        CalculatedStyle style = new EmptyStyle().deriveStyle(_pageInfo.createFootnoteAreaStyle());
-        Element root = c.getRootLayer().getMaster().getElement();
-        Element me = root.getOwnerDocument().createElement("fs-footnote");
+    /**
+     * Looks at the children of root.
+     * @return The body element, last element child of
+     * root or root in order of preference.
+     */
+    private Element getBodyElement(Element root) {
         Node child = root.getFirstChild();
-
         Element body = null;
 
-        // Try to use body if available otherwise last child of root element.
         while (child != null) {
             if (child instanceof Element) {
                 body = (Element) child;
                 if (child.getNodeName().equals("body")) {
-                    break;
+                    return body;
                 }
             }
             child = child.getNextSibling();
         }
 
+        return body != null ? body : root;
+    }
+
+    private Box getBodyBox(Box root) {
+        Box secondBest = null;
+        for (Box child : root.getChildren()) {
+            if (child.getElement() != null && child.getElement().getNodeName().equals("body")) {
+                return child;
+            }
+            secondBest = child;
+        }
+
+        return secondBest != null ? secondBest : root;
+    }
+
+    private int firstNonZero(int... values) {
+        for (int value : values) {
+            if (value != 0) {
+                return value;
+            }
+        }
+        return 0;
+    }
+
+    private void createFootnoteArea(LayoutContext c) {
+        CalculatedStyle style = new EmptyStyle().deriveStyle(
+                _pageInfo.createFootnoteAreaStyle());
+
+        Box rootBox = c.getRootLayer().getMaster();
+        Element root = rootBox.getElement();
+        Element me = root.getOwnerDocument().createElement("fs-footnote");
+        Element body = getBodyElement(root);
+
         body.appendChild(me);
 
+        Box bodyBox = getBodyBox(c.getRootLayer().getMaster());
+        int containingBlockWidth =
+            firstNonZero(bodyBox.getContentWidth(), bodyBox.getWidth(),
+                         rootBox.getContentWidth(), rootBox.getWidth(),
+                         getContentWidth(c), getWidth(c));
+
         _footnoteArea = new BlockBox();
-        _footnoteArea.setContainingBlock(new ViewportBox(new Rectangle(0, 0, getContentWidth(c), 0)));
+        _footnoteArea.setContainingBlock(new ViewportBox(new Rectangle(0, 0, containingBlockWidth, 0)));
         _footnoteArea.setStyle(style);
         _footnoteArea.setChildrenContentType(BlockBox.CONTENT_BLOCK);
         _footnoteArea.setElement(me);

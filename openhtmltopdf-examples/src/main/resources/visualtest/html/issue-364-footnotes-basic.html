@@ -7,12 +7,15 @@
 
 @page {
     @footnote {
-        float: bottom;
+        float: bottom;  /* The only supported position */
+        width: 100%;    /* Same width as body */
+        margin: 0 10px; /* Make the left-right margin same as body */
         border: 1px solid green;
-        width: 100%;
     }
 }
 body {
+  margin: 0 10px;
+  border: 1px solid black;
   font-size: 18px;
 }
 ::footnote-call {
@@ -43,7 +46,7 @@ span.footnote {
   Also a footnote for this sentence. <span id="2" class="footnote">Another <strong>footnote</strong>!</span>
 </p>
 
-<p style="">
+<p style="page-break-before: always;">
   Footnote numbers should be 3, 6 and 9. <span id="3" class="footnote">Just to be silly this is a really long footnote that will need wrapping and such.</span>
 </p>
 </body>
