@@ -1193,32 +1193,11 @@ public class BoxBuilder {
         }
 
         if (style.isFootnote()) {
-            List<Styleable> footnoteChildren = new ArrayList<>();
-            ChildBoxInfo footnoteChildInfo = new ChildBoxInfo();
+            // This is the official marker content that can generate zero or more boxes
+            // depending on user for ::footnote-call pseudo element.
+            insertGeneratedContent(c, element, style, "footnote-call", children, info);
 
-            // Create the out-of-flow footnote-body box as a block box.
-            BlockBox footnoteBody = new BlockBox();
-
-            footnoteBody.setElement(element);
-            footnoteBody.setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
-            footnoteBody.setChildrenContentType(BlockBox.CONTENT_INLINE);
-            footnoteBody.setContainingBlock(null);
-
-            Layer layer = new Layer(footnoteBody, c, true);
-
-            footnoteBody.setLayer(layer);
-            footnoteBody.setContainingLayer(layer);
-            c.pushLayer(layer);
-
-            // The footnote marker followed by footnote element children.
-            insertGeneratedContent(c, element, style, "footnote-marker", footnoteChildren, footnoteChildInfo);
-            createChildren(c, footnoteBody, element, footnoteChildren, footnoteChildInfo, style.isInline());
-
-            footnoteBody.setInlineContent(footnoteChildren);
-
-            footnoteChildInfo.setContainsBlockLevelContent(false);
-
-            c.popLayer();
+            BlockBox footnoteBody = createFootnoteBody(c, element, style);
 
             // This is purely a marker box for the footnote so we
             // can figure out in layout when to add the footnote body.
@@ -1227,11 +1206,6 @@ public class BoxBuilder {
             iB.setEndsHere(true);
             iB.setFootnote(footnoteBody);
             children.add(iB);
-
-            // This is the official marker content that can generate zero or more boxes
-            // depending on user for ::footnote-call pseudo element.
-            insertGeneratedContent(c, element, style, "footnote-call", children, info);
-
         } else if (style.isInline()) {
 
             if (context.needStartText) {
@@ -1300,6 +1274,38 @@ public class BoxBuilder {
         if (child != null) {
             children.add(child);
         }
+    }
+
+    private static BlockBox createFootnoteBody(LayoutContext c, Element element, CalculatedStyle style) {
+        List<Styleable> footnoteChildren = new ArrayList<>();
+        ChildBoxInfo footnoteChildInfo = new ChildBoxInfo();
+
+        // Create the out-of-flow footnote-body box as a block box.
+        BlockBox footnoteBody = new BlockBox();
+
+        footnoteBody.setElement(element);
+        footnoteBody.setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
+        footnoteBody.setChildrenContentType(BlockBox.CONTENT_INLINE);
+        footnoteBody.setContainingBlock(null);
+
+        Layer layer = new Layer(footnoteBody, c, true);
+
+        footnoteBody.setLayer(layer);
+        footnoteBody.setContainingLayer(layer);
+
+        c.pushLayer(layer);
+
+        // The footnote marker followed by footnote element children.
+        insertGeneratedContent(c, element, style, "footnote-marker", footnoteChildren, footnoteChildInfo);
+        createChildren(c, footnoteBody, element, footnoteChildren, footnoteChildInfo, style.isInline());
+
+        footnoteBody.setInlineContent(footnoteChildren);
+
+        footnoteChildInfo.setContainsBlockLevelContent(false);
+
+        c.popLayer();
+
+        return footnoteBody;
     }
 
     private static void createColumnContainer(

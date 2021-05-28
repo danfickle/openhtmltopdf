@@ -346,12 +346,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         BlockBox root = BoxBuilder.createRootBox(c, _doc);
         Box viewport = new ViewportBox(getInitialExtents(c));
 
-        BlockBox footnoteArea = new BlockBox();
-        footnoteArea.setStyle(new EmptyStyle());
-        footnoteArea.setContainingBlock(viewport);
-        Layer footnoteLayer = new Layer(footnoteArea, c, true);
-        c.setFootnoteLayer(footnoteLayer);
-
         root.setContainingBlock(viewport);
         root.layout(c);
         Dimension dim = root.getLayer().getPaintingDimension(c);

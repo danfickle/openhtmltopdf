@@ -67,8 +67,6 @@ public class LayoutContext implements CssContext {
     private LinkedList<BlockFormattingContext> _bfcs;
     private LinkedList<Layer> _layers;
 
-    private Layer _footnoteLayer;
-
     private FontContext _fontContext;
 
     private final ContentFunctionFactory _contentFunctionFactory = new ContentFunctionFactory();
@@ -498,13 +496,5 @@ public class LayoutContext implements CssContext {
 
     public void setBreakAtLineContext(BreakAtLineContext breakAtLineContext) {
         _breakAtLineContext = breakAtLineContext;
-    }
-
-    public void setFootnoteLayer(Layer footnoteLayer) {
-        _footnoteLayer = footnoteLayer;
-    }
-
-    public Layer getFootnoteLayer() {
-        return _footnoteLayer;
     }
 }
