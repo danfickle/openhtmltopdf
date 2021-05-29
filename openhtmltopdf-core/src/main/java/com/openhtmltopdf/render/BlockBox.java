@@ -569,7 +569,7 @@ public class BlockBox extends Box implements InlinePaintable {
     public boolean isPageBreakNeededBecauseOfMinHeight(LayoutContext context){
         float minHeight = getStyle().getFSPageBreakMinHeight(context);
         PageBox page = context.getRootLayer().getFirstPage(context, this);
-        return page != null && getAbsY() + minHeight > page.getBottom();
+        return page != null && getAbsY() + minHeight > page.getBottom(context);
     }
 
 
@@ -1261,7 +1261,7 @@ public class BlockBox extends Box implements InlinePaintable {
         int cCount = getChildCount();
         while (i < cCount) {
             LineBox lB = (LineBox)getChild(i);
-            if (lB.getAbsY() >= firstPage.getBottom()) {
+            if (lB.getAbsY() >= firstPage.getBottom(c)) {
                 break;
             }
             if (! lB.isContainsContent()) {
@@ -1279,7 +1279,7 @@ public class BlockBox extends Box implements InlinePaintable {
                 List<PageBox> pages = c.getRootLayer().getPages();
                 PageBox lastPage = pages.get(firstPage.getPageNo()+1);
                 while (lastPage.getPageNo() != pages.size() - 1 &&
-                        lastPage.getBottom() < lastLineBox.getAbsY()) {
+                        lastPage.getBottom(c) < lastLineBox.getAbsY()) {
                     lastPage = pages.get(lastPage.getPageNo()+1);
                 }
 

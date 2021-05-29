@@ -1252,12 +1252,24 @@ public class Layer {
         return pages.size() == 0 ? null : pages.get(pages.size()-1);
     }
 
+    /**
+     * Returns whether the a box with the given top and bottom would cross a page break.
+     * <br><br>
+     * Requirements: top is >= 0.
+     * <br><br>
+     * Important: This method will take into account any <code>float: bottom</code>
+     * content when used in in-flow content. For example, if the top/bottom pair overlaps
+     * the footnote area, returns true. It also takes into account space set aside for
+     * paginated table header/footer.
+     * <br><br>
+     * See {@link CssContext#isInFloatBottom()} {@link LayoutContext#getExtraSpaceBottom()}
+     */
     public boolean crossesPageBreak(LayoutContext c, int top, int bottom) {
         if (top < 0) {
             return false;
         }
         PageBox page = getPage(c, top);
-        return bottom >= page.getBottom() - c.getExtraSpaceBottom();
+        return bottom >= page.getBottom(c) - c.getExtraSpaceBottom();
     }
 
     public Layer findRoot() {

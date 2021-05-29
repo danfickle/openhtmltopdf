@@ -89,8 +89,10 @@ public class LayoutContext implements CssContext {
     private boolean _lineBreakedBecauseOfNoWrap = false;
 
     private BreakAtLineContext _breakAtLineContext;
-    
+
     private Boolean isPrintOverride = null; // True, false, or null for no override.
+
+    private boolean _isInFloatBottom;
 
     @Override
     public TextRenderer getTextRenderer() {
@@ -396,18 +398,30 @@ public class LayoutContext implements CssContext {
         return _sharedContext;
     }
 
+    /**
+     * Returns the extra space set aside for the footers of paginated tables.
+     */
     public int getExtraSpaceBottom() {
         return _extraSpaceBottom;
     }
 
+    /**
+     * See {@link #getExtraSpaceBottom()}
+     */
     public void setExtraSpaceBottom(int extraSpaceBottom) {
         _extraSpaceBottom = extraSpaceBottom;
     }
 
+    /**
+     * Returns the extra space set aside for the head section of paginated tables.
+     */
     public int getExtraSpaceTop() {
         return _extraSpaceTop;
     }
 
+    /**
+     * See {@link #getExtraSpaceTop()}
+     */
     public void setExtraSpaceTop(int extraSpaceTop) {
         _extraSpaceTop = extraSpaceTop;
     }
@@ -496,5 +510,19 @@ public class LayoutContext implements CssContext {
 
     public void setBreakAtLineContext(BreakAtLineContext breakAtLineContext) {
         _breakAtLineContext = breakAtLineContext;
+    }
+
+    /**
+     * See {@link #isInFloatBottom()}
+     */
+    public void setIsInFloatBottom(boolean inFloatBottom) {
+        _isInFloatBottom = inFloatBottom;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isInFloatBottom() {
+        return _isInFloatBottom;
     }
 }

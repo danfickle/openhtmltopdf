@@ -54,7 +54,9 @@ public class RenderingContext implements CssContext, Cloneable {
     
     private boolean isFastRenderer = false;
     private boolean inPageMargins = false;
-    
+
+    private boolean _isInFloatBottom;
+
     /**
      * needs a new instance every run
      */
@@ -108,7 +110,7 @@ public class RenderingContext implements CssContext, Cloneable {
     }
 
     private BidiReorderer _bidi = new SimpleBidiReorderer();
-    
+
     public void setBidiReorderer(BidiReorderer bidi) {
     	this._bidi = bidi;
     }
@@ -291,6 +293,20 @@ public class RenderingContext implements CssContext, Cloneable {
         } catch (CloneNotSupportedException e) {
             return null;
         }
+    }
+
+    /**
+     * See {@link #isInFloatBottom()}
+     */
+    public void setIsInFloatBottom(boolean inFloatBottom) {
+        _isInFloatBottom = inFloatBottom;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isInFloatBottom() {
+        return _isInFloatBottom;
     }
 }
 

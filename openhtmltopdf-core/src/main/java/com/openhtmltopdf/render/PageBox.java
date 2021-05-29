@@ -27,7 +27,6 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.util.List;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
@@ -48,7 +47,9 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.render.simplepainter.SimplePainter;
+import com.openhtmltopdf.util.BoxUtil;
 import com.openhtmltopdf.util.LambdaUtil;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.ThreadCtx;
 
 public class PageBox {
@@ -238,8 +239,38 @@ public class PageBox {
         _style = style;
     }
 
+    /**
+     * Gets the document Y position in top down units (20 per CSS pixel for PDF)
+     * <br><br>
+     * Example: If each page is 500px high and has a 50px margin, then if this is called
+     * on the second page it will return 16_000, which is 2 x 400px x 20.
+     * <br><br>
+     * Note: Does not take into account footnotes and any other <code>float: bottom</code>
+     * content. For this, you can use {@link #getBottomUsable()}.
+     * <br><br>
+     * Important: Prefer {@link #getBottom(CssContext)} over this method.
+     */
     public int getBottom() {
         return _bottom;
+    }
+
+    /**
+     * Gets the document Y position taking into account <code>float: bottom</code>
+     * content such as footnotes. When laying in-flow content we use this method
+     * while when in footnotes we use {@link #getBottom()}.
+     * <br><br>
+     * Important: Prefer {@link #getBottom(CssContext)} over this method.
+     */
+    public int getBottomUsable() {
+        return _bottom - _totalFootnoteHeight;
+    }
+
+    /**
+     * If we are in a footnote calls {@link #getBottom()}, otherwise uses
+     * {@link #getBottomUsable()}.
+     */
+    public int getBottom(CssContext c) {
+        return c.isInFloatBottom() ? getBottom() : getBottomUsable();
     }
 
     public int getTop() {
@@ -444,11 +475,19 @@ public class PageBox {
         currentMarginAreaContainer = null;
     }
 
+    /**
+     * Paint the footnote area layer if it exists.
+     */
     public void paintFootnoteArea(RenderingContext c) {
-        int start = getHeight(c) - (_totalFootnoteHeight + getMarginBorderPadding(c, CalculatedStyle.BOTTOM));
-        int x = getMarginBorderPadding(c, CalculatedStyle.LEFT);
-
         if (_footnoteArea != null) {
+            Box body = BoxUtil.getBodyOrNull(c.getRootLayer().getMaster());
+            int start = getHeight(c) - (_totalFootnoteHeight + getMarginBorderPadding(c, CalculatedStyle.BOTTOM));
+            int x = getMarginBorderPadding(c, CalculatedStyle.LEFT);
+
+            if (body != null) {
+                x += body.getMarginBorderPadding(c, CalculatedStyle.LEFT);
+            }
+
             // FIXME: Wrong StructureType here.
             Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, _footnoteArea);
 
@@ -456,6 +495,8 @@ public class PageBox {
             _footnoteArea.setAbsY(start);
             _footnoteArea.calcChildLocations();
 
+            // SimplePainter paints everything in the layer by
+            // assuming it is all on this page.
             SimplePainter painter = new SimplePainter(0, 0);
             painter.paintLayer(c, _footnoteArea.getLayer());
 
@@ -882,77 +923,53 @@ public class PageBox {
         }
     }
 
+
     /**
-     * Looks at the children of root.
-     * @return The body element, last element child of
-     * root or root in order of preference.
+     * Sets up the footnote area for this page.
      */
-    private Element getBodyElement(Element root) {
-        Node child = root.getFirstChild();
-        Element body = null;
-
-        while (child != null) {
-            if (child instanceof Element) {
-                body = (Element) child;
-                if (child.getNodeName().equals("body")) {
-                    return body;
-                }
-            }
-            child = child.getNextSibling();
-        }
-
-        return body != null ? body : root;
-    }
-
-    private Box getBodyBox(Box root) {
-        Box secondBest = null;
-        for (Box child : root.getChildren()) {
-            if (child.getElement() != null && child.getElement().getNodeName().equals("body")) {
-                return child;
-            }
-            secondBest = child;
-        }
-
-        return secondBest != null ? secondBest : root;
-    }
-
-    private int firstNonZero(int... values) {
-        for (int value : values) {
-            if (value != 0) {
-                return value;
-            }
-        }
-        return 0;
-    }
-
     private void createFootnoteArea(LayoutContext c) {
+        // Create style from @footnote page rules with absolute
+        // positioning and block display.
         CalculatedStyle style = new EmptyStyle().deriveStyle(
                 _pageInfo.createFootnoteAreaStyle());
 
         Box rootBox = c.getRootLayer().getMaster();
         Element root = rootBox.getElement();
+
+        // We get a NPE if our new BlockBox doesn't have an element
+        // so just create one.
         Element me = root.getOwnerDocument().createElement("fs-footnote");
-        Element body = getBodyElement(root);
+        Element body = BoxUtil.getBodyElementOrSomething(root);
 
         body.appendChild(me);
 
-        Box bodyBox = getBodyBox(c.getRootLayer().getMaster());
-        int containingBlockWidth =
-            firstNonZero(bodyBox.getContentWidth(), bodyBox.getWidth(),
+        Box bodyBox = BoxUtil.getBodyBoxOrSomething(c.getRootLayer().getMaster());
+        int containingBlockWidth = OpenUtil.firstNonZero(
+                         bodyBox.getContentWidth(), bodyBox.getWidth(),
                          rootBox.getContentWidth(), rootBox.getWidth(),
                          getContentWidth(c), getWidth(c));
 
         _footnoteArea = new BlockBox();
         _footnoteArea.setContainingBlock(new ViewportBox(new Rectangle(0, 0, containingBlockWidth, 0)));
         _footnoteArea.setStyle(style);
+
+        // For now we make sure all footnote bodies have block display.
         _footnoteArea.setChildrenContentType(BlockBox.CONTENT_BLOCK);
         _footnoteArea.setElement(me);
 
+        // Create an isolated layer, not connected to any other layers.
+        // This means we have to explicitly paint it. See #paintFootnoteArea.
         Layer footnoteLayer = new Layer(_footnoteArea, c, true);
         _footnoteArea.setLayer(footnoteLayer);
         _footnoteArea.setContainingLayer(footnoteLayer);
     }
 
+    /**
+     * Set the containing layer of all descendants.
+     * <br><br>
+     * This means that the descendants can not have layers of their own,
+     * meaning no absolute, fixed or transforms.
+     */
     private void correctLayer(Box parent, Layer l) {
         LambdaUtil.descendants(parent)
           .forEach(box -> {
@@ -961,7 +978,16 @@ public class PageBox {
           });
     }
 
+    /**
+     * Adds a footnote body to this page, creating the footnote area as required.
+     * <br><br>
+     * Important: This changes the page break point by expanding the footnote area.
+     */
     public void addFootnoteBody(LayoutContext c, BlockBox footnoteBody) {
+        // We need to know that we are in the footnote area during layout so we
+        // know which page bottom to use.
+        c.setIsInFloatBottom(true);
+
         if (_footnoteArea == null) {
             createFootnoteArea(c);
         }
@@ -978,5 +1004,45 @@ public class PageBox {
         correctLayer(_footnoteArea, _footnoteArea.getLayer());
 
         _totalFootnoteHeight = _footnoteArea.getHeight();
+
+        c.setIsInFloatBottom(false);
+    }
+
+    /**
+     * Removes footnotes from a page. This is used when a line is moved to a
+     * new page. We remove from first page and add to the next.
+     */
+    public void removeFootnoteBodies(LayoutContext c, List<BlockBox> footnoteBodies) {
+        if (_footnoteArea != null) {
+            for (BlockBox footnote : footnoteBodies) {
+                _footnoteArea.removeChild(footnote);
+            }
+
+            if (_footnoteArea.getChildCount() > 0) {
+                c.setIsInFloatBottom(true);
+
+                _footnoteArea.layout(c);
+
+                correctLayer(_footnoteArea, _footnoteArea.getLayer());
+
+                // TODO: Test this thoroughly, an unstable page break point
+                // at this stage may prove problematic!
+                // Confirmed - breaks layout.
+                //_totalFootnoteHeight = _footnoteArea.getHeight();
+
+                c.setIsInFloatBottom(false);
+            } else {
+                _footnoteArea = null;
+                //_totalFootnoteHeight = 0;
+            }
+        }
+    }
+
+    /**
+     * Checks if this page has footnotes. May change if we have to move footnotes
+     * to subsequent page.
+     */
+    public boolean hasFootnotes() {
+        return _footnoteArea != null;
     }
 }
