@@ -6,10 +6,10 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.InlineLayoutBox;
 
 public class LambdaUtil {
     private LambdaUtil() { }
@@ -28,35 +28,25 @@ public class LambdaUtil {
         return list.stream();
     }
 
-    private static void descendants(Box bx, List<Box> out) {
-        if (bx != null && bx.getChildren() != null) {
-            out.addAll(bx.getChildren());
-            for (Box box : bx.getChildren()) {
-                descendants(box, out);
-
-                if (box instanceof InlineLayoutBox) {
-                    List<Object> inlineChilds = ((InlineLayoutBox) box).getInlineChildren();
-
-                    if (inlineChilds != null) {
-                        for (Object obj : inlineChilds) {
-                            if (obj instanceof Box) {
-                                out.add((Box) obj);
-                                descendants((Box) obj, out);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    /**
+     * A stream of all descendant boxes not including
+     * InlineText or InlineBox objects.
+     *
+     * This would usually only be called after layout is concluded
+     * as InlineBox objects are converted to one or more InlineLayoutBox
+     * during layout.
+     * 
+     * Should be in breadth first order.
+     */
+    public static Stream<Box> descendants(Box parent) {
+        return StreamSupport.stream(new DescendantBoxSpliterator(parent), false);
     }
 
     /**
-     * A stream of all descendant boxes not including InlineText objects.
+     * See {@link #descendants(Box)}
      */
-    public static Stream<Box> descendants(Box bx) {
-        List<Box> list = new ArrayList<>();
-        descendants(bx, list);
-        return list.stream();
+    public static List<Box> descendantsList(Box parent) {
+        return descendants(parent).collect(Collectors.toList());
     }
 
     /**

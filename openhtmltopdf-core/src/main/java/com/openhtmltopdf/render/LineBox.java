@@ -468,6 +468,15 @@ public class LineBox extends Box implements InlinePaintable {
         if (_markerData != null) {
             _markerData.restorePreviousReferenceLine(this);
         }
+
+        if (hasFootnotes()) {
+            // Reset usually happens when satisfying widows and orphans.
+            // Reset means we and our descendants are about to be layed out again
+            // so we have to remove footnotes as they will be added again, possible on
+            // a new page.
+            c.getRootLayer().getFirstPage(c, this).removeFootnoteBodies(c, getReferencedFootnoteBodies());
+        }
+
         super.reset(c);
     }
 
