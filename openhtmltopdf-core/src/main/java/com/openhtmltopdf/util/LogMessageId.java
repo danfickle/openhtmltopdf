@@ -149,6 +149,7 @@ public interface LogMessageId {
         EXCEPTION_FONT_METRICS_NOT_AVAILABLE(XRLog.EXCEPTION, "Font metrics not available for font-description: {}"),
         EXCEPTION_URI_SYNTAX_WHILE_LOADING_EXTERNAL_SVG_RESOURCE(XRLog.EXCEPTION, "URI syntax exception while loading external svg resource: {}"),
         EXCEPTION_SVG_ERROR_HANDLER(XRLog.EXCEPTION, "SVG {}"),
+        EXCEPTION_SVG_CREATE_FONT(XRLog.EXCEPTION, "Error while creating a font with family: {}"),
         EXCEPTION_PDF_IN_WRITING_METHOD(XRLog.EXCEPTION, "Exception in PDF writing method: {}"),
         EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI(XRLog.EXCEPTION, "Can't read image file; unexpected problem for URI '{}'"),
         EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND(XRLog.EXCEPTION, "Can't read image file; image at URI '{}' not found"),
