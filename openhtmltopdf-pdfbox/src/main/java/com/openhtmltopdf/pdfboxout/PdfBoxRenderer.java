@@ -26,7 +26,6 @@ import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.BoxBuilder;
 import com.openhtmltopdf.layout.Layer;
@@ -348,6 +347,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
         root.setContainingBlock(viewport);
         root.layout(c);
+
+        // Useful to see the box tree after layout.
+        // System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(root));
+
         Dimension dim = root.getLayer().getPaintingDimension(c);
         root.getLayer().trimEmptyPages(c, dim.height);
         root.getLayer().layoutPages(c);
@@ -907,9 +910,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         c.setInPageMargins(true);
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         c.setInPageMargins(false);
-        
-        page.paintFootnoteArea(c);
-        
+
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
         Rectangle content = page.getPrintClippingBounds(c);
@@ -925,6 +926,8 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         DisplayListPainter painter = new DisplayListPainter();
         painter.paint(c, pageOperations);
         _outputDevice.translate(-translateX, -top);
+
+        page.paintFootnoteArea(c);
 
         _outputDevice.popClip();
     }

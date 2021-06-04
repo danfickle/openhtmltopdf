@@ -147,6 +147,12 @@ public class BoxBuilder {
                 resolveChildTableContent(c, parent, children, info, IdentValue.TABLE_CELL);
             }
         }
+
+        // The following is very useful for debugging.
+        // It shows the contents of the box tree before layout.
+//        if (parent.getElement().getNodeName().equals("html")) {
+//            System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(parent));
+//        }
     }
 
     public static TableBox createMarginTable(
@@ -890,6 +896,7 @@ public class BoxBuilder {
 
             if (content != null) {
                 InlineBox iB = new InlineBox(content);
+
                 iB.setContentFunction(contentFunction);
                 iB.setFunction(function);
                 iB.setElement(element);
@@ -902,6 +909,48 @@ public class BoxBuilder {
         }
 
         return result;
+    }
+
+    /**
+     * Creates an element with id for the footnote-marker pseudo element
+     * so we can link to it from the footnote-call pseduo element.
+     * <br><br>
+     * See {@link #createFootnoteCallAnchor(LayoutContext, Element)}
+     */
+    private static Element createFootnoteTarget(LayoutContext c, Element parent) {
+        if (parent == null) {
+            return null;
+        }
+
+        Document doc = parent.getOwnerDocument();
+        Element target = doc.createElement("fs-footnote-marker");
+
+        target.setAttribute("id", "fs-footnote-" + c.getFootnoteIndex());
+
+        parent.appendChild(target);
+
+        return target;
+    }
+
+    /**
+     * Used to create the anchor element to link to the footnote body for
+     * the footnote-call pseudo element.
+     * <br><br>
+     * See {@link #createFootnoteTarget(LayoutContext, Element)}
+     */
+    private static Element createFootnoteCallAnchor(LayoutContext c, Element parent) {
+        if (parent == null) {
+            return null;
+        }
+
+        Document doc = parent.getOwnerDocument();
+        Element anchor = doc.createElement("a");
+
+        anchor.setAttribute("href", "#fs-footnote-" + c.getFootnoteIndex());
+
+        parent.appendChild(anchor);
+
+        return anchor;
     }
 
     public static BlockBox getRunningBlock(LayoutContext c, PropertyValue value) {
@@ -968,8 +1017,44 @@ public class BoxBuilder {
         }
 
         ChildBoxInfo childInfo = new ChildBoxInfo();
+
         List<Styleable> inlineBoxes = createGeneratedContentList(
                 c, element, property, peName, style, CONTENT_LIST_DOCUMENT, childInfo);
+
+        if ("footnote-marker".equals(peName)) {
+            // We need a box at the start of marker to target the ::footnote-call
+            // link to.
+            InlineBox targetStart = new InlineBox("");
+
+            targetStart.setStartsHere(true);
+            targetStart.setEndsHere(true);
+            targetStart.setElement(createFootnoteTarget(c, element));
+            targetStart.setStyle(style.createAnonymousStyle(IdentValue.INLINE));
+            targetStart.setPseudoElementOrClass(peName);
+
+            inlineBoxes.add(0, targetStart);
+
+        } else if ("footnote-call".equals(peName)) {
+            // Wrap the ::footnote-call content with an inline anchor box.
+            InlineBox aStart = new InlineBox("");
+            InlineBox aEnd = new InlineBox("");
+
+            aStart.setStartsHere(true);
+            aStart.setEndsHere(false);
+
+            aEnd.setStartsHere(false);
+            aEnd.setEndsHere(true);
+
+            Element anchor = createFootnoteCallAnchor(c, element);
+            aStart.setElement(anchor);
+            aEnd.setElement(anchor);
+
+            aStart.setStyle(style.createAnonymousStyle(IdentValue.INLINE));
+            aEnd.setStyle(style.createAnonymousStyle(IdentValue.INLINE));
+
+            inlineBoxes.add(0, aStart);
+            inlineBoxes.add(aEnd);
+        }
 
         return wrapGeneratedContent(element, peName, style, info, childInfo, inlineBoxes);
     }
@@ -1183,6 +1268,13 @@ public class BoxBuilder {
             return;
         }
 
+        String tag = element.getNodeName();
+        if ("fs-footnote-marker".equals(tag) ||
+            ("a".equals(tag) && element.getAttribute("href").startsWith("#fs-footnote"))) {
+            // Don't output elements that have been artificially created to support footnotes.
+            return;
+        }
+
         resolveElementCounters(c, working, element, style);
 
         if (style.isIdent(CSSName.DISPLAY, IdentValue.TABLE_COLUMN) ||
@@ -1198,6 +1290,8 @@ public class BoxBuilder {
         }
 
         if (style.isFootnote()) {
+            c.setFootnoteIndex(c.getFootnoteIndex() + 1);
+
             // This is the official marker content that can generate zero or more boxes
             // depending on user for ::footnote-call pseudo element.
             insertGeneratedContent(c, element, style, "footnote-call", children, info);
@@ -1211,6 +1305,7 @@ public class BoxBuilder {
             iB.setEndsHere(true);
             iB.setFootnote(footnoteBody);
             children.add(iB);
+
         } else if (style.isInline()) {
 
             if (context.needStartText) {
@@ -1281,6 +1376,10 @@ public class BoxBuilder {
         }
     }
 
+    /**
+     * Creates the footnote body to put at the bottom of the page inside a
+     * page's footnote area.
+     */
     private static BlockBox createFootnoteBody(LayoutContext c, Element element, CalculatedStyle style) {
         List<Styleable> footnoteChildren = new ArrayList<>();
         ChildBoxInfo footnoteChildInfo = new ChildBoxInfo();
@@ -1291,8 +1390,12 @@ public class BoxBuilder {
 
         footnoteBody.setElement(element);
         footnoteBody.setStyle(footnoteBodyStyle);
+
+        // This will be set to the same as the footnote area when we add it to the page.
         footnoteBody.setContainingBlock(null);
 
+        // Create an isolated layer for now. This will be changed to the footnote area
+        // layer when we add this footnote body to a page.
         Layer layer = new Layer(footnoteBody, c, true);
 
         footnoteBody.setLayer(layer);

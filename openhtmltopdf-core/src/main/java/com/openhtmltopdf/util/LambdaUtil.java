@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.openhtmltopdf.layout.Layer;
+import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.InlineLayoutBox;
 
 public class LambdaUtil {
     private LambdaUtil() { }
@@ -101,6 +104,73 @@ public class LambdaUtil {
             .distinct()
             .map(LambdaUtil::layerDescription)
             .collect(Collectors.joining("\n    ", "\nREFED LAYERS = [\n    ", "\n]"));
+    }
+
+    private static class DescendantContent {
+        final Object object;
+        final int indent;
+
+        DescendantContent(Object obj, int indent) {
+            this.object = obj;
+            this.indent = indent;
+        }
+    }
+
+    private static void descendantDump(Box parent, int indent, List<DescendantContent> out) {
+        out.add(new DescendantContent(parent, indent));
+
+        indent++;
+
+        for (Box child : parent.getChildren()) {
+            descendantDump(child, indent, out);
+        }
+
+        if (parent instanceof BlockBox &&
+            ((BlockBox) parent).getInlineContent() != null) {
+            for (Object child : ((BlockBox) parent).getInlineContent()) {
+                if (child instanceof Box) {
+                    descendantDump((Box) child, indent, out);
+                } else {
+                    out.add(new DescendantContent(child, indent));
+                }
+            }
+        }
+
+        if (parent instanceof InlineLayoutBox) {
+            for (Object child : ((InlineLayoutBox) parent).getInlineChildren()) {
+                if (child instanceof Box) {
+                    descendantDump((Box) child, indent, out);
+                } else {
+                    out.add(new DescendantContent(child, indent));
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates an indented dump of the box tree.
+     * Includes both the pre-layout inline-content and if layout
+     * has been run, the after layout structure.
+     * Debug only.
+     */
+    public static String descendantDump(Box root) {
+        StringBuilder spaces = new StringBuilder(100);
+        IntStream.range(0, 100).forEach(unused -> spaces.append(' '));
+        char[] space = new char[100];
+        spaces.getChars(0, spaces.length(), space, 0);
+
+        StringBuilder sb = new StringBuilder();
+        List<DescendantContent> renderObjects = new ArrayList<>();
+
+        descendantDump(root, 0, renderObjects);
+
+        for (DescendantContent content : renderObjects) {
+            sb.append(space, 0, Math.min(100, content.indent * 4));
+            sb.append(content.object.toString());
+            sb.append('\n');
+        }
+
+        return sb.toString();
     }
 
     public static <T> Predicate<T> alwaysTrue() {

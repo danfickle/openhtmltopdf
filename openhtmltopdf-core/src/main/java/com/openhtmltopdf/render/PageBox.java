@@ -480,6 +480,9 @@ public class PageBox {
      */
     public void paintFootnoteArea(RenderingContext c) {
         if (_footnoteArea != null) {
+            // Useful to see what we are painting as a box tree.
+            // System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(_footnoteArea));
+
             Box body = BoxUtil.getBodyOrNull(c.getRootLayer().getMaster());
             int start = getHeight(c) - (_totalFootnoteHeight + getMarginBorderPadding(c, CalculatedStyle.BOTTOM));
             int x = getMarginBorderPadding(c, CalculatedStyle.LEFT);
@@ -491,6 +494,7 @@ public class PageBox {
             // FIXME: Wrong StructureType here.
             Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, _footnoteArea);
 
+            // Set position in page-relative units.
             _footnoteArea.setAbsX(x);
             _footnoteArea.setAbsY(start);
             _footnoteArea.calcChildLocations();
@@ -501,6 +505,11 @@ public class PageBox {
             painter.paintLayer(c, _footnoteArea.getLayer());
 
             c.getOutputDevice().endStructure(token);
+
+            // Use document-relative position for link targets.
+            // Links are processed after painting footnotes.
+            _footnoteArea.setAbsY(getBottom() - _totalFootnoteHeight);
+            _footnoteArea.calcChildLocations();
         }
     }
 
@@ -988,12 +997,24 @@ public class PageBox {
         // know which page bottom to use.
         c.setIsInFloatBottom(true);
 
+        boolean createdArea = false;
+
         if (_footnoteArea == null) {
             createFootnoteArea(c);
+            createdArea = true;
         }
 
         footnoteBody.setContainingBlock(_footnoteArea.getContainingBlock());
         _footnoteArea.addChild(footnoteBody);
+
+        if (!createdArea) {
+            Layer layer = _footnoteArea.getLayer();
+            _footnoteArea.reset(c);
+            _footnoteArea.setLayer(layer);
+            _footnoteArea.setContainingLayer(layer);
+        } else {
+            footnoteBody.reset(c);
+        }
 
         // FIXME: Not very efficient to layout all footnotes again after one
         // is added.
@@ -1014,13 +1035,12 @@ public class PageBox {
      */
     public void removeFootnoteBodies(LayoutContext c, List<BlockBox> footnoteBodies) {
         if (_footnoteArea != null) {
-            for (BlockBox footnote : footnoteBodies) {
-                _footnoteArea.removeChild(footnote);
-            }
+            footnoteBodies.forEach(_footnoteArea::removeChild);
 
             if (_footnoteArea.getChildCount() > 0) {
                 c.setIsInFloatBottom(true);
 
+                _footnoteArea.reset(c);
                 _footnoteArea.layout(c);
 
                 correctLayer(_footnoteArea, _footnoteArea.getLayer());

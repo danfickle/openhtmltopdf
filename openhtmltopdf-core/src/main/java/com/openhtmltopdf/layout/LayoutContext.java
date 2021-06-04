@@ -94,6 +94,8 @@ public class LayoutContext implements CssContext {
 
     private boolean _isInFloatBottom;
 
+    private int _footnoteIndex;
+
     @Override
     public TextRenderer getTextRenderer() {
         return _sharedContext.getTextRenderer();
@@ -128,7 +130,7 @@ public class LayoutContext implements CssContext {
     }
     
     private BidiReorderer _bidiReorderer = new SimpleBidiReorderer();
-    
+
     public void setBidiReorderer(BidiReorderer reorderer) {
     	_bidiReorderer = reorderer;
     }
@@ -524,5 +526,20 @@ public class LayoutContext implements CssContext {
      */
     public boolean isInFloatBottom() {
         return _isInFloatBottom;
+    }
+
+    /**
+     * See {@link #getFootnoteIndex()}
+     */
+    public void setFootnoteIndex(int footnoteIndex) {
+        _footnoteIndex = footnoteIndex;
+    }
+
+    /**
+     * The zero-based footnote index, which will likely be different from any
+     * counter used with the footnote.
+     */
+    public int getFootnoteIndex() {
+        return _footnoteIndex;
     }
 }
