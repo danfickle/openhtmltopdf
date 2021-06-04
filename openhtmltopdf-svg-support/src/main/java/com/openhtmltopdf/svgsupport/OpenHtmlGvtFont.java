@@ -8,7 +8,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.CharacterIterator;
+import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.XRLog;
 import org.apache.batik.gvt.font.GVTFont;
 import org.apache.batik.gvt.font.GVTFontFamily;
 import org.apache.batik.gvt.font.GVTGlyphVector;
@@ -56,7 +59,7 @@ public class OpenHtmlGvtFont implements GVTFont {
 			font = Font.createFont(Font.TRUETYPE_FONT, new ByteArrayInputStream(fontBytes)).deriveFont(toFontWeight(fontWeight) | toStyle(fontStyle) , size);
 		} catch (IOException e) {
 			// Shouldn't happen
-			e.printStackTrace();
+			XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_SVG_CREATE_FONT, family != null ? family.getFamilyName() : "", e);
 			font = null;
 		}
 
