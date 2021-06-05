@@ -93,6 +93,7 @@ public class PageBox {
 
     private BlockBox _footnoteArea;
     private int _totalFootnoteHeight;
+    private int _maxFootnoteHeight;
 
     public void setBasePagePdfPageIndex(int idx) {
         this._basePagePdfPageIndex = idx;
@@ -979,9 +980,20 @@ public class PageBox {
      * This means that the descendants can not have layers of their own,
      * meaning no absolute, fixed or transforms.
      */
-    private void correctLayer(Box parent, Layer l) {
-        LambdaUtil.descendants(parent)
+    private void correctLayer(Layer l) {
+        if (_footnoteArea.getLayer() != null) {
+            _footnoteArea.getLayer().detach();
+        }
+
+        _footnoteArea.setLayer(l);
+        _footnoteArea.setContainingLayer(l);
+
+        LambdaUtil.descendants(_footnoteArea)
           .forEach(box -> {
+              if (box.getLayer() != null) {
+                  box.getLayer().detach();
+              }
+
               box.setLayer(null);
               box.setContainingLayer(l);
           });
@@ -1007,11 +1019,10 @@ public class PageBox {
         footnoteBody.setContainingBlock(_footnoteArea.getContainingBlock());
         _footnoteArea.addChild(footnoteBody);
 
+        Layer layer = _footnoteArea.getLayer();
+
         if (!createdArea) {
-            Layer layer = _footnoteArea.getLayer();
             _footnoteArea.reset(c);
-            _footnoteArea.setLayer(layer);
-            _footnoteArea.setContainingLayer(layer);
         } else {
             footnoteBody.reset(c);
         }
@@ -1020,11 +1031,13 @@ public class PageBox {
         // is added.
         _footnoteArea.layout(c);
 
+
         // FIXME: The layer for _footnoteArea may swap around in BlockBox::layout
         // so just fix up all descendants to point to the correct layer.
-        correctLayer(_footnoteArea, _footnoteArea.getLayer());
+        correctLayer(layer);
 
         _totalFootnoteHeight = _footnoteArea.getHeight();
+        _maxFootnoteHeight = Math.max(_maxFootnoteHeight, _totalFootnoteHeight);
 
         c.setIsInFloatBottom(false);
     }
@@ -1040,20 +1053,24 @@ public class PageBox {
             if (_footnoteArea.getChildCount() > 0) {
                 c.setIsInFloatBottom(true);
 
+                Layer layer = _footnoteArea.getLayer();
+
                 _footnoteArea.reset(c);
                 _footnoteArea.layout(c);
 
-                correctLayer(_footnoteArea, _footnoteArea.getLayer());
+                correctLayer(layer);
 
-                // TODO: Test this thoroughly, an unstable page break point
-                // at this stage may prove problematic!
-                // Confirmed - breaks layout.
-                //_totalFootnoteHeight = _footnoteArea.getHeight();
+                _totalFootnoteHeight = _footnoteArea.getHeight();
+                _maxFootnoteHeight = Math.max(_maxFootnoteHeight, _totalFootnoteHeight);
 
                 c.setIsInFloatBottom(false);
             } else {
+                if (_footnoteArea.getLayer() != null) {
+                    _footnoteArea.getLayer().detach();
+                }
+
                 _footnoteArea = null;
-                //_totalFootnoteHeight = 0;
+                _totalFootnoteHeight = 0;
             }
         }
     }

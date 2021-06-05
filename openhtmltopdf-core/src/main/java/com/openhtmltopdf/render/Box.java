@@ -50,7 +50,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 public abstract class Box implements Styleable, DisplayListItem {
     protected static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -149,7 +148,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     
     /**
      * Gets the layer relative clip for the parent box.
-     * @see {@link #getClipBox(RenderingContext, Layer)}
+     * See {@link #getClipBox(RenderingContext, Layer)}
      */
     public Rectangle getParentClipBox(RenderingContext c, Layer layer) {
         Box clipParent = getClipParent();
@@ -219,6 +218,7 @@ public abstract class Box implements Styleable, DisplayListItem {
         return getContentWidth() + getLeftMBP() + getRightMBP();
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Box: ");
@@ -315,7 +315,7 @@ public abstract class Box implements Styleable, DisplayListItem {
         if (_boxes == null) {
             throw new IndexOutOfBoundsException();
         } else {
-            return (Box) _boxes.get(i);
+            return _boxes.get(i);
         }
     }
 
@@ -694,8 +694,16 @@ public abstract class Box implements Styleable, DisplayListItem {
         return result;
     }
 
+    /**
+     * Responsible for resetting the state of the box before a repeat
+     * call to {@link BlockBox#layout(LayoutContext)} or other layout methods.
+     * <br><br>
+     * Any layout operation that is not idempotent MUST be reset in this method.
+     * Layout may be called several times on the one box.
+     */
     public void reset(LayoutContext c) {
         resetChildren(c);
+
         if (_layer != null) {
             _layer.detach();
             _layer = null;
