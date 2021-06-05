@@ -705,14 +705,27 @@ public class LineBox extends Box implements InlinePaintable {
                forcePageBreakBefore(c, IdentValue.ALWAYS, false, leastAbsY);
                calcCanvasLocation();
 
+               if (c.getOverflowingFootnoteAreas() != null) {
+                   // We need to make sure we are not overlapping footnotes at the
+                   // top of the page.
+                   PageBox pageBoxAfter = c.getRootLayer().getFirstPage(c, this);
+                   int pageBoxAfterTop = pageBoxAfter.getTop(c);
+
+                   if (pageBoxAfterTop + c.getExtraSpaceTop() > getAbsY()) {
+                       int diff = pageBoxAfterTop + c.getExtraSpaceTop() - getAbsY();
+                       setY(getY() + diff);
+                       calcCanvasLocation();
+                   }
+               }
+
                if (hasFootnotes()) {
+                   // We need to recalculate pageBoxAfter in case we were pushed down
+                   // more than one page.
                    PageBox pageBoxAfter = c.getRootLayer().getFirstPage(c, this);
                    List<BlockBox> footnotes = getReferencedFootnoteBodies();
 
                    for (BlockBox footnote : footnotes) {
-                       // FIXME: Edge cases, what happens if both this line and its
-                       // footnotes do not fit on a page?
-                       pageBoxAfter.addFootnoteBody(c, footnote);
+                       pageBoxAfter.addFootnoteBody(c, footnote, getHeight());
                    }
                }
            } else if (pageBox.getTop() + c.getExtraSpaceTop() > getAbsY()) {

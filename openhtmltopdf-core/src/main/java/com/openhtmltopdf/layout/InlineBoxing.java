@@ -151,7 +151,7 @@ public class InlineBoxing {
 
                 if (inlineBox.hasFootnote() && c.isPrint()) {
                     PageBox page = c.getRootLayer().getPage(c, current.line.getAbsY());
-                    page.addFootnoteBody(c, inlineBox.getFootnoteBody());
+                    page.addFootnoteBody(c, inlineBox.getFootnoteBody(), current.line.getHeight());
 
                     // We also need to associate it with a line box in case the line moves
                     // pages.

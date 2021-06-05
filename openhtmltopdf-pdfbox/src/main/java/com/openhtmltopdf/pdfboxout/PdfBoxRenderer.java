@@ -927,8 +927,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         painter.paint(c, pageOperations);
         _outputDevice.translate(-translateX, -top);
 
-        page.paintFootnoteArea(c);
-
         _outputDevice.popClip();
     }
 
