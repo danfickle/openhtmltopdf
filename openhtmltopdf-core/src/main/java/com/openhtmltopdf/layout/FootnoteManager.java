@@ -30,6 +30,10 @@ public class FootnoteManager {
         // The pages this footnote area covers, usually a singleton list
         // so may not be mutable.
         List<PageBox> pages;
+
+        // The footnote area max-height or -1 if not provided
+        // in footnote at-rule.
+        public float maxHeight;
     }
 
     // Every page has zero or one footnote areas but a footnote area may go
@@ -42,6 +46,7 @@ public class FootnoteManager {
     private FootnoteArea createFootnoteArea(LayoutContext c, PageBox page) {
         FootnoteArea area = new FootnoteArea();
         area.footnoteArea = createFootnoteAreaBlock(c, page);
+        area.maxHeight = page.getFootnoteMaxHeight(c);
         return area;
     }
 
@@ -87,8 +92,6 @@ public class FootnoteManager {
     }
 
     private void positionFootnoteArea(LayoutContext c, FootnoteArea area, PageBox firstPage, int lineHeight) {
-        final int minLines = 2;
-
         if (area.pages != null) {
             // We clear any page footnote area info as
             // they may have changed and are recreated.
@@ -103,7 +106,21 @@ public class FootnoteManager {
         int desiredHeight = area.footnoteArea.getBorderBoxHeight(c);
         int pageTop = firstPage.getTop();
 
-        int minFootnoteTop = pageTop + (lineHeight * minLines);
+        int minFootnoteTop;
+
+        if (area.maxHeight > 0) {
+            // Respect max-height if they have left room for at least one line
+            // of normal content.
+            minFootnoteTop = Math.max(
+                    pageTop + lineHeight,
+                    ((int) (firstPage.getBottom() - area.maxHeight)));
+        } else {
+            // Otherwise use a sensible default of 60%.
+            minFootnoteTop = Math.max(
+                    pageTop + lineHeight,
+                    (int) (pageTop + (firstPage.getContentHeight(c) * 0.6)));
+        }
+
         int maxFootnoteHeight = firstPage.getBottom() - minFootnoteTop;
 
         int firstPageHeight = Math.min(

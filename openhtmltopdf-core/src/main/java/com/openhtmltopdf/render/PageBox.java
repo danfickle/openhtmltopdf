@@ -625,7 +625,21 @@ public class PageBox {
             }
         }
     }
-    
+
+    /**
+     * Gets the footnote area max-height if it is provided
+     * in the footnote at-rule for this page, otherwise -1.
+     */
+    public float getFootnoteMaxHeight(CssContext c) {
+        CalculatedStyle style = getPageInfo().getFootnoteAreaRawMaxHeightStyle();
+
+        if (style == null || style.isMaxHeightNone()) {
+            return -1;
+        } else {
+            return style.getFloatPropertyProportionalHeight(CSSName.MAX_HEIGHT, getContentHeight(c), c);
+        }
+    }
+
     private static final class PageDimensions {
         private int _width;
         private int _height;

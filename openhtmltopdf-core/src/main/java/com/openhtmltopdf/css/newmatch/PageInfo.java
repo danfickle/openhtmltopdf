@@ -30,6 +30,8 @@ import com.openhtmltopdf.css.constants.MarginBoxName;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.EmptyStyle;
 
 public class PageInfo {
     private final CascadedStyle _pageStyle;
@@ -64,15 +66,29 @@ public class PageInfo {
         return _properties;
     }
 
+    public CalculatedStyle getFootnoteAreaRawMaxHeightStyle() {
+        CascadedStyle cascaded = new CascadedStyle(_footnote.iterator());
+
+        if (cascaded.hasProperty(CSSName.MAX_HEIGHT)) {
+            return new EmptyStyle().deriveStyle(cascaded);
+        }
+
+        return null;
+    }
+
     /**
      * Creates a footnote area style from footnote at-rule properties
      * for this page with display overriden to block and
      * position overriden as absolute.
      */
     public CascadedStyle createFootnoteAreaStyle() {
+        PropertyDeclaration maxHeight = new PropertyDeclaration(
+                CSSName.MAX_HEIGHT, new PropertyValue(IdentValue.NONE), true, StylesheetInfo.USER);
+
         List<PropertyDeclaration> overrides = Arrays.asList(
                 CascadedStyle.createLayoutPropertyDeclaration(CSSName.POSITION, IdentValue.ABSOLUTE),
-                CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.BLOCK));
+                CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.BLOCK),
+                maxHeight);
 
         if (_footnote == null || _footnote.isEmpty()) {
             return new CascadedStyle(overrides.iterator());
