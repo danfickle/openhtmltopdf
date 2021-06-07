@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.css.constants.CSSName;
@@ -40,7 +38,6 @@ import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
-import com.openhtmltopdf.css.style.EmptyStyle;
 import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.extend.StructureType;
@@ -49,9 +46,6 @@ import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.render.simplepainter.SimplePainter;
-import com.openhtmltopdf.util.BoxUtil;
-import com.openhtmltopdf.util.LambdaUtil;
-import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.ThreadCtx;
 
 public class PageBox {
@@ -93,9 +87,7 @@ public class PageBox {
     private int _basePagePdfPageIndex;
     private int _shadowPageCount;
 
-    private BlockBox _footnoteArea;
     private int _totalFootnoteHeight;
-    private int _maxFootnoteHeight;
 
     public void setBasePagePdfPageIndex(int idx) {
         this._basePagePdfPageIndex = idx;
@@ -277,28 +269,32 @@ public class PageBox {
     }
 
     /**
+     * If this page is reserved for footnote content.
+     */
+    public boolean isFootnoteReserved(CssContext c) {
+        return c.isInFloatBottom() ? false : _totalFootnoteHeight >= getContentHeight(c);
+    }
+
+    /**
+     * See {@link #setFootnoteAreaHeight(int)}
+     */
+    public int getFootnoteAreaHeight() {
+        return _totalFootnoteHeight;
+    }
+
+    /**
+     * Sets the footnote area height on this page.
+     */
+    public void setFootnoteAreaHeight(int footnoteAreaHeight) {
+        _totalFootnoteHeight = footnoteAreaHeight;
+    }
+
+    /**
      * Get the document Y index into this page.
      * See {@link #getBottom()} for example.
-     * Consider using {@link #getTop(LayoutContext)} also.
      */
     public int getTop() {
         return _top;
-    }
-
-    /**
-     * If in a footnote area, returns the real page top, otherwise
-     * returns the usable top taking into account overflowing footnote areas.
-     */
-    public int getTop(LayoutContext c) {
-        return !c.isInFloatBottom() ? getTopUsable(c) : getTop();
-    }
-
-    /**
-     * Gets the top of the usable area on page, taking into account
-     * overflowing footnote areas.
-     */
-    public int getTopUsable(LayoutContext c) {
-        return _top + getSpaceTopForOverflowingFootnoteAreas(c);
     }
 
     public void setTopAndBottom(CssContext cssCtx, int top) {
@@ -918,170 +914,4 @@ public class PageBox {
         }
     }
 
-
-    /**
-     * Sets up the footnote area for this page.
-     */
-    private void createFootnoteArea(LayoutContext c) {
-        // Create style from @footnote page rules with absolute
-        // positioning and block display.
-        CalculatedStyle style = new EmptyStyle().deriveStyle(
-                _pageInfo.createFootnoteAreaStyle());
-
-        Box rootBox = c.getRootLayer().getMaster();
-        Element root = rootBox.getElement();
-
-        // We get a NPE if our new BlockBox doesn't have an element
-        // so just create one.
-        Element me = root.getOwnerDocument().createElement("fs-footnote");
-        Element body = BoxUtil.getBodyElementOrSomething(root);
-
-        body.appendChild(me);
-
-        Box bodyBox = BoxUtil.getBodyBoxOrSomething(c.getRootLayer().getMaster());
-        int containingBlockWidth = OpenUtil.firstNonZero(
-                         bodyBox.getContentWidth(), bodyBox.getWidth(),
-                         rootBox.getContentWidth(), rootBox.getWidth(),
-                         getContentWidth(c), getWidth(c));
-
-        _footnoteArea = new BlockBox();
-        _footnoteArea.setContainingBlock(new ViewportBox(new Rectangle(0, 0, containingBlockWidth, 0)));
-        _footnoteArea.setStyle(style);
-
-        // For now we make sure all footnote bodies have block display.
-        _footnoteArea.setChildrenContentType(BlockBox.CONTENT_BLOCK);
-        _footnoteArea.setElement(me);
-
-        // Create our layer as a child of root layer.
-        Layer footnoteLayer = new Layer(c.getRootLayer(), _footnoteArea, c);
-        _footnoteArea.setLayer(footnoteLayer);
-        _footnoteArea.setContainingLayer(footnoteLayer);
-    }
-
-    /**
-     * How much space to leave at top of page to take into account overflowing
-     * footnotes from previous pages.
-     */
-    private int getSpaceTopForOverflowingFootnoteAreas(LayoutContext c) {
-        Set<BlockBox> overflows = c.getOverflowingFootnoteAreas();
-
-        if (overflows != null) {
-            int maxBottom = 0;
-
-            for (BlockBox area : overflows) {
-                int bottom = area.getAbsY() + area.getHeight();
-
-                if (area.getAbsY() <= getTop() && bottom >= getTop()) {
-                    maxBottom = Math.max(maxBottom, bottom);
-                }
-            }
-
-            return maxBottom > 0 ? (maxBottom - getTop()) : 0;
-        }
-
-        return 0;
-    }
-
-    private void positionFootnoteArea(LayoutContext c, int lineHeight) {
-        final int minLines = 2;
-        _totalFootnoteHeight = _footnoteArea.getBorderBoxHeight(c);
-
-        int topUsable = getTopUsable(c);
-        if (getBottom() - _totalFootnoteHeight <= topUsable + (lineHeight * minLines)) {
-            // This footnote needs multiple pages!
-            // We leave space on this page for the footnote-call line at least.
-            _totalFootnoteHeight = Math.min(
-                    _totalFootnoteHeight,
-                    (getBottom() - topUsable) - (lineHeight * minLines));
-
-            // Add it to set so subsequent pages can leave space at top.
-            c.addOverflowingFootnoteArea(_footnoteArea);
-        }
-
-        _maxFootnoteHeight = Math.max(_maxFootnoteHeight, _totalFootnoteHeight);
-
-        int x = 0;
-        Box body = BoxUtil.getBodyOrNull(c.getRootLayer().getMaster());
-
-        if (body != null) {
-            x = body.getMarginBorderPadding(c, CalculatedStyle.LEFT);
-        }
-
-        _footnoteArea.setAbsX(x);
-        _footnoteArea.setAbsY(getBottom() - _totalFootnoteHeight);
-        _footnoteArea.calcChildLocations();
-    }
-
-    private void layoutFootnoteArea(LayoutContext c) {
-        _footnoteArea.layout(c);
-    }
-
-    /**
-     * Adds a footnote body to this page, creating the footnote area as required.
-     * <br><br>
-     * Important: This changes the page break point by expanding the footnote area.
-     */
-    public void addFootnoteBody(LayoutContext c, BlockBox footnoteBody, int lineHeight) {
-        // We need to know that we are in the footnote area during layout so we
-        // know which page bottom to use.
-        c.setIsInFloatBottom(true);
-
-        boolean createdArea = false;
-
-        if (_footnoteArea == null) {
-            createFootnoteArea(c);
-            createdArea = true;
-        }
-
-        footnoteBody.setContainingBlock(_footnoteArea.getContainingBlock());
-        _footnoteArea.addChild(footnoteBody);
-
-        if (!createdArea) {
-            _footnoteArea.reset(c);
-        } else {
-            footnoteBody.reset(c);
-        }
-
-        // FIXME: Not very efficient to layout all footnotes again after one
-        // is added.
-        layoutFootnoteArea(c);
-        positionFootnoteArea(c, lineHeight);
-
-        c.setIsInFloatBottom(false);
-    }
-
-    /**
-     * Removes footnotes from a page. This is used when a line is moved to a
-     * new page. We remove from first page and add to the next.
-     */
-    public void removeFootnoteBodies(LayoutContext c, List<BlockBox> footnoteBodies) {
-        if (_footnoteArea != null) {
-            footnoteBodies.forEach(_footnoteArea::removeChild);
-
-            if (_footnoteArea.getChildCount() > 0) {
-                c.setIsInFloatBottom(true);
-
-                _footnoteArea.reset(c);
-                layoutFootnoteArea(c);
-                positionFootnoteArea(c, 0);
-
-                c.setIsInFloatBottom(false);
-            } else {
-                if (_footnoteArea.getLayer() != null) {
-                    _footnoteArea.getLayer().detach();
-                }
-
-                _footnoteArea = null;
-                _totalFootnoteHeight = 0;
-            }
-        }
-    }
-
-    /**
-     * Checks if this page has footnotes. May change if we have to move footnotes
-     * to subsequent page.
-     */
-    public boolean hasFootnotes() {
-        return _footnoteArea != null;
-    }
 }

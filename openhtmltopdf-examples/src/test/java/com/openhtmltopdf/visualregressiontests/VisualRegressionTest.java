@@ -1422,6 +1422,15 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-364-footnotes-basic"));
     }
 
+    /**
+     * Tests that a line of text can contain two multi-page footnotes.
+     */
+    @Test
+    @Ignore // Not perfect yet.
+    public void testIssue364FootnotesMultiPage() throws IOException {
+        assertTrue(vt.runTest("issue-364-footnotes-multi-page"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

@@ -17,6 +17,11 @@ body {
   padding: 3px;
   border: 1px solid black;
   font-size: 18px;
+
+  /* When there is limited space for lines (such as with large footnote area)
+     then orphans and widows can create undesirable layout. */
+  orphans: 0;
+  widows: 0;
 }
 ::footnote-call {
   counter-increment: footnote 3;

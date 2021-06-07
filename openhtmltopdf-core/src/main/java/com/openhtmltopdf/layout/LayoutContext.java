@@ -21,10 +21,8 @@ package com.openhtmltopdf.layout;
 
 import java.awt.Rectangle;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Set;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitter;
@@ -45,7 +43,6 @@ import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.counter.AbstractCounterContext;
 import com.openhtmltopdf.layout.counter.CounterContext;
-import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
@@ -98,7 +95,7 @@ public class LayoutContext implements CssContext {
     private boolean _isInFloatBottom;
 
     private int _footnoteIndex;
-    private Set<BlockBox> _overflowFootnoteAreas;
+    private FootnoteManager _footnoteManager;
 
     @Override
     public TextRenderer getTextRenderer() {
@@ -548,20 +545,14 @@ public class LayoutContext implements CssContext {
     }
 
     /**
-     * See {@link #addOverflowingFootnoteArea(BlockBox)}
+     * Gets the document's footnote manager, creating it if required.
+     * From the footnote manager, one can add and remove footnote bodies.
      */
-    public Set<BlockBox> getOverflowingFootnoteAreas() {
-        return _overflowFootnoteAreas;
-    }
-
-    /**
-     * We keep track of footnote areas which do not fit on a single page
-     * so that we can set aside space on subsequent pages.
-     */
-    public void addOverflowingFootnoteArea(BlockBox footnoteArea) {
-        if (_overflowFootnoteAreas == null) {
-            _overflowFootnoteAreas = new HashSet<>();
+    public FootnoteManager getFootnoteManager() {
+        if (_footnoteManager == null) {
+            _footnoteManager = new FootnoteManager();
         }
-        _overflowFootnoteAreas.add(footnoteArea);
+
+        return _footnoteManager;
     }
 }

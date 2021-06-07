@@ -150,8 +150,7 @@ public class InlineBoxing {
                 CalculatedStyle style = inlineBox.getStyle();
 
                 if (inlineBox.hasFootnote() && c.isPrint()) {
-                    PageBox page = c.getRootLayer().getPage(c, current.line.getAbsY());
-                    page.addFootnoteBody(c, inlineBox.getFootnoteBody(), current.line.getHeight());
+                    c.getFootnoteManager().addFootnoteBody(c, inlineBox.getFootnoteBody(), current.line);
 
                     // We also need to associate it with a line box in case the line moves
                     // pages.

@@ -1168,13 +1168,13 @@ public abstract class Box implements Styleable, DisplayListItem {
         RectPropertySet padding = getPadding(c);
         setHeight((int) Math.max(0f, h - border.height() - padding.height()));
     }
-    
-    protected int getBorderBoxHeight(CssContext c) {
+
+    public int getBorderBoxHeight(CssContext c) {
         BorderPropertySet border = getBorder(c);
         RectPropertySet padding = getPadding(c);
         return (int) (getHeight() + border.height() + padding.height());
     }
-    
+
     /**
      * Only to be called after layout, due to double use of getHeight().
      */

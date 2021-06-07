@@ -1089,8 +1089,12 @@ public class Layer {
      * Returns the page box for a Y position.
      * If the y position is less than 0 then the first page will
      * be returned if available.
-     * Returns null if there are no pages available or absY
-     * is past the last page.
+     * Only returns null if there are no pages available.
+     * <br><br>
+     * IMPORTANT: If absY is past the end of the last page,
+     * pages will be created as required to include absY and the last
+     * page will be returned.
+     * 
      */
     public PageBox getFirstPage(CssContext c, int absY) {
         PageBox page = getPage(c, absY);
@@ -1123,6 +1127,50 @@ public class Layer {
         getLastPage(c, box);
     }
 
+    /**
+     * Tries to return a list of pages that cover top to bottom.
+     * If top and bottom are less-than zero returns null.
+     * <br><br>
+     * IMPORTANT: If bottom is past the end of the last page, pages
+     * are created until bottom is included.
+     */
+    public List<PageBox> getPages(CssContext c, int top, int bottom) {
+        if (top > bottom) {
+            int temp = top;
+            top = bottom;
+            bottom = temp;
+        }
+
+        PageBox first = getPage(c, top);
+
+        if (first == null) {
+            return null;
+        } else if (bottom < first.getBottom()) {
+            return Collections.singletonList(first);
+        }
+
+        List<PageBox> pages = new ArrayList<>();
+        pages.add(first);
+
+        int current = first.getBottom() + 1;
+        PageBox curPage = first;
+
+        while (bottom > curPage.getBottom()) {
+            curPage = getPage(c, current);
+            current = curPage.getBottom() + 1;
+            pages.add(curPage);
+        }
+
+        return pages;
+    }
+
+    /**
+     * Gets the page box for the given document y offset. If y offset is 
+     * less-than zero returns null.
+     * <br><br>
+     * IMPORTANT: If y offset is past the end of the last page, pages
+     * are created until y offset is included and the last page is returned.
+     */
     public PageBox getPage(CssContext c, int yOffset) {
         List<PageBox> pages = getPages();
         if (yOffset < 0) {
@@ -1154,7 +1202,7 @@ public class Layer {
 
                 while (low <= high) {
                     int mid = (low + high) >> 1;
-                    PageBox pageBox = (PageBox)pages.get(mid);
+                    PageBox pageBox = pages.get(mid);
 
                     if (yOffset >= pageBox.getTop() && yOffset < pageBox.getBottom()) {
                         setLastRequestedPage(pageBox);
@@ -1169,7 +1217,7 @@ public class Layer {
                 }
             } else {
                 addPagesUntilPosition(c, yOffset);
-                PageBox result = (PageBox) pages.get(pages.size()-1);
+                PageBox result = pages.get(pages.size()-1);
                 setLastRequestedPage(result);
                 return result;
             }

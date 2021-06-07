@@ -20,14 +20,13 @@
 package com.openhtmltopdf.css.newmatch;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.constants.MarginBoxName;
-import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
@@ -65,17 +64,24 @@ public class PageInfo {
         return _properties;
     }
 
+    /**
+     * Creates a footnote area style from footnote at-rule properties
+     * for this page with display overriden to block and
+     * position overriden as absolute.
+     */
     public CascadedStyle createFootnoteAreaStyle() {
+        List<PropertyDeclaration> overrides = Arrays.asList(
+                CascadedStyle.createLayoutPropertyDeclaration(CSSName.POSITION, IdentValue.ABSOLUTE),
+                CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.BLOCK));
+
         if (_footnote == null || _footnote.isEmpty()) {
-            return new CascadedStyle(Collections.singletonList(
-                    CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.BLOCK)).iterator());
+            return new CascadedStyle(overrides.iterator());
         }
 
-        List<PropertyDeclaration> all = new ArrayList<>(2 + _footnote.size());
+        List<PropertyDeclaration> all = new ArrayList<>(overrides.size() + _footnote.size());
 
-        all.add(CascadedStyle.createLayoutPropertyDeclaration(CSSName.POSITION, IdentValue.ABSOLUTE));
-        all.add(CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.BLOCK));
-        all.addAll(this._footnote);
+        all.addAll(_footnote);
+        all.addAll(overrides);
 
         return new CascadedStyle(all.iterator());
     }

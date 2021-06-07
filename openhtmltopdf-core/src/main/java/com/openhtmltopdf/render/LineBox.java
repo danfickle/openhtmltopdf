@@ -461,20 +461,21 @@ public class LineBox extends Box implements InlinePaintable {
     
     @Override
     public void reset(LayoutContext c) {
-        for (int i = 0; i < getNonFlowContent().size(); i++) {
-            Box content = getNonFlowContent().get(i);
-            content.reset(c);
-        }
-        if (_markerData != null) {
-            _markerData.restorePreviousReferenceLine(this);
-        }
-
         if (hasFootnotes()) {
             // Reset usually happens when satisfying widows and orphans.
             // Reset means we and our descendants are about to be layed out again
             // so we have to remove footnotes as they will be added again, possible on
             // a new page.
-            c.getRootLayer().getFirstPage(c, this).removeFootnoteBodies(c, getReferencedFootnoteBodies());
+            c.getFootnoteManager().removeFootnoteBodies(c, getReferencedFootnoteBodies(), this);
+        }
+
+        for (int i = 0; i < getNonFlowContent().size(); i++) {
+            Box content = getNonFlowContent().get(i);
+            content.reset(c);
+        }
+
+        if (_markerData != null) {
+            _markerData.restorePreviousReferenceLine(this);
         }
 
         super.reset(c);
@@ -699,33 +700,30 @@ public class LineBox extends Box implements InlinePaintable {
                    // Oh oh, we need to move the footnotes to the next page with
                    // this line.
                    List<BlockBox> footnotes = getReferencedFootnoteBodies();
-                   pageBox.removeFootnoteBodies(c, footnotes);
+                   c.getFootnoteManager().removeFootnoteBodies(c, footnotes, this);
                }
 
                forcePageBreakBefore(c, IdentValue.ALWAYS, false, leastAbsY);
                calcCanvasLocation();
 
-               if (c.getOverflowingFootnoteAreas() != null) {
-                   // We need to make sure we are not overlapping footnotes at the
-                   // top of the page.
+               if (c.getFootnoteManager() != null) {
                    PageBox pageBoxAfter = c.getRootLayer().getFirstPage(c, this);
-                   int pageBoxAfterTop = pageBoxAfter.getTop(c);
 
-                   if (pageBoxAfterTop + c.getExtraSpaceTop() > getAbsY()) {
-                       int diff = pageBoxAfterTop + c.getExtraSpaceTop() - getAbsY();
-                       setY(getY() + diff);
+                   while (pageBoxAfter != null && pageBoxAfter.isFootnoteReserved(c)) {
+                       int delta = pageBoxAfter.getBottom() + c.getExtraSpaceTop() - getMinPaintingTop();
+                       setY(getY() + delta);
                        calcCanvasLocation();
+                       pageBoxAfter = c.getRootLayer().getFirstPage(c, this);
                    }
                }
 
                if (hasFootnotes()) {
                    // We need to recalculate pageBoxAfter in case we were pushed down
                    // more than one page.
-                   PageBox pageBoxAfter = c.getRootLayer().getFirstPage(c, this);
                    List<BlockBox> footnotes = getReferencedFootnoteBodies();
 
                    for (BlockBox footnote : footnotes) {
-                       pageBoxAfter.addFootnoteBody(c, footnote, getHeight());
+                       c.getFootnoteManager().addFootnoteBody(c, footnote, this);
                    }
                }
            } else if (pageBox.getTop() + c.getExtraSpaceTop() > getAbsY()) {
