@@ -245,9 +245,7 @@ public abstract class Box implements Styleable, DisplayListItem {
     }
 
     public void addAllChildren(List<Box> children) {
-        for (Box box : children) {
-            addChild(box);
-        }
+        children.forEach(this::addChild);
     }
 
     public void removeAllChildren() {
@@ -256,8 +254,21 @@ public abstract class Box implements Styleable, DisplayListItem {
         }
     }
 
-    public void removeChild(Box target) {
+    /**
+     * Removes a child box if it is indeed a child and adjusts
+     * the index of subsequent children.
+     * Returns whether this was a child.
+     */
+    public boolean removeChild(Box target) {
         if (_boxes != null) {
+            if (target.getIndex() < getChildCount() &&
+                getChild(target.getIndex()).equals(target)) {
+                // Found it by index.
+                return removeChild(target.getIndex());
+            }
+
+            // Otherwise, start a linear-search from the beginning.
+            // This should never be needed?
             boolean found = false;
             for (Iterator<Box> i = getChildIterator(); i.hasNext(); ) {
                 Box child = i.next();
@@ -268,7 +279,10 @@ public abstract class Box implements Styleable, DisplayListItem {
                     child.setIndex(child.getIndex()-1);
                 }
             }
+            return found;
         }
+
+        return false;
     }
 
     public Box getPreviousSibling() {
@@ -289,10 +303,26 @@ public abstract class Box implements Styleable, DisplayListItem {
         return child.getIndex() == getChildCount() - 1 ? null : getChild(child.getIndex()+1);
     }
 
-    public void removeChild(int i) {
+    /**
+     * Removes child by index and adjusts the index of subsequent children.
+     * Returns true if this box has children, throws if the index is out-of-bounds.
+     * <br><br>
+     * IMPORTANT: This method must be kept in sync with {@link #removeChild(Box)}
+     */
+    public boolean removeChild(int index) {
         if (_boxes != null) {
-            removeChild(getChild(i));
+            getChildren().remove(index);
+            int size = getChildCount();
+
+            for (int i = index; i < size; i++) {
+                Box child = getChild(i);
+                child.setIndex(child.getIndex() - 1);
+            }
+
+            return true;
         }
+
+        return false;
     }
 
     public void setParent(Box box) {
@@ -1085,10 +1115,17 @@ public abstract class Box implements Styleable, DisplayListItem {
         return this;
     }
 
+    /**
+     * The zero based index of this child amongst its fellow children of its parent.
+     */
     protected int getIndex() {
         return _index;
     }
 
+    /**
+     * See {@link #getIndex()}
+     * Must make sure this is correct when removing children/rearranging children.
+     */
     protected void setIndex(int index) {
         _index = index;
     }

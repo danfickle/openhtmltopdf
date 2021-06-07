@@ -38,12 +38,15 @@ import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.SearchUtil;
 import com.openhtmltopdf.util.XRLog;
+import com.openhtmltopdf.util.SearchUtil.IntComparator;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 /**
@@ -69,8 +72,6 @@ public class Layer {
     private Box _end;
 
     private List<BlockBox> _floats;
-
-    private boolean _fixedBackground;
 
     private boolean _inline;
     private boolean _requiresLayout;
@@ -278,10 +279,9 @@ public class Layer {
     }
 
     /**
-     * Called recusively to collect all descendant layers in a stacking context so they can be painted in correct order.
-     * Those descendants that are under their own stacking contexts are excluded.
+     * Called recusively to collect all descendant layers in a layer tree so
+     * they can be painted in correct order.
      * @param which NEGATIVE ZERO POSITIVE AUTO corresponding to z-index property.
-     * @return
      */
     public List<Layer> collectLayers(int which) {
         List<Layer> result = new ArrayList<>();
@@ -582,7 +582,7 @@ public class Layer {
 			}
 		}
 
-		List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
+		List<PropertyValue> transformList = ((ListValue) transforms).getValues();
 		List<AffineTransform> resultTransforms = new ArrayList<>();
 		AffineTransform translateToOrigin = AffineTransform.getTranslateInstance(relTranslateX, relTranslateY);
 		AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY);
@@ -868,7 +868,7 @@ public class Layer {
 
     private PaintingInfo calcPaintingDimension(LayoutContext c) {
         getMaster().calcPaintingInfo(c, true);
-        PaintingInfo result = (PaintingInfo)getMaster().getPaintingInfo().copyOf();
+        PaintingInfo result = getMaster().getPaintingInfo().copyOf();
 
         for (Layer child : getChildren()) {
             if (child.getMaster().getStyle().isFixed()) {
@@ -1165,6 +1165,29 @@ public class Layer {
     }
 
     /**
+     * Returns a comparator that determines if the given pageBox is a match, too late or too early.
+     * For use with {@link SearchUtil#intBinarySearch(IntComparator, int, int)}
+     */
+    private IntComparator pageFinder(List<PageBox> pages, int yOffset, Predicate<PageBox> matcher) {
+        return idx -> {
+            PageBox pageBox = pages.get(idx);
+
+            if (matcher.test(pageBox)) {
+                return 0;
+            }
+
+            return pageBox.getTop() < yOffset ? -1 : 1;
+        };
+    }
+
+    /**
+     * Returns a predicate that determines if yOffset sits on the given page.
+     */
+    private Predicate<PageBox> pagePredicate(int yOffset) {
+        return pageBox -> yOffset >= pageBox.getTop() && yOffset < pageBox.getBottom();
+    }
+
+    /**
      * Gets the page box for the given document y offset. If y offset is 
      * less-than zero returns null.
      * <br><br>
@@ -1173,48 +1196,45 @@ public class Layer {
      */
     public PageBox getPage(CssContext c, int yOffset) {
         List<PageBox> pages = getPages();
+
         if (yOffset < 0) {
             return null;
         } else {
             PageBox lastRequested = getLastRequestedPage();
+            Predicate<PageBox> predicate = pagePredicate(yOffset);
+
             if (lastRequested != null) {
-                if (yOffset >= lastRequested.getTop() && yOffset < lastRequested.getBottom()) {
+                if (predicate.test(lastRequested)) {
                     return lastRequested;
                 }
             }
-            PageBox last = pages.get(pages.size()-1);
+
+            PageBox last = pages.get(pages.size() - 1);
+
             if (yOffset < last.getBottom()) {
+                final int MAX_REAR_SEARCH = 5;
+
                 // The page we're looking for is probably at the end of the
                 // document so do a linear search for the first few pages
                 // and then fall back to a binary search if that doesn't work
                 // out
                 int count = pages.size();
-                for (int i = count-1; i >= 0 && i >= count-5; i--) {
-                    PageBox pageBox = (PageBox)pages.get(i);
-                    if (yOffset >= pageBox.getTop() && yOffset < pageBox.getBottom()) {
+                for (int i = count - 1; i >= 0 && i >= count - MAX_REAR_SEARCH; i--) {
+                    PageBox pageBox = pages.get(i);
+
+                    if (predicate.test(pageBox)) {
                         setLastRequestedPage(pageBox);
                         return pageBox;
                     }
                 }
 
-                int low = 0;
-                int high = count-6;
+                int needleIndex = SearchUtil.intBinarySearch(
+                        pageFinder(pages, yOffset, predicate), 0, count - MAX_REAR_SEARCH);
 
-                while (low <= high) {
-                    int mid = (low + high) >> 1;
-                    PageBox pageBox = pages.get(mid);
+                PageBox needle = pages.get(needleIndex);
+                setLastRequestedPage(needle);
+                return needle;
 
-                    if (yOffset >= pageBox.getTop() && yOffset < pageBox.getBottom()) {
-                        setLastRequestedPage(pageBox);
-                        return pageBox;
-                    }
-
-                    if (pageBox.getTop() < yOffset) {
-                        low = mid + 1;
-                    } else {
-                        high = mid - 1;
-                    }
-                }
             } else {
                 addPagesUntilPosition(c, yOffset);
                 PageBox result = pages.get(pages.size()-1);
@@ -1222,8 +1242,6 @@ public class Layer {
                 return result;
             }
         }
-
-        throw new RuntimeException("internal error");
     }
 
     private void addPagesUntilPosition(CssContext c, int position) {

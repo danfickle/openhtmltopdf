@@ -636,21 +636,32 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             }
         }
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void removeChild(Box child) {
+    public boolean removeChild(Box child) {
         if (_inlineChildren != null) {
-            _inlineChildren.remove(child);
+            return _inlineChildren.remove(child);
         }
+
+        return false;
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void removeChild(int i) {
+    public boolean removeChild(int i) {
         if (_inlineChildren != null) {
             _inlineChildren.remove(i);
+            return true;
         }
+
+        return false;
     }
-    
+
     @Override
     protected Box getPrevious(Box child) {
         if (_inlineChildren == null) {

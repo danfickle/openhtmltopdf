@@ -75,7 +75,7 @@ public class FootnoteManager {
         footnoteArea.setStyle(style);
 
         // For now we make sure all footnote bodies have block display.
-        footnoteArea.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+        footnoteArea.setChildrenContentType(BlockBox.ContentType.BLOCK);
         footnoteArea.setElement(me);
 
         // Create our layer as a child of root layer.

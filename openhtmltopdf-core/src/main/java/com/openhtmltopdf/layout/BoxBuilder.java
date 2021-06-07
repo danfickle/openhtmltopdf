@@ -124,7 +124,7 @@ public class BoxBuilder {
         if (parent.shouldBeReplaced()) {
             // Don't create boxes for elements in a SVG element.
             // This avoids many warnings and improves performance.
-            parent.setChildrenContentType(BlockBox.CONTENT_EMPTY);
+            parent.setChildrenContentType(BlockBox.ContentType.EMPTY);
             return;
         }
 
@@ -189,14 +189,14 @@ public class BoxBuilder {
         result.setStyle(tableStyle);
         result.setElement(source);
         result.setAnonymous(true);
-        result.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+        result.setChildrenContentType(BlockBox.ContentType.BLOCK);
 
         CalculatedStyle tableSectionStyle = pageStyle.createAnonymousStyle(IdentValue.TABLE_ROW_GROUP);
         TableSectionBox section = (TableSectionBox)createBlockBox(tableSectionStyle, info, false);
         section.setStyle(tableSectionStyle);
         section.setElement(source);
         section.setAnonymous(true);
-        section.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+        section.setChildrenContentType(BlockBox.ContentType.BLOCK);
 
         result.addChild(section);
 
@@ -207,7 +207,7 @@ public class BoxBuilder {
             row.setStyle(tableRowStyle);
             row.setElement(source);
             row.setAnonymous(true);
-            row.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+            row.setChildrenContentType(BlockBox.ContentType.BLOCK);
 
             row.setHeightOverride(height);
 
@@ -228,7 +228,7 @@ public class BoxBuilder {
                         row.setStyle(tableRowStyle);
                         row.setElement(source);
                         row.setAnonymous(true);
-                        row.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+                        row.setChildrenContentType(BlockBox.ContentType.BLOCK);
 
                         row.setHeightOverride(height);
 
@@ -314,18 +314,18 @@ public class BoxBuilder {
             if (info.isContainsBlockLevelContent()) {
                 insertAnonymousBlocks(
                         c.getSharedContext(), owner, children, info.isLayoutRunningBlocks());
-                owner.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+                owner.setChildrenContentType(BlockBox.ContentType.BLOCK);
             } else {
                 WhitespaceStripper.stripInlineContent(children);
                 if (children.size() > 0) {
                     owner.setInlineContent(children);
-                    owner.setChildrenContentType(BlockBox.CONTENT_INLINE);
+                    owner.setChildrenContentType(BlockBox.ContentType.INLINE);
                 } else {
-                    owner.setChildrenContentType(BlockBox.CONTENT_EMPTY);
+                    owner.setChildrenContentType(BlockBox.ContentType.EMPTY);
                 }
             }
         } else {
-            owner.setChildrenContentType(BlockBox.CONTENT_EMPTY);
+            owner.setChildrenContentType(BlockBox.ContentType.EMPTY);
         }
     }
 
@@ -595,7 +595,7 @@ public class BoxBuilder {
             anonBox.setFromCaptionedTable(true);
             anonBox.setElement(table.getElement());
 
-            anonBox.setChildrenContentType(BlockBox.CONTENT_BLOCK);
+            anonBox.setChildrenContentType(BlockBox.ContentType.BLOCK);
             anonBox.addAllChildren(topCaptions);
             anonBox.addChild(table);
             anonBox.addAllChildren(bottomCaptions);
@@ -1070,7 +1070,7 @@ public class BoxBuilder {
             BlockBox result = createBlockBox(style, info, true);
             result.setStyle(anonStyle);
             result.setElement(element);
-            result.setChildrenContentType(BlockBox.CONTENT_INLINE);
+            result.setChildrenContentType(BlockBox.ContentType.INLINE);
             result.setPseudoElementOrClass(peName);
 
             CalculatedStyle anon = style.createAnonymousStyle(IdentValue.INLINE);
@@ -1114,7 +1114,7 @@ public class BoxBuilder {
             result.setStyle(style);
             result.setInlineContent(inlineBoxes);
             result.setElement(element);
-            result.setChildrenContentType(BlockBox.CONTENT_INLINE);
+            result.setChildrenContentType(BlockBox.ContentType.INLINE);
             result.setPseudoElementOrClass(peName);
 
             if (! style.isLayedOutInInlineContext()) {
@@ -1670,7 +1670,7 @@ public class BoxBuilder {
                 anon.setOpenInlineBoxes(savedParents);
             }
             parent.addChild(anon);
-            anon.setChildrenContentType(BlockBox.CONTENT_INLINE);
+            anon.setChildrenContentType(BlockBox.ContentType.INLINE);
             anon.setInlineContent(inline);
         }
     }

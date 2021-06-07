@@ -32,6 +32,7 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.LineBox;
 import com.openhtmltopdf.render.PageBox;
+import com.openhtmltopdf.render.BlockBox.ContentType;
 
 /**
  * Utility class for laying block content.  It is called when a block box
@@ -48,6 +49,10 @@ public class BlockBoxing {
     private BlockBoxing() {
     }
 
+    /**
+     * Lays out a {@link BlockBox} where {@link BlockBox#getChildrenContentType()} is
+     * {@link ContentType#BLOCK}.
+     */
     public static void layoutContent(LayoutContext c, BlockBox block, int contentStart) {
         int offset = -1;
 
@@ -65,13 +70,14 @@ public class BlockBoxing {
 
         int pageCount = NO_PAGE_TRIM;
         BlockBox previousChildBox = null;
+
         for (Iterator<Box> i = localChildren.iterator(); i.hasNext();) {
             BlockBox child = (BlockBox) i.next();
             offset++;
 
             RelayoutData relayoutData = null;
-
             boolean mayCheckKeepTogether = false;
+
             if (c.isPrint()) {
                 relayoutData = relayoutDataList.get(offset);
                 relayoutData.setLayoutState(c.copyStateForRelayout());
@@ -93,10 +99,12 @@ public class BlockBoxing {
 
             if (c.isPrint()) {
                 boolean needPageClear = child.isNeedPageClear();
+
                 if (needPageClear || mayCheckKeepTogether) {
                     c.setMayCheckKeepTogether(mayCheckKeepTogether);
                     boolean tryToAvoidPageBreak = child.getStyle().isAvoidPageBreakInside() && child.crossesPageBreak(c);
                     boolean keepWithInline = child.isNeedsKeepWithInline(c);
+
                     if (tryToAvoidPageBreak || needPageClear || keepWithInline) {
                         c.restoreStateForRelayout(relayoutData.getLayoutState());
                         child.reset(c);

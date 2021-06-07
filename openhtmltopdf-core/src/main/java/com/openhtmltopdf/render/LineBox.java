@@ -178,14 +178,20 @@ public class LineBox extends Box implements InlinePaintable {
         }
     }
 
+    /**
+     * Whether this line contains any actual text content.
+     */
     public boolean isContainsContent() {
         return _containsContent;
     }
 
+    /**
+     * See {@link #isContainsContent()}
+     */
     public void setContainsContent(boolean containsContent) {
         _containsContent = containsContent;
     }
-    
+
     public void align(boolean dynamic, CssContext c) {
         IdentValue align = getParent().getStyle().getIdent(CSSName.TEXT_ALIGN);
 
@@ -793,5 +799,14 @@ public class LineBox extends Box implements InlinePaintable {
             referencedFootnoteBodies = new ArrayList<>(2);
         }
         referencedFootnoteBodies.add(footnoteBody);
+    }
+
+    /**
+     * Narrows the return type of LineBox to a BlockBox.
+     * Reduces the need to cast everywhere.
+     */
+    @Override
+    public BlockBox getParent() {
+        return (BlockBox) super.getParent();
     }
 }

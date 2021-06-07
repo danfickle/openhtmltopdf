@@ -254,16 +254,15 @@ public class TableCellBox extends BlockBox {
             return IdentValue.BASELINE;
         }
     }
-    
+
     private boolean isPaintBackgroundsAndBorders() {
         boolean showEmpty = getStyle().isShowEmptyCells();
         // XXX Not quite right, but good enough for now 
         // (e.g. absolute boxes will be counted as content here when the spec 
         // says the cell should be treated as empty).  
-        return showEmpty || getChildrenContentType() != BlockBox.CONTENT_EMPTY;
-                    
+        return showEmpty || getChildrenContentType() != BlockBox.ContentType.EMPTY;
     }
-    
+
     @Override
     public void paintBackground(RenderingContext c) {
         if (isPaintBackgroundsAndBorders() && getStyle().isVisible(c, this)) {
