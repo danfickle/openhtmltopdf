@@ -91,17 +91,12 @@ public class FootnoteManager {
         return footnoteArea;
     }
 
-    private void positionFootnoteArea(LayoutContext c, FootnoteArea area, PageBox firstPage, int lineHeight) {
-        if (area.pages != null) {
-            // We clear any page footnote area info as
-            // they may have changed and are recreated.
-            for (PageBox page : area.pages) {
-                page.setFootnoteAreaHeight(0);
-                _footnoteAreas.remove(page);
-            }
+    private void positionFootnoteArea(
+            LayoutContext c, FootnoteArea area, PageBox firstPage, int lineHeight, boolean allowRepeat) {
 
-            area.pages = null;
-        }
+        // We clear any page footnote area info as
+        // they may have changed and are recreated.
+        clearFootnoteAreaPages(area);
 
         int desiredHeight = area.footnoteArea.getBorderBoxHeight(c);
         int pageTop = firstPage.getTop();
@@ -127,22 +122,18 @@ public class FootnoteManager {
                 maxFootnoteHeight,
                 desiredHeight);
 
-        if (firstPageHeight < desiredHeight) {
-            // Goes over multiple pages.
-            area.pages = c.getRootLayer().getPages(c, minFootnoteTop, minFootnoteTop + desiredHeight);
-
-            for (PageBox page : area.pages) {
-                // Reserve entire page for footnotes. This is
-                // overridden for first page below.
-                page.setFootnoteAreaHeight(page.getContentHeight(c));
-                _footnoteAreas.put(page, area);
-            }
-        } else {
-            area.pages = Collections.singletonList(firstPage);
-            _footnoteAreas.put(firstPage, area);
-        }
-
         firstPage.setFootnoteAreaHeight(firstPageHeight);
+        _footnoteAreas.put(firstPage, area);
+
+        boolean multiPage;
+
+        if (firstPageHeight < desiredHeight) {
+            multiPage = true;
+            reserveSubsequentPagesForFootnoteArea(c, area, desiredHeight, minFootnoteTop, 1);
+        } else {
+            multiPage = false;
+            area.pages = Collections.singletonList(firstPage);
+        }
 
         int x = 0;
         Box body = BoxUtil.getBodyOrNull(c.getRootLayer().getMaster());
@@ -153,11 +144,45 @@ public class FootnoteManager {
 
         area.footnoteArea.setAbsX(x);
         area.footnoteArea.setAbsY(firstPage.getBottom() - firstPageHeight);
-        area.footnoteArea.calcChildLocations();
+
+        if (multiPage && allowRepeat) {
+            // For multi-page footnote areas we have to re-layout as
+            // our simple positioning may have resulted in split line boxes
+            // over two pages. Layout will take care to avoid this.
+            area.footnoteArea.reset(c);
+            area.footnoteArea.layout(c);
+            area.footnoteArea.calcChildLocations();
+
+            // The number of pages covered by this footnote area may have increased
+            // so reserve additional pages as needed.
+            int oldPagesCount = area.pages.size();
+            reserveSubsequentPagesForFootnoteArea(c, area, desiredHeight, minFootnoteTop, oldPagesCount);
+        } else {
+            area.footnoteArea.calcChildLocations();
+        }
     }
 
-    private void layoutFootnoteArea(LayoutContext c, BlockBox footnoteArea) {
-        footnoteArea.layout(c);
+    private void reserveSubsequentPagesForFootnoteArea(
+            LayoutContext c, FootnoteArea area, int desiredHeight, int footnoteTop, int startAt) {
+        area.pages = c.getRootLayer().getPages(c, footnoteTop, footnoteTop + desiredHeight);
+
+        // Reserve entire subsequent pages for footnotes.
+        for (int i = startAt; i < area.pages.size(); i++) {
+            PageBox page = area.pages.get(i);
+            page.setFootnoteAreaHeight(page.getContentHeight(c));
+            _footnoteAreas.put(page, area);
+        }
+    }
+
+    private void clearFootnoteAreaPages(FootnoteArea area) {
+        if (area.pages != null) {
+            for (PageBox page : area.pages) {
+                page.setFootnoteAreaHeight(0);
+                _footnoteAreas.remove(page);
+            }
+
+            area.pages = null;
+        }
     }
 
     /**
@@ -197,8 +222,8 @@ public class FootnoteManager {
 
         // FIXME: Not very efficient to layout all footnotes again after one
         // is added.
-        layoutFootnoteArea(c, footnote.footnoteArea);
-        positionFootnoteArea(c, footnote, page, line.getHeight());
+        footnote.footnoteArea.layout(c);
+        positionFootnoteArea(c, footnote, page, line.getHeight(), true);
 
         c.setIsInFloatBottom(false);
     }
@@ -222,8 +247,8 @@ public class FootnoteManager {
                 PageBox page = c.getRootLayer().getFirstPage(c, line);
 
                 area.footnoteArea.reset(c);
-                layoutFootnoteArea(c, area.footnoteArea);
-                positionFootnoteArea(c, area, page, line.getHeight());
+                area.footnoteArea.layout(c);
+                positionFootnoteArea(c, area, page, line.getHeight(), true);
 
                 c.setIsInFloatBottom(false);
             } else {
@@ -231,14 +256,7 @@ public class FootnoteManager {
                     area.footnoteArea.getLayer().detach();
                 }
 
-                if (area.pages != null) {
-                    for (PageBox page : area.pages) {
-                        page.setFootnoteAreaHeight(0);
-                        _footnoteAreas.remove(page);
-                    }
-
-                    area.pages = null;
-                }
+                clearFootnoteAreaPages(area);
             }
         }
     }
