@@ -1431,6 +1431,16 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-364-footnotes-multi-page"));
     }
 
+    /**
+     * Test what happens when a line of in-flow text and a line of footnotes
+     * do not fit on a single page.
+     */
+    @Test
+    @Ignore // Working well but waiting until footnote support is complete.
+    public void testIssue364FootnotesTooLarge() throws IOException {
+        assertTrue(vt.runTest("issue-364-footnotes-too-large"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

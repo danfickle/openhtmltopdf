@@ -83,11 +83,6 @@ public class FootnoteManager {
         footnoteArea.setChildrenContentType(BlockBox.ContentType.BLOCK);
         footnoteArea.setElement(me);
 
-        // Create our layer as a child of root layer.
-        Layer footnoteLayer = new Layer(c.getRootLayer(), footnoteArea, c);
-        footnoteArea.setLayer(footnoteLayer);
-        footnoteArea.setContainingLayer(footnoteLayer);
-
         return footnoteArea;
     }
 
@@ -100,6 +95,7 @@ public class FootnoteManager {
 
         int desiredHeight = area.footnoteArea.getBorderBoxHeight(c);
         int pageTop = firstPage.getTop();
+        int pageBottom = firstPage.getBottom();
 
         int minFootnoteTop;
 
@@ -108,12 +104,18 @@ public class FootnoteManager {
             // of normal content.
             minFootnoteTop = Math.max(
                     pageTop + lineHeight,
-                    ((int) (firstPage.getBottom() - area.maxHeight)));
+                    ((int) (pageBottom - area.maxHeight)));
         } else {
             // Otherwise use a sensible default of 60%.
             minFootnoteTop = Math.max(
                     pageTop + lineHeight,
-                    (int) (pageTop + (firstPage.getContentHeight(c) * 0.6)));
+                    (int) (pageBottom - (firstPage.getContentHeight(c) * 0.6)));
+        }
+
+        if (minFootnoteTop > pageBottom) {
+            // No room for even a single line.
+            // Move to the next page.
+            firstPage = c.getRootLayer().getFirstPage(c, minFootnoteTop);
         }
 
         int maxFootnoteHeight = firstPage.getBottom() - minFootnoteTop;

@@ -544,6 +544,10 @@ public class LayoutContext implements CssContext {
         return _footnoteIndex;
     }
 
+    public boolean hasActiveFootnotes() {
+        return _footnoteManager != null;
+    }
+
     /**
      * Gets the document's footnote manager, creating it if required.
      * From the footnote manager, one can add and remove footnote bodies.

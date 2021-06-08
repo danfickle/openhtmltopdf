@@ -267,19 +267,9 @@ public abstract class Box implements Styleable, DisplayListItem {
                 return removeChild(target.getIndex());
             }
 
-            // Otherwise, start a linear-search from the beginning.
-            // This should never be needed?
-            boolean found = false;
-            for (Iterator<Box> i = getChildIterator(); i.hasNext(); ) {
-                Box child = i.next();
-                if (child.equals(target)) {
-                    i.remove();
-                    found = true;
-                } else if (found) {
-                    child.setIndex(child.getIndex()-1);
-                }
-            }
-            return found;
+            // Linear search - should not be needed.
+            int index = getChildren().indexOf(target);
+            return index >= 0 && removeChild(index);
         }
 
         return false;

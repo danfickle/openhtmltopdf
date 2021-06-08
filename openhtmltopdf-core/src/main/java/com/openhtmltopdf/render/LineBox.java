@@ -683,12 +683,18 @@ public class LineBox extends Box implements InlinePaintable {
         container.updateBottom(c, getAbsY() + getHeight());
     }
 
+    /**
+     * Checks if this line box crosses a page break and if so moves it to
+     * the next page.
+     * Also takes care that in-flow lines do not overlap footnote content.
+     */
     public void checkPagePosition(LayoutContext c, boolean alwaysBreak) {
         if (! c.isPageBreaksAllowed()) {
             return;
         }
 
         PageBox pageBox = c.getRootLayer().getFirstPage(c, this);
+
         if (pageBox != null) {
             // We need to force a page break if any of our content goes over a page break,
             // otherwise we will get repeated content in page margins (because content is
@@ -698,46 +704,83 @@ public class LineBox extends Box implements InlinePaintable {
             int greatestAbsY = getMaxPaintingBottom();
             int leastAbsY = getMinPaintingTop();
 
-            boolean needsPageBreak = 
-                alwaysBreak || greatestAbsY >= pageBox.getBottom(c) - c.getExtraSpaceBottom();
+            boolean overflowsPage = greatestAbsY >= pageBox.getBottom(c) - c.getExtraSpaceBottom();
+            boolean tooBig = (greatestAbsY - leastAbsY) > pageBox.getContentHeight(c);
+            boolean needsPageBreak = alwaysBreak || (overflowsPage && !tooBig); 
 
            if (needsPageBreak) {
-               if (hasFootnotes()) {
-                   // Oh oh, we need to move the footnotes to the next page with
-                   // this line.
-                   List<BlockBox> footnotes = getReferencedFootnoteBodies();
-                   c.getFootnoteManager().removeFootnoteBodies(c, footnotes, this);
-               }
+               beforeChangePage(c);
 
                forcePageBreakBefore(c, IdentValue.ALWAYS, false, leastAbsY);
                calcCanvasLocation();
 
-               if (c.getFootnoteManager() != null) {
-                   PageBox pageBoxAfter = c.getRootLayer().getFirstPage(c, this);
+               checkFootnoteReservedPage(c, c.getRootLayer().getFirstPage(c, this), false);
 
-                   while (pageBoxAfter != null && pageBoxAfter.isFootnoteReserved(c)) {
-                       int delta = pageBoxAfter.getBottom() + c.getExtraSpaceTop() - getMinPaintingTop();
-                       setY(getY() + delta);
-                       calcCanvasLocation();
-                       pageBoxAfter = c.getRootLayer().getFirstPage(c, this);
-                   }
-               }
-
-               if (hasFootnotes()) {
-                   // We need to recalculate pageBoxAfter in case we were pushed down
-                   // more than one page.
-                   List<BlockBox> footnotes = getReferencedFootnoteBodies();
-
-                   for (BlockBox footnote : footnotes) {
-                       c.getFootnoteManager().addFootnoteBody(c, footnote, this);
-                   }
-               }
+               afterChangePage(c);
            } else if (pageBox.getTop() + c.getExtraSpaceTop() > getAbsY()) {
+               // It is in the extra room at the top!
                int diff = pageBox.getTop() + c.getExtraSpaceTop() - getAbsY();
                setY(getY() + diff);
                calcCanvasLocation();
+
+               checkFootnoteReservedPage(c, pageBox, true);
+           } else {
+               checkFootnoteReservedPage(c, pageBox, true);
            }
         }
+    }
+
+    private void afterChangePage(LayoutContext c) {
+        if (hasFootnotes()) {
+           List<BlockBox> footnotes = getReferencedFootnoteBodies();
+
+           for (BlockBox footnote : footnotes) {
+               c.getFootnoteManager().addFootnoteBody(c, footnote, this);
+           }
+        }
+    }
+
+    private void beforeChangePage(LayoutContext c) {
+        if (hasFootnotes()) {
+            // Oh oh, we need to move the footnotes to the next page with
+            // this line.
+            List<BlockBox> footnotes = getReferencedFootnoteBodies();
+            c.getFootnoteManager().removeFootnoteBodies(c, footnotes, this);
+        }
+    }
+
+    /**
+     * Checks that the line box is not on a footnote reserved page and if so pushes
+     * it down to the first non-reserved page. 
+     */
+    private void checkFootnoteReservedPage(
+            LayoutContext c, PageBox pageBoxAfter, boolean runHooks) {
+
+        if (c.hasActiveFootnotes() && !c.isInFloatBottom()) {
+           while (pageBoxAfter != null &&
+                  pageBoxAfter.isFootnoteReserved(c) ||
+                  overlapsFootnote(pageBoxAfter)) {
+
+               if (runHooks) {
+                   beforeChangePage(c);
+               }
+
+               int delta = pageBoxAfter.getBottom() + c.getExtraSpaceTop() - getMinPaintingTop();
+               setY(getY() + delta);
+               calcCanvasLocation();
+
+               pageBoxAfter = c.getRootLayer().getFirstPage(c, this);
+
+               if (runHooks) {
+                   afterChangePage(c);
+               }
+           }
+        }
+    }
+
+    private boolean overlapsFootnote(PageBox pageBox) {
+        return pageBox.getFootnoteAreaHeight() > 0 &&
+           getMaxPaintingBottom() > pageBox.getBottom() - pageBox.getFootnoteAreaHeight();
     }
 
     public JustificationInfo getJustificationInfo() {
