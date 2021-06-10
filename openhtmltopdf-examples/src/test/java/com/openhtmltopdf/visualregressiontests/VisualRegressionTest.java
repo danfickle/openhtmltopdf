@@ -1417,7 +1417,7 @@ public class VisualRegressionTest {
      * Tests that we support CSS footnotes.
      */
     @Test
-    @Ignore // Footnotes not implemented.
+    @Ignore // Working well, final touches.
     public void testIssue364FootnotesBasicExample() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-basic"));
     }
@@ -1426,7 +1426,7 @@ public class VisualRegressionTest {
      * Tests that a line of text can contain two multi-page footnotes.
      */
     @Test
-    @Ignore // Not perfect yet.
+    @Ignore // Final touches.
     public void testIssue364FootnotesMultiPage() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-multi-page"));
     }
@@ -1439,6 +1439,12 @@ public class VisualRegressionTest {
     @Ignore // Working well but waiting until footnote support is complete.
     public void testIssue364FootnotesTooLarge() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-too-large"));
+    }
+
+    @Test
+    @Ignore // Failing badly.
+    public void testIssue364FootnotesBlocks() throws IOException {
+        assertTrue(vt.runTest("issue-364-footnotes-blocks"));
     }
 
     // TODO:

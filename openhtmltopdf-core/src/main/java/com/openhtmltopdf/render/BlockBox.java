@@ -1247,10 +1247,12 @@ public class BlockBox extends Box implements InlinePaintable {
         ensureChildren(c);
 
         if (getFirstLetterStyle() != null) {
-            c.getFirstLettersTracker().addStyle(getFirstLetterStyle());
+            c.setFirstLettersTracker(
+                c.getFirstLettersTracker().withStyle(getFirstLetterStyle()));
         }
         if (getFirstLineStyle() != null) {
-            c.getFirstLinesTracker().addStyle(getFirstLineStyle());
+            c.setFirstLinesTracker(
+                c.getFirstLinesTracker().withStyle(getFirstLineStyle()));
         }
 
         switch (getChildrenContentType()) {
@@ -1269,10 +1271,12 @@ public class BlockBox extends Box implements InlinePaintable {
         }
 
         if (getFirstLetterStyle() != null) {
-            c.getFirstLettersTracker().removeLast();
+            c.setFirstLettersTracker(
+                c.getFirstLettersTracker().withOutLast());
         }
         if (getFirstLineStyle() != null) {
-            c.getFirstLinesTracker().removeLast();
+            c.setFirstLinesTracker(
+                c.getFirstLinesTracker().withOutLast());
         }
 
         setState(Box.DONE);

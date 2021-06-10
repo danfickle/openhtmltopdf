@@ -580,7 +580,9 @@ public class InlineBoxing {
 
         lbContext.setStart(lbContext.getEnd());
 
-        c.getFirstLettersTracker().clearStyles();
+        c.setFirstLettersTracker(
+            StyleTracker.withNoStyles());
+
         currentIB.setStyle(previous);
 
         return iB;
@@ -1066,7 +1068,8 @@ public class InlineBoxing {
         }
 
         if (hasFirstLinePCs && current.isFirstLine()) {
-            c.getFirstLinesTracker().clearStyles();
+            c.setFirstLinesTracker(
+                 StyleTracker.withNoStyles());
             block.styleText(c);
         }
 

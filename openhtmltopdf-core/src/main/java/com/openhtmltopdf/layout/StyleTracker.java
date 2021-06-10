@@ -20,7 +20,6 @@
 package com.openhtmltopdf.layout;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
@@ -30,43 +29,67 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
  * A managed list of {@link CalculatedStyle} objects.  It is used when keeping
  * track of the styles which apply to a :first-line or :first-letter pseudo 
  * element.
+ * <br><br>
+ * IMPORTANT: Immutable after constructor.
  */
 public class StyleTracker {
-    private List<CascadedStyle> _styles = new ArrayList<>();
-    
-    public void addStyle(CascadedStyle style) {
-        _styles.add(style);
+    private final List<CascadedStyle> _styles;
+
+    private static final StyleTracker EMPTY_INSTANCE = new StyleTracker(0);
+
+    public StyleTracker(int size) {
+        this._styles = new ArrayList<>(size);
     }
 
-    public void removeLast() {
-        if (_styles.size() != 0) {
-            _styles.remove(_styles.size()-1);
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
         }
+
+        if (obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        return ((StyleTracker) obj).getStyles().equals(this.getStyles());
+    }
+
+    public StyleTracker withStyle(CascadedStyle style) {
+        StyleTracker tracker = new StyleTracker(getStyles().size() + 1);
+        tracker._styles.addAll(getStyles());
+        tracker._styles.add(style);
+        return tracker;
+    }
+
+    public StyleTracker withOutLast() {
+        if (_styles.isEmpty()) {
+            return this;
+        } else if (_styles.size() == 1) {
+            return EMPTY_INSTANCE;
+        }
+
+        StyleTracker tracker = new StyleTracker(getStyles().size() - 1);
+        tracker._styles.addAll(getStyles().subList(0, getStyles().size() - 1));
+        return tracker;
     }
 
     public boolean hasStyles() {
-        return _styles.size() != 0;
+        return !_styles.isEmpty();
     }
 
-    public void clearStyles() {
-        _styles.clear();
+    public static StyleTracker withNoStyles() {
+        return EMPTY_INSTANCE;
     }
-    
+
     public CalculatedStyle deriveAll(CalculatedStyle start) {
         CalculatedStyle result = start;
-        for (Iterator<CascadedStyle> i = getStyles().iterator(); i.hasNext(); ) {
-            result = result.deriveStyle(i.next());
+        for (CascadedStyle style : getStyles()) {
+            result = result.deriveStyle(style);
         }
         return result;
     }
 
-    public List<CascadedStyle> getStyles() {
+    private List<CascadedStyle> getStyles() {
         return _styles;
-    }
-    
-    public StyleTracker copyOf() {
-        StyleTracker result = new StyleTracker();
-        result._styles.addAll(this._styles);
-        return result;
     }
 }

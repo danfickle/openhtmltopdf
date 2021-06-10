@@ -94,6 +94,8 @@ public class LayoutContext implements CssContext {
 
     private boolean _isInFloatBottom;
 
+    private LayoutState _savedLayoutState;
+
     private int _footnoteIndex;
     private FootnoteManager _footnoteManager;
 
@@ -175,13 +177,13 @@ public class LayoutContext implements CssContext {
         _bfcs = new LinkedList<>();
         _layers = new LinkedList<>();
 
-        _firstLines = new StyleTracker();
-        _firstLetters = new StyleTracker();
+        _firstLines = StyleTracker.withNoStyles();
+        _firstLetters = StyleTracker.withNoStyles();
     }
 
     public void reInit(boolean keepLayers) {
-        _firstLines = new StyleTracker();
-        _firstLetters = new StyleTracker();
+        _firstLines = StyleTracker.withNoStyles();
+        _firstLetters = StyleTracker.withNoStyles();
         _currentMarkerData = null;
 
         _bfcs = new LinkedList<>();
@@ -196,22 +198,23 @@ public class LayoutContext implements CssContext {
     }
 
     public LayoutState captureLayoutState() {
-        LayoutState result = new LayoutState();
-
-        result.setFirstLines(_firstLines);
-        result.setFirstLetters(_firstLetters);
-        result.setCurrentMarkerData(_currentMarkerData);
-
-        result.setBFCs(_bfcs);
-
-        if (isPrint()) {
-            result.setPageName(getPageName());
-            result.setExtraSpaceBottom(getExtraSpaceBottom());
-            result.setExtraSpaceTop(getExtraSpaceTop());
-            result.setNoPageBreak(getNoPageBreak());
+        if (!isPrint()) {
+            return new LayoutState(
+                _bfcs,
+                _currentMarkerData,
+                _firstLetters,
+                _firstLines);
+        } else {
+            return new LayoutState(
+                    _bfcs,
+                    _currentMarkerData,
+                    _firstLetters,
+                    _firstLines,
+                    getPageName(),
+                    getExtraSpaceTop(),
+                    getExtraSpaceBottom(),
+                    getNoPageBreak());
         }
-
-        return result;
     }
 
     public void restoreLayoutState(LayoutState layoutState) {
@@ -231,17 +234,24 @@ public class LayoutContext implements CssContext {
     }
 
     public LayoutState copyStateForRelayout() {
-        LayoutState result = new LayoutState();
+        if (_savedLayoutState != null &&
+            _savedLayoutState.equal(
+                    _currentMarkerData,
+                    _firstLetters,
+                    _firstLines,
+                    isPrint() ? getPageName() : null)) {
 
-        result.setFirstLetters(_firstLetters.copyOf());
-        result.setFirstLines(_firstLines.copyOf());
-        result.setCurrentMarkerData(_currentMarkerData);
-
-        if (isPrint()) {
-            result.setPageName(getPageName());
+            return _savedLayoutState;
         }
 
-        return result;
+        _savedLayoutState =
+            new LayoutState(
+                _firstLetters,
+                _firstLines,
+                _currentMarkerData,
+                isPrint() ? getPageName() : null);
+
+        return _savedLayoutState;
     }
 
     public void restoreStateForRelayout(LayoutState layoutState) {
@@ -559,4 +569,13 @@ public class LayoutContext implements CssContext {
 
         return _footnoteManager;
     }
+
+    public void setFirstLettersTracker(StyleTracker firstLetters) {
+        _firstLetters = firstLetters;
+    }
+
+    public void setFirstLinesTracker(StyleTracker firstLines) {
+        _firstLines = firstLines;
+    }
+
 }
