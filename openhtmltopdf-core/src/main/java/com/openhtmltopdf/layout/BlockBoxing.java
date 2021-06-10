@@ -458,8 +458,9 @@ public class BlockBoxing {
 
             Integer lastRunStart = runStarts.floor(boxIndex);
             if (lastRunStart != null) {
-                Integer lastRunEnd = runEnds != null ? runEnds.floor(boxIndex) : null;
-                return (lastRunEnd == null || lastRunEnd >= boxIndex);
+                Integer lastRunEnd = runEnds != null ? runEnds.ceiling(lastRunStart) : null;
+                return (lastRunEnd == null ||
+                        lastRunEnd >= boxIndex);
             }
 
             return false;
@@ -494,7 +495,7 @@ public class BlockBoxing {
                     addRunStart(offset - 1);
                 }
 
-                if (offset == childOffsets.length) {
+                if (offset == childOffsets.length - 1) {
                     addRunEnd(offset);
                 }
             } else if (previousInRun) {
