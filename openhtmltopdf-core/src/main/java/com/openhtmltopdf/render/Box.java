@@ -1053,58 +1053,6 @@ public abstract class Box implements Styleable, DisplayListItem {
         }
     }
 
-    public void restyle(LayoutContext c) {
-        Element e = getElement();
-        CalculatedStyle style = null;
-
-        String pe = getPseudoElementOrClass();
-        if (pe != null) {
-            if (e != null) {
-                style = c.getSharedContext().getStyle(e, true);
-                style = style.deriveStyle(c.getCss().getPseudoElementStyle(e, pe));
-            } else {
-                BlockBox container = (BlockBox)getParent().getParent();
-                e = container.getElement();
-                style = c.getSharedContext().getStyle(e, true);
-                style = style.deriveStyle(c.getCss().getPseudoElementStyle(e, pe));
-                style = style.createAnonymousStyle(IdentValue.INLINE);
-            }
-        } else {
-            if (e != null) {
-                style = c.getSharedContext().getStyle(e, true);
-                if (isAnonymous()) {
-                    style = style.createAnonymousStyle(getStyle().getIdent(CSSName.DISPLAY));
-                }
-            } else {
-                Box parent = getParent();
-                if (parent != null) {
-                    e = parent.getElement();
-                    if (e != null) {
-                        style = c.getSharedContext().getStyle(e, true);
-                        style = style.createAnonymousStyle(IdentValue.INLINE);
-                    }
-                }
-            }
-        }
-
-        if (style != null) {
-            setStyle(style);
-        }
-
-        restyleChildren(c);
-    }
-
-    protected void restyleChildren(LayoutContext c) {
-        for (int i = 0; i < getChildCount(); i++) {
-            Box b = getChild(i);
-            b.restyle(c);
-        }
-    }
-
-    public Box getRestyleTarget() {
-        return this;
-    }
-
     /**
      * The zero based index of this child amongst its fellow children of its parent.
      */

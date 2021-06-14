@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -150,7 +151,7 @@ public class BoxBuilder {
 
         // The following is very useful for debugging.
         // It shows the contents of the box tree before layout.
-//        if (parent.getElement().getNodeName().equals("html")) {
+//        if (parent == c.getRootLayer().getMaster()) {
 //            System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(parent));
 //        }
     }
@@ -982,19 +983,19 @@ public class BoxBuilder {
 
             if (contentDecl != null || counterResetDecl != null || counterIncrDecl != null) {
                 calculatedStyle = parentStyle.deriveStyle(peStyle);
-                if (calculatedStyle.isDisplayNone()) return;
-                if (calculatedStyle.isIdent(CSSName.CONTENT, IdentValue.NONE)) return;
-                if (calculatedStyle.isIdent(CSSName.CONTENT, IdentValue.NORMAL) && (peName.equals("before") || peName.equals("after")))
-                    return;
 
-                if (calculatedStyle.isTable() || calculatedStyle.isTableRow() || calculatedStyle.isTableSection()) {
-                    CascadedStyle newPeStyle =
-                        CascadedStyle.createLayoutStyle(peStyle, new PropertyDeclaration[] {
-                            CascadedStyle.createLayoutPropertyDeclaration(
-                                CSSName.DISPLAY,
-                                IdentValue.BLOCK),
-                        });
-                    calculatedStyle = parentStyle.deriveStyle(newPeStyle);
+                if (calculatedStyle.isDisplayNone() ||
+                    calculatedStyle.isIdent(CSSName.CONTENT, IdentValue.NONE) ||
+                    (calculatedStyle.isIdent(CSSName.CONTENT, IdentValue.NORMAL) && 
+                       (peName.equals("before") || peName.equals("after")))) {
+                    return;
+                }
+
+                if (calculatedStyle.isTable() ||
+                    calculatedStyle.isTableRow() ||
+                    calculatedStyle.isTableSection()) {
+
+                    calculatedStyle = parentStyle.createAnonymousStyle(IdentValue.BLOCK);
                 }
 
                 c.resolveCounters(calculatedStyle);
@@ -1107,7 +1108,11 @@ public class BoxBuilder {
                 InlineBox iB = (InlineBox) i.next();
                 iB.setStyle(anon);
                 iB.applyTextTransform();
-                iB.setElement(null);
+
+                if (iB.getElement() == null ||
+                      !"fs-footnote-marker".equals(iB.getElement().getNodeName())) {
+                    iB.setElement(null);
+                }
             }
 
             BlockBox result = createBlockBox(style, info, true);
@@ -1257,7 +1262,8 @@ public class BoxBuilder {
             Node working,
             List<Styleable> children,
             ChildBoxInfo info,
-            CreateChildrenContext context) {
+            CreateChildrenContext context,
+            boolean allowFootnotes) {
 
         Styleable child = null;
         SharedContext sharedContext = c.getSharedContext();
@@ -1289,7 +1295,7 @@ public class BoxBuilder {
             return;
         }
 
-        if (style.isFootnote()) {
+        if (style.isFootnote() && allowFootnotes) {
             c.setFootnoteIndex(c.getFootnoteIndex() + 1);
 
             // This is the official marker content that can generate zero or more boxes
@@ -1304,71 +1310,15 @@ public class BoxBuilder {
             iB.setStartsHere(true);
             iB.setEndsHere(true);
             iB.setFootnote(footnoteBody);
+
             children.add(iB);
+            return;
+        }
 
-        } else if (style.isInline()) {
-
-            if (context.needStartText) {
-                context.needStartText = false;
-                InlineBox iB = createInlineBox("", parent, context.parentStyle, null);
-                iB.setStartsHere(true);
-                iB.setEndsHere(false);
-                children.add(iB);
-                context.previousIB = iB;
-            }
-
-            createChildren(c, null, element, children, info, true);
-
-            if (context.inline) {
-                if (context.previousIB != null) {
-                    context.previousIB.setEndsHere(false);
-                }
-                context.needEndText = true;
-            }
+        if (style.isInline()) {
+            createInlineChildren(c, parent, children, info, context, element);
         } else {
-            if (style.hasColumns() && c.isPrint()) {
-                child = new FlowingColumnContainerBox();
-            } else {
-                child = createBlockBox(style, info, false);
-            }
-
-            child.setStyle(style);
-            child.setElement(element);
-
-            if (style.hasColumns() && c.isPrint()) {
-                createColumnContainer(c, child, element, style);
-            }
-
-            if (style.isListItem()) {
-                BlockBox block = (BlockBox) child;
-                block.setListCounter(c.getCounterContext(style).getCurrentCounterValue("list-item"));
-            }
-
-            if (style.isTable() || style.isInlineTable()) {
-                TableBox table = (TableBox) child;
-                table.ensureChildren(c);
-
-                child = reorderTableContent(c, table);
-            }
-
-            if (!info.isContainsBlockLevelContent()
-                    && !style.isLayedOutInInlineContext()) {
-                info.setContainsBlockLevelContent(true);
-            }
-
-            BlockBox block = (BlockBox) child;
-
-            if (block.getStyle().mayHaveFirstLine()) {
-                block.setFirstLineStyle(c.getCss().getPseudoElementStyle(element,
-                        "first-line"));
-            }
-            if (block.getStyle().mayHaveFirstLetter()) {
-                block.setFirstLetterStyle(c.getCss().getPseudoElementStyle(element,
-                        "first-letter"));
-            }
-
-            // I think we need to do this to evaluate counters correctly
-            block.ensureChildren(c);
+            child = createChildBlockBox(c, info, element, style);
         }
 
         if (child != null) {
@@ -1376,19 +1326,103 @@ public class BoxBuilder {
         }
     }
 
+    private static void createInlineChildren(
+            LayoutContext c,
+            Element parent,
+            List<Styleable> children,
+            ChildBoxInfo info,
+            CreateChildrenContext context,
+            Element element) {
+
+        if (context.needStartText) {
+            context.needStartText = false;
+            InlineBox iB = createInlineBox("", parent, context.parentStyle, null);
+            iB.setStartsHere(true);
+            iB.setEndsHere(false);
+            children.add(iB);
+            context.previousIB = iB;
+        }
+
+        createChildren(c, null, element, children, info, true);
+
+        if (context.inline) {
+            if (context.previousIB != null) {
+                context.previousIB.setEndsHere(false);
+            }
+            context.needEndText = true;
+        }
+    }
+
+    private static Styleable createChildBlockBox(
+            LayoutContext c, ChildBoxInfo info, Element element, CalculatedStyle style) {
+
+        Styleable child;
+
+        if (style.hasColumns() && c.isPrint()) {
+            child = new FlowingColumnContainerBox();
+        } else {
+            child = createBlockBox(style, info, false);
+        }
+
+        child.setStyle(style);
+        child.setElement(element);
+
+        if (style.hasColumns() && c.isPrint()) {
+            createColumnContainer(c, child, element, style);
+        }
+
+        if (style.isListItem()) {
+            BlockBox block = (BlockBox) child;
+            block.setListCounter(c.getCounterContext(style).getCurrentCounterValue("list-item"));
+        }
+
+        if (style.isTable() || style.isInlineTable()) {
+            TableBox table = (TableBox) child;
+            table.ensureChildren(c);
+
+            child = reorderTableContent(c, table);
+        }
+
+        if (!info.isContainsBlockLevelContent()
+                && !style.isLayedOutInInlineContext()) {
+            info.setContainsBlockLevelContent(true);
+        }
+
+        BlockBox block = (BlockBox) child;
+
+        if (block.getStyle().mayHaveFirstLine()) {
+            block.setFirstLineStyle(c.getCss().getPseudoElementStyle(element,
+                    "first-line"));
+        }
+        if (block.getStyle().mayHaveFirstLetter()) {
+            block.setFirstLetterStyle(c.getCss().getPseudoElementStyle(element,
+                    "first-letter"));
+        }
+
+        // I think we need to do this to evaluate counters correctly
+        block.ensureChildren(c);
+        return child;
+    }
+
     /**
      * Creates the footnote body to put at the bottom of the page inside a
      * page's footnote area.
      */
-    private static BlockBox createFootnoteBody(LayoutContext c, Element element, CalculatedStyle style) {
+    private static BlockBox createFootnoteBody(
+            LayoutContext c, Element element, CalculatedStyle style) {
+
         List<Styleable> footnoteChildren = new ArrayList<>();
         ChildBoxInfo footnoteChildInfo = new ChildBoxInfo();
 
         // Create the out-of-flow footnote-body box as a block box.
         BlockBox footnoteBody = new BlockBox();
-        CalculatedStyle footnoteBodyStyle = style.createAnonymousStyle(IdentValue.BLOCK);
+        CalculatedStyle footnoteBodyStyle = new EmptyStyle().createAnonymousStyle(IdentValue.BLOCK);
 
-        footnoteBody.setElement(element);
+        // Create a dummy element for the footnote-body.
+        Element fnBodyElement = element.getOwnerDocument().createElement("fs-footnote-body");
+        c.getRootLayer().getMaster().getElement().appendChild(fnBodyElement);
+
+        footnoteBody.setElement(fnBodyElement);
         footnoteBody.setStyle(footnoteBodyStyle);
 
         // This will be set to the same as the footnote area when we add it to the page.
@@ -1403,12 +1437,15 @@ public class BoxBuilder {
 
         c.pushLayer(layer);
 
-        // The footnote marker followed by footnote element children.
-        insertGeneratedContent(c, element, footnoteBodyStyle, "footnote-marker", footnoteChildren, footnoteChildInfo);
-        createChildren(c, footnoteBody, element, footnoteChildren, footnoteChildInfo, footnoteBodyStyle.isInline());
+        CreateChildrenContext context = new CreateChildrenContext(false, false, style.getParent(), false);
+        createElementChild(c, (Element) element.getParentNode(), footnoteBody, element, footnoteChildren, footnoteChildInfo, context, false);
         resolveChildren(c, footnoteBody, footnoteChildren, footnoteChildInfo);
 
         c.popLayer();
+
+//        System.out.println();
+//        System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(footnoteBody));
+//        System.out.println();
 
         return footnoteBody;
     }
@@ -1450,6 +1487,10 @@ public class BoxBuilder {
 
         insertGeneratedContent(c, parent, parentStyle, "before", children, info);
 
+        if (parentStyle.isFootnote()) {
+            insertGeneratedContent(c, parent, parentStyle, "footnote-marker", children, info);
+        }
+
         Node working = parent.getFirstChild();
         CreateChildrenContext context = null;
 
@@ -1461,7 +1502,7 @@ public class BoxBuilder {
 
                 if (nodeType == Node.ELEMENT_NODE) {
                     createElementChild(
-                            c, parent, blockParent, working, children, info, context);
+                            c, parent, blockParent, working, children, info, context, true);
                 } else if (nodeType == Node.TEXT_NODE || nodeType == Node.CDATA_SECTION_NODE) {
                     context.needStartText = false;
                     context.needEndText = false;

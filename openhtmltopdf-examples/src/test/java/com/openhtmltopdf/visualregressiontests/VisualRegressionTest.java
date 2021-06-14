@@ -1441,8 +1441,13 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-364-footnotes-too-large"));
     }
 
+    /**
+     * Tests that we support display: block elements in the footnote area
+     * and that blocks with page-break-inside: avoid do not intersect
+     * with the footnote area.
+     */
     @Test
-    @Ignore // Failing badly.
+    @Ignore // Working well.
     public void testIssue364FootnotesBlocks() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-blocks"));
     }

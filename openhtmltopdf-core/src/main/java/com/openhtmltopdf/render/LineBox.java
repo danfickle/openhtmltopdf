@@ -27,13 +27,11 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
-import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.BoxCollector;
@@ -611,24 +609,7 @@ public class LineBox extends Box implements InlinePaintable {
         
         return true;
     }
-    
-    @Override
-    public Box getRestyleTarget() {
-        return getParent();
-    }
-    
-    @Override
-    public void restyle(LayoutContext c) {
-        Box parent = getParent();
-        Element e = parent.getElement();
-        if (e != null) {
-            CalculatedStyle style = c.getSharedContext().getStyle(e, true);
-            setStyle(style.createAnonymousStyle(IdentValue.BLOCK));
-        }
-        
-        restyleChildren(c);
-    }    
-    
+
     public boolean isContainsVisibleContent() {
         for (int i = 0; i < getChildCount(); i++) {
             Box b = getChild(i);

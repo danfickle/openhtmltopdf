@@ -21,7 +21,6 @@
 package com.openhtmltopdf.css.style;
 
 import java.awt.Cursor;
-import java.lang.annotation.Documented;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
@@ -50,6 +50,9 @@ import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.css.style.derived.NumberValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.css.value.FontSpecification;
+import com.openhtmltopdf.layout.BoxBuilder;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.layout.counter.RootCounterContext;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.render.Box;
@@ -67,16 +70,23 @@ import com.openhtmltopdf.util.XRRuntimeException;
 /**
  * A set of properties that apply to a single Element, derived from all matched
  * properties following the rules for CSS cascade, inheritance, importance,
- * specificity and sequence. A derived style is just like a style but
- * (presumably) has additional information that allows relative properties to be
- * assigned values, e.g. font attributes. Property values are fully resolved
- * when this style is created. A property retrieved by name should always have
- * only one value in this class (e.g. one-one map). Any methods to retrieve
+ * specificity and sequence. A property retrieved by name should always have
+ * exactly one value in this class (e.g. one-one map). Some methods to retrieve
  * property values from an instance of this class require a valid {@link
- * com.openhtmltopdf.layout.LayoutContext} be given to it, for some cases of property
- * resolution. Generally, a programmer will not use this class directly, but
- * will retrieve properties using a {@link com.openhtmltopdf.context.StyleReference}
- * implementation.
+ * com.openhtmltopdf.layout.LayoutContext} be given to them.
+ * <br><br>
+ * This is the go to class for working with a resolved style. Generally, you can get a
+ * instance for a box by calling:
+ *
+ * <ul>
+ *   <li>{@link Box#getStyle()} after a box has been created by the {@link BoxBuilder}</li>
+ *   <li>{@link SharedContext#getStyle(org.w3c.dom.Element)} for an element</li>
+ *   <li>{@link StyleReference#getPseudoElementStyle(org.w3c.dom.Node, String)} for a pseudo
+ *       element. StyleReference is available from {@link LayoutContext}</li>
+ *   <li>{@link #deriveStyle(CascadedStyle)}</li> to create a child style (non-inherited
+ *       property values will not be available from the child style</li>
+ *   <li>{@link EmptyStyle} to start with nothing</li>
+ * </ul>
  *
  * @author Torbjoern Gannholm
  * @author Patrick Wright
@@ -101,19 +111,10 @@ public class CalculatedStyle {
     private boolean _paddingAllowed = true;
     private boolean _bordersAllowed = true;
 
-    private BackgroundSize _backgroundSize;
-
     /**
      * Cache child styles of this style that have the same cascaded properties
      */
     private final java.util.Map<String, CalculatedStyle> _childCache = new java.util.HashMap<>();
-    /*private java.util.HashMap _childCache = new java.util.LinkedHashMap(5, 0.75f, true) {
-        private static final int MAX_ENTRIES = 10;
-
-        protected boolean removeEldestEntry(Map.Entry eldest) {
-            return size() > MAX_ENTRIES;
-        }
-    };*/
 
     /**
      * Our main array of property values defined in this style, keyed
@@ -151,6 +152,11 @@ public class CalculatedStyle {
         this();
         _parent = parent;
 
+        init(matched);
+    }
+
+
+    private void init(CascadedStyle matched) {
         derive(matched);
 
         checkPaddingAllowed();
@@ -186,9 +192,11 @@ public class CalculatedStyle {
     }
 
     /**
-     * derives a child style from this style.
-     * <br>
-     * depends on the ability to return the identical CascadedStyle each time a child style is needed
+     * Derives a <strong>child</strong> style from this style. Non-inherited properties
+     * such as borders will be replaced compared to <code>this</code> which is used
+     * as parent style.
+     * <br><br>
+     * Depends on the ability to return the identical CascadedStyle each time a child style is needed
      *
      * @param matched the CascadedStyle to apply
      * @return The derived child style
@@ -209,12 +217,37 @@ public class CalculatedStyle {
         return cs;
     }
 
-    public int countAssigned() {
-        int c = 0;
-        for (int i = 0; i < _derivedValuesById.length; i++) {
-            if (_derivedValuesById[i] != null) c++;
-        }
-        return c;
+    /**
+     * Override this style with specified styles. This will NOT
+     * create a child style, rather an exact copy with only the specified
+     * properties overridden. Compare to {@link #deriveStyle(CascadedStyle)}.
+     */
+    public CalculatedStyle overrideStyle(CascadedStyle matched) {
+        CalculatedStyle ret = new CalculatedStyle();
+
+        ret._parent = this._parent;
+        System.arraycopy(this._derivedValuesById, 0, ret._derivedValuesById, 0, ret._derivedValuesById.length);
+
+        init(matched);
+
+        return ret;
+    }
+
+    /**
+     * Override this style with specified styles. This will NOT
+     * create a child style, rather an exact copy with only the display
+     * property overridden. Compare to {@link #createAnonymousStyle(IdentValue)}
+     * which creates a child style.
+     */
+    public CalculatedStyle overrideStyle(IdentValue display) {
+        CalculatedStyle ret = new CalculatedStyle();
+
+        ret._parent = this._parent;
+        System.arraycopy(this._derivedValuesById, 0, ret._derivedValuesById, 0, ret._derivedValuesById.length);
+
+        init(CascadedStyle.createAnonymousStyle(display));
+
+        return ret;
     }
 
     /**
@@ -255,12 +288,6 @@ public class CalculatedStyle {
 
     public String[] asStringArray(CSSName cssName) {
         return valueByName(cssName).asStringArray();
-    }
-
-    public void setDefaultValue(CSSName cssName, FSDerivedValue fsDerivedValue) {
-        if (_derivedValuesById[cssName.FS_ID] == null) {
-            _derivedValuesById[cssName.FS_ID] = fsDerivedValue;
-        }
     }
 
     // TODO: doc
@@ -520,9 +547,11 @@ public class CalculatedStyle {
     /**
      * Returns a {@link FSDerivedValue} by name. Because we are a derived
      * style, the property will already be resolved at this point.
+     * <br><br>
+     * This will look up the ancestor tree for inherited properties and
+     * use an initial value for unspecified properties which do not inherit.
      *
      * @param cssName The CSS property name, e.g. "font-family"
-     * @return See desc.
      */
     public FSDerivedValue valueByName(CSSName cssName) {
         FSDerivedValue val = _derivedValuesById[cssName.FS_ID];
@@ -535,7 +564,6 @@ public class CalculatedStyle {
             // for the value
             if (! needInitialValue && CSSName.propertyInherits(cssName)
                     && _parent != null
-                    //
                     && (val = _parent.valueByName(cssName)) != null) {
                 // Do nothing, val is already set
             } else {
@@ -554,35 +582,33 @@ public class CalculatedStyle {
             }
             _derivedValuesById[cssName.FS_ID] = val;
         }
+
         return val;
     }
 
     /**
-     * <p/>
-     * <p/>
-     * <p/>
-     * <p/>
-     * Implements cascade/inherit/important logic. This should result in the
-     * element for this style having a value for *each and every* (visual)
-     * property in the CSS2 spec. The implementation is based on the notion that
+     * This method should result in the element for this style having a
+     * derived value for all specified (in stylesheets, style attribute, other non
+     * CSS attrs, etc) primitive CSS properties. Other properties are picked up
+     * from an ancestor (if they inherit) or their initial values (if
+     * they don't inherit). See {@link #valueByName(CSSName)}.
+     * <br><br>
+     * The implementation is based on the notion that
      * the matched styles are given to us in a perfectly sorted order, such that
      * properties appearing later in the rule-set always override properties
-     * appearing earlier. It also assumes that all properties in the CSS2 spec
-     * are defined somewhere across all the matched styles; for example, that
-     * the full-property set is given in the user-agent CSS that is always
-     * loaded with styles. The current implementation makes no attempt to check
-     * either of these assumptions. When this method exits, the derived property
+     * appearing earlier.
+     * <br><br>
+     * The current implementation makes no attempt to check
+     * this assumption. When this method exits, the derived property
      * list for this class will be populated with the properties defined for
-     * this element, properly cascaded.</p>
-     *
-     * @param matched PARAM
+     * this element, properly cascaded.
      */
     private void derive(CascadedStyle matched) {
         if (matched == null) {
             return;
-        }//nothing to derive
+        }
 
-		for (PropertyDeclaration pd : matched.getCascadedPropertyDeclarations()) {
+        for (PropertyDeclaration pd : matched.getCascadedPropertyDeclarations()) {
             FSDerivedValue val = deriveValue(pd.getCSSName(), pd.getValue());
             _derivedValuesById[pd.getCSSName().FS_ID] = val;
         }
@@ -1083,6 +1109,13 @@ public class CalculatedStyle {
         return isIdent(CSSName.PAGE_BREAK_INSIDE, IdentValue.AVOID);
     }
 
+    /**
+     * This method derives a style for an anonymous child box with an overriden
+     * value for the display property.
+     * <br><br>
+     * NOTE: All non-inherited properties of <code>this</code> will be lost as
+     * the returned style is for a child box.
+     */
     public CalculatedStyle createAnonymousStyle(IdentValue display) {
         return deriveStyle(CascadedStyle.createAnonymousStyle(display));
     }

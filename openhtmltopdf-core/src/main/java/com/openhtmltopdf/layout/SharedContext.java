@@ -96,7 +96,7 @@ public class SharedContext {
     private float mmPerDot;
 
     private boolean print;
-    private Map<Element, CalculatedStyle> styleMap;
+    private final Map<Element, CalculatedStyle> styleMap = new HashMap<>(1024, 0.75f);
     private ReplacedElementFactory replacedElementFactory;
     private Rectangle tempCanvas;
     
@@ -465,29 +465,25 @@ public class SharedContext {
         this.dotsPerPixel = dotsPerPixel;
     }
 
+    /**
+     * Gets the resolved style for an element. All primitive properties will
+     * have values.
+     * <br><br>
+     * This method uses a cache.
+     * <br><br>
+     * If the parent element's style is not cached this method will recursively
+     * work up the ancestor list until it styles the document with the initial values
+     * of CSS properties.
+     */
     public CalculatedStyle getStyle(Element e) {
-        return getStyle(e, false);
-    }
+        CalculatedStyle result = styleMap.get(e);
 
-    public CalculatedStyle getStyle(Element e, boolean restyle) {
-        if (styleMap == null) {
-            styleMap = new HashMap<>(1024, 0.75f);
-        }
-
-        CalculatedStyle result = null;
-        if (! restyle) {
-            result = styleMap.get(e);
-        }
         if (result == null) {
             Node parent = e.getParentNode();
-            CalculatedStyle parentCalculatedStyle;
-            if (parent instanceof Document) {
-                parentCalculatedStyle = new EmptyStyle();
-            } else {
-                parentCalculatedStyle = getStyle((Element)parent, false);
-            }
+            CalculatedStyle parentCalculatedStyle = parent instanceof Document ?
+                    new EmptyStyle() : getStyle((Element) parent);
 
-            result = parentCalculatedStyle.deriveStyle(getCss().getCascadedStyle(e, restyle));
+            result = parentCalculatedStyle.deriveStyle(getCss().getCascadedStyle(e, false));
 
             styleMap.put(e, result);
         }
