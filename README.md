@@ -68,7 +68,19 @@ from ````/openhtmltopdf-examples/src/main/java/com/openhtmltopdf/testcases/Testc
 ## CHANGELOG
 
 ### head - 1.0.9-SNAPSHOT
-+ See commit log.
+**SECURITY RELEASE**: This release will be brought forward due to security releases of the PDFBOX and Batik dependencies.
+
++ [#722](https://github.com/danfickle/openhtmltopdf/pull/722) Upgrade PDFBOX (to 2.0.24) - avoids CVEs in earlier versions and PDFBoxGraphics2D. Thanks a lot @rototor.
++ [#678](https://github.com/danfickle/openhtmltopdf/pull/678) Upgrade Batik Version to 1.14 (CVE-2020-11987) - Again it is strongly advised to avoid untrusted SVG and XML. Thanks @rototor.
++ [#716](https://github.com/danfickle/openhtmltopdf/pull/716) Replace rogue `println` calls with log calls. Thanks @syjer for PR, @tfo for reporting.
++ [#708](https://github.com/danfickle/openhtmltopdf/pull/708) Allow `shape-rendering` SVG CSS property. Thanks @syjer for PR, @RAlfoeldi for reporting.
++ [#703](https://github.com/danfickle/openhtmltopdf/pull/703) Remove calls to deprecated method calls in JRE standard library. May change XML reader class. Implemented by @danfickle.
++ [#702](https://github.com/danfickle/openhtmltopdf/pull/702) Set timeouts for default HTTP/HTTPS handlers. Thanks for reporting @gengzi.
++ [162228](https://github.com/danfickle/openhtmltopdf/commit/16222810df1cc40dba8bfa1465111b96841bb3b5) Put links to raster images in SVGs through the URL resolver.
++ [#694](https://github.com/danfickle/openhtmltopdf/issues/694) Fix incorrect B3 paper size. Thanks @lfintalan for reporting with line number!
++ [ab48fd](https://github.com/danfickle/openhtmltopdf/commit/ab48fd0d7236ad3129f3393fcb0ebc7df6c5973f) Do not log a missing font more than once.
+
+NOTE: PDFBOX CVEs relate to the loading of untrusted PDFs in PDFBOX and thus this project is not directly affected. However, it is not a good idea to have CVEs on your classpath.
 
 
 ### 1.0.8 (2021-March-22)
