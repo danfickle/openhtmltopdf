@@ -1,6 +1,10 @@
 ## CHANGELOG
 
-### head - 1.0.9-SNAPSHOT
+### head - 1.0.10-SNAPSHOT
++ See commit log.
+
+
+### 1.0.9 (2021-June-18)
 **SECURITY RELEASE**: This release will be brought forward due to security releases of the PDFBOX and Batik dependencies.
 
 + [#722](https://github.com/danfickle/openhtmltopdf/pull/722) Upgrade PDFBOX (to 2.0.24) - avoids CVEs in earlier versions and PDFBoxGraphics2D. Thanks a lot @rototor.
