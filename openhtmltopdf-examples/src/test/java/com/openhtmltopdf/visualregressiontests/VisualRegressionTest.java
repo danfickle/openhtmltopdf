@@ -1413,44 +1413,6 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-649-multiple-bg-images-page-box"));
     }
 
-    /**
-     * Tests that we support CSS footnotes.
-     */
-    @Test
-    @Ignore // Working well, final touches.
-    public void testIssue364FootnotesBasicExample() throws IOException {
-        assertTrue(vt.runTest("issue-364-footnotes-basic"));
-    }
-
-    /**
-     * Tests that a line of text can contain two multi-page footnotes.
-     */
-    @Test
-    @Ignore // Final touches.
-    public void testIssue364FootnotesMultiPage() throws IOException {
-        assertTrue(vt.runTest("issue-364-footnotes-multi-page"));
-    }
-
-    /**
-     * Test what happens when a line of in-flow text and a line of footnotes
-     * do not fit on a single page.
-     */
-    @Test
-    @Ignore // Working well but waiting until footnote support is complete.
-    public void testIssue364FootnotesTooLarge() throws IOException {
-        assertTrue(vt.runTest("issue-364-footnotes-too-large"));
-    }
-
-    /**
-     * Tests that we support display: block elements in the footnote area
-     * and that blocks with page-break-inside: avoid do not intersect
-     * with the footnote area.
-     */
-    @Test
-    @Ignore // Working well.
-    public void testIssue364FootnotesBlocks() throws IOException {
-        assertTrue(vt.runTest("issue-364-footnotes-blocks"));
-    }
 
     // TODO:
     // + Elements that appear just on generated overflow pages.
