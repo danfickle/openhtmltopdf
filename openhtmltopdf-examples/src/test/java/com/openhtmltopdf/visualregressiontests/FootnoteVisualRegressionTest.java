@@ -73,4 +73,13 @@ public class FootnoteVisualRegressionTest {
     public void testIssue364FootnotesBlocks() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-blocks"));
     }
+
+    /**
+     * Tests paginated table head/footer is placed in the right place in the
+     * presence of footnotes.
+     */
+    @Test
+    public void testIssue364FootnotesPaginatedTable() throws IOException {
+        assertTrue(vt.runTest("issue-364-footnotes-paginated-table"));
+    }
 }
