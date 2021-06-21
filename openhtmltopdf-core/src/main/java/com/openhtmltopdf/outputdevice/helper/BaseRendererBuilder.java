@@ -2,6 +2,7 @@ package com.openhtmltopdf.outputdevice.helper;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
+import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.*;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.swing.NaiveUserAgent;
@@ -634,9 +635,22 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
 		MM, INCHES
 	}
 
-	public enum FontStyle {
-		NORMAL, ITALIC, OBLIQUE
-	}
+    public enum FontStyle {
+        NORMAL, ITALIC, OBLIQUE;
+
+        public IdentValue toIdentValue() {
+            switch (this) {
+            case NORMAL:
+                return IdentValue.NORMAL;
+            case ITALIC:
+                return IdentValue.ITALIC;
+            case OBLIQUE:
+                return IdentValue.OBLIQUE;
+            default:
+                return null;
+            }
+        }
+    }
 
     /**
      * Use cases for fonts.

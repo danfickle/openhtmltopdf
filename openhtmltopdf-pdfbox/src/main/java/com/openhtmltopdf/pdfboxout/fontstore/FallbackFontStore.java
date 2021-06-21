@@ -10,8 +10,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.apache.fontbox.ttf.TrueTypeCollection;
-import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.fontbox.ttf.TrueTypeCollection.TrueTypeFontProcessor;
+import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
@@ -23,20 +23,24 @@ import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PDFontSupplier;
+import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontCache;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 
 public class FallbackFontStore implements Closeable {
     private final List<FontDescription> fonts = new ArrayList<>();
     private final List<TrueTypeCollection> _collectionsToClose = new ArrayList<>();
     private final PDDocument _doc;
+    private final FontCache _fontCache;
     private final FSCacheEx<String, FSCacheValue> _fontMetricsCache;
 
     public FallbackFontStore(
             SharedContext sharedContext,
             PDDocument doc,
-            FSCacheEx<String, FSCacheValue> pdfMetricsCache) {
+            FSCacheEx<String, FSCacheValue> pdfMetricsCache,
+            FontCache fontCache) {
         this._doc = doc;
         this._fontMetricsCache = pdfMetricsCache;
+        this._fontCache = fontCache;
     }
 
     private int getFontPriority(FontDescription font, String[] families, IdentValue weight, IdentValue desiredStyle, IdentValue variant) {
@@ -106,7 +110,8 @@ public class FallbackFontStore implements Closeable {
                 fontFamilyNameOverride,
                 false, // isFromFontFace
                 subset,
-                _fontMetricsCache);
+                _fontMetricsCache,
+                _fontCache);
 
         addFont(subset, descr);
     }
@@ -126,7 +131,8 @@ public class FallbackFontStore implements Closeable {
                 fontFamilyNameOverride,
                 false, // isFromFontFace
                 subset,
-                _fontMetricsCache);
+                _fontMetricsCache,
+                _fontCache);
 
         addFont(subset, descr);
     }
@@ -143,7 +149,8 @@ public class FallbackFontStore implements Closeable {
                 fontFamilyNameOverride,
                 false,   // isFromFontFace
                 subset,
-                _fontMetricsCache);
+                _fontMetricsCache,
+                _fontCache);
 
         addFont(subset, descr);
     }

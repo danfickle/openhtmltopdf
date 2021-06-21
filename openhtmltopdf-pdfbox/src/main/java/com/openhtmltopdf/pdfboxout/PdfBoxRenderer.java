@@ -139,11 +139,14 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
     private final Closeable diagnosticConsumer;
     
+    private PdfRendererBuilderState state;
+
     /**
      * This method is constantly changing as options are added to the builder.
      */
     PdfBoxRenderer(BaseDocument doc, UnicodeImplementation unicode,
             PageDimensions pageSize, PdfRendererBuilderState state, Closeable diagnosticConsumer) {
+        this.state = state;
 
         this.diagnosticConsumer = diagnosticConsumer;
 
@@ -199,7 +202,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         userAgent.setSharedContext(_sharedContext);
         _outputDevice.setSharedContext(_sharedContext);
 
-        PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, state._caches.get(CacheStore.PDF_FONT_METRICS), state._pdfAConformance, state._pdfUaConform);
+        PdfBoxFontResolver fontResolver = new PdfBoxFontResolver(_sharedContext, _pdfDoc, state._caches.get(CacheStore.PDF_FONT_METRICS), state._fontCache, state._pdfAConformance, state._pdfUaConform);
         _sharedContext.setFontResolver(fontResolver);
 
         PdfBoxReplacedElementFactory replacedElementFactory = new PdfBoxReplacedElementFactory(_outputDevice, state._svgImpl, state._objectDrawerFactory, state._mathmlImpl);
@@ -269,6 +272,20 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         }
         
         this._os = state._os;
+    }
+
+    /**
+     * Creates a new builder inheriting this configuration.
+     */
+    public PdfRendererBuilder toBuilder() {
+        PdfRendererBuilderState newState = state.clone();
+        /*
+         * NOTE: Old input references are cleared to ensure a clean new run.
+         */
+        newState._document = null;
+        newState._file = null;
+        newState._html = null;
+        return new PdfRendererBuilder(newState);
     }
 
     public Document getDocument() {

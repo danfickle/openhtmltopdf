@@ -24,7 +24,10 @@ public class FontFamily<T extends MinimalFontDescription> {
     }
 
     public void addFontDescription(T descr) {
-        _fontDescriptions.add(descr);
+        /*
+         * NOTE: Font is prepended, so newer fonts can override predecessors.
+         */
+        _fontDescriptions.add(0, descr);
         Collections.sort(_fontDescriptions, Comparator.comparing(T::getWeight));
     }
 

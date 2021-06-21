@@ -19,6 +19,23 @@
  */
 package com.openhtmltopdf.pdfboxout;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.logging.Level;
+
+import org.apache.fontbox.ttf.TrueTypeCollection;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.sheet.FontFaceRule;
@@ -40,19 +57,6 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
-import org.apache.fontbox.ttf.TrueTypeCollection;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
-
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.logging.Level;
-
 /**
  * This class handles all font resolving for the PDF generation.
  */
@@ -69,12 +73,12 @@ public class PdfBoxFontResolver implements FontResolver {
     private final AbstractFontStore _builtinFonts;
     private final FallbackFontStore _finalFallbackFonts;
 
-    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, PdfAConformance pdfAConformance, boolean pdfUaConform) {
+    public PdfBoxFontResolver(SharedContext sharedContext, PDDocument doc, FSCacheEx<String, FSCacheValue> pdfMetricsCache, FontCache fontCache, PdfAConformance pdfAConformance, boolean pdfUaConform) {
         this._doc = doc;
 
-        this._suppliedFonts = new MainFontStore(sharedContext, doc, pdfMetricsCache);
+        this._suppliedFonts = new MainFontStore(sharedContext, doc, pdfMetricsCache, fontCache);
 
-        this._preBuiltinFallbackFonts = new FallbackFontStore(sharedContext, doc, pdfMetricsCache);
+        this._preBuiltinFallbackFonts = new FallbackFontStore(sharedContext, doc, pdfMetricsCache, fontCache);
 
         // All fonts are required to be embedded in PDF/A documents, so we don't add
         // the built-in fonts, if conformance is required.
@@ -82,7 +86,7 @@ public class PdfBoxFontResolver implements FontResolver {
                 new AbstractFontStore.BuiltinFontStore(doc) :
                 new AbstractFontStore.EmptyFontStore();
 
-        this._finalFallbackFonts = new FallbackFontStore(sharedContext, doc, pdfMetricsCache);
+        this._finalFallbackFonts = new FallbackFontStore(sharedContext, doc, pdfMetricsCache, fontCache);
     }
 
     @Override
@@ -98,6 +102,10 @@ public class PdfBoxFontResolver implements FontResolver {
         FontUtil.tryClose(this._suppliedFonts);
         FontUtil.tryClose(this._preBuiltinFallbackFonts);
         FontUtil.tryClose(this._finalFallbackFonts);
+    }
+
+    public Map<String, PDFont> getFontCache() {
+        return _suppliedFonts.getFontCache();
     }
 
     public void importFontFaces(List<FontFaceRule> fontFaces) {
@@ -491,6 +499,50 @@ public class PdfBoxFontResolver implements FontResolver {
     }
 */
 
+    public static class FontCache extends HashMap<String, PDFont> {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public boolean containsKey(Object family) {
+            return containsKey((String)family, null, null);
+        }
+
+        public boolean containsKey(String family, Integer weight, IdentValue style) {
+            return super.containsKey(key(family, weight, style));
+        }
+
+        @Override
+        public PDFont get(Object family) {
+            return get((String)family, null, null);
+        }
+
+        public PDFont get(String family, Integer weight, IdentValue style) {
+            return super.get(key(family, weight, style));
+        }
+
+        @Override
+        public PDFont put(String family, PDFont value) {
+            return put(family, null, null, value);
+        }
+
+        public PDFont put(String family, Integer weight, IdentValue style, PDFont value) {
+            return super.put(key(family, weight, style), value);
+        }
+
+        @Override
+        public PDFont remove(Object family) {
+            return remove((String)family, null, null);
+        }
+
+        public PDFont remove(String family, Integer weight, IdentValue style) {
+            return super.remove(key(family, weight, style));
+        }
+
+        protected String key(String family, Integer weight, IdentValue style) {
+            return FontUtil.getFontQName(family, weight, style);
+        }
+    }
+
     /**
      * A <code>FontDescription</code> can exist in multiple states. Firstly the font may
      * or may not be realized. Fonts are automatically realized upon calling {@link #getFont()}
@@ -513,6 +565,7 @@ public class PdfBoxFontResolver implements FontResolver {
 
         private PdfBoxRawPDFontMetrics _metrics;
         private final FSCacheEx<String, FSCacheValue> _metricsCache;
+        private FontCache _fontCache;
 
         @Override
         public String toString() {
@@ -537,7 +590,9 @@ public class PdfBoxFontResolver implements FontResolver {
                 PDDocument doc, FSSupplier<InputStream> supplier,
                 int weight, IdentValue style, String family,
                 boolean isFromFontFace, boolean isSubset,
-                FSCacheEx<String, FSCacheValue> metricsCache) {
+                FSCacheEx<String, FSCacheValue> metricsCache,
+                FontCache fontCache) {
+            this._fontSupplier = null;
             this._supplier = supplier;
             this._weight = weight;
             this._style = style;
@@ -547,6 +602,7 @@ public class PdfBoxFontResolver implements FontResolver {
             this._isSubset = isSubset;
             this._metricsCache = metricsCache;
             this._metrics = getFontMetricsFromCache(family, weight, style);
+            this._fontCache = fontCache;
         }
 
         /**
@@ -554,12 +610,14 @@ public class PdfBoxFontResolver implements FontResolver {
          * Currently only used for PDF built-in fonts.
          */
         private FontDescription(PDDocument doc, PDFont font, IdentValue style, int weight) {
+            _fontSupplier = null;
             _font = font;
             _style = style;
             _weight = weight;
             _supplier = null;
             _doc = doc;
             _metricsCache = null;
+            _fontCache = null;
             _family = null;
             _isFromFontFace = false;
             _isSubset = false;
@@ -580,7 +638,8 @@ public class PdfBoxFontResolver implements FontResolver {
                 PDDocument doc, FSSupplier<PDFont> fontSupplier,
                 IdentValue style, int weight, String family, 
                 boolean isFromFontFace, boolean isSubset,
-                FSCacheEx<String, FSCacheValue> metricsCache) {
+                FSCacheEx<String, FSCacheValue> metricsCache,
+                FontCache fontCache) {
             _fontSupplier = fontSupplier;
             _style = style;
             _weight = weight;
@@ -591,6 +650,7 @@ public class PdfBoxFontResolver implements FontResolver {
             _isSubset = isSubset;
             _metricsCache = metricsCache;
             _metrics = getFontMetricsFromCache(family, weight, style);
+            _fontCache = fontCache;
         }
 
         public String getFamily() {
@@ -621,45 +681,67 @@ public class PdfBoxFontResolver implements FontResolver {
             }
         }
 
+        /**
+         * Resolves the font corresponding to this descriptor.
+         * 
+         * @return Whether the font exists.
+         */
         public boolean realizeFont() {
-            if (_font == null && _fontSupplier != null) {
-                XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_LOADING_FONT_FROM_SUPPLIER, _family, "PDFont");
-
-                _font = _fontSupplier.supply();
-		_fontSupplier = null;
-		
-                if (!isMetricsAvailable()) {
-                    // If we already have metrics, they must have come from the cache.
-                    return loadMetrics();
-                }
-	    }
-            
-            if (_font == null && _supplier != null) {
-                XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_LOADING_FONT_FROM_SUPPLIER, _family, "InputStream");
-
-                InputStream is = _supplier.supply();
-                _supplier = null; // We only try once.
-                
-                if (is == null) {
-                    return false;
-                }
-                
-                try {
-                    _font = PDType0Font.load(_doc, is, _isSubset);
-                    
-                    if (!isMetricsAvailable()) {
-                        return loadMetrics();
+            if (_font == null) {
+                if (_fontCache != null) {
+                    // Font cache match?
+                    if ((_font = _fontCache.get(_family, _weight, _style)) != null) {
+                        // Dropping useless suppliers...
+                        _fontCache = null;
+                        _fontSupplier = null;
+                        _supplier = null;
                     }
-                } catch (IOException e) {
-                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, _family);
-                    return false;
-                } finally {
-                    try {
-                        is.close();
-                    } catch (IOException e) { }
+                }
+
+                /*
+                 * NOTE: _fontSupplier and _supplier are mutually exclusive.
+                 */
+                if (_fontSupplier != null) {
+                    XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_LOADING_FONT_FROM_SUPPLIER, _family, "PDFont");
+
+                    _font = _fontSupplier.supply();
+                    _fontSupplier = null /* Only tried once */;
+                } else if (_supplier != null) {
+                    XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_LOADING_FONT_FROM_SUPPLIER, _family, "InputStream");
+
+                    try (InputStream is = _supplier.supply()) {
+                        _supplier = null /* Only tried once */;
+
+                        if (is != null) {
+                            try {
+                                _font = PDType0Font.load(_doc, is, _isSubset);
+                            } catch (IOException e) {
+                                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_FONT, _family);
+                            }
+                        }
+                    } catch (IOException e) {
+                        /* TODO: log failed close()? */
+                    }
+                }
+
+                if (_font != null) {
+                    if (_fontCache != null) {
+                        _fontCache.put(_family, _weight, _style, _font);
+                        _fontCache = null /* Only used once */;
+                    }
+
+                    if (!isMetricsAvailable()) {
+                        /*
+                         * TODO: The old implementation returned loadMetrics() result just one time,
+                         * thus violating the idempotence of this method, as subsequent calls didn't
+                         * return it again. Now the idempotence is honored, but we have to verify
+                         * whether any weak side effect (relying on the old wrong behavior) is
+                         * disrupted (although, according to my tests, it seems to work flawlessly).
+                         */
+                        loadMetrics();
+                    }
                 }
             }
-            
             return _font != null;
         }
 

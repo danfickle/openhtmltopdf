@@ -1,21 +1,22 @@
 package com.openhtmltopdf.pdfboxout;
 
-import com.openhtmltopdf.extend.FSCacheEx;
-import com.openhtmltopdf.extend.FSCacheValue;
-import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-
 import java.io.OutputStream;
 import java.util.EnumMap;
 import java.util.Map;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+
+import com.openhtmltopdf.extend.FSCacheEx;
+import com.openhtmltopdf.extend.FSCacheValue;
+import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
+import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontCache;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
+
 /**
  * This class is internal. DO NOT USE! Just ignore it!
  */
-public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState {
+public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBuilderState implements Cloneable {
 	/* Internal! */
 	PdfRendererBuilderState() {
 	}
@@ -29,4 +30,14 @@ public class PdfRendererBuilderState extends BaseRendererBuilder.BaseRendererBui
 	public boolean _pdfUaConform = false;
 	public byte[] _colorProfile;
 	public PageSupplier _pageSupplier;
+	public FontCache _fontCache;
+
+	@Override
+	protected PdfRendererBuilderState clone() {
+	    try {
+            return (PdfRendererBuilderState) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+	}
 }

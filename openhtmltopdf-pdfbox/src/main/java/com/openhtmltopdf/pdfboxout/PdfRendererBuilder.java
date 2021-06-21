@@ -1,32 +1,40 @@
 package com.openhtmltopdf.pdfboxout;
 
+import java.awt.FontFormatException;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+
 import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.extend.FSCacheEx;
+import com.openhtmltopdf.extend.FSCacheValue;
+import com.openhtmltopdf.extend.FSDOMMutator;
+import com.openhtmltopdf.extend.FSSupplier;
 import com.openhtmltopdf.extend.impl.FSNoOpCacheStore;
 import com.openhtmltopdf.outputdevice.helper.AddedFont;
 import com.openhtmltopdf.outputdevice.helper.BaseDocument;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
+import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontCache;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontGroup;
-import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-
-import java.awt.FontFormatException;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.EnumSet;
-import java.util.logging.Level;
-
 public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, PdfRendererBuilderState> {
+    public PdfRendererBuilder() {
+        this(new PdfRendererBuilderState());
+    }
 
-	public PdfRendererBuilder() {
-		super(new PdfRendererBuilderState());
-		
+	protected PdfRendererBuilder(PdfRendererBuilderState state) {
+		super(state);
+
 		for (CacheStore cacheStore : CacheStore.values()) {
 		    // Use the flyweight pattern to initialize all caches with a no-op implementation to
 		    // avoid excessive null handling.
@@ -58,6 +66,10 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	}
 
 	public PdfBoxRenderer buildPdfRenderer(Closeable diagnosticConsumer) {
+	    if (state._fontCache == null) {
+	        state._fontCache = new FontCache();
+	    }
+
 		UnicodeImplementation unicode = new UnicodeImplementation(state._reorderer, state._splitter, state._lineBreaker,
 				state._unicodeToLowerTransformer, state._unicodeToUpperTransformer, state._unicodeToTitleTransformer, state._textDirection,
 				state._charBreaker);
@@ -98,25 +110,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
             if (font.usedFor.contains(FSFontUseCase.DOCUMENT) ||
                 font.usedFor.contains(FSFontUseCase.FALLBACK_PRE) ||
                 font.usedFor.contains(FSFontUseCase.FALLBACK_FINAL)) {
-                IdentValue fontStyle = null;
-
-				if (font.style != null) {
-					switch (font.style)
-					{
-					case NORMAL:
-						fontStyle = IdentValue.NORMAL;
-						break;
-					case ITALIC:
-						fontStyle = IdentValue.ITALIC;
-						break;
-					case OBLIQUE:
-						fontStyle = IdentValue.OBLIQUE;
-						break;
-					default:
-						fontStyle = null;
-						break;
-					}
-				}
+                IdentValue fontStyle = font.style != null ? font.style.toIdentValue() : null;
 
                 FontGroup group;
                 if (font.usedFor.contains(FSFontUseCase.FALLBACK_PRE)) {
@@ -147,6 +141,38 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
         }
 
         return renderer;
+    }
+
+    public boolean dropDOMMutator(FSDOMMutator domMutator) {
+        return state._domMutators.remove(domMutator);
+    }
+
+    public void dropDOMMutators() {
+        state._domMutators.clear();
+    }
+
+    public boolean dropFont(String fontFamily) {
+        return dropFont(fontFamily, null, null);
+    }
+
+    public boolean dropFont(String fontFamily, Integer fontWeight, FontStyle fontStyle) {
+        boolean dropped = false;
+        for (Iterator<AddedFont> it = state._fonts.iterator(); it.hasNext();) {
+            AddedFont font = it.next();
+            if (font.family.equals(fontFamily)
+                    && (fontWeight == null || fontWeight.equals(font.weight))
+                    && (fontStyle == null || fontStyle.equals(font.style))) {
+                it.remove();
+                state._fontCache.remove(font.family, font.weight,
+                        font.style != null ? font.style.toIdentValue() : null);
+                dropped = true;
+            }
+        }
+        return dropped;
+    }
+
+    public List<AddedFont> getFonts() {
+        return state._fonts;
     }
 
 	/**
@@ -281,6 +307,11 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	    state._caches.put(which, cache);
 	    return this;
 	}
+
+    public PdfRendererBuilder useFontCache(FontCache fontCache) {
+        state._fontCache = fontCache;
+        return this;
+    }
 
 	/**
 	 * Set a PageSupplier that is called whenever a new page is needed.
