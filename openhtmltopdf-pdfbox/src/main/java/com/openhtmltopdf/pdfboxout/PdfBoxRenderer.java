@@ -477,7 +477,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     @Deprecated
     public void createPDF(OutputStream os, boolean finish, int initialPageNo) throws IOException {
         if (_useFastMode) {
-            createPdfFast(finish);
+            createPdfFast(finish, initialPageNo);
             return;
         }
         
@@ -523,7 +523,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     /**
      * Go fast!
      */
-    private void createPdfFast(boolean finish) throws IOException {
+    private void createPdfFast(boolean finish, int initialPageNo) throws IOException {
         boolean success = false;
 
         XRLog.log(Level.INFO, LogMessageId.LogMessageId0Param.GENERAL_PDF_USING_FAST_MODE);
@@ -537,7 +537,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             List<PageBox> pages = _root.getLayer().getPages();
 
             RenderingContext c = newRenderingContext();
-            c.setInitialPageNo(0);
+            c.setInitialPageNo(initialPageNo);
             c.setFastRenderer(true);
         
             PageBox firstPage = pages.get(0);
