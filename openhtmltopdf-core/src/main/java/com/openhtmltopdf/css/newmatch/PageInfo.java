@@ -20,6 +20,7 @@
 package com.openhtmltopdf.css.newmatch;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -29,19 +30,27 @@ import com.openhtmltopdf.css.constants.MarginBoxName;
 import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
+import com.openhtmltopdf.css.style.CalculatedStyle;
+import com.openhtmltopdf.css.style.EmptyStyle;
 
 public class PageInfo {
-    private final List<PropertyDeclaration> _properties;
     private final CascadedStyle _pageStyle;
     private final Map<MarginBoxName, List<PropertyDeclaration>> _marginBoxes;
-    
+
+    private final List<PropertyDeclaration> _properties;
     private final List<PropertyDeclaration> _xmpPropertyList;
-    
-    public PageInfo(List<PropertyDeclaration> properties, CascadedStyle pageStyle, Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes) {
+    private final List<PropertyDeclaration> _footnote;
+
+    public PageInfo(
+            List<PropertyDeclaration> properties,
+            CascadedStyle pageStyle,
+            Map<MarginBoxName, List<PropertyDeclaration>>  marginBoxes,
+            List<PropertyDeclaration> footnote) {
         _properties = properties;
         _pageStyle = pageStyle;
         _marginBoxes = marginBoxes;
-        
+        _footnote = footnote;
+
         _xmpPropertyList = marginBoxes.remove(MarginBoxName.FS_PDF_XMP_METADATA);
     }
 
@@ -56,10 +65,46 @@ public class PageInfo {
     public List<PropertyDeclaration> getProperties() {
         return _properties;
     }
-    
+
+    public CalculatedStyle getFootnoteAreaRawMaxHeightStyle() {
+        CascadedStyle cascaded = new CascadedStyle(_footnote.iterator());
+
+        if (cascaded.hasProperty(CSSName.MAX_HEIGHT)) {
+            return new EmptyStyle().deriveStyle(cascaded);
+        }
+
+        return null;
+    }
+
+    /**
+     * Creates a footnote area style from footnote at-rule properties
+     * for this page with display overriden to block and
+     * position overriden as absolute.
+     */
+    public CascadedStyle createFootnoteAreaStyle() {
+        PropertyDeclaration maxHeight = new PropertyDeclaration(
+                CSSName.MAX_HEIGHT, new PropertyValue(IdentValue.NONE), true, StylesheetInfo.USER);
+
+        List<PropertyDeclaration> overrides = Arrays.asList(
+                CascadedStyle.createLayoutPropertyDeclaration(CSSName.POSITION, IdentValue.ABSOLUTE),
+                CascadedStyle.createLayoutPropertyDeclaration(CSSName.DISPLAY, IdentValue.BLOCK),
+                maxHeight);
+
+        if (_footnote == null || _footnote.isEmpty()) {
+            return new CascadedStyle(overrides.iterator());
+        }
+
+        List<PropertyDeclaration> all = new ArrayList<>(overrides.size() + _footnote.size());
+
+        all.addAll(_footnote);
+        all.addAll(overrides);
+
+        return new CascadedStyle(all.iterator());
+    }
+
     public CascadedStyle createMarginBoxStyle(MarginBoxName marginBox, boolean alwaysCreate) {
         List<PropertyDeclaration> marginProps = _marginBoxes.get(marginBox);
-        
+
         if ((marginProps == null || marginProps.size() == 0) && ! alwaysCreate) {
             return null;
         }
@@ -97,9 +142,8 @@ public class PageInfo {
         
         return false;
     }
-    
-    public List<PropertyDeclaration> getXMPPropertyList()
-    {
+
+    public List<PropertyDeclaration> getXMPPropertyList() {
         return _xmpPropertyList;
     }
 }

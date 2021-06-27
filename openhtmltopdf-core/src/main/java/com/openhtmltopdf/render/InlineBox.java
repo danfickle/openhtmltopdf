@@ -85,6 +85,8 @@ public class InlineBox implements Styleable {
     }
 
     private byte _textDirection;
+
+    private BlockBox _footnoteBody;
     
     /**
      * @param direction either LTR or RTL from {@link BidiSplitter} interface.
@@ -524,5 +526,17 @@ public class InlineBox implements Styleable {
     public void truncateText() {
         _text = "";
         _originalText = "";
+    }
+
+    public void setFootnote(BlockBox footnoteBody) {
+        _footnoteBody = footnoteBody;
+    }
+
+    public boolean hasFootnote() {
+        return getFootnoteBody() != null;
+    }
+
+    public BlockBox getFootnoteBody() {
+        return _footnoteBody;
     }
 }

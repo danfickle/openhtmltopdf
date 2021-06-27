@@ -663,8 +663,11 @@ public class PrimitivePropertyBuilders {
 
     public static class Float extends SingleIdent {
         // left | right | none | inherit
+        // bottom | footnote
         private static final BitSet ALLOWED = setFor(
-                new IdentValue[] { IdentValue.LEFT, IdentValue.RIGHT, IdentValue.NONE });
+          new IdentValue[] {
+            IdentValue.LEFT, IdentValue.RIGHT, IdentValue.NONE,
+            IdentValue.BOTTOM, IdentValue.FOOTNOTE });
 
         @Override
         protected BitSet getAllowed() {

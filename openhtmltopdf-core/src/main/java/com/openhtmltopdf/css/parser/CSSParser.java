@@ -47,6 +47,9 @@ public class CSSParser {
         SUPPORTED_PSEUDO_ELEMENTS.add("before");
         SUPPORTED_PSEUDO_ELEMENTS.add("after");
 
+        SUPPORTED_PSEUDO_ELEMENTS.add("footnote-call");
+        SUPPORTED_PSEUDO_ELEMENTS.add("footnote-marker");
+
         CSS21_PSEUDO_ELEMENTS = new HashSet<>();
         CSS21_PSEUDO_ELEMENTS.add("first-line");
         CSS21_PSEUDO_ELEMENTS.add("first-letter");
@@ -569,11 +572,13 @@ public class CSSParser {
         }
         String name = getTokenValue(t);
         MarginBoxName marginBoxName = MarginBoxName.valueOf(name);
-        if (marginBoxName == null) {
+        if (marginBoxName == null && !"footnote".equals(name)) {
             error(new CSSParseException(name + " is not a valid margin box name", getCurrentLine()), "at rule", true);
             recover(true, false);
             return;
         }
+
+        boolean isFootnoteRule = "footnote".equals(name);
 
         skip_whitespace();
         try {
@@ -587,7 +592,12 @@ public class CSSParser {
                     push(t);
                     throw new CSSParseException(t, Token.TK_RBRACE, getCurrentLine());
                 }
-                pageRule.addMarginBoxProperties(marginBoxName, ruleset.getPropertyDeclarations());
+
+                if (isFootnoteRule) {
+                    pageRule.addFootnoteAreaProperties(ruleset.getPropertyDeclarations());
+                } else {
+                    pageRule.addMarginBoxProperties(marginBoxName, ruleset.getPropertyDeclarations());
+                }
             } else {
                 push(t);
                 throw new CSSParseException(t, Token.TK_LBRACE, getCurrentLine());

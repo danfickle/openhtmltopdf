@@ -32,6 +32,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
@@ -439,7 +440,45 @@ public class NonVisualRegressionTest {
         
         remove("link-on-overflow-target", doc);
     }
-    
+
+    /**
+     * Tests that ::footnote-call links are placed correctly and link
+     * to the correct ::footnote-marker.
+     */
+    @Test
+    public void testIssue364FootnoteCallLink() throws IOException {
+        try (PDDocument doc = run("issue-364-footnote-call-link")) {
+            List<PDAnnotation> annots0 = doc.getPage(0).getAnnotations();
+            List<PDAnnotation> annots1 = doc.getPage(1).getAnnotations();
+
+            assertEquals(1, annots0.size());
+            assertEquals(1, annots1.size());
+
+            PDAnnotationLink link0 = (PDAnnotationLink) annots0.get(0);
+            PDAnnotationLink link1 = (PDAnnotationLink) annots1.get(0);
+
+            assertEquals(106.5f, link0.getRectangle().getLowerLeftX(), 0.5f);
+            assertEquals(141.5f, link0.getRectangle().getLowerLeftY(), 0.5f);
+            assertEquals(15.7f, link0.getRectangle().getWidth(), 0.5f);
+            assertEquals(15.0f, link0.getRectangle().getHeight(), 0.5f);
+
+            assertEquals(103.5f, link1.getRectangle().getLowerLeftX(), 0.5f);
+            assertEquals(158.9f, link1.getRectangle().getLowerLeftY(), 0.5f);
+            assertEquals(15.7f, link1.getRectangle().getWidth(), 0.5f);
+            assertEquals(15.0f, link1.getRectangle().getHeight(), 0.5f);
+
+            PDActionGoTo goto0 = (PDActionGoTo) link0.getAction();
+            PDPageXYZDestination dest0 = (PDPageXYZDestination) goto0.getDestination();
+            assertEquals(51, dest0.getTop());
+
+            PDActionGoTo goto1 = (PDActionGoTo) link1.getAction();
+            PDPageXYZDestination dest1 = (PDPageXYZDestination) goto1.getDestination();
+            assertEquals(81, dest1.getTop());
+
+            remove("issue-364-footnote-call-link", doc);
+        }
+    }
+
     /**
      * Tests that link annotation area is correctly translated-y.
      */

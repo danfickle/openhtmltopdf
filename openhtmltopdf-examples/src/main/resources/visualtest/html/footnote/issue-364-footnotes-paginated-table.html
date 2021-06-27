@@ -1,0 +1,78 @@
+<html>
+<head>
+<style>
+@page {
+    size: 300px 300px;
+}
+@page {
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border-top: 3px solid blue;
+    }
+}
+body {
+  margin: 0 10px;
+  padding: 3px;
+  border: 1px solid black;
+  font-size: 18px;
+}
+::footnote-call {
+  counter-increment: footnote;
+}
+span.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  content: "[" counter(footnote) "]";
+}
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+}
+table {
+  width: 100%;
+  font-size: 16px;
+  border-collapse: collapse;
+  -fs-table-paginate: paginate;
+}
+</style>
+</head>
+<body>
+
+    <table>
+
+      <thead>
+        <tr><th>Title 1</th><th>Title 2</th></tr>
+      </thead>
+
+      <tbody>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World! <span class="footnote">Footnote one</span></td></tr>
+        <tr><td>Hello <span class="footnote">Footnote two</span></td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World! <span class="footnote">Footnote three</span></td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello <span class="footnote">Footnote four</span></td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!<span class="footnote">Footnote five</span></td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello <span class="footnote">Footnote six</span></td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+      </tbody>
+
+      <tfoot>
+        <tr><td>Footer 1</td><td>Footer 2</td></tr>
+        <tr><td>Footer 3</td><td>Footer 4</td></tr>
+      </tfoot>
+
+    </table>
+
+</body>
+</html>

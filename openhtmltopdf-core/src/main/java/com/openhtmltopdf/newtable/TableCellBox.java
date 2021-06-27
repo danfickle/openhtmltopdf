@@ -231,20 +231,26 @@ public class TableCellBox extends BlockBox {
         
         calcChildLocations();
     }
-    
+
     public boolean isPageBreaksChange(LayoutContext c, int posDeltaY) {
         if (! c.isPageBreaksAllowed()) {
             return false;
         }
-        
+
         PageBox page = c.getRootLayer().getFirstPage(c, this);
-        
+
+        if (page == null) {
+            return false;
+        }
+
         int bottomEdge = getAbsY() + getChildrenHeight();
-        
-        return page != null && (bottomEdge >= page.getBottom() - c.getExtraSpaceBottom() ||
-                    bottomEdge + posDeltaY >= page.getBottom() - c.getExtraSpaceBottom());
+
+        int pageUsableBottom = page.getBottom(c) - c.getExtraSpaceBottom();
+
+        return (bottomEdge >= pageUsableBottom ||
+                    bottomEdge + posDeltaY >= pageUsableBottom);
     }
-    
+
     public IdentValue getVerticalAlign() {
         IdentValue val = getStyle().getIdent(CSSName.VERTICAL_ALIGN);
         
@@ -254,16 +260,15 @@ public class TableCellBox extends BlockBox {
             return IdentValue.BASELINE;
         }
     }
-    
+
     private boolean isPaintBackgroundsAndBorders() {
         boolean showEmpty = getStyle().isShowEmptyCells();
         // XXX Not quite right, but good enough for now 
         // (e.g. absolute boxes will be counted as content here when the spec 
         // says the cell should be treated as empty).  
-        return showEmpty || getChildrenContentType() != BlockBox.CONTENT_EMPTY;
-                    
+        return showEmpty || getChildrenContentType() != BlockBox.ContentType.EMPTY;
     }
-    
+
     @Override
     public void paintBackground(RenderingContext c) {
         if (isPaintBackgroundsAndBorders() && getStyle().isVisible(c, this)) {

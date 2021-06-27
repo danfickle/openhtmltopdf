@@ -1,0 +1,47 @@
+<html>
+<head>
+<style>
+@page {
+    size: 300px 100px;
+}
+@page {
+    margin: 0;
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid green;
+        max-height: 100%;
+    }
+}
+body {
+  margin: 0;
+  padding: 0;
+  border: 1px solid black;
+  font-size: 185px;
+  widows: 0;
+  orphans: 0;
+}
+::footnote-call {
+  color: orange;
+  counter-increment: footnote 1;
+  content: "[" counter(footnote) "]";
+}
+::footnote-marker {
+  color: blue;
+  content: counter(footnote) ". ";
+}
+.footnote {
+  color: green;
+  float: footnote;
+}
+</style>
+</head>
+<body>
+ <div>
+  This is
+  <span class="footnote">Footnote with large text!</span>
+  a div with a large font-size.
+ </div>
+</body>
+</html>

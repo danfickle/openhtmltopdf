@@ -109,24 +109,26 @@ public class TableRowBox extends BlockBox {
             c.setExtraSpaceBottom(prevExtraBottom);
         }
     }
-    
+
     private boolean isShouldMoveToNextPage(LayoutContext c) {
         PageBox page = c.getRootLayer().getFirstPage(c, this);
-        
-        if (getAbsY() + getHeight() < page.getBottom()) {
+        int pageBottomUsable = page.getBottom(c);
+
+        if (getAbsY() + getHeight() < pageBottomUsable) {
             return false;
         }
-        
+
         for (TableCellBox cell : getTableCells()) {
             int baseline = cell.calcBlockBaseline(c);
-            if (baseline != BlockBox.NO_BASELINE && baseline < page.getBottom()) {
+            if (baseline != BlockBox.NO_BASELINE && baseline < pageBottomUsable) {
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
+    @Override
     public void analyzePageBreaks(LayoutContext c, ContentLimitContainer container) {
         if (getTable().getStyle().isPaginateTable()) {
             _contentLimitContainer = new ContentLimitContainer(c, getAbsY());
@@ -194,22 +196,22 @@ public class TableRowBox extends BlockBox {
     protected void layoutChildren(LayoutContext c, int contentStart) {
         setState(Box.CHILDREN_FLUX);
         ensureChildren(c);
-        
+
         TableSectionBox section = getSection();
         if (section.isNeedCellWidthCalc()) {
             section.setCellWidths(c);
             section.setNeedCellWidthCalc(false);
         }
-        
-        if (getChildrenContentType() != CONTENT_EMPTY) {
+
+        if (getChildrenContentType() != ContentType.EMPTY) {
             for (TableCellBox cell : getTableCells()) {
                 layoutCell(c, cell, 0);
             }
         }
-        
+
         setState(Box.DONE);
     }
-    
+
     private void alignBaselineAlignedCells(LayoutContext c) {
         int[] baselines = new int[getChildCount()];
         int lowest = Integer.MIN_VALUE;

@@ -19,6 +19,7 @@
  */
 package com.openhtmltopdf.css.sheet;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,9 @@ public class PageRule implements RulesetContainer {
     private int _origin;
     
     private final Map<MarginBoxName,List<PropertyDeclaration>> _marginBoxes = new HashMap<>();
-    
+
+    private List<PropertyDeclaration> _footnoteArea = null;
+
     private int _pos;
     
     private int _specificityF;
@@ -136,5 +139,13 @@ public class PageRule implements RulesetContainer {
 
     public void setPos(int pos) {
         _pos = pos;
+    }
+
+    public void addFootnoteAreaProperties(List<PropertyDeclaration> propertyDeclarations) {
+        this._footnoteArea = propertyDeclarations;
+    }
+
+    public List<PropertyDeclaration> getFootnoteAreaProperties() {
+        return this._footnoteArea;
     }
 }

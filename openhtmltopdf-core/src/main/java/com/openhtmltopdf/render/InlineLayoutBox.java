@@ -512,7 +512,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         
         List<Box> result = new ArrayList<>();
         
-        BlockBox container = (BlockBox)getLineBox().getParent();
+        BlockBox container = getLineBox().getParent();
         while (true) {
             List<Box> elementBoxes = container.getElementBoxes(getElement());
             for (int i = 0; i < elementBoxes.size(); i++) {
@@ -636,21 +636,32 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             }
         }
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void removeChild(Box child) {
+    public boolean removeChild(Box child) {
         if (_inlineChildren != null) {
-            _inlineChildren.remove(child);
+            return _inlineChildren.remove(child);
         }
+
+        return false;
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void removeChild(int i) {
+    public boolean removeChild(int i) {
         if (_inlineChildren != null) {
             _inlineChildren.remove(i);
+            return true;
         }
+
+        return false;
     }
-    
+
     @Override
     protected Box getPrevious(Box child) {
         if (_inlineChildren == null) {
@@ -865,31 +876,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         
         return result.toString();
     }
-    
-    @Override
-    public void restyle(LayoutContext c) {
-        super.restyle(c);
-        calculateTextDecoration(c);
-    }
-    
-    @Override
-    protected void restyleChildren(LayoutContext c) {
-        for (int i = 0; i < getInlineChildCount(); i++) {
-            Object obj = getInlineChild(i);
-            if (obj instanceof Box) {
-                ((Box)obj).restyle(c);
-            }
-        }
-    }
-    
-    @Override
-    public Box getRestyleTarget() {
-        // Inline boxes may be broken across lines so back out
-        // to the nearest block box
-        Box result = findAncestor(bx -> !(bx instanceof InlineLayoutBox));
-        return result.getParent();
-    }
-    
+
     @Override
     public void collectText(RenderingContext c, StringBuilder buffer) {
         for (Object obj : getInlineChildren()) {

@@ -65,4 +65,17 @@ public class OpenUtil {
 	            return null;
 	        }
 	}
+
+    /**
+     * First non-zero value or zero if none.
+     */
+    public static int firstNonZero(int... values) {
+        for (int value : values) {
+            if (value != 0) {
+                return value;
+            }
+        }
+        return 0;
+    }
+
 }
