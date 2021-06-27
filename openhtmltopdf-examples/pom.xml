@@ -57,7 +57,7 @@
       -->
       <groupId>org.mozilla</groupId>
       <artifactId>rhino</artifactId>
-      <version>1.7.7</version>
+      <version>${open.rhino.version}</version>
     </dependency>
     <dependency>
       <groupId>com.openhtmltopdf</groupId>
