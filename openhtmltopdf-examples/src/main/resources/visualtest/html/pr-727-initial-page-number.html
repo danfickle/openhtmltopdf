@@ -1,0 +1,29 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 150px;
+  margin: 25px;
+
+  @top-center {
+    content: counter(page) " of " counter(pages);
+  }
+  @bottom-center {
+    content: element(ftr);
+  }
+}
+.footer::before {
+  content: "Footer on page " counter(page) " of " counter(pages);
+}
+body {
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<div class="footer" style="position: running(ftr);"></div>
+
+<h2 style="margin-top: 0;">Page five</h2>
+<h2 style="margin-top: 0; page-break-before: always;">Page six</h2>
+</body>
+</html>

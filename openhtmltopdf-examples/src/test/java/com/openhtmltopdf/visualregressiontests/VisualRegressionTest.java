@@ -1413,6 +1413,16 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-649-multiple-bg-images-page-box"));
     }
 
+    /**
+     * Tests setting an initial page number with CSS page and pages counters.
+     */
+    @Test
+    public void testPr727InitialPageNumber() throws IOException {
+        assertTrue(vt.runTest("pr-727-initial-page-number", builder -> {
+            builder.useInitialPageNumber(5);
+        }));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
