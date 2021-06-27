@@ -463,7 +463,7 @@ public class NonVisualRegressionTest {
             assertEquals(15.0f, link0.getRectangle().getHeight(), 0.5f);
 
             assertEquals(103.5f, link1.getRectangle().getLowerLeftX(), 0.5f);
-            assertEquals(173.9f, link1.getRectangle().getLowerLeftY(), 0.5f);
+            assertEquals(158.9f, link1.getRectangle().getLowerLeftY(), 0.5f);
             assertEquals(15.7f, link1.getRectangle().getWidth(), 0.5f);
             assertEquals(15.0f, link1.getRectangle().getHeight(), 0.5f);
 
