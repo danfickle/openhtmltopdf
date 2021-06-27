@@ -626,6 +626,19 @@ public abstract class BaseRendererBuilder<TFinalClass extends BaseRendererBuilde
         return (TFinalClass) this;
     }
 
+    /**
+     * Allows the setting of the initial page number to use with the 
+     * <code>page</code> and <code>pages</code> CSS counters.
+     * Useful when appending to an existing document.
+     * Must be one or greater.
+     *
+     * @return this for method chaining.
+     */
+    public TFinalClass useInitialPageNumber(int initialPageNumber) {
+        state._initialPageNumber = initialPageNumber;
+        return (TFinalClass) this;
+    }
+
 	public enum TextDirection {
 		RTL, LTR
 	}

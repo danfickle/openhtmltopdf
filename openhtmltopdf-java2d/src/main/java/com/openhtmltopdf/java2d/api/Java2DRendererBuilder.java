@@ -37,17 +37,6 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 		return this;
 	}
 
-	/**
-	 * Used to set an initial page number for use with page counters, etc.
-	 *
-	 * @param pageNumberInitial
-	 * @return this for method chaining
-	 */
-	public Java2DRendererBuilder useInitialPageNumber(int pageNumberInitial) {
-		state._initialPageNumber = pageNumberInitial;
-		return this;
-	}
-
     /**
      * Whether to use fonts available in the environment. Enabling environment fonts may mean different text
      * rendering behavior across different environments. The default is not to use environment fonts.
