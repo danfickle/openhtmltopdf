@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.logging.Level;
 
+import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.XRLog;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSStream;
@@ -64,7 +67,7 @@ public class MergeBackgroundPdfDrawer extends PdfDrawerBase
         }
         catch (IOException e1)
         {
-            e1.printStackTrace();
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_MESSAGE, "Error while drawing with the MergeBackgroundPdfDrawer ", e1);
         }
         return null;
     }

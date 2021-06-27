@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
-    <version>1.0.9-SNAPSHOT</version>
+    <version>1.0.10-SNAPSHOT</version>
   </parent>
 
   <artifactId>openhtmltopdf-examples</artifactId>
@@ -57,7 +57,7 @@
       -->
       <groupId>org.mozilla</groupId>
       <artifactId>rhino</artifactId>
-      <version>1.7.7</version>
+      <version>${open.rhino.version}</version>
     </dependency>
     <dependency>
       <groupId>com.openhtmltopdf</groupId>

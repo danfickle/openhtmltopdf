@@ -35,7 +35,8 @@ public enum SVGProperty {
     STROKE_LINEJOIN,
     STROKE_MITERLIMIT,
     STROKE_OPACITY,
-    STROKE_WIDTH;
+    STROKE_WIDTH,
+    SHAPE_RENDERING;
 
     private static final Set<String> _set =
             Arrays.stream(values())

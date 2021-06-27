@@ -138,7 +138,9 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     private PageSupplier _pageSupplier;
 
     private final Closeable diagnosticConsumer;
-    
+
+    private final int _initialPageNumber;
+
     /**
      * This method is constantly changing as options are added to the builder.
      */
@@ -269,6 +271,8 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         }
         
         this._os = state._os;
+
+        this._initialPageNumber = state._initialPageNumber;
     }
 
     public Document getDocument() {
@@ -483,7 +487,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     @Deprecated
     public void createPDF(OutputStream os, boolean finish, int initialPageNo) throws IOException {
         if (_useFastMode) {
-            createPdfFast(finish);
+            createPdfFast(finish, initialPageNo);
             return;
         }
         
@@ -499,7 +503,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
             RenderingContext c = newRenderingContext();
             c.setInitialPageNo(initialPageNo);
-        
+
             PageBox firstPage = pages.get(0);
             Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
                     firstPage.getWidth(c) / _dotsPerPoint,
@@ -529,7 +533,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     /**
      * Go fast!
      */
-    private void createPdfFast(boolean finish) throws IOException {
+    private void createPdfFast(boolean finish, int initialPageNo) throws IOException {
         boolean success = false;
 
         XRLog.log(Level.INFO, LogMessageId.LogMessageId0Param.GENERAL_PDF_USING_FAST_MODE);
@@ -543,7 +547,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             List<PageBox> pages = _root.getLayer().getPages();
 
             RenderingContext c = newRenderingContext();
-            c.setInitialPageNo(0);
+            c.setInitialPageNo(initialPageNo != 0 ? initialPageNo : _initialPageNumber);
             c.setFastRenderer(true);
         
             PageBox firstPage = pages.get(0);
@@ -602,6 +606,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         
         int pageCount = _root.getLayer().getPages().size();
         c.setPageCount(pageCount);
+
         firePreWrite(pageCount); // opportunity to adjust meta data
         setDidValues(doc); // set PDF header fields from meta data
         

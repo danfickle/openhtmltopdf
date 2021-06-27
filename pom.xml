@@ -5,7 +5,7 @@
 
   <groupId>com.openhtmltopdf</groupId>
   <artifactId>openhtmltopdf-parent</artifactId>
-  <version>1.0.9-SNAPSHOT</version>
+  <version>1.0.10-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
@@ -215,6 +215,14 @@
 
   <properties>
     <open.batik.version>1.14</open.batik.version>
+
+    <!-- Please keep xmlgraphics-commons up to date with batik. -->
+    <open.xmlgraphics.commons.version>2.6</open.xmlgraphics.commons.version>
+
+    <!-- NOTE: Rhino is an optional dependency of Batik-Bridge. This version should match
+         the version specified by Batik-Bridge. -->
+    <open.rhino.version>1.7.7</open.rhino.version>
+
     <open.junit4.version>4.13.1</open.junit4.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

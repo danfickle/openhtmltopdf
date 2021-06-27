@@ -84,7 +84,7 @@ public class FSEntityResolver implements EntityResolver {
             try {
                 is = realUrl.openStream();
             } catch (IOException e) {
-                e.printStackTrace();
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_IO_PROBLEM_FOR_URI, url, e);
             }
 
             if (is == null) {
