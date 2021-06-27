@@ -231,20 +231,26 @@ public class TableCellBox extends BlockBox {
         
         calcChildLocations();
     }
-    
+
     public boolean isPageBreaksChange(LayoutContext c, int posDeltaY) {
         if (! c.isPageBreaksAllowed()) {
             return false;
         }
-        
+
         PageBox page = c.getRootLayer().getFirstPage(c, this);
-        
+
+        if (page == null) {
+            return false;
+        }
+
         int bottomEdge = getAbsY() + getChildrenHeight();
-        
-        return page != null && (bottomEdge >= page.getBottom() - c.getExtraSpaceBottom() ||
-                    bottomEdge + posDeltaY >= page.getBottom() - c.getExtraSpaceBottom());
+
+        int pageUsableBottom = page.getBottom(c) - c.getExtraSpaceBottom();
+
+        return (bottomEdge >= pageUsableBottom ||
+                    bottomEdge + posDeltaY >= pageUsableBottom);
     }
-    
+
     public IdentValue getVerticalAlign() {
         IdentValue val = getStyle().getIdent(CSSName.VERTICAL_ALIGN);
         

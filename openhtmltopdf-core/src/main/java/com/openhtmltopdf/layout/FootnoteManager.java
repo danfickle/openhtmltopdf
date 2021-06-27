@@ -158,7 +158,9 @@ public class FootnoteManager {
             // The number of pages covered by this footnote area may have increased
             // so reserve additional pages as needed.
             int oldPagesCount = area.pages.size();
-            reserveSubsequentPagesForFootnoteArea(c, area, desiredHeight, minFootnoteTop, oldPagesCount);
+            int newDesiredHeight = area.footnoteArea.getBorderBoxHeight(c);
+
+            reserveSubsequentPagesForFootnoteArea(c, area, newDesiredHeight, minFootnoteTop, oldPagesCount);
         } else {
             area.footnoteArea.calcChildLocations();
         }
@@ -224,7 +226,10 @@ public class FootnoteManager {
 
         // FIXME: Not very efficient to layout all footnotes again after one
         // is added.
+        c.setIsPrintOverride(false);
         footnote.footnoteArea.layout(c);
+        c.setIsPrintOverride(null);
+
         positionFootnoteArea(c, footnote, page, line.getHeight(), true);
 
         c.setIsInFloatBottom(false);
@@ -249,7 +254,11 @@ public class FootnoteManager {
                 PageBox page = c.getRootLayer().getFirstPage(c, line);
 
                 area.footnoteArea.reset(c);
+
+                c.setIsPrintOverride(false);
                 area.footnoteArea.layout(c);
+                c.setIsPrintOverride(null);
+
                 positionFootnoteArea(c, area, page, line.getHeight(), true);
 
                 c.setIsInFloatBottom(false);

@@ -1335,7 +1335,12 @@ public class Layer {
             return false;
         }
         PageBox page = getPage(c, top);
-        return bottom >= page.getBottom(c) - c.getExtraSpaceBottom();
+        if (c.isInFloatBottom()) {
+            // For now we don't support paginated tables in float:bottom content.
+            return bottom >= page.getBottom();
+        } else {
+            return bottom >= page.getBottom(c) - c.getExtraSpaceBottom();
+        }
     }
 
     public Layer findRoot() {

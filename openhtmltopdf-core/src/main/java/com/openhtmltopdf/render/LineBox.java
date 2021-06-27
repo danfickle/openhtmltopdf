@@ -685,7 +685,14 @@ public class LineBox extends Box implements InlinePaintable {
             int greatestAbsY = getMaxPaintingBottom();
             int leastAbsY = getMinPaintingTop();
 
-            boolean overflowsPage = greatestAbsY >= pageBox.getBottom(c) - c.getExtraSpaceBottom();
+            boolean overflowsPage;
+            if (c.isInFloatBottom()) {
+                // For now we don't support paginated tables in float:bottom content.
+                overflowsPage = greatestAbsY >= pageBox.getBottom();
+            } else {
+                overflowsPage = greatestAbsY >= pageBox.getBottom(c) - c.getExtraSpaceBottom();
+            }
+
             boolean tooBig = (greatestAbsY - leastAbsY) > pageBox.getContentHeight(c);
             boolean needsPageBreak = alwaysBreak || (overflowsPage && !tooBig); 
 

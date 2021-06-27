@@ -127,6 +127,8 @@ public class BoxBuilder {
             // This avoids many warnings and improves performance.
             parent.setChildrenContentType(BlockBox.ContentType.EMPTY);
             return;
+        } else if (isInsertedBoxIgnored(parent.getElement())) {
+            return;
         }
 
         List<Styleable> children = new ArrayList<>();
@@ -154,6 +156,26 @@ public class BoxBuilder {
 //        if (parent == c.getRootLayer().getMaster()) {
 //            System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(parent));
 //        }
+    }
+
+    private static boolean isInsertedBoxIgnored(Element element) {
+        if (element == null) {
+            return false;
+        }
+
+        String tag = element.getTagName();
+
+        if (!tag.startsWith("fs-")) {
+            return false;
+        }
+
+        switch (tag) {
+        case "fs-footnote":
+        case "fs-footnote-body":
+            return true;
+        default:
+            return false;
+        }
     }
 
     public static TableBox createMarginTable(
@@ -1481,6 +1503,10 @@ public class BoxBuilder {
     private static void createChildren(
             LayoutContext c, BlockBox blockParent, Element parent,
             List<Styleable> children, ChildBoxInfo info, boolean inline) {
+
+        if (isInsertedBoxIgnored(parent)) {
+            return;
+        }
 
         SharedContext sharedContext = c.getSharedContext();
         CalculatedStyle parentStyle = sharedContext.getStyle(parent);
