@@ -10,5 +10,7 @@ public enum StructureType {
     INLINE,
     INLINE_CHILD_BOX,
     LIST_MARKER,
-    REPLACED;
+    REPLACED,
+    RUNNING_HEADER,
+    RUNNING_FOOTER;
 }

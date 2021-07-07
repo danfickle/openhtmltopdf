@@ -119,4 +119,9 @@ public class PdfUaTestcaseRunnerTest {
     public void testLinks() throws Exception {
         run("links");
     }
+
+    @Test
+    public void testIssue730TagHeadersFooters() throws Exception {
+        run("issue-730-headers-footers");
+    }
 }

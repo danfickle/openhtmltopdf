@@ -3,6 +3,7 @@ package com.openhtmltopdf.pdfboxout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,9 +26,7 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.w3c.dom.Document;
-
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.extend.StructureType;
@@ -93,6 +92,9 @@ public class PdfBoxAccessibilityHelper {
     private static class PageItems {
         final List<GenericContentItem> _contentItems = new ArrayList<>();
         final List<AnnotationWithStructureParent> _pageAnnotations = new ArrayList<>();
+        final List<AbstractTreeItem> _headers = new ArrayList<>();
+        final List<AbstractTreeItem> _footers = new ArrayList<>();
+        int bodyIndexForHeaders = 0;
     }
     
     /**
@@ -185,7 +187,7 @@ public class PdfBoxAccessibilityHelper {
         void addChild(AbstractTreeItem child) {
             this.children.add(child);
         }
-        
+
         private String chooseTag(Box box) {
             if (box != null) {
                 if (box.getLayer() != null) {
@@ -225,7 +227,7 @@ public class PdfBoxAccessibilityHelper {
             // A structual element such as Div, Sect, p, etc
             // which contains other structual elements or content items (text).
             GenericStructualElement child = this;
-            
+
             if (child.children.isEmpty() &&
                 (child.box.getElement() == null || !child.box.getElement().hasAttribute("id"))) {
                 // There is no point in outputting empty structual elements.
@@ -233,7 +235,7 @@ public class PdfBoxAccessibilityHelper {
                 // use as a link or bookmark destination.
                 return;
             }
-            
+
             if (child.box instanceof LineBox ||
                 (child.box instanceof InlineLayoutBox &&
                  child.children.size() == 1 &&
@@ -488,7 +490,7 @@ public class PdfBoxAccessibilityHelper {
         @Override
         void finish(AbstractStructualElement parent) {
             TableStructualElement child = this;
-            
+
             createPdfStrucureElement(parent, child);
             
             handleGlobalAttributes();
@@ -906,7 +908,6 @@ public class PdfBoxAccessibilityHelper {
         while (parent != null && parent.getAccessibilityObject() == null) {
             AbstractStructualElement parentItem = createStructureItem(null, parent);
             parent.setAccessiblityObject(parentItem);
-            
             parentItem.addChild(child);
             
             child.parent = parentItem;
@@ -934,8 +935,8 @@ public class PdfBoxAccessibilityHelper {
                             (float) rect.getWidth(),
                             (float) rect.getHeight());
                 }
-            } 
-            
+            }
+
             if (child == null && box.getElement() != null && !box.isAnonymous()) {
                 String htmlTag = box.getElement().getTagName();
                 Supplier<AbstractStructualElement> supplier = _tagSuppliers.get(htmlTag);
@@ -976,7 +977,6 @@ public class PdfBoxAccessibilityHelper {
     
     private void setupStructureElement(AbstractStructualElement child, Box box) {
         box.setAccessiblityObject(child);
-        
         ensureAncestorTree(child, box.getParent());
         ensureParent(box, child);
     }
@@ -1087,24 +1087,15 @@ public class PdfBoxAccessibilityHelper {
     private static final Token NESTED_RUNNING = new Token();
     
     public Token startStructure(StructureType type, Box box) {
+            StructureType orig = type;
+            boolean running = false;
             // Check for items that appear on every page (fixed, running, page margins).    
-            if (type == StructureType.RUNNING) {
-                // Only mark artifact for first level of running element (we might have
-                // nested fixed elements).
-                if (_runningLevel == 0) {
-                    _runningLevel++;
-                    COSDictionary run = createPaginationArtifact(type, box);
-                    _cs.beginMarkedContent(COSName.ARTIFACT, run);
-                    return STARTING_RUNNING;
-                }
-                
-                _runningLevel++;
-                return NESTED_RUNNING;
-            } else if (_runningLevel > 0) {
-                // We are in a running artifact.
-                return INSIDE_RUNNING;
+            if (type == StructureType.RUNNING_HEADER ||
+                type == StructureType.RUNNING_FOOTER) {
+                running = true;
+                type = StructureType.BLOCK;
             }
-        
+
             switch (type) {
             case LAYER:
             case FLOAT:
@@ -1112,10 +1103,20 @@ public class PdfBoxAccessibilityHelper {
             case INLINE:
             case INLINE_CHILD_BOX: {
                 AbstractStructualElement struct = (AbstractStructualElement) box.getAccessibilityObject();
-                if (struct == null) {
+                if (struct == null && !running) {
                     struct = createStructureItem(type, box);
                     setupStructureElement(struct, box);
+                } else if (running) {
+                    struct = createStructureItem(type, box);
+                    
+                    if (orig == StructureType.RUNNING_HEADER) {
+                        this._pageItems._headers.add(struct);
+                    } else {
+                        this._pageItems._footers.add(struct);
+                    }
+                    box.setAccessiblityObject(struct);
                 }
+
                 return FALSE_TOKEN;
             }
             case BACKGROUND: {
@@ -1198,11 +1199,24 @@ public class PdfBoxAccessibilityHelper {
         this._pageHeight = pageHeight;
         this._transform = transform;
         this._pageItems = new PageItems();
+
+        if (_rootBox != null && _rootBox.getChild(0).getAccessibilityObject() != null) {
+            GenericStructualElement body = (GenericStructualElement) _rootBox.getChild(0).getAccessibilityObject();
+            _pageItems.bodyIndexForHeaders = body.children.size();
+        }
+
         this._pageItemsMap.put(page, this._pageItems);
     }
     
     public void endPage() {
-        
+        GenericStructualElement body = (GenericStructualElement) this._rootBox.getChild(0).getAccessibilityObject();
+
+        Collections.reverse(_pageItems._headers);
+        _pageItems._headers.forEach(hdr -> body.children.add(_pageItems.bodyIndexForHeaders, hdr));
+        _pageItems._headers.forEach(runner -> runner.parent = body);
+
+        _pageItems._footers.forEach(body::addChild);
+        _pageItems._footers.forEach(runner -> runner.parent = body);
     }
     
     private static class AnnotationWithStructureParent {

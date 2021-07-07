@@ -1,0 +1,36 @@
+<html>
+<head>
+<title>A title of a document</title>
+<style>
+@page {
+  margin: 1cm;
+  @top-center {
+    content: element(hdr);
+  }
+  @bottom-center {
+    content: element(ftr);
+  }
+}
+</style>
+</head>
+<body style="font-family: 'TestFont';">
+  <div style="position: running(hdr);">
+    Header!
+  </div>
+  <div style="position: running(ftr);">
+    Footer!
+  </div>
+
+  <div>
+    Page 1
+  </div>
+
+  <div style="page-break-before: always;">
+    Page 2
+  </div>
+
+  <div style="page-break-before: always;">
+    Page 3
+  </div>
+</body>
+</html>

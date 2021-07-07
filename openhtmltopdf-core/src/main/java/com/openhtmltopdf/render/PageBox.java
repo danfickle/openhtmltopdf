@@ -24,6 +24,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import org.w3c.dom.Element;
@@ -426,7 +427,15 @@ public class PageBox {
                 if (c.getOutputDevice().isFastRenderer()) {
                     table.getLayer().propagateCurrentTransformationMatrix(c);
                     SimplePainter painter = new SimplePainter(p.x, p.y);
-                    Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, table);
+
+                    boolean isTop = 
+                        Arrays.stream(container._area.getMarginBoxNames())
+                              .anyMatch(mbn -> mbn.toString().contains("top"));
+                    StructureType type = isTop ? 
+                            StructureType.RUNNING_HEADER :
+                            StructureType.RUNNING_FOOTER;
+
+                    Object token = c.getOutputDevice().startStructure(type, table);
                     painter.paintLayer(c, table.getLayer());
                     c.getOutputDevice().endStructure(token);
                 } else {

@@ -6,6 +6,7 @@ import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.Map;
 
+import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.CollapsedBorderSide;
 import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
@@ -114,7 +115,10 @@ public class SimplePainter {
                 setClip(c, setClip);
             } else {
                 BlockBox box = (BlockBox) dli;
-                
+
+                Object outerToken = c.getOutputDevice().startStructure(StructureType.BLOCK, box);
+                Object innerToken = c.getOutputDevice().startStructure(StructureType.BACKGROUND, box);
+
                 debugOnly("painting bg", box);
                 box.paintBackground(c);
                 box.paintBorder(c);
@@ -132,6 +136,9 @@ public class SimplePainter {
                         }
                     }
                 }
+
+                c.getOutputDevice().endStructure(innerToken);
+                c.getOutputDevice().endStructure(outerToken);
             }
         }
         
@@ -167,7 +174,9 @@ public class SimplePainter {
             } else {
                 InlinePaintable paintable = (InlinePaintable) dli;
                 debugOnly("Painting Inline", paintable);
+                Object token = c.getOutputDevice().startStructure(StructureType.INLINE, (Box) dli);
                 paintable.paintInline(c);
+                c.getOutputDevice().endStructure(token);
             }
         }
         
