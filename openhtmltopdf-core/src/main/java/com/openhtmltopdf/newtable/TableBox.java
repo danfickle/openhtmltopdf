@@ -221,6 +221,10 @@ public class TableBox extends BlockBox {
 
     @Override
     public void layout(LayoutContext c) {
+        boolean pushedLayer = checkPushLayer(c, getStyle());
+
+        checkPushBfc(c);
+
         calcMinMaxWidth(c);
         calcDimensions(c);
         calcWidth();
@@ -238,6 +242,12 @@ public class TableBox extends BlockBox {
         setCellWidths(c);
 
         layoutTable(c);
+
+        checkPopBfc(c);
+
+        if (pushedLayer) {
+            c.popLayer();
+        }
     }
 
     @Override

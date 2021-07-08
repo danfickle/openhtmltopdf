@@ -1423,6 +1423,16 @@ public class VisualRegressionTest {
         }));
     }
 
+    /**
+     * Test for a bug where a table with <code>position: absolute</code>
+     * caused an exception as no block formatting context was created for
+     * positioned tables.
+     */
+    @Test
+    public void testIssue732NoBlockFormattingContext() throws IOException {
+        assertTrue(vt.runTest("issue-732-no-bfc"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
