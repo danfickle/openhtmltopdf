@@ -142,6 +142,16 @@ public class PdfATester {
         assertTrue(run("all-in-one", PDFAFlavour.PDFA_2_U, PdfAConformance.PDFA_2_U));
     }
 
+    @Test
+    public void testAllInOnePdfA3a() throws Exception {
+        assertTrue(run("all-in-one", PDFAFlavour.PDFA_3_A, PdfAConformance.PDFA_3_A));
+    }
+
+    @Test
+    public void testAllInOnePdfA3u() throws Exception {
+        assertTrue(run("all-in-one", PDFAFlavour.PDFA_3_U, PdfAConformance.PDFA_3_U));
+    }
+
     /**
      * File embedding is allowed as of PDF/A3.
      */
