@@ -754,21 +754,24 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                 if (modDate != null) {
                     xmpBasicSchema.setModifyDate(modDate);
                 }
+            }
 
+            DublinCoreSchema dc = metadata.createAndAddDublinCoreSchema();
+            dc.setFormat("application/pdf");
 
-                DublinCoreSchema dc = metadata.createAndAddDublinCoreSchema();
-                dc.setFormat("application/pdf");
-                if (author != null) {
-                    dc.addCreator(author);
-                }
-                if (title != null) {
-                    dc.setTitle(title);
-                }
-                if (subject != null) {
-                    dc.setDescription(subject);
-                } else if (isPdfUa) {
-                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_DESCRIPTION_PROVIDED);
-                }
+            if (author != null) {
+                dc.addCreator(author);
+            }
+
+            if (title != null) {
+                dc.setTitle(title);
+            }
+
+            if (subject != null) {
+                dc.setDescription(subject);
+            } else if (isPdfUa) {
+                XRLog.log(Level.WARNING,
+                        LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_DESCRIPTION_PROVIDED);
             }
 
             PDFAExtensionSchema pdfAExt = metadata.createAndAddPDFAExtensionSchemaWithDefaultNS();
@@ -797,6 +800,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                 pdfAExt.addBagValue("schemas",
                         createPdfaSchema("PDF/A ID Schema", "http://www.aiim.org/pdfa/ns/id/", "pdfaid", pdfaidProperties));
             }
+
             if (isPdfUa) {
                 // Description of PDF/UA
                 List<XMPSchema> pdfUaProperties = new ArrayList<>(1);
@@ -817,7 +821,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             PDDocumentCatalog catalog = document.getDocumentCatalog();
             catalog.setMetadata(metadataStream);
             catalog.setMarkInfo(markInfo);
-            
+
             String lang = _doc.getDocumentElement().getAttribute("lang");
             catalog.setLanguage(!lang.isEmpty() ? lang : "EN-US");
             catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
