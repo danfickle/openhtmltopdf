@@ -1030,42 +1030,12 @@ public class BlockBox extends Box implements InlinePaintable {
 
     public void layout(LayoutContext c, int contentStart) {
         CalculatedStyle style = getStyle();
-        boolean pushedLayer = false;
 
-        if (isRoot()) {
-            pushedLayer = true;
-            c.pushLayer(this);
-
-            if (c.isPrint()) {
-            	if (!style.isIdent(CSSName.PAGE, IdentValue.AUTO)) {
-            		c.setPageName(style.getStringProperty(CSSName.PAGE));
-            	}
-            	c.getRootLayer().addPage(c);
-            }
-        } else if (style.requiresLayer() && this.getLayer() == null) {
-            pushedLayer = true;
-            c.pushLayer(this);
-        } else if (style.requiresLayer()) {
-            // FIXME: HACK. Some boxes can be layed out many times (to satisfy page constraints for example).
-            // If this happens we just mark our old layer for deletion and create a new layer.
-            // Not sure this is right, but doesn't break any correct tests.
-            boolean isIsolated = getLayer().isIsolated();
-            getLayer().setForDeletion(true);
-
-            pushedLayer = true;
-            if (isIsolated) {
-                c.pushLayerIsolated(this);
-            } else {
-                c.pushLayer(this);
-            }
-        }
+        boolean pushedLayer = checkPushLayer(c, style);
 
         calcClearance(c);
 
-        if (isRoot() || getStyle().establishesBFC() || isMarginAreaRoot()) {
-            BlockFormattingContext bfc = new BlockFormattingContext(this, c);
-            c.pushBFC(bfc);
-        }
+        checkPushBfc(c);
 
         addBoxID(c);
 
@@ -1149,12 +1119,63 @@ public class BlockBox extends Box implements InlinePaintable {
 
         calcLayoutHeight(c, border, margin, padding);
 
-        if (isRoot() || getStyle().establishesBFC()) {
-            c.popBFC();
-        }
+        checkPopBfc(c);
 
         if (pushedLayer) {
             c.popLayer();
+        }
+    }
+
+    protected boolean checkPushLayer(LayoutContext c, CalculatedStyle style) {
+        if (isRoot()) {
+            c.pushLayer(this);
+
+            if (c.isPrint()) {
+                if (!style.isIdent(CSSName.PAGE, IdentValue.AUTO)) {
+                    c.setPageName(style.getStringProperty(CSSName.PAGE));
+                }
+                c.getRootLayer().addPage(c);
+            }
+
+            return true;
+        } else if (style.requiresLayer() && this.getLayer() == null) {
+            c.pushLayer(this);
+            return true;
+        } else if (style.requiresLayer()) {
+            // FIXME: HACK. Some boxes can be layed out many times (to satisfy page constraints for example).
+            // If this happens we just mark our old layer for deletion and create a new layer.
+            // Not sure this is right, but doesn't break any correct tests.
+            //
+            // NOTE: This only happens if someone has called layout multiple times
+            // without calling reset beforehand.
+            this.getLayer().setForDeletion(true);
+            c.pushLayer(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if this box established a block formatting context and if so
+     * removes the last bfc from the stack.
+     * See also {@link #checkPushBfc(LayoutContext)}
+     */
+    protected void checkPopBfc(LayoutContext c) {
+        if (isRoot() || getStyle().establishesBFC()) {
+            c.popBFC();
+        }
+    }
+
+    /**
+     * Checks if this box establishes a block formatting context and if
+     * so creates one and pushes it to the stack of bfcs.
+     * See also {@link #checkPopBfc(LayoutContext)}
+     */
+    protected void checkPushBfc(LayoutContext c) {
+        if (isRoot() || getStyle().establishesBFC() || isMarginAreaRoot()) {
+            BlockFormattingContext bfc = new BlockFormattingContext(this, c);
+            c.pushBFC(bfc);
         }
     }
 

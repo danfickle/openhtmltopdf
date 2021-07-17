@@ -86,4 +86,16 @@ public class JsoupNonVisualRegressionTest {
             // Do nothing, we're just testing that we don't throw.
         }
     }
+
+    /**
+     * Tests an infinite loop when page-break-inside: avoid
+     * is used on heavily nested content.
+     */
+    @Test
+    @Ignore // Not finishing!
+    public void testIssue551PageBreakAvoidStuck() throws IOException {
+        try (PDDocument doc = run("issue-551-page-break-avoid-stuck", builder -> {})) {
+
+        }
+    }
 }
