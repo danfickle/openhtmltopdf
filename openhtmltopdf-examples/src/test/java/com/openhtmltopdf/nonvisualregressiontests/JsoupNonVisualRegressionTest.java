@@ -1,5 +1,7 @@
 package com.openhtmltopdf.nonvisualregressiontests;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -88,14 +90,13 @@ public class JsoupNonVisualRegressionTest {
     }
 
     /**
-     * Tests an infinite loop when page-break-inside: avoid
+     * Tests a now-fixed near-infinite loop when page-break-inside: avoid
      * is used on heavily nested content.
      */
     @Test
-    @Ignore // Not finishing!
     public void testIssue551PageBreakAvoidStuck() throws IOException {
         try (PDDocument doc = run("issue-551-page-break-avoid-stuck", builder -> {})) {
-
+            assertEquals(doc.getNumberOfPages(), 3);
         }
     }
 }

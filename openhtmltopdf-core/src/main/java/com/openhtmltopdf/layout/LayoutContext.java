@@ -56,6 +56,14 @@ import com.openhtmltopdf.render.PageBox;
  * {@link SharedContext}.
  */
 public class LayoutContext implements CssContext {
+    public enum BlockBoxingState {
+        NOT_SET,
+        ALLOW,
+        DENY;
+    }
+
+    private BlockBoxingState _blockBoxingState = BlockBoxingState.NOT_SET;
+
     private SharedContext _sharedContext;
 
     private Layer _rootLayer;
@@ -507,6 +515,14 @@ public class LayoutContext implements CssContext {
 
     public void setMayCheckKeepTogether(boolean mayKeepTogether) {
         _mayCheckKeepTogether = mayKeepTogether;
+    }
+
+    public void setBlockBoxingState(BlockBoxingState state) {
+        _blockBoxingState = state;
+    }
+
+    public BlockBoxingState getBlockBoxingState() {
+        return _blockBoxingState;
     }
 
     public boolean isLineBreakedBecauseOfNoWrap() {

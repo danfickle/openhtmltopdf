@@ -26,6 +26,7 @@ import java.util.TreeSet;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.layout.LayoutContext.BlockBoxingState;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.LineBox;
@@ -40,6 +41,10 @@ import com.openhtmltopdf.render.BlockBox.ContentType;
  * properties are also handled here.  If a rule is violated, the affected run
  * of boxes will be layed out again.  If the rule still cannot be satisfied,
  * the rule will be dropped.
+ * <br><br>
+ * IMPORTANT: This is quite hard to get right without causing an explosion of layouts
+ * caused by re-attempts to satisfy page-break-inside: avoid in deeply nested content.
+ * Please be careful when editing these functions.
  */
 public class BlockBoxing {
     private static final int NO_PAGE_TRIM = -1;
@@ -58,6 +63,7 @@ public class BlockBoxing {
         int childOffset = block.getHeight() + contentStart;
 
         AbstractRelayoutDataList relayoutDataList = null;
+        BlockBoxingState enterState = c.getBlockBoxingState();
 
         if (c.isPrint()) {
             relayoutDataList = new LiteRelayoutDataList(size);
@@ -66,12 +72,12 @@ public class BlockBoxing {
         int pageCount = NO_PAGE_TRIM;
 
         BlockBox previousChildBox = null;
+        boolean oneChildFailed = false;
 
         for (int offset = 0; offset < size; offset++) {
             BlockBox child = (BlockBox) localChildren.get(offset);
-
             LayoutState savedChildLayoutState = null;
-            boolean mayCheckKeepTogether = false;
+            boolean rootPageBreakInsideAvoid = false;
 
             if (c.isPrint()) {
                 savedChildLayoutState = c.copyStateForRelayout();
@@ -83,40 +89,61 @@ public class BlockBoxing {
 
                 child.setNeedPageClear(false);
 
-                if ((child.getStyle().isAvoidPageBreakInside() || child.getStyle().isKeepWithInline())
-                        && c.isMayCheckKeepTogether()) {
-                    mayCheckKeepTogether = true;
-                    c.setMayCheckKeepTogether(false);
+                if ((child.getStyle().isAvoidPageBreakInside() ||
+                     child.getStyle().isKeepWithInline()) &&
+                    c.getBlockBoxingState() == BlockBoxingState.NOT_SET) {
+                    rootPageBreakInsideAvoid = true;
                 }
             }
 
+            if (rootPageBreakInsideAvoid) {
+                c.setBlockBoxingState(BlockBoxingState.ALLOW);
+            } else {
+                c.setBlockBoxingState(enterState);
+            }
+
+            // Our first try at layout with no page clear beforehand.
             layoutBlockChild(
                     c, block, child, false, childOffset, NO_PAGE_TRIM, savedChildLayoutState);
 
             if (c.isPrint()) {
                 boolean needPageClear = child.isNeedPageClear();
 
-                if (needPageClear || mayCheckKeepTogether) {
-                    c.setMayCheckKeepTogether(mayCheckKeepTogether);
-
-                    boolean tryToAvoidPageBreak = child.getStyle().isAvoidPageBreakInside() && child.crossesPageBreak(c);
+                if (needPageClear || c.getBlockBoxingState() == BlockBoxingState.ALLOW) {
+                    boolean pageBreak = child.crossesPageBreak(c);
+                    boolean pageBreakAfterRetry = pageBreak;
+                    boolean tryToAvoidPageBreak = pageBreak && child.getStyle().isAvoidPageBreakInside();
                     boolean keepWithInline = child.isNeedsKeepWithInline(c);
 
                     if (tryToAvoidPageBreak || needPageClear || keepWithInline) {
                         c.restoreStateForRelayout(savedChildLayoutState);
-
                         child.reset(c);
+
+                        c.setBlockBoxingState(BlockBoxingState.DENY);
+                        // Our second attempt with page clear beforehand.
                         layoutBlockChild(
                                 c, block, child, true, childOffset, pageCount, savedChildLayoutState);
+                        c.setBlockBoxingState(enterState);
 
-                        if (tryToAvoidPageBreak && child.crossesPageBreak(c) && ! keepWithInline) {
+                        pageBreakAfterRetry = child.crossesPageBreak(c);
+
+                        if (tryToAvoidPageBreak && pageBreakAfterRetry && ! keepWithInline) {
                             c.restoreStateForRelayout(savedChildLayoutState);
                             child.reset(c);
+
+                            c.setBlockBoxingState(BlockBoxingState.ALLOW);
+                            // Our second attempt failed, so reset with no page break beforehand.
                             layoutBlockChild(
                                     c, block, child, false, childOffset, pageCount, savedChildLayoutState);
                         }
+
+                        if (pageBreakAfterRetry) {
+                            oneChildFailed = true;
+                        }
+
                     }
                 }
+
                 c.getRootLayer().ensureHasPage(c, child);
             }
 
@@ -157,6 +184,18 @@ public class BlockBoxing {
             }
 
             previousChildBox = child;
+
+            if (rootPageBreakInsideAvoid) {
+                c.setBlockBoxingState(enterState);
+            }
+        }
+
+        if (oneChildFailed) {
+            // IMPORTANT: If one child failed to satisfy the page-break-inside: avoid
+            // constraint we signal to ancestor boxes that they should not try to satisfy
+            // the constraint. Otherwise, we get an explosion of layout attempts, that will
+            // practically never end for deeply nested blocks. See danfickle#551.
+            c.setBlockBoxingState(BlockBoxingState.DENY);
         }
     }
 
@@ -413,6 +452,7 @@ public class BlockBoxing {
     private static class LiteRelayoutDataList extends AbstractRelayoutDataList {
         final int[] childOffsets;
         final LayoutState[] layoutStates;
+
         TreeSet<Integer> runStarts;
         TreeSet<Integer> runEnds;
 
