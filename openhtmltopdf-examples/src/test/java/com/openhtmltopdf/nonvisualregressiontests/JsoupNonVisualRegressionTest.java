@@ -6,9 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.jsoup.Jsoup;
@@ -97,13 +94,7 @@ public class JsoupNonVisualRegressionTest {
      */
     @Test
     public void testIssue551PageBreakAvoidStuck() throws IOException {
-        try (PDDocument doc = run("issue-551-page-break-avoid-stuck", builder -> {})) {
-            if (doc.getNumberOfPages() != 3) {
-                File pdf = new File("target/problem.pdf");
-                doc.save(pdf);
-                String pdfStr = new String(Files.readAllBytes(pdf.toPath()), StandardCharsets.UTF_8);
-                System.out.println(pdfStr);
-            }
+        try (PDDocument doc = run("issue-551-page-break-avoid-stuck", TestSupport.WITH_FONT)) {
             assertEquals(3, doc.getNumberOfPages());
         }
     }
