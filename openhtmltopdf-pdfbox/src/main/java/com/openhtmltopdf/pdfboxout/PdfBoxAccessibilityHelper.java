@@ -185,38 +185,49 @@ public class PdfBoxAccessibilityHelper {
         void addChild(AbstractTreeItem child) {
             this.children.add(child);
         }
-        
+
         private String chooseTag(Box box) {
             if (box != null) {
                 if (box.getLayer() != null) {
                     return StandardStructureTypes.SECT;
                 } else if (box.isAnonymous()) {
                     return guessBoxTag(box);
-                } if (box.getElement() != null) {
+                } else if (box.getElement() != null) {
                     String htmlTag = box.getElement().getTagName();
-                    
-                    if (htmlTag.equals("p")) {
+
+                    switch (htmlTag) {
+                    case "p":
                         return StandardStructureTypes.P;
-                    } else if (htmlTag.equals("h1")) {
+                    case "h1":
                         return StandardStructureTypes.H1;
-                    } else if (htmlTag.equals("h2")) {
+                    case "h2":
                         return StandardStructureTypes.H2;
-                    } else if (htmlTag.equals("h3")) {
+                    case "h3":
                         return StandardStructureTypes.H3;
-                    } else if (htmlTag.equals("h4")) {
+                    case "h4":
                         return StandardStructureTypes.H4;
-                    } else if (htmlTag.equals("h5")) {
+                    case "h5":
                         return StandardStructureTypes.H5;
-                    } else if (htmlTag.equals("h6")) {
+                    case "h6":
                         return StandardStructureTypes.H6;
-                    } else if (htmlTag.equals("article")) {
+                    case "article": // Fall-thru
+                    case "art":
                         return StandardStructureTypes.ART;
+                    case "part":
+                        return StandardStructureTypes.PART;
+                    case "section": // Fall-thru
+                    case "sect":
+                        return StandardStructureTypes.SECT;
+                    case "caption":
+                        return StandardStructureTypes.CAPTION;
+                    case "blockquote":
+                        return StandardStructureTypes.BLOCK_QUOTE;
                     }
                 }
-                
+
                 return guessBoxTag(box);
             }
-            
+
             return StandardStructureTypes.SPAN;
         }
 
