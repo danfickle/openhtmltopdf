@@ -817,7 +817,7 @@ public class Layer {
     }
 
     public void positionFixedLayer(RenderingContext c) {
-        Rectangle rect = c.getFixedRectangle();
+        Rectangle rect = c.getFixedRectangle(true);
 
         Box fixed = getMaster();
 

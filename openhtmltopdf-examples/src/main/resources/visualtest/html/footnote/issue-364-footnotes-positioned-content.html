@@ -2,7 +2,7 @@
 <head>
 <style>
 @page {
-    size: 250px 300px;
+    size: 250px 330px;
 }
 @page {
     @footnote {
@@ -14,8 +14,10 @@
     }
 }
 body {
+  background-color: pink;
   margin: 0 10px;
   font-size: 18px;
+  border: 1px solid black;
 
   /* When there is limited space for lines (such as with large footnote area)
      then orphans and widows can create undesirable layout. */
@@ -43,10 +45,10 @@ span.footnote {
 </p>
 
 <p style="page-break-before: always;">
-  Footnote numbers. <span id="3" class="footnote">Just to be silly this is a really long footnote that will need wrapping and such.</span>
+  Footnote numbers. <span id="3" class="footnote">Just to be silly this is a really long footnote that will need wrapping and such. This is a multiple page footnote so here we go on and on to get to the next page.</span>
 </p>
 
-<div style="background: blue; position: fixed; bottom: 0; left: 40%; width: 40%; height: 50px;"></div>
+<div style="background: blue; position: fixed; bottom: 0; left: 40%; width: 40%; height: 150px;"></div>
 <div style="background: red; position: absolute; bottom: 0; left: 0; width: 40%; height: 50px;"></div>
 </body>
 </html>

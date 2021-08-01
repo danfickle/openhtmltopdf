@@ -144,7 +144,13 @@ public class RenderingContext implements CssContext, Cloneable {
         return sharedContext.getCanvas();
     }
 
-    public Rectangle getFixedRectangle() {
+    /**
+     * Get the document (for non-paged docs) or page rect where
+     * fixed position boxes should be layed out. Generally we want to set
+     * <code>excludeFloatBottomArea</code> true so fixed content doesn't sit
+     * above footnotes.
+     */
+    public Rectangle getFixedRectangle(boolean excludeFloatBottomArea) {
         if (!outputDevice.isPDF() && !isPaged()) {
             return new Rectangle(
                  -this.page.getMarginBorderPadding(this, CalculatedStyle.LEFT),
@@ -162,21 +168,40 @@ public class RenderingContext implements CssContext, Cloneable {
         if (! isPrint()) {
             result = sharedContext.getFixedRectangle();
         } else {
-            result = new Rectangle(0, -this.page.getTop(), 
+            if (excludeFloatBottomArea &&
+                this.page.getFootnoteAreaHeight() > 0 &&
+                !this.page.isFootnoteReserved(this)) {
+
+                // Generally, with bottom: 0 for fixed content, we do not
+                // want it sitting above the footnotes. The exception is
+                // multi-page footnotes where the entire page is reserved
+                // for footnotes and so we don't have any choice.
+                result = new Rectangle(
+                        0,
+                        -this.page.getTop(),
+                        this.page.getContentWidth(this),
+                        this.page.getBottom(this) - this.page.getTop());
+            } else {
+                result = new Rectangle(0, -this.page.getTop(), 
                     this.page.getContentWidth(this),
                     this.page.getContentHeight(this)-1);
+            }
         }
+
         result.translate(-1, -1);
         return result;
     }
-    
+
+    /**
+     * Get the viewport rect, for painting the body or html tag background.
+     */
     public Rectangle getViewportRectangle() {
-        Rectangle result = new Rectangle(getFixedRectangle());
+        Rectangle result = new Rectangle(getFixedRectangle(false));
         result.y *= -1;
-        
+
         return result;
     }
-    
+
     public boolean debugDrawBoxes() {
         return sharedContext.debugDrawBoxes();
     }
