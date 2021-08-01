@@ -82,4 +82,14 @@ public class FootnoteVisualRegressionTest {
     public void testIssue364FootnotesPaginatedTable() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-paginated-table"));
     }
+
+    /**
+     * Tests that positon: absolute and fixed content with bottom: 0 sits
+     * above footnotes.
+     */
+    @Test
+    public void testIssue364FootnotesPositionedContent() throws IOException {
+        assertTrue(vt.runTest("issue-364-footnotes-positioned-content"));
+    }
+
 }
