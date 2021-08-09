@@ -107,4 +107,20 @@ public class FootnoteVisualRegressionTest {
         assertTrue(vt.runTest("issue-364-positioned-inside-footnotes"));
     }
 
+    /**
+     * Tests floats in footnotes, floated footnote calls and floats
+     * interacting with footnotes.
+     * <ul>
+     * <li>Footnotes calls may be floated (typically right).</li>
+     * <li>Footnotes act as float containers.</li>
+     * <li>Floats work in footnotes.</li>
+     * <li>Left floated content will appear left of the footnote marker.</li>
+     * <li>Footnote area will clear floated content above.</li>
+     * </ul>
+     */
+    @Test
+    public void testIssue364Floats() throws IOException {
+        assertTrue(vt.runTest("issue-364-floats"));
+    }
+
 }

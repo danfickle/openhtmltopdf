@@ -1132,7 +1132,8 @@ public class BoxBuilder {
                 iB.applyTextTransform();
 
                 if (iB.getElement() == null ||
-                      !"fs-footnote-marker".equals(iB.getElement().getNodeName())) {
+                      (!"fs-footnote-marker".equals(iB.getElement().getNodeName()) &&
+                       !iB.getElement().getAttribute("href").startsWith("#fs-footnote-"))) {
                     iB.setElement(null);
                 }
             }
