@@ -245,7 +245,7 @@ public class CalculatedStyle {
         ret._parent = this._parent;
         System.arraycopy(this._derivedValuesById, 0, ret._derivedValuesById, 0, ret._derivedValuesById.length);
 
-        init(CascadedStyle.createAnonymousStyle(display));
+        ret.init(CascadedStyle.createAnonymousStyle(display));
 
         return ret;
     }

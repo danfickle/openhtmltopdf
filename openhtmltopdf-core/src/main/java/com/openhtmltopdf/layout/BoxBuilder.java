@@ -829,16 +829,9 @@ public class BoxBuilder {
     }
 
     private static List<Styleable> createGeneratedContentList(
-            LayoutContext c, Element element, PropertyValue propValue,
-            String peName, CalculatedStyle style, int mode, ChildBoxInfo info) {
-        List<PropertyValue> values = propValue.getValues();
-
-        if (values == null) {
-            // content: normal or content: none
-            return Collections.emptyList();
-        }
-
-        List<Styleable> result = new ArrayList<>(values.size());
+            LayoutContext c, Element element, List<PropertyValue> values,
+            String peName, CalculatedStyle style, int mode, ChildBoxInfo info,
+            List<Styleable> result) {
 
         for (PropertyValue value : values) {
             ContentFunction contentFunction = null;
@@ -850,15 +843,18 @@ public class BoxBuilder {
             if (type == CSSPrimitiveValue.CSS_STRING) {
                 content = value.getStringValue();
             } else if (type == CSSPrimitiveValue.CSS_URI) {
-                Element creator = element != null ? element : c.getRootLayer().getMaster().getElement();
+                Element creator = element != null ? element : c.getRootLayer().getMaster().getElement(); 
+
                 Document doc = creator.getOwnerDocument();
                 Element img = doc.createElement("img");
+
                 img.setAttribute("src", value.getStringValue());
                 creator.appendChild(img);
 
+                CalculatedStyle anon = new EmptyStyle().createAnonymousStyle(IdentValue.INLINE_BLOCK);
+
                 BlockBox iB = new BlockBox();
                 iB.setElement(img);
-                CalculatedStyle anon = new EmptyStyle().createAnonymousStyle(IdentValue.INLINE_BLOCK);
                 iB.setStyle(anon);
 
                 info.setContainsBlockLevelContent(true);
@@ -1041,45 +1037,75 @@ public class BoxBuilder {
 
         ChildBoxInfo childInfo = new ChildBoxInfo();
 
-        List<Styleable> inlineBoxes = createGeneratedContentList(
-                c, element, property, peName, style, CONTENT_LIST_DOCUMENT, childInfo);
+        List<PropertyValue> values = property.getValues();
 
-        if ("footnote-marker".equals(peName)) {
-            // We need a box at the start of marker to target the ::footnote-call
-            // link to.
-            InlineBox targetStart = new InlineBox("");
+        if (values == null) {
+            // content: normal or content: none
+            return Collections.emptyList();
+        }
 
-            targetStart.setStartsHere(true);
-            targetStart.setEndsHere(true);
-            targetStart.setElement(createFootnoteTarget(c, element));
-            targetStart.setStyle(style.createAnonymousStyle(IdentValue.INLINE));
-            targetStart.setPseudoElementOrClass(peName);
+        List<Styleable> result = new ArrayList<>(values.size());
+        Element appendTo = element;
+        CalculatedStyle inlineStyle = style.createAnonymousStyle(IdentValue.INLINE);
 
-            inlineBoxes.add(0, targetStart);
-
-        } else if ("footnote-call".equals(peName)) {
+        if ("footnote-call".equals(peName)) {
             // Wrap the ::footnote-call content with an inline anchor box.
             InlineBox aStart = new InlineBox("");
-            InlineBox aEnd = new InlineBox("");
 
             aStart.setStartsHere(true);
             aStart.setEndsHere(false);
 
-            aEnd.setStartsHere(false);
-            aEnd.setEndsHere(true);
-
             Element anchor = createFootnoteCallAnchor(c, element);
+
             aStart.setElement(anchor);
-            aEnd.setElement(anchor);
+            aStart.setStyle(inlineStyle);
 
-            aStart.setStyle(style.createAnonymousStyle(IdentValue.INLINE));
-            aEnd.setStyle(style.createAnonymousStyle(IdentValue.INLINE));
+            appendTo = anchor;
 
-            inlineBoxes.add(0, aStart);
-            inlineBoxes.add(aEnd);
+            result.add(aStart);
+        } else if ("footnote-marker".equals(peName)) {
+            // We need a box at the start of marker to target the ::footnote-call
+            // link to.
+            Element marker = createFootnoteTarget(c, element);
+
+            InlineBox targetStart = new InlineBox("");
+
+            targetStart.setStartsHere(true);
+            targetStart.setEndsHere(false);
+            targetStart.setElement(marker);
+            targetStart.setStyle(inlineStyle);
+            targetStart.setPseudoElementOrClass(peName);
+
+            result.add(targetStart);
+
+            appendTo = marker;
         }
 
-        return wrapGeneratedContent(element, peName, style, info, childInfo, inlineBoxes);
+        createGeneratedContentList(
+                c, appendTo, values, peName, style, CONTENT_LIST_DOCUMENT, childInfo, result);
+
+        if ("footnote-call".equals(peName)) {
+            // Wrap the ::footnote-call content with an inline anchor box.
+            InlineBox aEnd = new InlineBox("");
+
+            aEnd.setElement(appendTo);
+            aEnd.setStartsHere(false);
+            aEnd.setEndsHere(true);
+            aEnd.setStyle(inlineStyle);
+
+            result.add(aEnd);
+        } else if ("footnote-marker".equals(peName)) {
+            InlineBox targetEnd = new InlineBox("");
+
+            targetEnd.setStartsHere(false);
+            targetEnd.setEndsHere(true);
+            targetEnd.setElement(appendTo);
+            targetEnd.setStyle(inlineStyle);
+
+            result.add(targetEnd);
+        }
+
+        return wrapGeneratedContent(element, peName, style, info, childInfo, result);
     }
 
     private static List<Styleable> wrapGeneratedContent(Element element, String peName, CalculatedStyle style,
@@ -1087,10 +1113,10 @@ public class BoxBuilder {
         if (childInfo.isContainsBlockLevelContent()) {
             List<Styleable> inlines = new ArrayList<>();
 
-            CalculatedStyle anonStyle = style.isInlineBlock() || style.isInline() ?
-                           style : style.createAnonymousStyle(IdentValue.INLINE_BLOCK);
+            CalculatedStyle anonStyle = style.isInlineBlock() ?
+                           style : style.overrideStyle(IdentValue.INLINE_BLOCK);
 
-            BlockBox result = createBlockBox(style, info, true);
+            BlockBox result = createBlockBox(anonStyle, info, true);
             result.setStyle(anonStyle);
             result.setElement(element);
             result.setChildrenContentType(BlockBox.ContentType.INLINE);
@@ -1107,7 +1133,9 @@ public class BoxBuilder {
 
                    iB.setStyle(anon);
                    iB.applyTextTransform();
-                   iB.setElement(null);
+                   if (!isMustKeepElement(iB)) {
+                       iB.setElement(null);
+                   }
 
                    inlines.add(iB);
                }
@@ -1116,6 +1144,7 @@ public class BoxBuilder {
             if (!inlines.isEmpty()) {
                 result.setInlineContent(inlines);
             }
+
             return Collections.singletonList(result);
         } else if (style.isInline()) {
             for (Iterator<Styleable> i = inlineBoxes.iterator(); i.hasNext();) {
@@ -1131,9 +1160,7 @@ public class BoxBuilder {
                 iB.setStyle(anon);
                 iB.applyTextTransform();
 
-                if (iB.getElement() == null ||
-                      (!"fs-footnote-marker".equals(iB.getElement().getNodeName()) &&
-                       !iB.getElement().getAttribute("href").startsWith("#fs-footnote-"))) {
+                if (!isMustKeepElement(iB)) {
                     iB.setElement(null);
                 }
             }
@@ -1153,12 +1180,24 @@ public class BoxBuilder {
         }
     }
 
+    private static boolean isMustKeepElement(InlineBox iB) {
+        return iB.getElement() != null &&
+               ("fs-footnote-marker".equals(iB.getElement().getNodeName()) ||
+                iB.getElement().getAttribute("href").startsWith("#fs-footnote-"));
+    }
+
     private static List<Styleable> createGeneratedMarginBoxContent(
             LayoutContext c, Element element, PropertyValue property,
             CalculatedStyle style, ChildBoxInfo info) {
-        
-        List<Styleable> result = createGeneratedContentList(
-                c, element, property, null, style, CONTENT_LIST_MARGIN_BOX, info);
+        List<PropertyValue> values = property.getValues();
+
+        if (values == null) {
+           return Collections.emptyList();
+        }
+
+        List<Styleable> result = new ArrayList<>(values.size());
+        createGeneratedContentList(
+                c, element, values, null, style, CONTENT_LIST_MARGIN_BOX, info, result);
 
         CalculatedStyle anon = style.createAnonymousStyle(IdentValue.INLINE);
         for (Styleable s : result) {
@@ -1321,7 +1360,7 @@ public class BoxBuilder {
         if (style.isFootnote() && allowFootnotes) {
             c.setFootnoteIndex(c.getFootnoteIndex() + 1);
 
-            // This is the official marker content that can generate zero or more boxes
+            // This is the official footnote call content that can generate zero or more boxes
             // depending on user for ::footnote-call pseudo element.
             insertGeneratedContent(c, element, style, "footnote-call", children, info);
 

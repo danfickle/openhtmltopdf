@@ -123,4 +123,27 @@ public class FootnoteVisualRegressionTest {
         assertTrue(vt.runTest("issue-364-floats"));
     }
 
+    /**
+     * Tests images in footnotes, as footnotes and intersecting with footnotes.
+     */
+    @Test
+    public void testIssue364Images() throws IOException {
+        assertTrue(vt.runTest("issue-364-images"));
+    }
+
+    /**
+     * Tests using an image as the footnote call.
+     */
+    @Test
+    public void testIssue364ImageCalls() throws IOException {
+        assertTrue(vt.runTest("issue-364-image-calls"));
+    }
+
+    /**
+     * Tests using an image as the footnote marker.
+     */
+    @Test
+    public void testIssue364ImageMarkers() throws IOException {
+        assertTrue(vt.runTest("issue-364-image-markers"));
+    }
 }
