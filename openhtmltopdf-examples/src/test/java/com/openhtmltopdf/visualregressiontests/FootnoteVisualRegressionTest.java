@@ -154,4 +154,15 @@ public class FootnoteVisualRegressionTest {
     public void testIssue364ImageMarkers() throws IOException {
         assertTrue(vt.runTest("issue-364-image-markers"));
     }
+
+    /**
+     * Tests non-paginated table content works inside footnote body
+     * as well as footnotes being called from inside an in-flow table.
+     * Also tests use of ::before and ::after in the footnote element.
+     */
+    @Test
+    public void testIssue364NonPaginatedTable() throws IOException {
+        assertTrue(vt.runTest("issue-364-non-paginated-table"));
+    }
+
 }
