@@ -15,7 +15,6 @@ import com.openhtmltopdf.testlistener.PrintingRunner;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester;
 
-@Ignore
 @RunWith(PrintingRunner.class)
 public class FootnoteVisualRegressionTest {
     private VisualTester vt;
@@ -43,6 +42,7 @@ public class FootnoteVisualRegressionTest {
      * Tests that we support CSS footnotes.
      */
     @Test
+    @Ignore
     public void testIssue364FootnotesBasicExample() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-basic"));
     }
@@ -51,6 +51,7 @@ public class FootnoteVisualRegressionTest {
      * Tests that a line of text can contain two multi-page footnotes.
      */
     @Test
+    @Ignore
     public void testIssue364FootnotesMultiPage() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-multi-page"));
     }
@@ -60,6 +61,7 @@ public class FootnoteVisualRegressionTest {
      * do not fit on a single page.
      */
     @Test
+    @Ignore
     public void testIssue364FootnotesTooLarge() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-too-large"));
     }
@@ -70,6 +72,7 @@ public class FootnoteVisualRegressionTest {
      * with the footnote area.
      */
     @Test
+    @Ignore
     public void testIssue364FootnotesBlocks() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-blocks"));
     }
@@ -79,6 +82,7 @@ public class FootnoteVisualRegressionTest {
      * presence of footnotes.
      */
     @Test
+    @Ignore
     public void testIssue364FootnotesPaginatedTable() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-paginated-table"));
     }
@@ -88,6 +92,7 @@ public class FootnoteVisualRegressionTest {
      * above footnotes.
      */
     @Test
+    @Ignore
     public void testIssue364FootnotesPositionedContent() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-positioned-content"));
     }
@@ -103,6 +108,7 @@ public class FootnoteVisualRegressionTest {
      * </ul>
      */
     @Test
+    @Ignore
     public void testIssue364PositionedInsideFootnotes() throws IOException {
         assertTrue(vt.runTest("issue-364-positioned-inside-footnotes"));
     }
@@ -119,6 +125,7 @@ public class FootnoteVisualRegressionTest {
      * </ul>
      */
     @Test
+    @Ignore
     public void testIssue364Floats() throws IOException {
         assertTrue(vt.runTest("issue-364-floats"));
     }
@@ -127,6 +134,7 @@ public class FootnoteVisualRegressionTest {
      * Tests images in footnotes, as footnotes and intersecting with footnotes.
      */
     @Test
+    @Ignore
     public void testIssue364Images() throws IOException {
         assertTrue(vt.runTest("issue-364-images"));
     }

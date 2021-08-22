@@ -1434,6 +1434,14 @@ public class VisualRegressionTest {
     }
 
     /**
+     * Tests that pseudo elements such as ::before are boxed correctly.
+     */
+    @Test
+    public void testPseudoElements() throws IOException {
+        assertTrue(vt.runTest("pseudo-elements"));
+    }
+
+    /**
      * Tests a now-fixed near-infinite loop when page-break-inside: avoid
      * is used on heavily nested content.
      */
