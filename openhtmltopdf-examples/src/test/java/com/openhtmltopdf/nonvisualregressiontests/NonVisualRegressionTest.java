@@ -17,6 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -46,6 +48,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -476,6 +479,58 @@ public class NonVisualRegressionTest {
             assertEquals(81, dest1.getTop());
 
             remove("issue-364-footnote-call-link", doc);
+        }
+    }
+
+    private PDPageXYZDestination getLinkDestination(PDAnnotation link) throws IOException {
+        PDAnnotationLink link0 = (PDAnnotationLink) link;
+        PDActionGoTo goto0 = (PDActionGoTo) link0.getAction();
+        return (PDPageXYZDestination) goto0.getDestination();
+    }
+    
+    /**
+     * Tests using a link from in-flow content to an element inside a footnote.
+     */
+    @Test
+    public void testIssue364LinkToFootnoteContent() throws IOException {
+        try (PDDocument doc = run("issue-364-link-to-footnote-content")) {
+            List<PDAnnotation> annots0 = doc.getPage(0).getAnnotations();
+
+            assertEquals(2, annots0.size());
+
+            Consumer<PDPageXYZDestination> destCheck = (dest) -> {
+                assertEquals(52, dest.getTop());
+                assertEquals(1, doc.getPages().indexOf(dest.getPage()));
+            };
+
+            // Link goes over two lines, therefore two rectangular link annotations.
+            destCheck.accept(getLinkDestination(annots0.get(0)));
+            destCheck.accept(getLinkDestination(annots0.get(1)));
+
+            remove("issue-364-link-to-footnote-content", doc);
+        }
+    }
+
+    /**
+     * Tests using a link from footnote content to in-flow content.
+     */
+    @Test
+    @Ignore // Footnotes seem to be causing problems with in-flow links.
+    public void testIssue364LinkToInFlowContent() throws IOException {
+        try (PDDocument doc = run("issue-364-link-to-in-flow-content")) {
+            List<PDAnnotation> annots0 = doc.getPage(0).getAnnotations();
+
+            assertEquals(3, annots0.size());
+
+            BiConsumer<PDPageXYZDestination, Integer> pageCheck = (dest, pageNum) -> {
+                assertEquals(pageNum.intValue(), doc.getPages().indexOf(dest.getPage()));
+            };
+
+            pageCheck.accept(getLinkDestination(annots0.get(0)), 1);
+            pageCheck.accept(getLinkDestination(annots0.get(1)), 0);
+            pageCheck.accept(getLinkDestination(annots0.get(2)), 1);
+
+            // remove("issue-364-link-to-in-flow-content", doc);
         }
     }
 
