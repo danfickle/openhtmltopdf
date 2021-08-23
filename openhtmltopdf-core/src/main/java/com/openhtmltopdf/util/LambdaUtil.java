@@ -166,7 +166,7 @@ public class LambdaUtil {
 
         for (DescendantContent content : renderObjects) {
             sb.append(space, 0, Math.min(100, content.indent * 4));
-            sb.append(content.object.toString());
+            sb.append(content.object.toString() + " => " + Integer.toHexString(System.identityHashCode(content.object)));
             sb.append('\n');
         }
 

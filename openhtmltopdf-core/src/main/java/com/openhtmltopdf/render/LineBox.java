@@ -160,16 +160,23 @@ public class LineBox extends Box implements InlinePaintable {
         return super.isFirstChild();
     }
     
-    public void prunePendingInlineBoxes() {
+    public void prunePendingInlineBoxes(LayoutContext c) {
         if (getChildCount() > 0) {
             for (int i = getChildCount() - 1; i >= 0; i--) {
                 Box b = getChild(i);
                 if (! (b instanceof InlineLayoutBox)) {
                     break;
                 }
+
                 InlineLayoutBox iB = (InlineLayoutBox)b;
-                iB.prunePending();
+                iB.prunePending(c);
+
                 if (iB.isPending()) {
+                    if (iB.getElement() != null &&
+                        iB.getElement().hasAttribute("id")) {
+                        c.removeBoxId(iB.getElement().getAttribute("id"));
+                    }
+
                     removeChild(i);
                 }
             }

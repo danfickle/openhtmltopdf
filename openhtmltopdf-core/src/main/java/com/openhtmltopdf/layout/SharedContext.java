@@ -30,9 +30,7 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.swing.AWTFontResolver;
-import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.ThreadCtx;
-import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -42,7 +40,6 @@ import java.text.BreakIterator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
 
 /**
  * The SharedContext stores pseudo global variables.
@@ -451,7 +448,6 @@ public class SharedContext {
 
     /**
      * Get the internal dots measurement per CSS pixel.
-     * @return
      */
     public int getDotsPerPixel() {
         return dotsPerPixel;
