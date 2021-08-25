@@ -1179,10 +1179,7 @@ public class BoxBuilder {
 
     private static BlockBox createBlockBox(
             CalculatedStyle style, ChildBoxInfo info, boolean generated) {
-        if (style.isFootnote()) {
-            BlockBox result = new BlockBox();
-            return result;
-        } else if (style.isFloated() && !(style.isAbsolute() || style.isFixed())) {
+        if (style.isFloated() && !(style.isAbsolute() || style.isFixed())) {
             BlockBox result;
             if (style.isTable() || style.isInlineTable()) {
                 result = new TableBox();
@@ -1282,6 +1279,43 @@ public class BoxBuilder {
         final CalculatedStyle parentStyle;
     }
 
+    private static boolean isValidFootnote(
+            LayoutContext c, Element element, CalculatedStyle style) {
+        return c.isPrint() &&
+               (style.isInline() || style.isSpecifiedAsBlock()) &&
+               !style.isPostionedOrFloated() &&
+               !c.getSharedContext().getReplacedElementFactory().isReplacedElement(element);
+    }
+
+    private static void logInvalidFootnoteStyle(
+            LayoutContext c, Element element, CalculatedStyle style) {
+        String cause = "";
+
+        if (!style.isInline() && !style.isSpecifiedAsBlock()) {
+            cause = "The footnote element should be display: block (such as <div>)";
+        } else if (style.isFloated()) {
+            cause = "The footnote element must not be floated";
+        } else if (c.getSharedContext().getReplacedElementFactory().isReplacedElement(element)) {
+            cause = "The footnote element must not be replaced (such as <img>)";
+        } else if (style.isPositioned()) {
+            cause = "The footnote element must have position: static (not absolute, relative or fixed)";
+        }
+
+        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_INVALID, cause);
+    }
+
+    /**
+     * Don't output elements that have been artificially created to support
+     * footnotes and content property images.
+     */
+    private static boolean isGeneratedElement(Element element) {
+        String tag = element.getNodeName();
+
+        return ("fs-footnote-marker".equals(tag)) ||
+               ("a".equals(tag) && element.getAttribute("href").startsWith("#fs-footnote")) ||
+               ("img".equals(tag) && element.getAttribute("fs-ignore").equals("true"));
+    }
+
     private static void createElementChild(
             LayoutContext c,
             Element parent,
@@ -1296,16 +1330,7 @@ public class BoxBuilder {
         Element element = (Element) working;
         CalculatedStyle style = sharedContext.getStyle(element);
 
-        if (style.isDisplayNone()) {
-            return;
-        }
-
-        String tag = element.getNodeName();
-        if (("fs-footnote-marker".equals(tag)) ||
-            ("a".equals(tag) && element.getAttribute("href").startsWith("#fs-footnote")) ||
-            ("img".equals(tag) && element.getAttribute("fs-ignore").equals("true"))) {
-            // Don't output elements that have been artificially created to support
-            // footnotes and content property images.
+        if (style.isDisplayNone() || isGeneratedElement(element)) {
             return;
         }
 
@@ -1324,23 +1349,28 @@ public class BoxBuilder {
         }
 
         if (style.isFootnote() && !c.isInFloatBottom()) {
-            c.setFootnoteIndex(c.getFootnoteIndex() + 1);
+            if (isValidFootnote(c, element, style)) {
+                c.setFootnoteIndex(c.getFootnoteIndex() + 1);
 
-            // This is the official footnote call content that can generate zero or more boxes
-            // depending on user for ::footnote-call pseudo element.
-            insertGeneratedContent(c, element, style, "footnote-call", children, info);
+                // This is the official footnote call content that can generate zero or more boxes
+                // depending on user for ::footnote-call pseudo element.
+                insertGeneratedContent(c, element, style, "footnote-call", children, info);
 
-            BlockBox footnoteBody = createFootnoteBody(c, element, style);
+                BlockBox footnoteBody = createFootnoteBody(c, element, style);
 
-            // This is purely a marker box for the footnote so we
-            // can figure out in layout when to add the footnote body.
-            InlineBox iB = createInlineBox("", parent, context.parentStyle, null);
-            iB.setStartsHere(true);
-            iB.setEndsHere(true);
-            iB.setFootnote(footnoteBody);
+                // This is purely a marker box for the footnote so we
+                // can figure out in layout when to add the footnote body.
+                InlineBox iB = createInlineBox("", parent, context.parentStyle, null);
+                iB.setStartsHere(true);
+                iB.setEndsHere(true);
+                iB.setFootnote(footnoteBody);
 
-            children.add(iB);
-            return;
+                children.add(iB);
+
+                return;
+            } else {
+                logInvalidFootnoteStyle(c, element, style);
+            }
         }
 
         if (style.isInline()) {
@@ -1523,11 +1553,11 @@ public class BoxBuilder {
         insertGeneratedContent(c, parent, parentStyle, "before", children, info);
 
         if (parentStyle.isFootnote()) {
-            if (c.isFootnoteAllowed()) {
+            if (c.isFootnoteAllowed() && isValidFootnote(c, parent, parentStyle)) {
                 insertGeneratedContent(c, parent, parentStyle, "footnote-marker", children, info);
                 // Ban further footnote content until we bubble back up to createFootnoteBody.
                 c.setFootnoteAllowed(false);
-            } else {
+            } else if (!c.isFootnoteAllowed()) {
                 XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_NO_FOOTNOTES_INSIDE_FOOTNOTES);
             }
         }

@@ -174,4 +174,13 @@ public class FootnoteVisualRegressionTest {
         assertTrue(vt.runTest("issue-364-footnote-inside-footnote"));
     }
 
+    /**
+     * Tests that content incompatible with being a footnote will be
+     * treated as normal content, even with float: bottom set.
+     */
+    @Test
+    public void testIssue364InvalidStyle() throws IOException {
+        assertTrue(vt.runTest("issue-364-invalid-style"));
+    }
+
 }

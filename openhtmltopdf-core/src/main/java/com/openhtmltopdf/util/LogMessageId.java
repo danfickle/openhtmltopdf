@@ -147,6 +147,7 @@ public interface LogMessageId {
         GENERAL_PDF_FOUND_FORM_CONTROL_WITH_NO_ENCLOSING_FORM(XRLog.GENERAL, "Found form control ({}) with no enclosing form. Ignoring."),
         GENERAL_PDF_A_ELEMENT_DOES_NOT_HAVE_OPTION_CHILDREN(XRLog.GENERAL, "A <{}> element does not have <option> children"),
         GENERAL_FORCED_OUTPUT_TO_AVOID_INFINITE_LOOP(XRLog.GENERAL, "Forced text ({}) output after trying to move to next line unsuccessfully. Probably a bug."),
+        GENERAL_FOOTNOTE_INVALID(XRLog.GENERAL, "Element not valid for use as footnote, treating as normal content. Reason: {}. Non-compliant content may be nested in basic <div>."),
 
         EXCEPTION_FONT_METRICS_NOT_AVAILABLE(XRLog.EXCEPTION, "Font metrics not available for font-description: {}"),
         EXCEPTION_URI_SYNTAX_WHILE_LOADING_EXTERNAL_SVG_RESOURCE(XRLog.EXCEPTION, "URI syntax exception while loading external svg resource: {}"),
