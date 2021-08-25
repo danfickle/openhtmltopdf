@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -67,6 +68,8 @@ import com.openhtmltopdf.render.FlowingColumnBox;
 import com.openhtmltopdf.render.FlowingColumnContainerBox;
 import com.openhtmltopdf.render.InlineBox;
 import com.openhtmltopdf.util.OpenUtil;
+import com.openhtmltopdf.util.XRLog;
+import com.openhtmltopdf.util.LogMessageId;
 
 /**
  * This class is responsible for creating the box tree from the DOM.  This is
@@ -1286,8 +1289,7 @@ public class BoxBuilder {
             Node working,
             List<Styleable> children,
             ChildBoxInfo info,
-            CreateChildrenContext context,
-            boolean allowFootnotes) {
+            CreateChildrenContext context) {
 
         Styleable child = null;
         SharedContext sharedContext = c.getSharedContext();
@@ -1321,7 +1323,7 @@ public class BoxBuilder {
             return;
         }
 
-        if (style.isFootnote() && allowFootnotes) {
+        if (style.isFootnote() && !c.isInFloatBottom()) {
             c.setFootnoteIndex(c.getFootnoteIndex() + 1);
 
             // This is the official footnote call content that can generate zero or more boxes
@@ -1462,11 +1464,14 @@ public class BoxBuilder {
         footnoteBody.setContainingLayer(layer);
 
         c.pushLayer(layer);
+        c.setIsInFloatBottom(true);
 
         CreateChildrenContext context = new CreateChildrenContext(false, false, style.getParent(), false);
-        createElementChild(c, (Element) element.getParentNode(), footnoteBody, element, footnoteChildren, footnoteChildInfo, context, false);
+        createElementChild(c, (Element) element.getParentNode(), footnoteBody, element, footnoteChildren, footnoteChildInfo, context);
         resolveChildren(c, footnoteBody, footnoteChildren, footnoteChildInfo);
 
+        c.setFootnoteAllowed(true);
+        c.setIsInFloatBottom(false);
         c.popLayer();
 
 //        System.out.println();
@@ -1518,7 +1523,13 @@ public class BoxBuilder {
         insertGeneratedContent(c, parent, parentStyle, "before", children, info);
 
         if (parentStyle.isFootnote()) {
-            insertGeneratedContent(c, parent, parentStyle, "footnote-marker", children, info);
+            if (c.isFootnoteAllowed()) {
+                insertGeneratedContent(c, parent, parentStyle, "footnote-marker", children, info);
+                // Ban further footnote content until we bubble back up to createFootnoteBody.
+                c.setFootnoteAllowed(false);
+            } else {
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_NO_FOOTNOTES_INSIDE_FOOTNOTES);
+            }
         }
 
         Node working = parent.getFirstChild();
@@ -1532,7 +1543,7 @@ public class BoxBuilder {
 
                 if (nodeType == Node.ELEMENT_NODE) {
                     createElementChild(
-                            c, parent, blockParent, working, children, info, context, true);
+                            c, parent, blockParent, working, children, info, context);
                 } else if (nodeType == Node.TEXT_NODE || nodeType == Node.CDATA_SECTION_NODE) {
                     context.needStartText = false;
                     context.needEndText = false;

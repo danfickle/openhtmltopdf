@@ -106,6 +106,7 @@ public class LayoutContext implements CssContext {
 
     private int _footnoteIndex;
     private FootnoteManager _footnoteManager;
+    private boolean _isFootnoteAllowed = true;
 
     @Override
     public TextRenderer getTextRenderer() {
@@ -539,6 +540,21 @@ public class LayoutContext implements CssContext {
 
     public void setBreakAtLineContext(BreakAtLineContext breakAtLineContext) {
         _breakAtLineContext = breakAtLineContext;
+    }
+
+    /**
+     * Whether further footnote content is allowed. Used to prohibit
+     * footnotes inside footnotes.
+     */
+    public boolean isFootnoteAllowed() {
+        return _isFootnoteAllowed;
+    }
+
+    /**
+     * See {@link #isFootnoteAllowed()}.
+     */
+    public void setFootnoteAllowed(boolean allowed) {
+        this._isFootnoteAllowed = allowed;
     }
 
     /**

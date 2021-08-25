@@ -165,4 +165,13 @@ public class FootnoteVisualRegressionTest {
         assertTrue(vt.runTest("issue-364-non-paginated-table"));
     }
 
+    /**
+     * Tests that footnotes inside footnotes are treated as non-footnote content
+     * and do not cause infinite loop, stack overflow, OOM, etc.
+     */
+    @Test
+    public void testIssue364FootnoteInsideFootnote() throws IOException {
+        assertTrue(vt.runTest("issue-364-footnote-inside-footnote"));
+    }
+
 }
