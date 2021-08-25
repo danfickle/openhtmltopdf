@@ -1,0 +1,61 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+}
+html {
+  orphans: 0;
+  widows: 0;
+}
+body {
+  font-size: 16px;
+}
+.footnote {
+  color: green;
+  float: footnote;
+}
+::footnote-call {
+  counter-increment: footnote;
+  content: " [fn " counter(footnote) "] ";
+}
+::footnote-marker {
+  content: "fn " counter(footnote) ".  ";
+}
+thead td {
+  background: orange;
+}
+tfoot td {
+  background: aqua;
+}
+</style>
+</head>
+<body>
+  This is some in-flow content.
+
+  <div class="footnote">
+    This footnote has a paginated table inside.
+    <table style="-fs-table-paginate: paginate; border-collapse: collapse;">
+     <thead>
+      <tr><td>One</td></tr>
+      <tr><td>Two</td></tr>
+     </thead>
+     <tbody>
+      <tr><td>Three</td></tr>
+      <tr><td>Four</td></tr>
+      <tr><td>Five</td></tr>
+     </tbody>
+     <tfoot>
+      <tr><td>Six</td></tr>
+     </tfoot>
+    </table>
+  </div>
+
+  End of document.
+
+  <div class="footnote">
+    Normal footnote
+  </div>
+
+</body>
+</html>

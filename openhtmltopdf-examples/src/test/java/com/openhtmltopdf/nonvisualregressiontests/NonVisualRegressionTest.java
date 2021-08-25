@@ -533,6 +533,20 @@ public class NonVisualRegressionTest {
     }
 
     /**
+     * Tests bad footnote related content such as:
+     * + Paginated table inside footnotes.
+     * Primarily to check that these scenarios do not cause infinite loop
+     * or out-of-memory and ideally don't throw exceptions.
+     * Bad footnote content is not supported and will not produce expected results.
+     */
+    @Test
+    public void testIssue364InvalidFootnoteContent() throws IOException {
+        try (PDDocument doc = run("issue-364-invalid-footnote-content")) {
+            remove("issue-364-invalid-footnote-content", doc);
+        }
+    }
+
+    /**
      * Tests that link annotation area is correctly translated-y.
      */
     @Test
