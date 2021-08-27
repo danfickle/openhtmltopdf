@@ -200,4 +200,13 @@ public class FootnoteVisualRegressionTest {
         assertTrue(vt.runTest("issue-364-inline-blocks"));
     }
 
+    /**
+     * Tests transforms of the footnote area, footnote body, elements inside
+     * footnote body and footnote pseudos.
+     */
+    @Test
+    public void testIssue364Transforms() throws IOException {
+        assertTrue(vt.runTest("issue-364-transforms"));
+    }
+
 }

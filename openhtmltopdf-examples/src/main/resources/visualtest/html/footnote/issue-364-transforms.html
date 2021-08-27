@@ -1,0 +1,65 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+  @footnote {
+    border-top: 4px solid purple;
+    padding-top: 5px;
+    width: 100%;
+  }
+}
+@page:first {
+  @footnote {
+    transform: translateX(100%) rotate(-90deg);
+    transform-origin: left bottom;
+  }
+}
+html {
+  orphans: 0;
+  widows: 0;
+}
+.fn {
+  float: footnote;
+  color: red;
+  border: 1px solid green;
+}
+::footnote-call {
+  counter-increment: footnote;
+  content: "[" counter(footnote) "]";
+  transform: scale(2, 0.5);
+  display: inline-block;
+}
+::footnote-marker {
+  content: counter(footnote) ".";
+  transform: rotate(45deg);
+  display: inline-block;
+}
+</style>
+</head>
+<body>
+  <div style="width: 50%;">
+  This is some content
+  <div style="width: 100%; transform: scale(1, 1.2);">
+    with footnotes.
+    <div class="fn" style="">
+      First footnote!
+    </div>
+  </div>
+  This is some?
+  <div class="fn">
+    Second footnote with inline content.
+  </div>
+  <div>
+    Testing what happens...
+  </div>
+  <span>
+    when the cow jumps!
+    <div class="fn">
+      Footnote inside span!
+    </div>
+  </span>
+  End of document.
+  </div>
+</body>
+</html>
