@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
@@ -32,6 +33,8 @@ import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.EmptyStyle;
+import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.XRLog;
 
 public class PageInfo {
     private final CascadedStyle _pageStyle;
@@ -96,7 +99,30 @@ public class PageInfo {
 
         List<PropertyDeclaration> all = new ArrayList<>(overrides.size() + _footnote.size());
 
-        all.addAll(_footnote);
+        for (PropertyDeclaration decl : _footnote) {
+            CSSName name = decl.getCSSName();
+            PropertyValue value = (PropertyValue) decl.getValue();
+
+            if (name.equals(CSSName.POSITION)) {
+                if (value.getPropertyValueType() != PropertyValue.VALUE_TYPE_IDENT ||
+                    value.getIdentValue() != IdentValue.ABSOLUTE) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.GENERAL_FOOTNOTE_AREA_INVALID_STYLE, value.getCssText(), "position");
+                }
+            } else if (name == CSSName.FLOAT) {
+                if (value.getPropertyValueType() != PropertyValue.VALUE_TYPE_IDENT ||
+                    value.getIdentValue() != IdentValue.BOTTOM) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.GENERAL_FOOTNOTE_AREA_INVALID_STYLE, value.getCssText(), "float");
+                }
+            } else if (name == CSSName.DISPLAY) {
+                if (value.getPropertyValueType() != PropertyValue.VALUE_TYPE_IDENT ||
+                    value.getIdentValue() != IdentValue.BLOCK) {
+                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.GENERAL_FOOTNOTE_AREA_INVALID_STYLE, value.getCssText(), "display");
+                }
+            } else {
+                all.add(decl);
+            }
+        }
+
         all.addAll(overrides);
 
         return new CascadedStyle(all.iterator());

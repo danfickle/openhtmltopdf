@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.hasItem;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
@@ -127,12 +128,14 @@ public class NonVisualRegressionTest {
     private static PDDocument load(String filename) throws IOException {
         return PDDocument.load(new File(OUT_PATH, filename + ".pdf"));
     }
-    
+
     private static void remove(String fileName, PDDocument doc) throws IOException {
-        doc.close();
+        if (doc != null) {
+            doc.close();
+        }
         new File(OUT_PATH, fileName + ".pdf").delete();
     }
-    
+
     private static double cssPixelsToPdfPoints(double cssPixels) {
         return cssPixels * 72d / 96d;
     }
@@ -170,7 +173,7 @@ public class NonVisualRegressionTest {
     private CustomTypeSafeMatcher<PDRectangle> rectEquals(PDRectangle expected, double pageHeight) {
         return new RectangleCompare(expected, pageHeight);
     }
-    
+
     /**
      * Tests meta info: title, author, subject, keywords.
      */
@@ -544,6 +547,31 @@ public class NonVisualRegressionTest {
         try (PDDocument doc = run("issue-364-invalid-footnote-content")) {
             remove("issue-364-invalid-footnote-content", doc);
         }
+
+    }
+
+    /**
+     * Tests bad footnote related content such as:
+     * + Pseudos (::footnote-call, ::footnote-marker, ::before, ::after) with float: footnote.
+     * + Pseudos in footnotes with position: fixed.
+     * + Invalid styles in the footnote at-rule such as position: fixed.
+     * 
+     * Primarily to check that these scenarios do not cause infinite loop
+     * or out-of-memory and ideally don't throw exceptions.
+     * Bad footnote content is not supported and will not produce expected results.
+     */
+    @Test
+    public void testIssue364InvalidFootnotePseudos() throws IOException {
+        TestSupport.withLog((log, builder) -> {
+            try (PDDocument doc = run("issue-364-invalid-footnote-pseudos", builder)) {
+            }
+
+            assertThat(log, hasItem(LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_PSEUDO_INVALID));
+            assertThat(log, hasItem(LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_CAN_NOT_BE_PSEUDO));
+            assertThat(log, hasItem(LogMessageId.LogMessageId2Param.GENERAL_FOOTNOTE_AREA_INVALID_STYLE));
+        });
+
+        remove("issue-364-invalid-footnote-pseudos", null);
     }
 
     /**

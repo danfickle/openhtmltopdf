@@ -147,7 +147,10 @@ public interface LogMessageId {
         GENERAL_PDF_FOUND_FORM_CONTROL_WITH_NO_ENCLOSING_FORM(XRLog.GENERAL, "Found form control ({}) with no enclosing form. Ignoring."),
         GENERAL_PDF_A_ELEMENT_DOES_NOT_HAVE_OPTION_CHILDREN(XRLog.GENERAL, "A <{}> element does not have <option> children"),
         GENERAL_FORCED_OUTPUT_TO_AVOID_INFINITE_LOOP(XRLog.GENERAL, "Forced text ({}) output after trying to move to next line unsuccessfully. Probably a bug."),
+
         GENERAL_FOOTNOTE_INVALID(XRLog.GENERAL, "Element not valid for use as footnote, treating as normal content. Reason: {}. Non-compliant content may be nested in basic <div>."),
+        GENERAL_FOOTNOTE_PSEUDO_INVALID(XRLog.GENERAL, "Footnote pseudo element found with invalid style, ignoring. Reason: {}"),
+        GENERAL_FOOTNOTE_CAN_NOT_BE_PSEUDO(XRLog.GENERAL, "Pseudo element (::{}) can not have float: footnote set, ignoring."),
 
         EXCEPTION_FONT_METRICS_NOT_AVAILABLE(XRLog.EXCEPTION, "Font metrics not available for font-description: {}"),
         EXCEPTION_URI_SYNTAX_WHILE_LOADING_EXTERNAL_SVG_RESOURCE(XRLog.EXCEPTION, "URI syntax exception while loading external svg resource: {}"),
@@ -231,6 +234,7 @@ public interface LogMessageId {
         GENERAL_EXPECTING_BOX_CHILDREN_OF_TYPE_BUT_GOT(XRLog.GENERAL, "Expecting box children to be of type ({}) but got ({})."),
         GENERAL_PDF_FOUND_ELEMENT_WITHOUT_ATTRIBUTE_NAME(XRLog.GENERAL, "found a <{} {}> element without attribute name, the element will not work without this attribute"),
         GENERAL_UNABLE_TO_PARSE_VALUE_AS(XRLog.GENERAL, "Unable to parse value '{}' as {}"),
+        GENERAL_FOOTNOTE_AREA_INVALID_STYLE(XRLog.GENERAL, "Invalid value ({}) specified for @footnote area in {} property. Ignoring declaration."),
 
         EXCEPTION_SVG_EXTERNAL_RESOURCE_NOT_ALLOWED(XRLog.EXCEPTION, "Tried to fetch external resource from SVG. Refusing. Details: {}, {}"),
         EXCEPTION_DEFAULT_USERAGENT_IS_NOT_ABLE_TO_RESOLVE_URL_WITH_BASE_URL(XRLog.EXCEPTION, "The default NaiveUserAgent cannot resolve the URL {} with base URL {}");

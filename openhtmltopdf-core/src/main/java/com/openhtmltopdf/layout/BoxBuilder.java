@@ -1058,6 +1058,24 @@ public class BoxBuilder {
             return Collections.emptyList();
         }
 
+        if ("footnote-call".equals(peName) || "footnote-marker".equals(peName)) {
+            if (!isValidFootnotePseudo(style)) {
+                logInvalidFootnotePseudo(peName, style);
+                return Collections.emptyList();
+            }
+        } else {
+
+            if (c.isInFloatBottom() && !isValidFootnotePseudo(style)) {
+                // ::before or ::after in footnote.
+                logInvalidFootnotePseudo(peName, style);
+                return Collections.emptyList();
+            } else if (style.isFootnote()) {
+                // ::before or ::after trying to be a footnote.
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_CAN_NOT_BE_PSEUDO, peName);
+                return Collections.emptyList();
+            }
+        }
+
         ChildBoxInfo childInfo = new ChildBoxInfo();
 
         List<PropertyValue> values = property.getValues();
@@ -1302,6 +1320,22 @@ public class BoxBuilder {
         }
 
         XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_INVALID, cause);
+    }
+
+    private static boolean isValidFootnotePseudo(CalculatedStyle style) {
+        return !style.isFixed() && !style.isFootnote();
+    }
+
+    private static void logInvalidFootnotePseudo(String peName, CalculatedStyle style) {
+        String cause = "";
+
+        if (style.isFixed()) {
+            cause = "Footnote pseudo element (" + peName + ") may not have fixed position";
+        } else if (style.isFootnote()) {
+            cause = "Footnote pseudo element (" + peName + ") may not have float: footnote set itself";
+        }
+
+        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_PSEUDO_INVALID, cause);
     }
 
     /**

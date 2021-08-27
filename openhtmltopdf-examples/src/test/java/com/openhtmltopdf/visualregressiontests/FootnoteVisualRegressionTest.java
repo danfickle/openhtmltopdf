@@ -1,10 +1,11 @@
 package com.openhtmltopdf.visualregressiontests;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.hasItem;
 
 import java.io.File;
 import java.io.IOException;
-
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -12,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.openhtmltopdf.testlistener.PrintingRunner;
+import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester;
 
@@ -171,7 +173,10 @@ public class FootnoteVisualRegressionTest {
      */
     @Test
     public void testIssue364FootnoteInsideFootnote() throws IOException {
-        assertTrue(vt.runTest("issue-364-footnote-inside-footnote"));
+        TestSupport.withLog((log, builder) -> {
+            assertTrue(vt.runTest("issue-364-footnote-inside-footnote", builder));
+            assertThat(log, hasItem(LogMessageId.LogMessageId0Param.GENERAL_NO_FOOTNOTES_INSIDE_FOOTNOTES));
+        });
     }
 
     /**
@@ -180,7 +185,10 @@ public class FootnoteVisualRegressionTest {
      */
     @Test
     public void testIssue364InvalidStyle() throws IOException {
-        assertTrue(vt.runTest("issue-364-invalid-style"));
+        TestSupport.withLog((log, builder) -> {
+            assertTrue(vt.runTest("issue-364-invalid-style", builder));
+            assertThat(log, hasItem(LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_INVALID));
+        });
     }
 
 }
