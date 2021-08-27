@@ -191,4 +191,13 @@ public class FootnoteVisualRegressionTest {
         });
     }
 
+    /**
+     * Tests that inline-blocks are able to be used in footnotes and
+     * intersecting with footnotes.
+     */
+    @Test
+    public void testIssue364InlineBlocks() throws IOException {
+        assertTrue(vt.runTest("issue-364-inline-blocks"));
+    }
+
 }
