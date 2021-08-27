@@ -52,7 +52,6 @@ public class FootnoteVisualRegressionTest {
      * Tests that a line of text can contain two multi-page footnotes.
      */
     @Test
-    @Ignore
     public void testIssue364FootnotesMultiPage() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-multi-page"));
     }
