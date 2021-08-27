@@ -1508,7 +1508,7 @@ public class BoxBuilder {
 
         // Create the out-of-flow footnote-body box as a block box.
         BlockBox footnoteBody = new BlockBox();
-        CalculatedStyle footnoteBodyStyle = new EmptyStyle().createAnonymousStyle(IdentValue.BLOCK);
+        CalculatedStyle footnoteBodyStyle = style.createAnonymousStyle(IdentValue.BLOCK);
 
         // Create a dummy element for the footnote-body.
         Element fnBodyElement = element.getOwnerDocument().createElement("fs-footnote-body");

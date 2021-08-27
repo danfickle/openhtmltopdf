@@ -44,7 +44,6 @@ public class FootnoteVisualRegressionTest {
      * Tests that we support CSS footnotes.
      */
     @Test
-    @Ignore
     public void testIssue364FootnotesBasicExample() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-basic"));
     }
