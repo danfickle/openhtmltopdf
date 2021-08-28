@@ -134,12 +134,17 @@ public class BoxBuilder {
         }
 
         List<Styleable> children = new ArrayList<>();
-
         ChildBoxInfo info = new ChildBoxInfo();
+        CalculatedStyle parentStyle = parent.getStyle();
+
+        boolean oldAllowFootnotes = c.isFootnoteAllowed();
+        if (parentStyle.isFixed()) {
+            c.setFootnoteAllowed(false);
+        }
 
         createChildren(c, parent, parent.getElement(), children, info, false);
 
-        boolean parentIsNestingTableContent = isNestingTableContent(parent.getStyle().getIdent(
+        boolean parentIsNestingTableContent = isNestingTableContent(parentStyle.getIdent(
                 CSSName.DISPLAY));
 
         if (!parentIsNestingTableContent && !info.isContainsTableContent()) {
@@ -152,6 +157,8 @@ public class BoxBuilder {
                 resolveChildTableContent(c, parent, children, info, IdentValue.TABLE_CELL);
             }
         }
+
+        c.setFootnoteAllowed(oldAllowFootnotes);
 
         // The following is very useful for debugging.
         // It shows the contents of the box tree before layout.
@@ -1382,7 +1389,7 @@ public class BoxBuilder {
             return;
         }
 
-        if (style.isFootnote() && !c.isInFloatBottom()) {
+        if (style.isFootnote() && !c.isInFloatBottom() && c.isFootnoteAllowed()) {
             if (isValidFootnote(c, element, style)) {
                 c.setFootnoteIndex(c.getFootnoteIndex() + 1);
 

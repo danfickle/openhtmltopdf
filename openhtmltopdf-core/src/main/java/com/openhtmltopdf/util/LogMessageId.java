@@ -36,7 +36,7 @@ public interface LogMessageId {
 
         MATCH_TRYING_TO_SET_MORE_THAN_ONE_PSEUDO_ELEMENT(XRLog.MATCH, "Trying to set more than one pseudo-element"),
 
-        GENERAL_NO_FOOTNOTES_INSIDE_FOOTNOTES(XRLog.GENERAL, "Footnotes inside footnotes are not supported"),
+        GENERAL_NO_FOOTNOTES_INSIDE_FOOTNOTES(XRLog.GENERAL, "Footnotes inside footnotes or fixed position area are not supported"),
         GENERAL_IMPORT_FONT_FACE_RULES_HAS_NOT_BEEN_CALLED(XRLog.GENERAL, "importFontFaceRules has not been called for this pdf transcoder"),
         GENERAL_PDF_ACCESSIBILITY_NO_ALT_ATTRIBUTE_PROVIDED_FOR_IMAGE(XRLog.GENERAL, "No alt attribute provided for image/replaced in PDF/UA document."),
         GENERAL_PDF_SPECIFIED_FONTS_DONT_CONTAIN_A_SPACE_CHARACTER(XRLog.GENERAL, "Specified fonts don't contain a space character!"),

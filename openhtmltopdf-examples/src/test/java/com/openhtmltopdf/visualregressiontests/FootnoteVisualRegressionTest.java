@@ -203,4 +203,16 @@ public class FootnoteVisualRegressionTest {
         assertTrue(vt.runTest("issue-364-transforms"));
     }
 
+    /**
+     * + Footnotes can not be called from fixed position area.
+     * + Footnotes can be called from relative or absolute positioned areas.
+     * + Physical ordering of footnotes may differ from counter order as
+     * positioned boxes are encounted in different order in BoxBuilder and
+     * layout.
+     */
+    @Test
+    public void testIssue364CalledFromPositioned() throws IOException {
+        assertTrue(vt.runTest("issue-364-called-from-positioned"));
+    }
+
 }
