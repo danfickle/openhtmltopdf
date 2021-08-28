@@ -92,23 +92,19 @@ public class FootnoteVisualRegressionTest {
      * above footnotes.
      */
     @Test
-    @Ignore
     public void testIssue364FootnotesPositionedContent() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-positioned-content"));
     }
 
     /**
-     * Tests that position: absolute and fixed inside a footnote (or
-     * as a footnote element) does something sensible.
+     * Tests that position: absolute and fixed inside a footnote
+     * does something sensible.
      * <ul>
      * <li>Fixed inside fn will escape footnote area and be positioned on page as normal fixed.</li>
      * <li>Absolute inside fn will be contained by footnote area.</li>
-     * <li>Fixed as fn element will be positioned as normal fixed but will not have footnote mark.</li>
-     * <li>Absolute as fn element will be contained by html layer and have footnote mark.</li>
      * </ul>
      */
     @Test
-    @Ignore
     public void testIssue364PositionedInsideFootnotes() throws IOException {
         assertTrue(vt.runTest("issue-364-positioned-inside-footnotes"));
     }
