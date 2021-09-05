@@ -1,0 +1,32 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+  margin: 40px;
+
+  @top-center {
+    float: footnote;
+    content: "Invalid 1";
+  }
+  @bottom-center {
+    content: element(footer);
+  }
+}
+</style>
+</head>
+<body>
+<div style="position: running(footer); float: footnote;">
+Invalid 2
+<div style="float: footnote;">
+  Invalid 3
+</div>
+</div>
+
+Page 1 in-flow content.
+
+<div style="page-break-before: always;">
+Page 2 content
+</div>
+</body>
+</html>

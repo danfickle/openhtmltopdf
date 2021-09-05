@@ -570,6 +570,7 @@ public class PageBox {
     }
 
     private void layoutMarginAreas(LayoutContext c) {
+        c.setFootnoteAllowed(false);
         RectPropertySet margin = getMargin(c);
         for (int i = 0; i < MARGIN_AREA_DEFS.length; i++) {
             MarginArea area = MARGIN_AREA_DEFS[i];
@@ -598,6 +599,7 @@ public class PageBox {
                 _marginAreas[i] = new MarginAreaContainer(area, table);
             }
         }
+        c.setFootnoteAllowed(true);
     }
     
     public boolean isLeftPage() {

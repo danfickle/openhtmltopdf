@@ -138,7 +138,7 @@ public class BoxBuilder {
         CalculatedStyle parentStyle = parent.getStyle();
 
         boolean oldAllowFootnotes = c.isFootnoteAllowed();
-        if (parentStyle.isFixed()) {
+        if (parentStyle.isFixed() || parentStyle.isRunning()) {
             c.setFootnoteAllowed(false);
         }
 
@@ -1309,6 +1309,7 @@ public class BoxBuilder {
         return c.isPrint() &&
                (style.isInline() || style.isSpecifiedAsBlock()) &&
                !style.isPostionedOrFloated() &&
+               !style.isRunning() &&
                !c.getSharedContext().getReplacedElementFactory().isReplacedElement(element);
     }
 
@@ -1322,8 +1323,8 @@ public class BoxBuilder {
             cause = "The footnote element must not be floated";
         } else if (c.getSharedContext().getReplacedElementFactory().isReplacedElement(element)) {
             cause = "The footnote element must not be replaced (such as <img>)";
-        } else if (style.isPositioned()) {
-            cause = "The footnote element must have position: static (not absolute, relative or fixed)";
+        } else if (style.isPositioned() || style.isRunning()) {
+            cause = "The footnote element must have position: static (not absolute, relative, running or fixed)";
         }
 
         XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_INVALID, cause);

@@ -209,4 +209,17 @@ public class FootnoteVisualRegressionTest {
         assertTrue(vt.runTest("issue-364-called-from-positioned"));
     }
 
+    /**
+     * Tests that footnotes inside page margins are treated as normal
+     * content (and warning is logged).
+     */
+    @Test
+    public void testIssue364FootnotesInsidePageMargins() throws IOException {
+        TestSupport.withLog((log, builder) -> {
+            assertTrue(vt.runTest("issue-364-page-margins", builder));
+            assertThat(log, hasItem(LogMessageId.LogMessageId0Param.GENERAL_NO_FOOTNOTES_INSIDE_FOOTNOTES));
+            assertThat(log, hasItem(LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_INVALID));
+        });
+    }
+
 }
