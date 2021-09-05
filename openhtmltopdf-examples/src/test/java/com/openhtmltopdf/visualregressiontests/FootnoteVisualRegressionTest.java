@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -61,7 +60,6 @@ public class FootnoteVisualRegressionTest {
      * do not fit on a single page.
      */
     @Test
-    @Ignore
     public void testIssue364FootnotesTooLarge() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-too-large"));
     }
@@ -72,7 +70,6 @@ public class FootnoteVisualRegressionTest {
      * with the footnote area.
      */
     @Test
-    @Ignore
     public void testIssue364FootnotesBlocks() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-blocks"));
     }
@@ -82,7 +79,6 @@ public class FootnoteVisualRegressionTest {
      * presence of footnotes.
      */
     @Test
-    @Ignore
     public void testIssue364FootnotesPaginatedTable() throws IOException {
         assertTrue(vt.runTest("issue-364-footnotes-paginated-table"));
     }
@@ -121,7 +117,6 @@ public class FootnoteVisualRegressionTest {
      * </ul>
      */
     @Test
-    @Ignore
     public void testIssue364Floats() throws IOException {
         assertTrue(vt.runTest("issue-364-floats"));
     }
@@ -130,7 +125,6 @@ public class FootnoteVisualRegressionTest {
      * Tests images in footnotes, as footnotes and intersecting with footnotes.
      */
     @Test
-    @Ignore
     public void testIssue364Images() throws IOException {
         assertTrue(vt.runTest("issue-364-images"));
     }
