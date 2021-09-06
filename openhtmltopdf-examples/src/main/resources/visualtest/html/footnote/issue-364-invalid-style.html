@@ -1,0 +1,63 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+}
+html {
+  orphans: 0;
+  widows: 0;
+}
+body {
+  margin: 0;
+  font-family: sans-serif;
+  font-size: 16px;
+}
+.footnote {
+  color: green;
+  float: footnote;
+}
+::footnote-call {
+  counter-increment: footnote;
+  content: " [fn " counter(footnote) "] ";
+}
+::footnote-marker {
+  content: "fn " counter(footnote) ".  ";
+}
+</style>
+</head>
+<body style="padding-top: 50px;">
+
+  Start!
+
+  <div class="footnote" style="position:fixed; background: red; top: 0; left: 0; right: 0;">
+    Invalid fixed footnote
+  </div>
+
+  Some more in-flow content.
+
+  <table class="footnote">
+    <tr><td>Invalid table footnote</td></tr>
+  </table>
+
+  Final in-flow content.
+
+  <img class="footnote" style="display: block;" alt="Invalid footnote image" src="../../../demos/images/flyingsaucer.png"/>
+
+  End of document.
+
+  <div class="footnote" style="position: absolute; background: blue; top: 30px; left: 0; right: 0;">
+    Invalid absolute footnote
+  </div>
+
+  <div class="footnote" style="float: left;">
+    Invalid floated footnote
+  </div>
+
+  Postscript.
+
+  <div class="footnote">
+    Well, not quite the end.
+  </div>
+</body>
+</html>

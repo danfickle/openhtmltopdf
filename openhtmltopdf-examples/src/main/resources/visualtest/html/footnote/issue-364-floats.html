@@ -1,0 +1,70 @@
+<html>
+<head>
+<style>
+@page {
+    size: 300px 330px;
+}
+@page {
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid green;
+        max-height: 65%;
+    }
+}
+body {
+  background-color: pink;
+  margin: 0 10px;
+  font-size: 18px;
+  border: 1px solid black;
+
+  orphans: 0;
+  widows: 0;
+}
+::footnote-call {
+  counter-increment: footnote 1;
+  float: right;
+}
+.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  content: "[" counter(footnote) "]";
+}
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+}
+div {
+  z-index: -1;
+}
+</style>
+</head>
+<body>
+<p style="margin: 0;">
+  This text needs some footnotes. 
+  <div id="1" class="footnote">
+   <div style="background: blue; width: 40%; float: left;">Floated 1</div>
+   <div style="background: green; float: left;">Floated 2</div>
+   This is a footnote.
+  </div>
+  Also a footnote for this sentence. 
+  <span id="2" class="footnote">
+   <div style="background: orange; float: left;">Floated 3</div>
+   Another <strong>footnote</strong>!
+  </span>
+</p>
+
+<p style="page-break-before: always; margin: 0;">
+  Footnote numbers.
+  <div style="float: right; background: red;">Floated 4</div>
+  <div id="3" class="footnote">
+   <div style="float: right; background: yellow;">Floated 5</div>
+   Just to be silly this is a really long footnote that will need wrapping and such.
+   <div style="float: right; background: aqua;">Floated 6</div>
+   This is a multiple page footnote so here we go on and on to get to the next page.
+  </div>
+</p>
+
+</body>
+</html>

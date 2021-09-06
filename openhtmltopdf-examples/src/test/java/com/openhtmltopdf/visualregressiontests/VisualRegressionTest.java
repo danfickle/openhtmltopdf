@@ -1433,6 +1433,23 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-732-no-bfc"));
     }
 
+    /**
+     * Tests that pseudo elements such as ::before are boxed correctly.
+     */
+    @Test
+    public void testPseudoElements() throws IOException {
+        assertTrue(vt.runTest("pseudo-elements"));
+    }
+
+    /**
+     * Tests a now-fixed near-infinite loop when page-break-inside: avoid
+     * is used on heavily nested content.
+     */
+    @Test
+    public void testIssue551PageBreakInsideAvoidDeep() throws IOException {
+        assertTrue(vt.runTest("issue-551-page-break-inside-avoid-deep"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

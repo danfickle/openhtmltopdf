@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.hasItem;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
@@ -17,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -32,6 +35,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
@@ -125,12 +129,14 @@ public class NonVisualRegressionTest {
     private static PDDocument load(String filename) throws IOException {
         return PDDocument.load(new File(OUT_PATH, filename + ".pdf"));
     }
-    
+
     private static void remove(String fileName, PDDocument doc) throws IOException {
-        doc.close();
+        if (doc != null) {
+            doc.close();
+        }
         new File(OUT_PATH, fileName + ".pdf").delete();
     }
-    
+
     private static double cssPixelsToPdfPoints(double cssPixels) {
         return cssPixels * 72d / 96d;
     }
@@ -168,7 +174,7 @@ public class NonVisualRegressionTest {
     private CustomTypeSafeMatcher<PDRectangle> rectEquals(PDRectangle expected, double pageHeight) {
         return new RectangleCompare(expected, pageHeight);
     }
-    
+
     /**
      * Tests meta info: title, author, subject, keywords.
      */
@@ -439,7 +445,136 @@ public class NonVisualRegressionTest {
         
         remove("link-on-overflow-target", doc);
     }
-    
+
+    /**
+     * Tests that ::footnote-call links are placed correctly and link
+     * to the correct ::footnote-marker.
+     */
+    @Test
+    public void testIssue364FootnoteCallLink() throws IOException {
+        try (PDDocument doc = run("issue-364-footnote-call-link")) {
+            List<PDAnnotation> annots0 = doc.getPage(0).getAnnotations();
+            List<PDAnnotation> annots1 = doc.getPage(1).getAnnotations();
+
+            assertEquals(1, annots0.size());
+            assertEquals(1, annots1.size());
+
+            PDAnnotationLink link0 = (PDAnnotationLink) annots0.get(0);
+            PDAnnotationLink link1 = (PDAnnotationLink) annots1.get(0);
+
+            assertEquals(106.5f, link0.getRectangle().getLowerLeftX(), 0.5f);
+            assertEquals(141.5f, link0.getRectangle().getLowerLeftY(), 0.5f);
+            assertEquals(15.7f, link0.getRectangle().getWidth(), 0.5f);
+            assertEquals(15.0f, link0.getRectangle().getHeight(), 0.5f);
+
+            assertEquals(103.5f, link1.getRectangle().getLowerLeftX(), 0.5f);
+            assertEquals(158.9f, link1.getRectangle().getLowerLeftY(), 0.5f);
+            assertEquals(15.7f, link1.getRectangle().getWidth(), 0.5f);
+            assertEquals(15.0f, link1.getRectangle().getHeight(), 0.5f);
+
+            PDActionGoTo goto0 = (PDActionGoTo) link0.getAction();
+            PDPageXYZDestination dest0 = (PDPageXYZDestination) goto0.getDestination();
+            assertEquals(51, dest0.getTop());
+
+            PDActionGoTo goto1 = (PDActionGoTo) link1.getAction();
+            PDPageXYZDestination dest1 = (PDPageXYZDestination) goto1.getDestination();
+            assertEquals(81, dest1.getTop());
+
+            remove("issue-364-footnote-call-link", doc);
+        }
+    }
+
+    private PDPageXYZDestination getLinkDestination(PDAnnotation link) throws IOException {
+        PDAnnotationLink link0 = (PDAnnotationLink) link;
+        PDActionGoTo goto0 = (PDActionGoTo) link0.getAction();
+        return (PDPageXYZDestination) goto0.getDestination();
+    }
+
+    private void destCheck(PDDocument doc, PDPageXYZDestination dest, int pageNum, int top) {
+        assertEquals(pageNum, doc.getPages().indexOf(dest.getPage()));
+        assertEquals(top, dest.getTop());
+    }
+
+    /**
+     * Tests using a link from in-flow content to an element inside a footnote.
+     */
+    @Test
+    public void testIssue364LinkToFootnoteContent() throws IOException {
+        try (PDDocument doc = run("issue-364-link-to-footnote-content")) {
+            List<PDAnnotation> annots0 = doc.getPage(0).getAnnotations();
+
+            assertEquals(2, annots0.size());
+
+            Consumer<PDPageXYZDestination> destCheck = (dest) -> {
+                assertEquals(52, dest.getTop());
+                assertEquals(1, doc.getPages().indexOf(dest.getPage()));
+            };
+
+            // Link goes over two lines, therefore two rectangular link annotations.
+            destCheck.accept(getLinkDestination(annots0.get(0)));
+            destCheck.accept(getLinkDestination(annots0.get(1)));
+
+            remove("issue-364-link-to-footnote-content", doc);
+        }
+    }
+
+    /**
+     * Tests using a link from footnote content to in-flow content.
+     */
+    @Test
+    public void testIssue364LinkToInFlowContent() throws IOException {
+        try (PDDocument doc = run("issue-364-link-to-in-flow-content")) {
+            List<PDAnnotation> annots0 = doc.getPage(0).getAnnotations();
+
+            assertEquals(3, annots0.size());
+
+            destCheck(doc, getLinkDestination(annots0.get(0)), 1, 172);
+            destCheck(doc, getLinkDestination(annots0.get(1)), 0, 103);
+            destCheck(doc, getLinkDestination(annots0.get(2)), 1, 172);
+
+            remove("issue-364-link-to-in-flow-content", doc);
+        }
+    }
+
+    /**
+     * Tests bad footnote related content such as:
+     * + Paginated table inside footnotes.
+     * Primarily to check that these scenarios do not cause infinite loop
+     * or out-of-memory and ideally don't throw exceptions.
+     * Bad footnote content is not supported and will not produce expected results.
+     */
+    @Test
+    public void testIssue364InvalidFootnoteContent() throws IOException {
+        try (PDDocument doc = run("issue-364-invalid-footnote-content")) {
+            remove("issue-364-invalid-footnote-content", doc);
+        }
+
+    }
+
+    /**
+     * Tests bad footnote related content such as:
+     * + Pseudos (::footnote-call, ::footnote-marker, ::before, ::after) with float: footnote.
+     * + Pseudos in footnotes with position: fixed.
+     * + Invalid styles in the footnote at-rule such as position: fixed.
+     * 
+     * Primarily to check that these scenarios do not cause infinite loop
+     * or out-of-memory and ideally don't throw exceptions.
+     * Bad footnote content is not supported and will not produce expected results.
+     */
+    @Test
+    public void testIssue364InvalidFootnotePseudos() throws IOException {
+        TestSupport.withLog((log, builder) -> {
+            try (PDDocument doc = run("issue-364-invalid-footnote-pseudos", builder)) {
+            }
+
+            assertThat(log, hasItem(LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_PSEUDO_INVALID));
+            assertThat(log, hasItem(LogMessageId.LogMessageId1Param.GENERAL_FOOTNOTE_CAN_NOT_BE_PSEUDO));
+            assertThat(log, hasItem(LogMessageId.LogMessageId2Param.GENERAL_FOOTNOTE_AREA_INVALID_STYLE));
+        });
+
+        remove("issue-364-invalid-footnote-pseudos", null);
+    }
+
     /**
      * Tests that link annotation area is correctly translated-y.
      */
@@ -925,6 +1060,66 @@ public class NonVisualRegressionTest {
     }
 
     /**
+     * Tests that many footnotes do not take too long.
+     */
+    @Test
+    public void testIssue364ManyFootnotes() throws IOException {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < 200; i++) {
+            sb.append("Normal <div style=\"float: footnote;\">Footnote</div>");
+        }
+
+        runFuzzTest(sb.toString(), false);
+    }
+
+    /**
+     * Tests performance of footnotes in many lines of text.
+     */
+    @Test
+    public void testIssue364MuchText() throws IOException {
+        StringBuilder sb = new StringBuilder();
+
+        for (int j = 0; j < 50; j++) {
+            for (int i = 0; i < 200; i++) {
+                sb.append("Hello World!<br/>");
+            }
+            sb.append("<div style=\"float: footnote; color: green;\">Footnote</div>");
+        }
+
+        runFuzzTest(sb.toString(), false);
+    }
+
+    /**
+     * Tests that footnotes nested very deeply do not take too long.
+     */
+    @Test
+    public void testIssue364FootnotesDeepNesting() throws IOException {
+        Function<String, String> deeper = (tag) ->
+          IntStream.range(0, 50)
+            .mapToObj(u -> tag)
+            .collect(Collectors.joining());
+
+        String[][] tags = new String[][] {
+            { "<div>", "</div>" },
+            { "<span>", "</span>" },
+            { "<div style=\"position: absolute;\">", "</div>" },
+            { "<td>", "</td>" },
+            { "<div style=\"float: left;\">", "</div>" },
+        };
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < tags.length; i++) {
+            sb.append(deeper.apply(tags[i][0]));
+            sb.append("Normal <div style=\"float: footnote;\">Footnote</div>");
+            sb.append(deeper.apply(tags[i][1]));
+        }
+
+        runFuzzTest(sb.toString(), false);
+    }
+
+    /**
      * Runs a fuzz test, optionally with PDFBOX included font with non-zero-width
      * soft hyphen.
      */
@@ -948,7 +1143,7 @@ public class NonVisualRegressionTest {
             builder.run();
 
             // Files.write(Paths.get("./target/html.txt"), html.getBytes(StandardCharsets.UTF_8));
-            // Files.write(Paths.get("./target/pdf.pdf"), os.toByteArray());
+            // java.nio.file.Files.write(java.nio.file.Paths.get("./target/pdf.pdf"), os.toByteArray());
 
             System.out.println("The result is " + os.size() + " bytes long.");
         }

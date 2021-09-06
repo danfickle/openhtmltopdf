@@ -1,0 +1,53 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+}
+html {
+  orphans: 0;
+  widows: 0;
+}
+body {
+  font-size: 20px;
+}
+.footnote {
+  color: green;
+  float: footnote;
+}
+::footnote-call {
+  counter-increment: footnote;
+  content: " [fn " counter(footnote) "] ";
+}
+::footnote-marker {
+  content: "fn. " counter(footnote);
+}
+</style>
+</head>
+<body>
+  This is some in-flow content.
+
+  <div class="footnote">
+    This is a footnote with a footnote inside.
+    <div class="footnote">
+      This is the inner footnote.
+    </div>
+    And another:
+    <div class="footnote">
+      Another fn inside fn.
+      <div class="footnote">
+        Grandchild footnote in footnote.
+      </div>
+    </div>
+  </div>
+
+  Even more in-flow content.
+
+  <div class="footnote">
+    Second footnote.
+  </div>
+
+  End of document.
+
+</body>
+</html>

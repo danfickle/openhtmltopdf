@@ -78,7 +78,9 @@ public class InlineBoxing {
         InlineLayoutBox layoutBox;
     }
 
-    public static void layoutContent(LayoutContext c, BlockBox box, int initialY, int breakAtLine) {
+    public static void layoutContent(
+            LayoutContext c, BlockBox box, int initialY, int breakAtLine) {
+
         Element blockElement = box.getElement();
         Paragraph para = c.getParagraphSplitter().lookupBlockElement(blockElement);
         byte blockLayoutDirection = para.getActualDirection();
@@ -86,7 +88,7 @@ public class InlineBoxing {
         SpaceVariables space = new SpaceVariables(box.getContentWidth());
         StateVariables current = new StateVariables();
         StateVariables previous = new StateVariables();
-        
+
         current.line = newLine(c, initialY, box);
         current.line.setDirectionality(blockLayoutDirection);
 
@@ -145,7 +147,15 @@ public class InlineBoxing {
                 InlineBox inlineBox = (InlineBox)node;
 
                 CalculatedStyle style = inlineBox.getStyle();
-                
+
+                if (inlineBox.hasFootnote() && c.isPrint()) {
+                    c.getFootnoteManager().addFootnoteBody(c, inlineBox.getFootnoteBody(), current.line);
+
+                    // We also need to associate it with a line box in case the line moves
+                    // pages.
+                    current.line.addReferencedFootnoteBody(inlineBox.getFootnoteBody());
+                }
+
                 if (inlineBox.isStartsHere()) {
                     startInlineBox(c, space, current, previous, openInlineBoxes, iBMap, inlineBox, style);
                 }
@@ -569,7 +579,9 @@ public class InlineBoxing {
 
         lbContext.setStart(lbContext.getEnd());
 
-        c.getFirstLettersTracker().clearStyles();
+        c.setFirstLettersTracker(
+            StyleTracker.withNoStyles());
+
         currentIB.setStyle(previous);
 
         return iB;
@@ -1015,7 +1027,7 @@ public class InlineBoxing {
                                  boolean hasFirstLinePCs, List<Layer> pendingInlineLayers,
                                  MarkerData markerData, int contentStart, boolean alwaysBreak) {
         current.setContentStart(contentStart);
-        current.prunePendingInlineBoxes();
+        current.prunePendingInlineBoxes(c);
 
         int totalLineWidth;
         
@@ -1055,7 +1067,8 @@ public class InlineBoxing {
         }
 
         if (hasFirstLinePCs && current.isFirstLine()) {
-            c.getFirstLinesTracker().clearStyles();
+            c.setFirstLinesTracker(
+                 StyleTracker.withNoStyles());
             block.styleText(c);
         }
 
@@ -1214,6 +1227,32 @@ public class InlineBoxing {
         return result;
     }
 
+    /**
+     * We have to convert this HTML (angle brackets replaced with square brackets):
+     * <pre>[one][two]Two lines[/two][/one]</pre>
+     * to (with parent child relationship specified by indentation):
+     * <pre>
+     *   [line-box] (LineBox)
+     *     [one]    (InlineLayoutBox)
+     *       [two]  (InlineLayoutBox)
+     *         Two  (InlineText)
+     *       [/two]
+     *     [/one]
+     *   [/line-box]
+     *   [line-box]  (LineBox)
+     *     [one]     (InlineLayoutBox)
+     *       [two]   (InlineLayoutBox)
+     *         lines (InlineText)
+     *       [/two]
+     *     [/one]
+     *   [/line-box]
+     * </pre>
+     * In this case the openParents param would be a flat list of <code>[one][two]</code>
+     * as InlineBox objects at the start of the second line.
+     * 
+     * @return the deepest box (so that the rest of the line's content
+     * can be added to it) or null if openParents is empty.
+     */
     private static InlineLayoutBox addOpenInlineBoxes(
             LayoutContext c, LineBox line, List<InlineBox> openParents, int cbWidth, Map<InlineBox, InlineLayoutBox> iBMap) {
 
@@ -1225,6 +1264,22 @@ public class InlineBoxing {
             currentIB = new InlineLayoutBox(
                     c, iB.getElement(), iB.getStyle(), cbWidth);
 
+            if (iB.getElement() != null) {
+                String id = iB.getElement().getAttribute("id");
+
+                // If the id hasn't been added to the global tracker (for link targeting)
+                // we add it here. This can happen if a box was added and then removed
+                // from the previous line via #prunePending because no content could fit
+                // on the previous line.
+                if (!id.isEmpty() &&
+                    c.getSharedContext().getBoxById(id) == null) {
+                    c.addBoxId(id, currentIB);
+                }
+            }
+
+            // iBMap contains a map from the original InlineBox (which can 
+            // contain multiple lines of text and so is divided into InlineLayoutBox objects
+            // during layout) to the last created InlineLayoutBox for its content.
             InlineLayoutBox prev = iBMap.get(iB);
             if (prev != null) {
                 currentIB.setPending(prev.isPending());

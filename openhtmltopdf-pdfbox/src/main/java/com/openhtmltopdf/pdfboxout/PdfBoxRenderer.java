@@ -347,8 +347,14 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     public void layout() {
         LayoutContext c = newLayoutContext();
         BlockBox root = BoxBuilder.createRootBox(c, _doc);
-        root.setContainingBlock(new ViewportBox(getInitialExtents(c)));
+        Box viewport = new ViewportBox(getInitialExtents(c));
+
+        root.setContainingBlock(viewport);
         root.layout(c);
+
+        // Useful to see the box tree after layout.
+        // System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(root));
+
         Dimension dim = root.getLayer().getPaintingDimension(c);
         root.getLayer().trimEmptyPages(c, dim.height);
         root.getLayer().layoutPages(c);
@@ -913,7 +919,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         c.setInPageMargins(true);
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         c.setInPageMargins(false);
-        
+
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
         Rectangle content = page.getPrintClippingBounds(c);

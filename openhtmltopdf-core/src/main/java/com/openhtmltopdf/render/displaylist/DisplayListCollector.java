@@ -35,6 +35,7 @@ public class DisplayListCollector {
 
 	private void collectLayers(RenderingContext c, List<Layer> layers, DisplayListContainer dlPages, Set<CollectFlags> flags) {
 		for (Layer layer : layers) {
+            // System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(layer.getMaster()));
 			collect(c, layer, dlPages, flags);
 		}
 	}

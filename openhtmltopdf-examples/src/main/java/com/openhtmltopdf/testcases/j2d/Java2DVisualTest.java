@@ -14,7 +14,7 @@ import com.openhtmltopdf.visualtest.TestSupport;
 public class Java2DVisualTest {
     private final Java2DVisualTester vtester;
     private final List<String> failed = new ArrayList<>();
-    
+
     private Java2DVisualTest() throws IOException {
        File outputDirectory = new File("target/test/visual-tests/test-output/j2d");
        TestSupport.makeFontFiles();
@@ -25,7 +25,7 @@ public class Java2DVisualTest {
                     outputDirectory
                     );
     }
-    
+
     private void run(String resource, Java2DBuilderConfig config) throws IOException {
         if (!vtester.runTest(resource, config)) {
             failed.add(resource);
@@ -34,11 +34,11 @@ public class Java2DVisualTest {
             failed.add(resource + " (single-page mode)");
         }
     }
-    
+
     private void run(String resource) throws IOException {
         run(resource, (builder) -> {});
     }
-    
+
     private void runAllTests() throws IOException {
         run("simple-blocks");
         run("simple-text");
@@ -48,11 +48,12 @@ public class Java2DVisualTest {
         run("positioned-elements");
         run("images", builder -> builder.useSVGDrawer(new BatikSVGDrawer()));
         run("sized-repeat-images");
+        run("footnotes");
 
         // If you add a test here, please remember to also
         // add it to runOneTest (commented out).
     }
-    
+
     private void runOneTest() throws IOException {
         // run("simple-blocks");
         // run("simple-text");
@@ -62,6 +63,7 @@ public class Java2DVisualTest {
         // run("positioned-elements");
         // run("images", builder -> builder.useSVGDrawer(new BatikSVGDrawer()));
         // run("sized-repeat-images");
+        // run("footnotes");
 
         // If you add a test here, please remember to also add
         // it to runAllTests.

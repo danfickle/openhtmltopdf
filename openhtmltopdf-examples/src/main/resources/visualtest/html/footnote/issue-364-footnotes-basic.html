@@ -1,0 +1,74 @@
+<html>
+<head>
+<style>
+@page {
+    size: 250px 300px;
+}
+@page {
+    @footnote {
+        float: bottom;  /* The only supported position */
+        box-sizing: border-box;
+        width: 100%;    /* Same width as body */
+        border: 1px solid green;
+        max-height: 65%; /* As a percentage of page content height */
+    }
+}
+body {
+  margin: 0 10px;
+  padding: 3px;
+  border: 1px solid black;
+  font-size: 18px;
+
+  /* When there is limited space for lines (such as with large footnote area)
+     then orphans and widows can create undesirable layout. */
+  orphans: 0;
+  widows: 0;
+}
+::footnote-call {
+  counter-increment: footnote 3;
+}
+span.footnote {
+  float: footnote;
+  color: orange;
+}
+.footnote::footnote-call {
+  font-family: sans-serif;
+  font-size: 14px;
+  padding: 2px;
+  color: red;
+  background-color: black;
+  content: "[" counter(footnote) "]";
+}
+.footnote::footnote-marker {
+  color: blue;
+  content: counter(footnote) ". ";
+}
+p {
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<p style="margin-top: 0;">
+  This text needs some footnotes. <span id="1" class="footnote">This is a footnote.</span>
+  Also a footnote for this sentence. <span id="2" class="footnote">Another <strong>footnote</strong>!</span>
+</p>
+
+<p style="page-break-before: always;">
+  Footnote numbers should be 3, 6 and 9. <span id="3" class="footnote">Just to be silly this is a really long footnote that will need wrapping and such.</span>
+</p>
+
+<p style="page-break-before: always; margin-bottom: 0;">
+  One two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen
+  seventeen eighteen nineteen twenty
+  <span id="4" class="footnote">
+    This is a very long footnote that will need wrapping. Someone once said
+    about footnotes that they are hard to implement!
+    We need another few lines to go over an entire page and a half to demonstrate
+    what happens with multi-page footnotes.
+  </span>
+  thirty fourty fifty sixty seventy eighty ninety hundred
+  thousand million billion trillion
+</p>
+</body>
+</html>

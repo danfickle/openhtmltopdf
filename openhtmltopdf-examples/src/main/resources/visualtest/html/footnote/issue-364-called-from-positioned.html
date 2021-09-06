@@ -1,0 +1,68 @@
+<html>
+<head>
+<style>
+@page {
+    size: 250px 330px;
+}
+@page {
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid green;
+        max-height: 65%;
+    }
+}
+body {
+  margin: 0 10px;
+  font-size: 18px;
+  border: 1px solid black;
+
+  orphans: 0;
+  widows: 0;
+}
+::footnote-call {
+  counter-increment: footnote 1;
+}
+.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  content: "[" counter(footnote) "]";
+}
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+}
+div {
+  z-index: -1;
+}
+</style>
+</head>
+<body style="padding-bottom: 30px;">
+<p style="margin: 0; position: relative;">
+  This text needs some footnotes.
+  <div id="1" class="footnote">
+   This is a footnote.
+  </div>
+  Also a footnote for this sentence.
+  <span id="2" class="footnote">
+   Another <strong>footnote</strong>!
+  </span>
+</p>
+
+<p style="page-break-before: always; margin: 0; position: fixed; background: orange; bottom: 0; left: 0; right: 0;">
+    <div id="3" class="footnote">
+      Not a footnote.
+    </div>
+</p>
+
+This is some text in normal flow. This is some more
+to make sure we break over two pages.
+
+<p style="position: absolute; margin: 0; top: 350px; left: 0; right: 0; background: purple;">
+  Absolute!
+  <div id="4" class="footnote">A footnote</div>
+</p>
+
+</body>
+</html>

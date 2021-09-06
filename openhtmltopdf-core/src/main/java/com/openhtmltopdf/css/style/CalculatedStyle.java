@@ -21,7 +21,6 @@
 package com.openhtmltopdf.css.style;
 
 import java.awt.Cursor;
-import java.lang.annotation.Documented;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import com.openhtmltopdf.context.StyleReference;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
@@ -50,12 +50,17 @@ import com.openhtmltopdf.css.style.derived.ListValue;
 import com.openhtmltopdf.css.style.derived.NumberValue;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.css.value.FontSpecification;
+import com.openhtmltopdf.layout.BoxBuilder;
+import com.openhtmltopdf.layout.LayoutContext;
+import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.layout.counter.RootCounterContext;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.WebDoc;
 import com.openhtmltopdf.util.WebDocLocations;
 import com.openhtmltopdf.util.XRLog;
@@ -65,16 +70,23 @@ import com.openhtmltopdf.util.XRRuntimeException;
 /**
  * A set of properties that apply to a single Element, derived from all matched
  * properties following the rules for CSS cascade, inheritance, importance,
- * specificity and sequence. A derived style is just like a style but
- * (presumably) has additional information that allows relative properties to be
- * assigned values, e.g. font attributes. Property values are fully resolved
- * when this style is created. A property retrieved by name should always have
- * only one value in this class (e.g. one-one map). Any methods to retrieve
+ * specificity and sequence. A property retrieved by name should always have
+ * exactly one value in this class (e.g. one-one map). Some methods to retrieve
  * property values from an instance of this class require a valid {@link
- * com.openhtmltopdf.layout.LayoutContext} be given to it, for some cases of property
- * resolution. Generally, a programmer will not use this class directly, but
- * will retrieve properties using a {@link com.openhtmltopdf.context.StyleReference}
- * implementation.
+ * com.openhtmltopdf.layout.LayoutContext} be given to them.
+ * <br><br>
+ * This is the go to class for working with a resolved style. Generally, you can get a
+ * instance for a box by calling:
+ *
+ * <ul>
+ *   <li>{@link Box#getStyle()} after a box has been created by the {@link BoxBuilder}</li>
+ *   <li>{@link SharedContext#getStyle(org.w3c.dom.Element)} for an element</li>
+ *   <li>{@link StyleReference#getPseudoElementStyle(org.w3c.dom.Node, String)} for a pseudo
+ *       element. StyleReference is available from {@link LayoutContext}</li>
+ *   <li>{@link #deriveStyle(CascadedStyle)}</li> to create a child style (non-inherited
+ *       property values will not be available from the child style</li>
+ *   <li>{@link EmptyStyle} to start with nothing</li>
+ * </ul>
  *
  * @author Torbjoern Gannholm
  * @author Patrick Wright
@@ -99,19 +111,10 @@ public class CalculatedStyle {
     private boolean _paddingAllowed = true;
     private boolean _bordersAllowed = true;
 
-    private BackgroundSize _backgroundSize;
-
     /**
      * Cache child styles of this style that have the same cascaded properties
      */
     private final java.util.Map<String, CalculatedStyle> _childCache = new java.util.HashMap<>();
-    /*private java.util.HashMap _childCache = new java.util.LinkedHashMap(5, 0.75f, true) {
-        private static final int MAX_ENTRIES = 10;
-
-        protected boolean removeEldestEntry(Map.Entry eldest) {
-            return size() > MAX_ENTRIES;
-        }
-    };*/
 
     /**
      * Our main array of property values defined in this style, keyed
@@ -149,6 +152,11 @@ public class CalculatedStyle {
         this();
         _parent = parent;
 
+        init(matched);
+    }
+
+
+    private void init(CascadedStyle matched) {
         derive(matched);
 
         checkPaddingAllowed();
@@ -184,14 +192,16 @@ public class CalculatedStyle {
     }
 
     /**
-     * derives a child style from this style.
-     * <br>
-     * depends on the ability to return the identical CascadedStyle each time a child style is needed
+     * Derives a <strong>child</strong> style from this style. Non-inherited properties
+     * such as borders will be replaced compared to <code>this</code> which is used
+     * as parent style.
+     * <br><br>
+     * Depends on the ability to return the identical CascadedStyle each time a child style is needed
      *
      * @param matched the CascadedStyle to apply
      * @return The derived child style
      */
-    public synchronized CalculatedStyle deriveStyle(CascadedStyle matched) {
+    public CalculatedStyle deriveStyle(CascadedStyle matched) {
         String fingerprint = matched.getFingerprint();
         CalculatedStyle cs = _childCache.get(fingerprint);
 
@@ -199,15 +209,45 @@ public class CalculatedStyle {
             cs = new CalculatedStyle(this, matched);
             _childCache.put(fingerprint, cs);
         }
+
+        RootCounterContext cc = ThreadCtx.get().sharedContext().getGlobalCounterContext();
+        cc.resetCounterValue(cs);
+        cc.incrementCounterValue(cs);
+
         return cs;
     }
 
-    public int countAssigned() {
-        int c = 0;
-        for (int i = 0; i < _derivedValuesById.length; i++) {
-            if (_derivedValuesById[i] != null) c++;
-        }
-        return c;
+    /**
+     * Override this style with specified styles. This will NOT
+     * create a child style, rather an exact copy with only the specified
+     * properties overridden. Compare to {@link #deriveStyle(CascadedStyle)}.
+     */
+    public CalculatedStyle overrideStyle(CascadedStyle matched) {
+        CalculatedStyle ret = new CalculatedStyle();
+
+        ret._parent = this._parent;
+        System.arraycopy(this._derivedValuesById, 0, ret._derivedValuesById, 0, ret._derivedValuesById.length);
+
+        init(matched);
+
+        return ret;
+    }
+
+    /**
+     * Override this style with specified styles. This will NOT
+     * create a child style, rather an exact copy with only the display
+     * property overridden. Compare to {@link #createAnonymousStyle(IdentValue)}
+     * which creates a child style.
+     */
+    public CalculatedStyle overrideStyle(IdentValue display) {
+        CalculatedStyle ret = new CalculatedStyle();
+
+        ret._parent = this._parent;
+        System.arraycopy(this._derivedValuesById, 0, ret._derivedValuesById, 0, ret._derivedValuesById.length);
+
+        ret.init(CascadedStyle.createAnonymousStyle(display));
+
+        return ret;
     }
 
     /**
@@ -248,12 +288,6 @@ public class CalculatedStyle {
 
     public String[] asStringArray(CSSName cssName) {
         return valueByName(cssName).asStringArray();
-    }
-
-    public void setDefaultValue(CSSName cssName, FSDerivedValue fsDerivedValue) {
-        if (_derivedValuesById[cssName.FS_ID] == null) {
-            _derivedValuesById[cssName.FS_ID] = fsDerivedValue;
-        }
     }
 
     // TODO: doc
@@ -513,9 +547,11 @@ public class CalculatedStyle {
     /**
      * Returns a {@link FSDerivedValue} by name. Because we are a derived
      * style, the property will already be resolved at this point.
+     * <br><br>
+     * This will look up the ancestor tree for inherited properties and
+     * use an initial value for unspecified properties which do not inherit.
      *
      * @param cssName The CSS property name, e.g. "font-family"
-     * @return See desc.
      */
     public FSDerivedValue valueByName(CSSName cssName) {
         FSDerivedValue val = _derivedValuesById[cssName.FS_ID];
@@ -528,7 +564,6 @@ public class CalculatedStyle {
             // for the value
             if (! needInitialValue && CSSName.propertyInherits(cssName)
                     && _parent != null
-                    //
                     && (val = _parent.valueByName(cssName)) != null) {
                 // Do nothing, val is already set
             } else {
@@ -547,35 +582,33 @@ public class CalculatedStyle {
             }
             _derivedValuesById[cssName.FS_ID] = val;
         }
+
         return val;
     }
 
     /**
-     * <p/>
-     * <p/>
-     * <p/>
-     * <p/>
-     * Implements cascade/inherit/important logic. This should result in the
-     * element for this style having a value for *each and every* (visual)
-     * property in the CSS2 spec. The implementation is based on the notion that
+     * This method should result in the element for this style having a
+     * derived value for all specified (in stylesheets, style attribute, other non
+     * CSS attrs, etc) primitive CSS properties. Other properties are picked up
+     * from an ancestor (if they inherit) or their initial values (if
+     * they don't inherit). See {@link #valueByName(CSSName)}.
+     * <br><br>
+     * The implementation is based on the notion that
      * the matched styles are given to us in a perfectly sorted order, such that
      * properties appearing later in the rule-set always override properties
-     * appearing earlier. It also assumes that all properties in the CSS2 spec
-     * are defined somewhere across all the matched styles; for example, that
-     * the full-property set is given in the user-agent CSS that is always
-     * loaded with styles. The current implementation makes no attempt to check
-     * either of these assumptions. When this method exits, the derived property
+     * appearing earlier.
+     * <br><br>
+     * The current implementation makes no attempt to check
+     * this assumption. When this method exits, the derived property
      * list for this class will be populated with the properties defined for
-     * this element, properly cascaded.</p>
-     *
-     * @param matched PARAM
+     * this element, properly cascaded.
      */
     private void derive(CascadedStyle matched) {
         if (matched == null) {
             return;
-        }//nothing to derive
+        }
 
-		for (PropertyDeclaration pd : matched.getCascadedPropertyDeclarations()) {
+        for (PropertyDeclaration pd : matched.getCascadedPropertyDeclarations()) {
             FSDerivedValue val = deriveValue(pd.getCSSName(), pd.getValue());
             _derivedValuesById[pd.getCSSName().FS_ID] = val;
         }
@@ -868,6 +901,14 @@ public class CalculatedStyle {
         return isIdent(CSSName.FLOAT, IdentValue.RIGHT);
     }
 
+    public boolean isFootnote() {
+        return isIdent(CSSName.FLOAT, IdentValue.FOOTNOTE);
+    }
+
+    public boolean isFootnoteBody() {
+        return isIdent(CSSName.DISPLAY, IdentValue.FS_FOOTNOTE_BODY);
+    }
+
     public boolean isRelative() {
         return isIdent(CSSName.POSITION, IdentValue.RELATIVE);
     }
@@ -1068,6 +1109,13 @@ public class CalculatedStyle {
         return isIdent(CSSName.PAGE_BREAK_INSIDE, IdentValue.AVOID);
     }
 
+    /**
+     * This method derives a style for an anonymous child box with an overriden
+     * value for the display property.
+     * <br><br>
+     * NOTE: All non-inherited properties of <code>this</code> will be lost as
+     * the returned style is for a child box.
+     */
     public CalculatedStyle createAnonymousStyle(IdentValue display) {
         return deriveStyle(CascadedStyle.createAnonymousStyle(display));
     }
@@ -1445,353 +1493,3 @@ public class CalculatedStyle {
         return backgrounds;
     }
 }
-
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.110  2010/01/12 14:33:27  peterbrant
- * Ignore auto margins when calculating table min/max width.  Also, when deciding whether or not to proceed with the auto margin calculation for a table,  make sure we compare consistently with how the table min width is actually set.
- *
- * Revision 1.109  2009/11/08 23:52:48  peterbrant
- * Treat percentage widths as auto when calculating min/max widths
- *
- * Revision 1.108  2009/05/09 14:17:41  pdoubleya
- * FindBugs: static field should not be mutable; use inner class to declare CSS 4-side properties
- *
- * Revision 1.107  2009/04/25 10:48:42  pdoubleya
- * Small opt, don't pull Ident unless needed, patch from Peter Fassev issue #263
- *
- * Revision 1.106  2008/12/14 19:27:16  peterbrant
- * Always treat running elements as blocks
- *
- * Revision 1.105  2008/12/14 13:53:32  peterbrant
- * Implement -fs-keep-with-inline: keep property that instructs FS to try to avoid breaking a box so that only borders and padding appear on a page
- *
- * Revision 1.104  2008/09/06 18:21:50  peterbrant
- * Need to account for list-marker-position: inside when calculating inline min/max widths
- *
- * Revision 1.103  2008/08/01 22:23:54  peterbrant
- * Fix various bugs related to collapsed table borders (one manifestation found by Olly Headey)
- *
- * Revision 1.102  2008/07/27 00:21:48  peterbrant
- * Implement CMYK color support for PDF output, starting with patch from Mykola Gurov / Banish java.awt.Color from FS core layout classes
- *
- * Revision 1.101  2008/07/14 11:12:37  peterbrant
- * Fix two bugs when -fs-table-paginate is paginate.  Block boxes in cells in a <thead> that were also early on the page could be positioned incorrectly.  Line boxes contained within inline-block or inline-table content in a paginated table were generally placed incorrectly.
- *
- * Revision 1.100  2007/08/29 22:18:19  peterbrant
- * Experiment with text justification
- *
- * Revision 1.99  2007/08/27 19:44:06  peterbrant
- * Rename -fs-table-pagination to -fs-table-paginate
- *
- * Revision 1.98  2007/08/19 22:22:53  peterbrant
- * Merge R8pbrant changes to HEAD
- *
- * Revision 1.97.2.4  2007/08/17 23:53:32  peterbrant
- * Get rid of layer hack for overflow: hidden
- *
- * Revision 1.97.2.3  2007/08/16 22:38:48  peterbrant
- * Further progress on table pagination
- *
- * Revision 1.97.2.2  2007/07/11 22:48:29  peterbrant
- * Further progress on running headers and footers
- *
- * Revision 1.97.2.1  2007/07/09 22:18:04  peterbrant
- * Begin work on running headers and footers and named pages
- *
- * Revision 1.97  2007/06/26 18:24:52  peterbrant
- * Improve calculation of line-height: normal / If leading is positive, recalculate to center glyph area in inline box
- *
- * Revision 1.96  2007/06/19 22:31:46  peterbrant
- * Only cache all zeros margin, border, padding.  See discussion on bug #147 for more info.
- *
- * Revision 1.95  2007/06/14 22:39:31  tobega
- * Handling counters in LayoutContext instead. We still need to get the value from the counter function and change list-item counting.
- *
- * Revision 1.94  2007/06/13 14:16:00  peterbrant
- * Comment out body of resolveCounters() for now
- *
- * Revision 1.93  2007/06/12 22:59:23  tobega
- * Handling counters is done. Now we just need to get the values appropriately.
- *
- * Revision 1.92  2007/06/05 19:29:54  peterbrant
- * More progress on counter support
- *
- * Revision 1.91  2007/05/24 19:56:52  peterbrant
- * Add support for cursor property (predefined cursors only)
- *
- * Patch from Sean Bright
- *
- * Revision 1.90  2007/04/16 01:10:06  peterbrant
- * Vertical margin and padding with percentage values may be incorrect if box participated in a shrink-to-fit calculation.  Fix margin calculation.
- *
- * Revision 1.89  2007/04/14 20:09:39  peterbrant
- * Add method to clear cached rects
- *
- * Revision 1.88  2007/03/01 20:17:10  peterbrant
- * Tables with collapsed borders don't have padding
- *
- * Revision 1.87  2007/02/28 18:16:32  peterbrant
- * Support multiple values for text-decoration (per spec)
- *
- * Revision 1.86  2007/02/26 16:25:51  peterbrant
- * Method name change to avoid confusion with visibility: hidden / Don't create empty inline boxes after all (inline layout will ignore them anyway) / Robustness improvements to generated content (treat display: table/table row groups/table-row as regular block boxes)
- *
- * Revision 1.85  2007/02/24 00:46:38  peterbrant
- * Paint root element background over entire canvas (or it's first child if the root element doesn't define a background)
- *
- * Revision 1.84  2007/02/23 21:04:26  peterbrant
- * Implement complete support for background-position and background-attachment
- *
- * Revision 1.83  2007/02/23 16:54:38  peterbrant
- * Allow special ident -fs-intial-value to reset a property value to its initial value (used by border related shorthand properties as 'color' won't be known at property construction time)
- *
- * Revision 1.82  2007/02/22 18:21:20  peterbrant
- * Add support for overflow: visible/hidden
- *
- * Revision 1.81  2007/02/21 01:19:12  peterbrant
- * Need to take unit into account when creating Length objects with non-pixel units
- *
- * Revision 1.80  2007/02/20 20:05:40  peterbrant
- * Complete support for absolute and relative font sizes
- *
- * Revision 1.79  2007/02/20 16:11:11  peterbrant
- * Comment out references to CSSName.OVERFLOW
- *
- * Revision 1.78  2007/02/20 01:17:11  peterbrant
- * Start CSS parser cleanup
- *
- * Revision 1.77  2007/02/20 00:01:12  peterbrant
- * asColor() fix
- *
- * Revision 1.76  2007/02/19 23:18:43  peterbrant
- * Further work on new CSS parser / Misc. bug fixes
- *
- * Revision 1.75  2007/02/19 14:53:43  peterbrant
- * Integrate new CSS parser
- *
- * Revision 1.74  2007/02/07 16:33:28  peterbrant
- * Initial commit of rewritten table support and associated refactorings
- *
- * Revision 1.73  2007/01/16 16:11:38  peterbrant
- * Don't copy derived values as they propagate down the style tree (don't need to anymore
- * now that we don't cache length values in LengthValue and PointValue)
- *
- * Revision 1.72  2006/10/04 23:52:57  peterbrant
- * Implement support for margin: auto (centering blocks in their containing block)
- *
- * Revision 1.71  2006/09/06 22:21:43  peterbrant
- * Fixes to shrink-to-fit implementation / Implement min/max-width (non-replaced content) only
- *
- * Revision 1.70  2006/09/01 23:49:40  peterbrant
- * Implement basic margin collapsing / Various refactorings in preparation for shrink-to-fit / Add hack to treat auto margins as zero
- *
- * Revision 1.69  2006/08/29 17:29:14  peterbrant
- * Make Style object a thing of the past
- *
- * Revision 1.68  2006/08/27 00:36:16  peterbrant
- * Initial commit of (initial) R7 work
- *
- * Revision 1.67  2006/05/15 05:46:51  pdoubleya
- * Return value from abs value check never assigned!
- *
- * Revision 1.66  2006/05/08 21:24:24  pdoubleya
- * Log, don't throw exception, if we check for an absolute unit but it doesn't make sense to do so (IdentValue.hasAbsoluteUnit()).
- *
- * Revision 1.65  2006/05/08 20:56:09  pdoubleya
- * Clean exception handling for case where assigned property value is not understood as a valid value; use initial value instead.
- *
- * Revision 1.64  2006/02/21 19:30:34  peterbrant
- * Reset negative values for padding/border-width to 0
- *
- * Revision 1.63  2006/02/01 01:30:16  peterbrant
- * Initial commit of PDF work
- *
- * Revision 1.62  2006/01/27 01:15:44  peterbrant
- * Start on better support for different output devices
- *
- * Revision 1.61  2006/01/03 17:04:54  peterbrant
- * Many pagination bug fixes / Add ability to position absolute boxes in margin area
- *
- * Revision 1.60  2006/01/03 02:11:15  peterbrant
- * Expose asString() for all
- *
- * Revision 1.59  2006/01/01 02:38:22  peterbrant
- * Merge more pagination work / Various minor cleanups
- *
- * Revision 1.58  2005/12/13 02:41:36  peterbrant
- * Initial implementation of vertical-align: top/bottom (not done yet) / Minor cleanup and optimization
- *
- * Revision 1.57  2005/12/08 02:16:11  peterbrant
- * Thread safety fix
- *
- * Revision 1.56  2005/12/05 00:09:04  peterbrant
- * Couple of optimizations which improve layout speed by about 10%
- *
- * Revision 1.55  2005/11/25 16:57:26  peterbrant
- * Initial commit of inline content refactoring
- *
- * Revision 1.54  2005/11/10 22:15:41  peterbrant
- * Fix (hopefully) exception on identifiers which are converted by the CSS layer (e.g. thick becomes 3px)
- *
- * Revision 1.53  2005/11/08 22:53:44  tobega
- * added getLineHeight method to CalculatedStyle and hacked in some list-item support
- *
- * Revision 1.52  2005/10/31 22:43:15  tobega
- * Some memory optimization of the Matcher. Probably cleaner code, too.
- *
- * Revision 1.51  2005/10/31 19:02:12  pdoubleya
- * support for inherited padding and margins.
- *
- * Revision 1.50  2005/10/31 18:01:44  pdoubleya
- * InheritedLength is created per-length, to accomodate calls that need to defer to a specific parent.
- *
- * Revision 1.49  2005/10/31 12:38:14  pdoubleya
- * Additional inheritance fixes.
- *
- * Revision 1.48  2005/10/31 10:16:08  pdoubleya
- * Preliminary support for inherited lengths.
- *
- * Revision 1.47  2005/10/25 15:38:28  pdoubleya
- * Moved guessType() to ValueConstants, applied fix to method suggested by Chris Oliver, to avoid exception-based catch.
- *
- * Revision 1.46  2005/10/25 00:38:47  tobega
- * Reduced memory footprint of Matcher and stopped trying to cache the possibly uncache-able CascadedStyles, the fingerprint works just as well or better as a key in CalculatedStyle!
- *
- * Revision 1.45  2005/10/24 15:37:35  pdoubleya
- * Caching border, margin and property instances directly.
- *
- * Revision 1.44  2005/10/24 10:19:40  pdoubleya
- * CSSName FS_ID is now public and final, allowing direct access to the id, bypassing getAssignedID(); micro-optimization :); getAssignedID() and setAssignedID() have been removed. IdentValue string property is also final (as should have been).
- *
- * Revision 1.43  2005/10/22 22:58:15  peterbrant
- * Box level restyle works again (really this time!)
- *
- * Revision 1.42  2005/10/21 23:51:48  peterbrant
- * Rollback ill-advised change in revision 1.40
- *
- * Revision 1.41  2005/10/21 23:11:26  pdoubleya
- * Store key for margin, border and padding in each style instance, was re-creating on each call.
- *
- * Revision 1.40  2005/10/21 23:04:02  peterbrant
- * Make box level restyle work again
- *
- * Revision 1.39  2005/10/21 18:49:46  pdoubleya
- * Fixed border painting bug.
- *
- * Revision 1.38  2005/10/21 18:14:59  pdoubleya
- * set  initial capacity for cached rects.
- *
- * Revision 1.37  2005/10/21 18:10:50  pdoubleya
- * Support for cachable borders. Still buggy on some pages, but getting there.
- *
- * Revision 1.36  2005/10/21 13:02:20  pdoubleya
- * Changed to cache padding in RectPropertySet.
- *
- * Revision 1.35  2005/10/21 12:20:04  pdoubleya
- * Added array for margin side props.
- *
- * Revision 1.34  2005/10/21 12:16:18  pdoubleya
- * Removed use of MarginPropertySet; using RectPS  now.
- *
- * Revision 1.33  2005/10/21 12:01:13  pdoubleya
- * Added cachable rect property for margin, cleanup minor in styling.
- *
- * Revision 1.32  2005/10/21 10:02:54  pdoubleya
- * Cleanup, removed unneeded vars, reorg code in CS.
- *
- * Revision 1.31  2005/10/20 20:48:01  pdoubleya
- * Updates for refactoring to style classes. CalculatedStyle now has lookup methods to cover all general cases, so propertyByName() is private, which means the backing classes for styling were able to be replaced.
- *
- * Revision 1.30  2005/10/03 23:44:43  tobega
- * thread-safer css code and improved style caching
- *
- * Revision 1.29  2005/09/11 20:43:15  tobega
- * Fixed table-css interaction bug, colspan now works again
- *
- * Revision 1.28  2005/07/20 22:47:33  joshy
- * fix for 94, percentage for top absolute position
- *
- * Revision 1.27  2005/06/22 23:48:41  tobega
- * Refactored the css package to allow a clean separation from the core.
- *
- * Revision 1.26  2005/06/21 08:23:13  pdoubleya
- * Added specific list and count of primitive, non shorthand properties, and CalculatedStyle now sizes array to this size.
- *
- * Revision 1.25  2005/06/16 07:24:46  tobega
- * Fixed background image bug.
- * Caching images in browser.
- * Enhanced LinkListener.
- * Some house-cleaning, playing with Idea's code inspection utility.
- *
- * Revision 1.24  2005/06/03 23:06:21  tobega
- * Now uses value of "color" as initial value for "border-color" and rgb-triples are supported
- *
- * Revision 1.23  2005/06/01 00:47:02  tobega
- * Partly confused hack trying to get width and height working properly for replaced elements.
- *
- * Revision 1.22  2005/05/29 16:38:58  tobega
- * Handling of ex values should now be working well. Handling of em values improved. Is it correct?
- * Also started defining dividing responsibilities between Context and RenderingContext.
- *
- * Revision 1.21  2005/05/13 11:49:57  tobega
- * Started to fix up borders on inlines. Got caught up in refactoring.
- * Boxes shouldn't cache borders and stuff unless necessary. Started to remove unnecessary references.
- * Hover is not working completely well now, might get better when I'm done.
- *
- * Revision 1.20  2005/05/09 20:35:38  tobega
- * Caching fonts in CalculatedStyle
- *
- * Revision 1.19  2005/05/08 15:37:28  tobega
- * Fixed up style caching so it really works (internalize CascadedStyles and let each CalculatedStyle keep track of its derived children)
- *
- * Revision 1.18  2005/05/08 14:51:21  tobega
- * Removed the need for the Styler
- *
- * Revision 1.17  2005/05/08 14:36:54  tobega
- * Refactored away the need for having a context in a CalculatedStyle
- *
- * Revision 1.16  2005/04/07 16:33:34  pdoubleya
- * Fix border width if set to "none" in CSS (Kevin).
- *
- * Revision 1.15  2005/03/24 23:16:33  pdoubleya
- * Added use of SharedContext (Kevin).
- *
- * Revision 1.14  2005/02/03 23:15:50  pdoubleya
- * .
- *
- * Revision 1.13  2005/01/29 20:22:20  pdoubleya
- * Clean/reformat code. Removed commented blocks, checked copyright.
- *
- * Revision 1.12  2005/01/25 12:46:12  pdoubleya
- * Refactored duplicate code into separate method.
- *
- * Revision 1.11  2005/01/24 22:46:43  pdoubleya
- * Added support for ident-checks using IdentValue instead of string comparisons.
- *
- * Revision 1.10  2005/01/24 19:01:05  pdoubleya
- * Mass checkin. Changed to use references to CSSName, which now has a Singleton instance for each property, everywhere property names were being used before. Removed commented code. Cascaded and Calculated style now store properties in arrays rather than maps, for optimization.
- *
- * Revision 1.9  2005/01/24 14:36:31  pdoubleya
- * Mass commit, includes: updated for changes to property declaration instantiation, and new use of DerivedValue. Removed any references to older XR... classes (e.g. XRProperty). Cleaned imports.
- *
- * Revision 1.8  2004/12/05 18:11:36  tobega
- * Now uses style cache for pseudo-element styles. Also started preparing to replace inline node handling with inline content handling.
- *
- * Revision 1.7  2004/12/05 00:48:54  tobega
- * Cleaned up so that now all property-lookups use the CalculatedStyle. Also added support for relative values of top, left, width, etc.
- *
- * Revision 1.6  2004/11/15 12:42:23  pdoubleya
- * Across this checkin (all may not apply to this particular file)
- * Changed default/package-access members to private.
- * Changed to use XRRuntimeException where appropriate.
- * Began move from System.err.println to std logging.
- * Standard code reformat.
- * Removed some unnecessary SAC member variables that were only used in initialization.
- * CVS log section.
- *
- *
- */
-

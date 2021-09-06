@@ -20,8 +20,9 @@
 package com.openhtmltopdf.context;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
+import org.w3c.dom.Element;
 
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.extend.ContentFunction;
@@ -188,7 +189,15 @@ public class ContentFunctionFactory {
 
         @Override
         public String calculate(RenderingContext c, FSFunction function, InlineText text) {
-            String uri = text.getParent().getElement().getAttribute("href");
+            // Due to how BoxBuilder::wrapGeneratedContent works, it is likely the immediate
+            // parent of text is an anonymous InlineLayoutBox so we have to go up another
+            // level to the wrapper box which contains the element.
+            Element hrefElement = text.getParent().getElement() == null ?
+                    text.getParent().getParent().getElement() :
+                    text.getParent().getElement();
+
+            String uri = hrefElement.getAttribute("href");
+
             if (uri != null && uri.startsWith("#")) {
                 String anchor = uri.substring(1);
                 Box target = c.getBoxById(anchor);
@@ -242,7 +251,15 @@ public class ContentFunctionFactory {
 
         @Override
         public String calculate(RenderingContext c, FSFunction function, InlineText text) {
-            String uri = text.getParent().getElement().getAttribute("href");
+            // Due to how BoxBuilder::wrapGeneratedContent works, it is likely the immediate
+            // parent of text is an anonymous InlineLayoutBox so we have to go up another
+            // level to the wrapper box which contains the element.
+            Element hrefElement = text.getParent().getElement() == null ?
+                    text.getParent().getParent().getElement() :
+                    text.getParent().getElement();
+
+            String uri = hrefElement.getAttribute("href");
+
             if (uri != null && uri.startsWith("#")) {
                 String anchor = uri.substring(1);
                 Box target = c.getBoxById(anchor);
@@ -302,16 +319,46 @@ public class ContentFunctionFactory {
             // Because the leader should fill up the line, we need the correct
             // width and must first compute the target-counter function.
             boolean dynamic = false;
-            Iterator<Box> childIterator = lineBox.getChildIterator();
-            while (childIterator.hasNext()) {
-                Box child = childIterator.next();
+            boolean dynamic2 = false;
+            Box wrapperBox = iB.getParent();
+            List<? extends Object> children = null;
+
+            // The type of wrapperBox will depend on the CSS display property
+            // of the pseudo element where the content property using this function exists.
+            // See BoxBuilder#wrapGeneratedContent.
+            if (wrapperBox instanceof InlineLayoutBox) {
+                children = ((InlineLayoutBox) wrapperBox).getInlineChildren();
+            } else {
+                children = wrapperBox.getChildren();
+            }
+
+            for (Object child : children) {
                 if (child == iB) {
+                    // Don't call InlineLayoutBox::lookForDynamicFunctions on this box
+                    // as we will arrive back here and end up as a stack overflow.
+                    // Instead set the dynamic flag so we resolve subsequent dynamic functions.
                     dynamic = true;
-                } else if (dynamic && child instanceof InlineLayoutBox) {
+                } else if (child instanceof InlineLayoutBox) {
+                    // This forces the computation of dynamic functions.
                     ((InlineLayoutBox)child).lookForDynamicFunctions(c);
                 }
             }
+
+            // We also have to evaluate subsequent dynamic functions at the line level
+            // in the case that we are in the ::before and subsequent functions are in ::after.
             if (dynamic) {
+                for (Box child : lineBox.getChildren()) {
+                    if (wrapperBox == child) {
+                        dynamic2 = true;
+                    } else if (dynamic2 && child instanceof InlineLayoutBox) {
+                        ((InlineLayoutBox)child).lookForDynamicFunctions(c);
+                    }
+                }
+            }
+
+            if (dynamic) {
+                // Re-calculate the width of the line after subsequent dynamic functions
+                // have been calculated.
                 int totalLineWidth = InlineBoxing.positionHorizontally(c, lineBox, 0);
                 lineBox.setContentWidth(totalLineWidth);
             }

@@ -38,12 +38,15 @@ import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.SearchUtil;
 import com.openhtmltopdf.util.XRLog;
+import com.openhtmltopdf.util.SearchUtil.IntComparator;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 /**
@@ -69,8 +72,6 @@ public class Layer {
     private Box _end;
 
     private List<BlockBox> _floats;
-
-    private boolean _fixedBackground;
 
     private boolean _inline;
     private boolean _requiresLayout;
@@ -101,12 +102,25 @@ public class Layer {
     private AffineTransform _ctm;
     private final boolean _hasLocalTransform;
 
+    private boolean _isolated;
+
     /**
      * Creates the root layer.
      */
     public Layer(Box master, CssContext c) {
         this(null, master, c);
         setStackingContext(true);
+    }
+
+    public Layer(Box master, CssContext c, boolean isolated) {
+        this(master, c);
+        if (isolated) {
+            setIsolated(true);
+        }
+    }
+
+    private void setIsolated(boolean b) {
+        _isolated = b;
     }
 
     /**
@@ -265,10 +279,9 @@ public class Layer {
     }
 
     /**
-     * Called recusively to collect all descendant layers in a stacking context so they can be painted in correct order.
-     * Those descendants that are under their own stacking contexts are excluded.
+     * Called recusively to collect all descendant layers in a layer tree so
+     * they can be painted in correct order.
      * @param which NEGATIVE ZERO POSITIVE AUTO corresponding to z-index property.
-     * @return
      */
     public List<Layer> collectLayers(int which) {
         List<Layer> result = new ArrayList<>();
@@ -278,7 +291,7 @@ public class Layer {
 
         for (Layer child : children) {
             if (! child.isStackingContext()) {
-                if (child.isForDeletion()) {
+                if (child.isForDeletion() || child._isolated) {
                     // Do nothing...
                 } else if (which == AUTO && child.isZIndexAuto()) {
             		result.add(child);
@@ -301,7 +314,7 @@ public class Layer {
         List<Layer> children = getChildren();
 
         for (Layer target : children) {
-            if (target.isForDeletion()) {
+            if (target.isForDeletion() || target._isolated) {
                 // Do nothing...
             } else if (target.isStackingContext()) {
             	if (!target.isZIndexAuto()) {
@@ -569,7 +582,7 @@ public class Layer {
 			}
 		}
 
-		List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
+		List<PropertyValue> transformList = ((ListValue) transforms).getValues();
 		List<AffineTransform> resultTransforms = new ArrayList<>();
 		AffineTransform translateToOrigin = AffineTransform.getTranslateInstance(relTranslateX, relTranslateY);
 		AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY);
@@ -804,7 +817,7 @@ public class Layer {
     }
 
     public void positionFixedLayer(RenderingContext c) {
-        Rectangle rect = c.getFixedRectangle();
+        Rectangle rect = c.getFixedRectangle(true);
 
         Box fixed = getMaster();
 
@@ -855,7 +868,7 @@ public class Layer {
 
     private PaintingInfo calcPaintingDimension(LayoutContext c) {
         getMaster().calcPaintingInfo(c, true);
-        PaintingInfo result = (PaintingInfo)getMaster().getPaintingInfo().copyOf();
+        PaintingInfo result = getMaster().getPaintingInfo().copyOf();
 
         for (Layer child : getChildren()) {
             if (child.getMaster().getStyle().isFixed()) {
@@ -1076,8 +1089,12 @@ public class Layer {
      * Returns the page box for a Y position.
      * If the y position is less than 0 then the first page will
      * be returned if available.
-     * Returns null if there are no pages available or absY
-     * is past the last page.
+     * Only returns null if there are no pages available.
+     * <br><br>
+     * IMPORTANT: If absY is past the end of the last page,
+     * pages will be created as required to include absY and the last
+     * page will be returned.
+     * 
      */
     public PageBox getFirstPage(CssContext c, int absY) {
         PageBox page = getPage(c, absY);
@@ -1110,59 +1127,121 @@ public class Layer {
         getLastPage(c, box);
     }
 
+    /**
+     * Tries to return a list of pages that cover top to bottom.
+     * If top and bottom are less-than zero returns null.
+     * <br><br>
+     * IMPORTANT: If bottom is past the end of the last page, pages
+     * are created until bottom is included.
+     */
+    public List<PageBox> getPages(CssContext c, int top, int bottom) {
+        if (top > bottom) {
+            int temp = top;
+            top = bottom;
+            bottom = temp;
+        }
+
+        PageBox first = getPage(c, top);
+
+        if (first == null) {
+            return null;
+        } else if (bottom < first.getBottom()) {
+            return Collections.singletonList(first);
+        }
+
+        List<PageBox> pages = new ArrayList<>();
+        pages.add(first);
+
+        int current = first.getBottom() + 1;
+        PageBox curPage = first;
+
+        while (bottom > curPage.getBottom()) {
+            curPage = getPage(c, current);
+            current = curPage.getBottom() + 1;
+            pages.add(curPage);
+        }
+
+        return pages;
+    }
+
+    /**
+     * Returns a comparator that determines if the given pageBox is a match, too late or too early.
+     * For use with {@link SearchUtil#intBinarySearch(IntComparator, int, int)}
+     */
+    private IntComparator pageFinder(List<PageBox> pages, int yOffset, Predicate<PageBox> matcher) {
+        return idx -> {
+            PageBox pageBox = pages.get(idx);
+
+            if (matcher.test(pageBox)) {
+                return 0;
+            }
+
+            return pageBox.getTop() < yOffset ? -1 : 1;
+        };
+    }
+
+    /**
+     * Returns a predicate that determines if yOffset sits on the given page.
+     */
+    private Predicate<PageBox> pagePredicate(int yOffset) {
+        return pageBox -> yOffset >= pageBox.getTop() && yOffset < pageBox.getBottom();
+    }
+
+    /**
+     * Gets the page box for the given document y offset. If y offset is 
+     * less-than zero returns null.
+     * <br><br>
+     * IMPORTANT: If y offset is past the end of the last page, pages
+     * are created until y offset is included and the last page is returned.
+     */
     public PageBox getPage(CssContext c, int yOffset) {
         List<PageBox> pages = getPages();
+
         if (yOffset < 0) {
             return null;
         } else {
             PageBox lastRequested = getLastRequestedPage();
+            Predicate<PageBox> predicate = pagePredicate(yOffset);
+
             if (lastRequested != null) {
-                if (yOffset >= lastRequested.getTop() && yOffset < lastRequested.getBottom()) {
+                if (predicate.test(lastRequested)) {
                     return lastRequested;
                 }
             }
-            PageBox last = pages.get(pages.size()-1);
+
+            PageBox last = pages.get(pages.size() - 1);
+
             if (yOffset < last.getBottom()) {
+                final int MAX_REAR_SEARCH = 5;
+
                 // The page we're looking for is probably at the end of the
                 // document so do a linear search for the first few pages
                 // and then fall back to a binary search if that doesn't work
                 // out
                 int count = pages.size();
-                for (int i = count-1; i >= 0 && i >= count-5; i--) {
-                    PageBox pageBox = (PageBox)pages.get(i);
-                    if (yOffset >= pageBox.getTop() && yOffset < pageBox.getBottom()) {
+                for (int i = count - 1; i >= 0 && i >= count - MAX_REAR_SEARCH; i--) {
+                    PageBox pageBox = pages.get(i);
+
+                    if (predicate.test(pageBox)) {
                         setLastRequestedPage(pageBox);
                         return pageBox;
                     }
                 }
 
-                int low = 0;
-                int high = count-6;
+                int needleIndex = SearchUtil.intBinarySearch(
+                        pageFinder(pages, yOffset, predicate), 0, count - MAX_REAR_SEARCH);
 
-                while (low <= high) {
-                    int mid = (low + high) >> 1;
-                    PageBox pageBox = (PageBox)pages.get(mid);
+                PageBox needle = pages.get(needleIndex);
+                setLastRequestedPage(needle);
+                return needle;
 
-                    if (yOffset >= pageBox.getTop() && yOffset < pageBox.getBottom()) {
-                        setLastRequestedPage(pageBox);
-                        return pageBox;
-                    }
-
-                    if (pageBox.getTop() < yOffset) {
-                        low = mid + 1;
-                    } else {
-                        high = mid - 1;
-                    }
-                }
             } else {
                 addPagesUntilPosition(c, yOffset);
-                PageBox result = (PageBox) pages.get(pages.size()-1);
+                PageBox result = pages.get(pages.size()-1);
                 setLastRequestedPage(result);
                 return result;
             }
         }
-
-        throw new RuntimeException("internal error");
     }
 
     private void addPagesUntilPosition(CssContext c, int position) {
@@ -1239,12 +1318,29 @@ public class Layer {
         return pages.size() == 0 ? null : pages.get(pages.size()-1);
     }
 
+    /**
+     * Returns whether the a box with the given top and bottom would cross a page break.
+     * <br><br>
+     * Requirements: top is >= 0.
+     * <br><br>
+     * Important: This method will take into account any <code>float: bottom</code>
+     * content when used in in-flow content. For example, if the top/bottom pair overlaps
+     * the footnote area, returns true. It also takes into account space set aside for
+     * paginated table header/footer.
+     * <br><br>
+     * See {@link CssContext#isInFloatBottom()} {@link LayoutContext#getExtraSpaceBottom()}
+     */
     public boolean crossesPageBreak(LayoutContext c, int top, int bottom) {
         if (top < 0) {
             return false;
         }
         PageBox page = getPage(c, top);
-        return bottom >= page.getBottom() - c.getExtraSpaceBottom();
+        if (c.isInFloatBottom()) {
+            // For now we don't support paginated tables in float:bottom content.
+            return bottom >= page.getBottom();
+        } else {
+            return bottom >= page.getBottom(c) - c.getExtraSpaceBottom();
+        }
     }
 
     public Layer findRoot() {
@@ -1531,5 +1627,9 @@ public class Layer {
 
     private void setLastRequestedPage(PageBox lastRequestedPage) {
         _lastRequestedPage = lastRequestedPage;
+    }
+
+    public boolean isIsolated() {
+        return _isolated;
     }
 }
