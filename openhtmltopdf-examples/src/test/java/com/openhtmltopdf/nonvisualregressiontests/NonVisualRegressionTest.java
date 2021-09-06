@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -1059,6 +1060,66 @@ public class NonVisualRegressionTest {
     }
 
     /**
+     * Tests that many footnotes do not take too long.
+     */
+    @Test
+    public void testIssue364ManyFootnotes() throws IOException {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < 200; i++) {
+            sb.append("Normal <div style=\"float: footnote;\">Footnote</div>");
+        }
+
+        runFuzzTest(sb.toString(), false);
+    }
+
+    /**
+     * Tests performance of footnotes in many lines of text.
+     */
+    @Test
+    public void testIssue364MuchText() throws IOException {
+        StringBuilder sb = new StringBuilder();
+
+        for (int j = 0; j < 50; j++) {
+            for (int i = 0; i < 200; i++) {
+                sb.append("Hello World!<br/>");
+            }
+            sb.append("<div style=\"float: footnote; color: green;\">Footnote</div>");
+        }
+
+        runFuzzTest(sb.toString(), false);
+    }
+
+    /**
+     * Tests that footnotes nested very deeply do not take too long.
+     */
+    @Test
+    public void testIssue364FootnotesDeepNesting() throws IOException {
+        Function<String, String> deeper = (tag) ->
+          IntStream.range(0, 200)
+            .mapToObj(u -> tag)
+            .collect(Collectors.joining());
+
+        String[][] tags = new String[][] {
+            { "<div>", "</div>" },
+            { "<span>", "</span>" },
+            { "<div style=\"position: absolute;\">", "</div>" },
+            { "<td>", "</td>" },
+            { "<div style=\"float: left;\">", "</div>" },
+        };
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < tags.length; i++) {
+            sb.append(deeper.apply(tags[i][0]));
+            sb.append("Normal <div style=\"float: footnote;\">Footnote</div>");
+            sb.append(deeper.apply(tags[i][1]));
+        }
+
+        runFuzzTest(sb.toString(), false);
+    }
+
+    /**
      * Runs a fuzz test, optionally with PDFBOX included font with non-zero-width
      * soft hyphen.
      */
@@ -1082,7 +1143,7 @@ public class NonVisualRegressionTest {
             builder.run();
 
             // Files.write(Paths.get("./target/html.txt"), html.getBytes(StandardCharsets.UTF_8));
-            // Files.write(Paths.get("./target/pdf.pdf"), os.toByteArray());
+            // java.nio.file.Files.write(java.nio.file.Paths.get("./target/pdf.pdf"), os.toByteArray());
 
             System.out.println("The result is " + os.size() + " bytes long.");
         }
