@@ -1096,7 +1096,7 @@ public class NonVisualRegressionTest {
     @Test
     public void testIssue364FootnotesDeepNesting() throws IOException {
         Function<String, String> deeper = (tag) ->
-          IntStream.range(0, 200)
+          IntStream.range(0, 50)
             .mapToObj(u -> tag)
             .collect(Collectors.joining());
 
