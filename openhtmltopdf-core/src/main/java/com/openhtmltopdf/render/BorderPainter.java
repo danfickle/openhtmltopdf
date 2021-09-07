@@ -27,6 +27,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
@@ -81,7 +82,37 @@ public class BorderPainter {
     public static Path2D generateBorderShape(Rectangle bounds, int side, BorderPropertySet border, boolean drawInterior, float scaledOffset) {
         return generateBorderShape(bounds, side, border, drawInterior, scaledOffset, 1);
     }
-    
+
+    /**
+     * Generate a simple rectangle without beveling for a solid border side.
+     * Turning off beveling should disable anti-aliasing and work better with
+     * table cell borders.
+     * See https://github.com/danfickle/openhtmltopdf/issues/752
+     */
+    private static Shape generateSimpleBorderShape(Rectangle bounds, int currentSide, BorderPropertySet border) {
+        if (currentSide == TOP || currentSide == BOTTOM) {
+            double x = bounds.getX();
+            double y = currentSide == TOP ?
+                    bounds.getY() :
+                    bounds.getY() + bounds.getHeight() - border.bottom();
+            double w = bounds.getWidth();
+            double h = currentSide == TOP ?
+                    border.top() : border.bottom();
+
+            return new Rectangle2D.Double(x, y, w, h);
+        } else {
+            double x = currentSide == LEFT ?
+                    bounds.getX() :
+                    bounds.getX() + bounds.getWidth() - border.right();
+            double y = bounds.getY();
+            double w = currentSide == LEFT ?
+                    border.left() : border.right();
+            double h = bounds.getHeight();
+
+            return new Rectangle2D.Double(x, y, w, h);
+        }
+    }
+
     /**
      * Generates one side of a border
      * @param bounds bounds of the container
@@ -328,23 +359,30 @@ public class BorderPainter {
                     0, 1, sides, currentSide, bevel);
         } else if (borderSideStyle == IdentValue.SOLID) {
             outputDevice.setStroke(new BasicStroke(1f));
-            if(currentSide == TOP) {
+
+            switch (currentSide) {
+            case TOP:
                 outputDevice.setColor(border.topColor());
-                outputDevice.fill(generateBorderShape(bounds, TOP, border, true, 0, 1));
-            }
-            if(currentSide == RIGHT) {
+                break;
+            case RIGHT:
                 outputDevice.setColor(border.rightColor());
-                outputDevice.fill(generateBorderShape(bounds, RIGHT, border, true, 0, 1));
-            }
-            if(currentSide == BOTTOM) {
+                break;
+            case BOTTOM:
                 outputDevice.setColor(border.bottomColor());
-                outputDevice.fill(generateBorderShape(bounds, BOTTOM, border, true, 0, 1));
-            }
-            if(currentSide == LEFT) {
+                break;
+            case LEFT:
                 outputDevice.setColor(border.leftColor());
-                outputDevice.fill(generateBorderShape(bounds, LEFT, border, true, 0, 1));
+                break;
+            default:
+                return;
             }
-            
+
+            Shape s = bevel || border.hasBorderRadius() ?
+                    generateBorderShape(bounds, currentSide, border, true, 0, 1) :
+                    generateSimpleBorderShape(bounds, currentSide, border);
+
+            outputDevice.fill(s);
+
         } else if (borderSideStyle == IdentValue.DOUBLE) {
             paintDoubleBorder(outputDevice, border, bounds, sides, currentSide, bevel);
         } else {
