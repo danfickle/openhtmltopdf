@@ -221,7 +221,7 @@
 
     <!-- NOTE: Rhino is an optional dependency of Batik-Bridge. This version should match
          the version specified by Batik-Bridge. -->
-    <open.rhino.version>1.7.7</open.rhino.version>
+    <open.rhino.version>1.7.13</open.rhino.version>
 
     <open.junit4.version>4.13.1</open.junit4.version>
 
