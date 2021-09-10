@@ -35,32 +35,54 @@ import java.util.logging.*;
  * @author   Patrick Wright
  */
 public class XRSimpleLogFormatter extends Formatter {
-    /** Description of the Field */
+    /** MessageFormat for standard messages (without Throwable) */
     private final MessageFormat mformat;
-    /** Description of the Field */
+    /** MessageFormat for messages with a throwable */
     private final MessageFormat exmformat;
-    /** Description of the Field */
-    private final static String msgFmt;
-    /** Description of the Field */
-    private final static String exmsgFmt;
+
+    private final static String MSG_FMT = "{1} {2}:: {5}\n";
+    private final static String EX_MSG_FMT = "{1} {2}:: {5} => {6}:: {7}\n";
 
     private final boolean[] usedPlaceholderForMsgFmt;
     private final boolean[] usedPlaceholderForExmsgFmt;
 
-    /** Constructor for the XRSimpleLogFormatter object */
     public XRSimpleLogFormatter() {
         super();
+        mformat = new MessageFormat(MSG_FMT);
+        exmformat = new MessageFormat(EX_MSG_FMT);
+        usedPlaceholderForMsgFmt = usedPlaceholder(mformat);
+        usedPlaceholderForExmsgFmt = usedPlaceholder(exmformat);
+    }
+
+    /**
+     * Create a custom log formatter for use with:
+     * {@link JDKXRLogger#JDKXRLogger(boolean, Level, Handler, Formatter)}
+     * 
+     * Options:
+     * <ul>
+     * <li>{0}  String.valueOf(record.getMillis()),</li>
+     * <li>{1}  record.getLoggerName(),</li>
+     * <li>{2}  record.getLevel().toString(),</li>
+     * <li>{3}  record.getSourceClassName(),</li>
+     * <li>{4}  record.getSourceMethodName(),</li>
+     * <li>{5}  record.getMessage()</li>
+     * <li>{6}  record.getThrown().getName()</li>
+     * <li>{7}  record.getThrown().getMessage()</li>
+     * <li>{8}  record.getThrown() stack trace</li>
+     * </ul>
+     * Example (msgFmt): <code>{1} {2}:: {5}\n</code><br><br>
+     * Example (throwableMsgFmt): <code>{1} {2}:: {5} => {6}:: {7}\n</code>
+     */
+    public XRSimpleLogFormatter(String msgFmt, String throwableMsgFmt) {
+        super();
         mformat = new MessageFormat(msgFmt);
-        exmformat = new MessageFormat(exmsgFmt);
+        exmformat = new MessageFormat(throwableMsgFmt);
         usedPlaceholderForMsgFmt = usedPlaceholder(mformat);
         usedPlaceholderForExmsgFmt = usedPlaceholder(exmformat);
     }
 
     /**
      * Identify which arguments are effectively used.
-     *
-     * @param messageFormat
-     * @return
      */
     private static boolean[] usedPlaceholder(MessageFormat messageFormat) {
         boolean[] used = new boolean[9];
@@ -78,12 +100,9 @@ public class XRSimpleLogFormatter extends Formatter {
 
     /**
      * Format the given log record and return the formatted string.
-     *
-     * @param record  PARAM
-     * @return        Returns
      */
+    @Override
     public String format( LogRecord record ) {
-
 
         Throwable th = record.getThrown();
 
@@ -118,64 +137,26 @@ public class XRSimpleLogFormatter extends Formatter {
 
     /**
      * Localize and format the message string from a log record.
-     *
-     * @param record  PARAM
-     * @return        Returns
      */
+    @Override
     public String formatMessage( LogRecord record ) {
         return super.formatMessage( record );
     }
 
     /**
      * Return the header string for a set of formatted records.
-     *
-     * @param h  PARAM
-     * @return   The head value
      */
+    @Override
     public String getHead( Handler h ) {
         return super.getHead( h );
     }
 
     /**
      * Return the tail string for a set of formatted records.
-     *
-     * @param h  PARAM
-     * @return   The tail value
      */
+    @Override
     public String getTail( Handler h ) {
         return super.getTail( h );
     }
 
-    static {
-        msgFmt = Configuration.valueFor( "xr.simple-log-format", "{1} {2}:: {5}" ).trim() + "\n";
-        exmsgFmt = Configuration.valueFor( "xr.simple-log-format-throwable", "{1} {2}:: {5}" ).trim() + "\n";
-    }
-
-}// end class
-
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.6  2005/04/07 16:15:47  pdoubleya
- * Typo.
- *
- * Revision 1.5  2005/01/29 20:18:37  pdoubleya
- * Clean/reformat code. Removed commented blocks, checked copyright.
- *
- * Revision 1.4  2004/10/23 14:06:57  pdoubleya
- * Re-formatted using JavaStyle tool.
- * Cleaned imports to resolve wildcards except for common packages (java.io, java.util, etc).
- * Added CVS log comments at bottom.
- *
- * Revision 1.3  2004/10/18 12:08:37  pdoubleya
- * Incorrect Configuration key fixed.
- *
- * Revision 1.2  2004/10/14 12:53:26  pdoubleya
- * Added handling for exception messages with stack trace and separate message format.
- *
- * Revision 1.1  2004/10/14 11:13:22  pdoubleya
- * Added to CVS.
- *
- */
-
+}
