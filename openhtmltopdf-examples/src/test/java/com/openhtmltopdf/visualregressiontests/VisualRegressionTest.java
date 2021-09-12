@@ -1450,6 +1450,27 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-551-page-break-inside-avoid-deep"));
     }
 
+    /**
+     * Test weirdness in table borders when PDF is zoomed.
+     * Apparently was caused by anti-aliasing selectively applied
+     * to beveled borders.
+     * To fix we add the <code>-fs-border-rendering</code> property
+     * to selectively turn off border bevelling.
+     */
+    @Test
+    public void testIssue752TableBorderInconcistency() throws IOException {
+        assertTrue(vt.runTest("issue-752-table-border-strange"));
+    }
+
+    /**
+     * Further test for the <code>-fs-border-rendering: no-bevel</code> property
+     * on boxes other than table cells.
+     */
+    @Test
+    public void testIssue752FSBorderRenderingProperty() throws IOException {
+        assertTrue(vt.runTest("issue-752-fs-border-rendering-property"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

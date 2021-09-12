@@ -106,17 +106,19 @@ public class TableCellBox extends BlockBox {
         CollapsedBorderValue right = collapsedRightBorder(c);
         CollapsedBorderValue bottom = collapsedBottomBorder(c);
         CollapsedBorderValue left = collapsedLeftBorder(c);
-        
-        _collapsedPaintingBorder = new BorderPropertySet(top, right, bottom, left);
-        
+
+        boolean allowBevel = getStyle().isIdent(CSSName.FS_BORDER_RENDERING, IdentValue.AUTO);
+
+        _collapsedPaintingBorder = new BorderPropertySet(allowBevel, top, right, bottom, left);
+
         // Give the extra pixel to top and left.
         top.setWidth((top.width()+1)/2);
         right.setWidth(right.width()/2);
         bottom.setWidth(bottom.width()/2);
         left.setWidth((left.width()+1)/2);
-        
-        _collapsedLayoutBorder = new BorderPropertySet(top, right, bottom, left);
-        
+
+        _collapsedLayoutBorder = new BorderPropertySet(allowBevel, top, right, bottom, left);
+
         _collapsedBorderTop = top;
         _collapsedBorderRight = right;
         _collapsedBorderBottom = bottom;

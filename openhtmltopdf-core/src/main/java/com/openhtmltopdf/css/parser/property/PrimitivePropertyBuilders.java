@@ -27,6 +27,7 @@ import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import java.util.*;
 
 public class PrimitivePropertyBuilders {
+
     // none | hidden | dotted | dashed | solid | double | groove | ridge | inset | outset
     public static final BitSet BORDER_STYLES = setFor(
             new IdentValue[] { IdentValue.NONE, IdentValue.HIDDEN, IdentValue.DOTTED,
@@ -112,7 +113,7 @@ public class PrimitivePropertyBuilders {
     public static final PropertyBuilder MARGIN = new LengthLikeWithAuto();
     public static final PropertyBuilder PADDING = new NonNegativeLengthLike();
 
-    static BitSet setFor(IdentValue[] values) {
+    static BitSet setFor(IdentValue... values) {
         BitSet result = new BitSet(IdentValue.getIdentCount());
         for (int i = 0; i < values.length; i++) {
             IdentValue ident = values[i];
@@ -529,6 +530,16 @@ public class PrimitivePropertyBuilders {
             return ALLOWED;
         }
     }
+
+    public static class FSBorderRendering extends SingleIdent {
+        final BitSet ALLOWED = setFor(IdentValue.AUTO, IdentValue.NO_BEVEL);
+
+        @Override
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
+
 
     public static class BorderTopColor extends GenericColor {
     }

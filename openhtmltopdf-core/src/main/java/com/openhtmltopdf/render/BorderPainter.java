@@ -27,8 +27,10 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 
 import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.BorderRadiusCorner;
 import com.openhtmltopdf.css.style.derived.BorderPropertySet;
@@ -41,7 +43,37 @@ public class BorderPainter {
     public static final int BOTTOM = 4;
     public static final int RIGHT = 8;
     public static final int ALL = TOP + LEFT + BOTTOM + RIGHT;
-    
+
+    /**
+     * Generate a simple rectangle without beveling for a solid border side.
+     * Turning off beveling should disable anti-aliasing and work better with
+     * table cell borders.
+     * See https://github.com/danfickle/openhtmltopdf/issues/752
+     */
+    private static Shape generateSimpleBorderShape(Rectangle bounds, int currentSide, BorderPropertySet border) {
+        if (currentSide == TOP || currentSide == BOTTOM) {
+            double x = bounds.getX();
+            double y = currentSide == TOP ?
+                    bounds.getY() :
+                    bounds.getY() + bounds.getHeight() - border.bottom();
+            double w = bounds.getWidth();
+            double h = currentSide == TOP ?
+                    border.top() : border.bottom();
+
+            return new Rectangle2D.Double(x, y, w, h);
+        } else {
+            double x = currentSide == LEFT ?
+                    bounds.getX() :
+                    bounds.getX() + bounds.getWidth() - border.right();
+            double y = bounds.getY();
+            double w = currentSide == LEFT ?
+                    border.left() : border.right();
+            double h = bounds.getHeight();
+
+            return new Rectangle2D.Double(x, y, w, h);
+        }
+    }
+
     /**
      * Generates a full round rectangle that is made of bounds and border
      * @param bounds Dimmensions of the rect
@@ -294,8 +326,9 @@ public class BorderPainter {
     private static void paintBorderSide(OutputDevice outputDevice, 
             final BorderPropertySet border, final Rectangle bounds, final int sides, 
             int currentSide, final IdentValue borderSideStyle, int xOffset, boolean bevel) {
+
         if (borderSideStyle == IdentValue.RIDGE || borderSideStyle == IdentValue.GROOVE) {
-            BorderPropertySet bd2 = new BorderPropertySet((int) (border.top() / 2),
+            BorderPropertySet bd2 = new BorderPropertySet(bevel, (int) (border.top() / 2),
                     (int) (border.right() / 2),
                     (int) (border.bottom() / 2),
                     (int) (border.left() / 2));
@@ -327,24 +360,33 @@ public class BorderPainter {
                     border,
                     0, 1, sides, currentSide, bevel);
         } else if (borderSideStyle == IdentValue.SOLID) {
+            FSColor bColor = null;
+
+            switch (currentSide) {
+            case TOP:
+                bColor = border.topColor();
+                break;
+            case RIGHT:
+                bColor = border.rightColor();
+                break;
+            case BOTTOM:
+                bColor = border.bottomColor();
+                break;
+            case LEFT:
+                bColor = border.leftColor();
+                break;
+            default:
+                return;
+            }
+
+            Shape s = border.isBevelAllowed() || border.hasBorderRadius() ?
+                    generateBorderShape(bounds, currentSide, border, true, 0, 1) :
+                    generateSimpleBorderShape(bounds, currentSide, border);
+
             outputDevice.setStroke(new BasicStroke(1f));
-            if(currentSide == TOP) {
-                outputDevice.setColor(border.topColor());
-                outputDevice.fill(generateBorderShape(bounds, TOP, border, true, 0, 1));
-            }
-            if(currentSide == RIGHT) {
-                outputDevice.setColor(border.rightColor());
-                outputDevice.fill(generateBorderShape(bounds, RIGHT, border, true, 0, 1));
-            }
-            if(currentSide == BOTTOM) {
-                outputDevice.setColor(border.bottomColor());
-                outputDevice.fill(generateBorderShape(bounds, BOTTOM, border, true, 0, 1));
-            }
-            if(currentSide == LEFT) {
-                outputDevice.setColor(border.leftColor());
-                outputDevice.fill(generateBorderShape(bounds, LEFT, border, true, 0, 1));
-            }
-            
+            outputDevice.setColor(bColor);
+            outputDevice.fill(s);
+
         } else if (borderSideStyle == IdentValue.DOUBLE) {
             paintDoubleBorder(outputDevice, border, bounds, sides, currentSide, bevel);
         } else {
