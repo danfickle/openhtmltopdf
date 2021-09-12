@@ -650,16 +650,16 @@ public class VisualRegressionTest {
     public void testRtlPageOverflowHiddenHidden() throws IOException {
         assertTrue(vt.runTest("rtl-page-overflow-hidden-hidden"));
     }
-    
+
     /**
-     * Tests that tds with a background-color do not have fine lines between them. Issues: 291 and 169.
+     * Tests that tds with a background-color do not have fine lines between them.
+     * Issues: 291 and 169.
      */
     @Test
-    @Ignore // Fine lines appear between tds.
     public void testTableFineLines() throws IOException {
         assertTrue(vt.runTest("table-fine-lines"));
     }
-    
+
     /**
      * Further tests on collapsed table cell borders. Issue 303.
      */
