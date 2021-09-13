@@ -1,7 +1,20 @@
 ## CHANGELOG
 
-### head - 1.0.10-SNAPSHOT
+### head - 1.0.11-SNAPSHOT
 + See commit log.
+
+### 1.0.10 (release pending)
++ [#551](https://github.com/danfickle/openhtmltopdf/issues/551) **SECURITY** Fix near-infinite loop for very deeply nested content with `page-break-inside: avoid` constraint. Thanks for persisting @swillis12 and debugging @syjer.
++ [#729](https://github.com/danfickle/openhtmltopdf/issues/729) **SECURITY** Upgrade xmlgraphics-commons (used in SVG rendering) to avoid CVE. Thanks @electrofLy.
++ [#711](https://github.com/danfickle/openhtmltopdf/pull/711) Footnote support (beta). See [footnote documentation on wiki](https://github.com/danfickle/openhtmltopdf/wiki/Footnotes). Thanks for requesting @a-leithner and @slumki.
++ [#761](https://github.com/danfickle/openhtmltopdf/pull/761) CSS property to disable bevels on borders to prevent ugly anti-aliasing effects, especially on table cells. See [-fs-border-rendering property on wiki](https://github.com/danfickle/openhtmltopdf/wiki/Custom-CSS-properties#-fs-border-rendering-no-bevel). Thanks for providing sample @gandboy91.
++ [#103](https://github.com/danfickle/openhtmltopdf/issues/103) Output exception class name and message by default for log messages with an associated exception.
++ #711 (mixed) Better boxing for `::before` and `::after` content. Should now be able to define a border around pseudo content correctly.
++ [#738](https://github.com/danfickle/openhtmltopdf/issues/738) Support for additional elements in PDF/UA including art, part, sect, section, caption and blockquote. Thanks @AndreasJacobsen.
++ [#736](https://github.com/danfickle/openhtmltopdf/issues/736) New example of using a dom mutator to implement unsupported content such as font tag attributes. Thanks for requesting @mgabhishek06kodur.
++ [#707](https://github.com/danfickle/openhtmltopdf/issues/707) Fix regression where PDF/UA documents that weren't also PDF/A compliant were missing Dublin Core metadata. Thanks @mgm-rwagner, @syjer.
++ [#732](https://github.com/danfickle/openhtmltopdf/issues/732) Allow `table` element to be positioned. Thanks @fcorneli.
++ [#727](https://github.com/danfickle/openhtmltopdf/pull/727) Allow the use of an initial page number for `page` and `pages` counters. Thanks for PR @fanthos.
 
 
 ### 1.0.9 (2021-June-18)
