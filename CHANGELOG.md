@@ -3,7 +3,9 @@
 ### head - 1.0.11-SNAPSHOT
 + See commit log.
 
-### 1.0.10 (release pending)
+### 1.0.10 (2021-September-13)
+**NOTE**: After this release the old slow renderer will be deleted. Fast mode has been the default (since 1.0.5) so you only have to check your code if you are calling the `useSlowMode` method which will be removed.
+
 + [#551](https://github.com/danfickle/openhtmltopdf/issues/551) **SECURITY** Fix near-infinite loop for very deeply nested content with `page-break-inside: avoid` constraint. Thanks for persisting @swillis12 and debugging @syjer.
 + [#729](https://github.com/danfickle/openhtmltopdf/issues/729) **SECURITY** Upgrade xmlgraphics-commons (used in SVG rendering) to avoid CVE. Thanks @electrofLy.
 + [#711](https://github.com/danfickle/openhtmltopdf/pull/711) Footnote support (beta). See [footnote documentation on wiki](https://github.com/danfickle/openhtmltopdf/wiki/Footnotes). Thanks for requesting @a-leithner and @slumki.
@@ -93,7 +95,7 @@ NOTE: These CVEs relate to the loading of untrusted PDFs in PDFBOX and thus this
 + [#613](https://github.com/danfickle/openhtmltopdf/pull/613) Allow adding fonts for SVG, MathML as files instead of input streams to avoid JDK bug. Thanks @syjer, @sureshkumar-ramalingam, @olayinkasf.
 
 
-## 1.0.4 (2020-July-25)
+### 1.0.4 (2020-July-25)
 + [b88538](https://github.com/danfickle/openhtmltopdf/commit/b8853841b44d1e689d9bb3510a36633485fe21ab) Fix for endless loop when using `word-wrap: break-word`. Thanks for reporting, testing and investigating @swarl. Thanks for tests and debugging  @rototor and @syjer.
 + [#492](https://github.com/danfickle/openhtmltopdf/pull/492) Lots of testing of the line-breaking algorithm to avoid future endless loops. By @danfickle.
 + [#515](https://github.com/danfickle/openhtmltopdf/pull/515) Pass document CSS styles applying to SVG element to SVG implementation. Thanks for requesting and contributing @amckain92.
