@@ -45,8 +45,6 @@ import com.openhtmltopdf.util.XRLog;
 
 import java.awt.*;
 import java.awt.geom.Area;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -256,16 +254,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         // Therefore, for now, we just don't use an area if there are border radii present.
         Area borderBounds = border.hasBorderRadius() && c.isFastRenderer() ? null : new Area(borderBoundsShape);
 
-        Shape oldclip = null;
-
-        if (!c.isFastRenderer()) {
-            oldclip = getClip();
-            if(oldclip != null) {
-                // we need to respect the clip sent to us, get the intersection between the old and the new
-        	    borderBounds.intersect(new Area(oldclip));
-            }
-            setClip(borderBounds);
-        } else if (style.isHasBackgroundImage()) {
+        if (style.isHasBackgroundImage()) {
         	pushClip(borderBounds != null ? borderBounds : borderBoundsShape);
         }
 
@@ -302,9 +291,7 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             }
         }
 
-        if (!c.isFastRenderer()) {
-        	setClip(oldclip);
-        } else if (style.isHasBackgroundImage()) {
+        if (style.isHasBackgroundImage()) {
         	popClip();
         }
     }

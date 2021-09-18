@@ -21,25 +21,17 @@ package com.openhtmltopdf.layout;
 
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.css.constants.MarginBoxName;
 import com.openhtmltopdf.css.constants.PageElementPosition;
 import com.openhtmltopdf.css.newmatch.PageInfo;
-import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
-import com.openhtmltopdf.css.parser.PropertyValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.EmptyStyle;
-import com.openhtmltopdf.css.style.FSDerivedValue;
-import com.openhtmltopdf.css.style.derived.ListValue;
-import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.newtable.CollapsedBorderValue;
 import com.openhtmltopdf.newtable.TableBox;
 import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
-import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.SearchUtil;
-import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.SearchUtil.IntComparator;
 
 import java.awt.*;
@@ -47,7 +39,6 @@ import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 
 /**
  * All positioned content as well as content with an overflow value other
@@ -246,23 +237,6 @@ public class Layer {
         }
     }
 
-    @Deprecated  // We are moving painting out of Layer to either DisplayListPainter or SimplePainter.
-    private void paintFloats(RenderingContext c) {
-        if (_floats != null) {
-            for (int i = _floats.size() - 1; i >= 0; i--) {
-                BlockBox floater = _floats.get(i);
-                paintAsLayer(c, floater);
-            }
-        }
-    }
-
-    @Deprecated
-    private void paintLayers(RenderingContext c, List<Layer> layers) {
-        for (Layer layer : layers) {
-            layer.paint(c);
-        }
-    }
-
     public static final int POSITIVE = 1;
     public static final int ZERO = 2;
     public static final int NEGATIVE = 3;
@@ -343,369 +317,12 @@ public class Layer {
         return result;
     }
 
-    @Deprecated
-    private void paintBackgroundsAndBorders(
-            RenderingContext c, List<Box> blocks,
-            Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders, BoxRangeLists rangeLists) {
-        BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
-
-        for (int i = 0; i < blocks.size(); i++) {
-            helper.popClipRegions(c, i);
-
-            BlockBox box = (BlockBox)blocks.get(i);
-
-            box.paintBackground(c);
-            box.paintBorder(c);
-            if (c.debugDrawBoxes()) {
-                box.paintDebugOutline(c);
-            }
-
-            if (collapsedTableBorders != null && box instanceof TableCellBox) {
-                TableCellBox cell = (TableCellBox)box;
-                if (cell.hasCollapsedPaintingBorder()) {
-                    List<CollapsedBorderSide> borders = collapsedTableBorders.get(cell);
-                    if (borders != null) {
-                        paintCollapsedTableBorders(c, borders);
-                    }
-                }
-            }
-
-            helper.pushClipRegion(c, i);
-        }
-
-        helper.popClipRegions(c, blocks.size());
-    }
-
-    @Deprecated // We no longer support interactive or selection.
-    private void paintSelection(RenderingContext c, List<Box> lines) {
-        if (c.getOutputDevice().isSupportsSelection()) {
-            for (Iterator<Box> i = lines.iterator(); i.hasNext();) {
-                Box box = i.next();
-                if (box instanceof InlineLayoutBox) {
-                    ((InlineLayoutBox)box).paintSelection(c);
-                }
-            }
-        }
-    }
-
     public Dimension getPaintingDimension(LayoutContext c) {
         return calcPaintingDimension(c).getOuterMarginCorner();
     }
 
-    @Deprecated
-    private void paintInlineContent(RenderingContext c, List<Box> lines, BoxRangeLists rangeLists) {
-        BoxRangeHelper helper = new BoxRangeHelper(
-                c.getOutputDevice(), rangeLists.getInline());
-
-        for (int i = 0; i < lines.size(); i++) {
-            helper.popClipRegions(c, i);
-            helper.pushClipRegion(c, i);
-
-            if (lines.get(i) instanceof  InlinePaintable) {
-                ((InlinePaintable) lines.get(i)).paintInline(c);
-            }
-        }
-
-        helper.popClipRegions(c, lines.size());
-    }
-
-    @Deprecated
-    public void paint(RenderingContext c) {
-        if (getMaster().getStyle().isFixed()) {
-            positionFixedLayer(c);
-        }
-
-        List<AffineTransform> inverse = null;
-
-        if (isRootLayer()) {
-            getMaster().paintRootElementBackground(c);
-        }
-
-        if (! isInline() && ((BlockBox)getMaster()).isReplaced()) {
-            inverse = applyTranform(c, getMaster());
-            paintLayerBackgroundAndBorder(c);
-            paintReplacedElement(c, (BlockBox)getMaster());
-            c.getOutputDevice().popTransforms(inverse);
-        } else {
-            BoxRangeLists rangeLists = new BoxRangeLists();
-
-            List<Box> blocks = new ArrayList<>();
-            List<Box> lines = new ArrayList<>();
-
-            BoxCollector collector = new BoxCollector();
-            collector.collect(c, c.getOutputDevice().getClip(), this, blocks, lines, rangeLists);
-
-            inverse = applyTranform(c, getMaster());
-
-            if (! isInline()) {
-                paintLayerBackgroundAndBorder(c);
-                if (c.debugDrawBoxes()) {
-                    ((BlockBox)getMaster()).paintDebugOutline(c);
-                }
-            }
-
-            if (isRootLayer() || isStackingContext()) {
-                paintLayers(c, getSortedLayers(NEGATIVE));
-            }
-
-            Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
-            paintBackgroundsAndBorders(c, blocks, collapsedTableBorders, rangeLists);
-            paintFloats(c);
-            paintListMarkers(c, blocks, rangeLists);
-            paintInlineContent(c, lines, rangeLists);
-            paintReplacedElements(c, blocks, rangeLists);
-            paintSelection(c, lines); // XXX do only when there is a selection
-
-            if (isRootLayer() || isStackingContext()) {
-                paintLayers(c, collectLayers(AUTO));
-                // TODO z-index: 0 layers should be painted atomically
-                paintLayers(c, getSortedLayers(ZERO));
-                paintLayers(c, getSortedLayers(POSITIVE));
-            }
-
-            c.getOutputDevice().popTransforms(inverse);
-        }
-
-    }
-
-    @Deprecated // Moving to TransformCreator
-    private float convertAngleToRadians(PropertyValue param) {
-    	if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_DEG) {
-    		return (float) Math.toRadians(param.getFloatValue());
-    	} else if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_RAD) {
-    		return param.getFloatValue();
-    	} else { // if (param.getPrimitiveType() == CSSPrimitiveValue.CSS_GRAD)
-    		return (float) (param.getFloatValue() * (Math.PI / 200));
-    	}
-    }
-
     public List<BlockBox> getFloats() {
         return _floats == null ? Collections.emptyList() : _floats;
-    }
-
-    /**
-     * Applies the transforms specified for the box and returns a list of inverse transforms that should be
-     * applied once the transformed element has been output.
-     */
-    @Deprecated
-	protected List<AffineTransform> applyTranform(RenderingContext c, Box box) {
-		FSDerivedValue transforms = box.getStyle().valueByName(CSSName.TRANSFORM);
-		if (transforms.isIdent() && transforms.asIdentValue() == IdentValue.NONE)
-			return Collections.emptyList();
-
-		// By default the transform point is the lower left of the page, so we need to
-		// translate to correctly apply transform.
-		float relOriginX = box.getStyle().getFloatPropertyProportionalWidth(CSSName.FS_TRANSFORM_ORIGIN_X,
-				box.getWidth(), c);
-		float relOriginY = box.getStyle().getFloatPropertyProportionalHeight(CSSName.FS_TRANSFORM_ORIGIN_Y,
-				box.getHeight(), c);
-
-		float flipFactor = c.getOutputDevice().isPDF() ? -1 : 1;
-
-		float absTranslateX = relOriginX + box.getAbsX();
-		float absTranslateY = relOriginY + box.getAbsY();
-
-		float relTranslateX = absTranslateX - c.getOutputDevice().getAbsoluteTransformOriginX();
-		float relTranslateY = absTranslateY - c.getOutputDevice().getAbsoluteTransformOriginY();
-		/*
-		 * We must handle the page margin in the PDF case.
-		 */
-		if (c.getOutputDevice().isPDF()) {
-			RectPropertySet margin = c.getPage().getMargin(c);
-			relTranslateX += margin.left();
-			relTranslateY += margin.top();
-			
-			/*
-			 * We must apply the top/bottom margins from the previous pages, otherwise 
-			 * our transform center is wrong.
-			 */
-			for (int i = 0; i < c.getPageNo() && i < getPages().size(); i++) {
-				RectPropertySet prevMargin = getPages().get(i).getMargin(c);
-				relTranslateY += prevMargin.top() + prevMargin.bottom();
-			}
-			
-
-			MarginBoxName[] marginBoxNames = c.getPage().getCurrentMarginBoxNames();
-			if (marginBoxNames != null) {
-				boolean isLeft = false, isTop = false, isRight = false, isTopRight = false, isTopLeft = true,
-						isBottom = false, isBottomRight = false, isBottomLeft = false;
-				for (MarginBoxName name : marginBoxNames) {
-					if (name == MarginBoxName.LEFT_TOP || name == MarginBoxName.LEFT_MIDDLE
-							|| name == MarginBoxName.LEFT_BOTTOM)
-						isLeft = true;
-					if (name == MarginBoxName.TOP_LEFT || name == MarginBoxName.TOP_CENTER
-							|| name == MarginBoxName.TOP_RIGHT)
-						isTop = true;
-					if (name == MarginBoxName.BOTTOM_LEFT || name == MarginBoxName.BOTTOM_CENTER
-							|| name == MarginBoxName.BOTTOM_RIGHT)
-						isBottom = true;
-					if (name == MarginBoxName.TOP_LEFT_CORNER)
-						isTopLeft = true;
-					if (name == MarginBoxName.TOP_RIGHT_CORNER)
-						isTopRight = true;
-					if (name == MarginBoxName.BOTTOM_LEFT_CORNER)
-						isBottomLeft = true;
-					if (name == MarginBoxName.BOTTOM_RIGHT_CORNER)
-						isBottomRight = true;
-
-				}
-				if (isLeft)
-					relTranslateX -= margin.left();
-				if (isTop )
-					relTranslateY -= margin.top();
-				if( isBottom )
-					relTranslateY -= margin.top()+ margin.bottom();
-				if (isTopLeft) {
-					relTranslateX -= margin.left();
-					relTranslateY -= margin.top();
-				}
-				if (isTopRight) {
-					relTranslateX -= margin.left();
-					relTranslateY -= margin.top();
-				}
-				if (isRight) {
-					relTranslateY -= margin.top();
-					relTranslateX -= margin.left() + margin.right();
-				}
-				if (isBottom) {
-					//relTranslateX -= margin.left();
-					relTranslateY -= margin.top() + margin.bottom();
-				}
-				if (isBottomLeft) {
-					//relTranslateX -= margin.left();
-					//relTranslateY -= margin.top() + margin.bottom();
-				}
-				if (isBottomRight) {
-					relTranslateX -= margin.left();
-					relTranslateY -= margin.top() + margin.bottom();
-				}
-			}
-		}
-
-		List<PropertyValue> transformList = ((ListValue) transforms).getValues();
-		List<AffineTransform> resultTransforms = new ArrayList<>();
-		AffineTransform translateToOrigin = AffineTransform.getTranslateInstance(relTranslateX, relTranslateY);
-		AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-relTranslateX, -relTranslateY);
-
-		resultTransforms.add(translateToOrigin);
-
-		applyTransformFunctions(flipFactor, transformList, resultTransforms);
-
-		resultTransforms.add(translateBackFromOrigin);
-
-		return c.getOutputDevice().pushTransforms(resultTransforms);
-	}
-
-    @Deprecated
-	private void applyTransformFunctions(float flipFactor, List<PropertyValue> transformList, List<AffineTransform> resultTransforms) {
-		for (PropertyValue transform : transformList) {
-			String fName = transform.getFunction().getName();
-			List<PropertyValue> params = transform.getFunction().getParameters();
-
-			if ("rotate".equalsIgnoreCase(fName)) {
-				float radians = flipFactor * this.convertAngleToRadians(params.get(0));
-				resultTransforms.add(AffineTransform.getRotateInstance(radians));
-			} else if ("scale".equalsIgnoreCase(fName) || "scalex".equalsIgnoreCase(fName)
-					|| "scaley".equalsIgnoreCase(fName)) {
-				float scaleX = params.get(0).getFloatValue();
-				float scaleY = params.get(0).getFloatValue();
-				if (params.size() > 1)
-					scaleY = params.get(1).getFloatValue();
-				if ("scalex".equalsIgnoreCase(fName))
-					scaleY = 1;
-				if ("scaley".equalsIgnoreCase(fName))
-					scaleX = 1;
-				resultTransforms.add(AffineTransform.getScaleInstance(scaleX, scaleY));
-			} else if ("skew".equalsIgnoreCase(fName)) {
-				float radiansX = flipFactor * this.convertAngleToRadians(params.get(0));
-				float radiansY = 0;
-				if (params.size() > 1)
-					radiansY = this.convertAngleToRadians(params.get(1));
-				resultTransforms.add(AffineTransform.getShearInstance(Math.tan(radiansX), Math.tan(radiansY)));
-			} else if ("skewx".equalsIgnoreCase(fName)) {
-				float radians = flipFactor * this.convertAngleToRadians(params.get(0));
-				resultTransforms.add(AffineTransform.getShearInstance(Math.tan(radians), 0));
-			} else if ("skewy".equalsIgnoreCase(fName)) {
-				float radians = flipFactor * this.convertAngleToRadians(params.get(0));
-				resultTransforms.add(AffineTransform.getShearInstance(0, Math.tan(radians)));
-			} else if ("matrix".equalsIgnoreCase(fName)) {
-				resultTransforms.add(new AffineTransform(params.get(0).getFloatValue(), params.get(1).getFloatValue(),
-								params.get(2).getFloatValue(), params.get(3).getFloatValue(),
-								params.get(4).getFloatValue(), params.get(5).getFloatValue()));
-			} else if ("translate".equalsIgnoreCase(fName)) {
-			    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LAYOUT_FUNCTION_NOT_IMPLEMENTED, "translate");
-			} else if ("translateX".equalsIgnoreCase(fName)) {
-                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LAYOUT_FUNCTION_NOT_IMPLEMENTED, "translateX");
-			} else if ("translateY".equalsIgnoreCase(fName)) {
-                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LAYOUT_FUNCTION_NOT_IMPLEMENTED, "translateY");
-			}
-		}
-	}
-
-    @Deprecated // Currently not using the find functionality and considering removing.
-	private Box find(CssContext cssCtx, int absX, int absY, List<Layer> layers, boolean findAnonymous) {
-        Box result = null;
-        // Work backwards since layers are painted forwards and we're looking
-        // for the top-most box
-        for (int i = layers.size()-1; i >= 0; i--) {
-            Layer l = layers.get(i);
-            result = l.find(cssCtx, absX, absY, findAnonymous);
-            if (result != null) {
-                return result;
-            }
-        }
-        return result;
-    }
-
-    @Deprecated
-    public Box find(CssContext cssCtx, int absX, int absY, boolean findAnonymous) {
-        Box result = null;
-        if (isRootLayer() || isStackingContext()) {
-            result = find(cssCtx, absX, absY, getSortedLayers(POSITIVE), findAnonymous);
-            if (result != null) {
-                return result;
-            }
-
-            result = find(cssCtx, absX, absY, getSortedLayers(ZERO), findAnonymous);
-            if (result != null) {
-                return result;
-            }
-
-            result = find(cssCtx, absX, absY, collectLayers(AUTO), findAnonymous);
-            if (result != null) {
-                return result;
-            }
-        }
-
-        for (int i = 0; i < getFloats().size(); i++) {
-            Box floater = getFloats().get(i);
-            result = floater.find(cssCtx, absX, absY, findAnonymous);
-            if (result != null) {
-                return result;
-            }
-        }
-
-        result = getMaster().find(cssCtx, absX, absY, findAnonymous);
-        if (result != null) {
-            return result;
-        }
-
-        if (isRootLayer() || isStackingContext()) {
-            result = find(cssCtx, absX, absY, getSortedLayers(NEGATIVE), findAnonymous);
-            if (result != null) {
-                return result;
-            }
-        }
-
-        return null;
-    }
-
-    @Deprecated
-    private void paintCollapsedTableBorders(RenderingContext c, List<CollapsedBorderSide> borders) {
-        for (Iterator<CollapsedBorderSide> i = borders.iterator(); i.hasNext(); ) {
-            CollapsedBorderSide border = i.next();
-            border.getCell().paintCollapsedBorder(c, border.getSide());
-        }
     }
 
     // Bit of a kludge here.  We need to paint collapsed table borders according
@@ -752,70 +369,6 @@ public class Layer {
         }
     }
 
-    @Deprecated
-    public void paintAsLayer(RenderingContext c, BlockBox startingPoint) {
-        BoxRangeLists rangeLists = new BoxRangeLists();
-
-        List<Box> blocks = new ArrayList<>();
-        List<Box> lines = new ArrayList<>();
-
-        BoxCollector collector = new BoxCollector();
-        collector.collect(c, c.getOutputDevice().getClip(),
-                this, startingPoint, blocks, lines, rangeLists);
-
-        Map<TableCellBox, List<CollapsedBorderSide>> collapsedTableBorders = collectCollapsedTableBorders(c, blocks);
-
-        paintBackgroundsAndBorders(c, blocks, collapsedTableBorders, rangeLists);
-        paintListMarkers(c, blocks, rangeLists);
-        paintInlineContent(c, lines, rangeLists);
-        paintSelection(c, lines); // XXX only do when there is a selection
-        paintReplacedElements(c, blocks, rangeLists);
-    }
-
-    @Deprecated
-    private void paintListMarkers(RenderingContext c, List<Box> blocks, BoxRangeLists rangeLists) {
-        BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
-
-        for (int i = 0; i < blocks.size(); i++) {
-            helper.popClipRegions(c, i);
-
-            if (blocks.get(i) instanceof BlockBox) {
-                ((BlockBox) blocks.get(i)).paintListMarker(c);
-            }
-
-            helper.pushClipRegion(c, i);
-        }
-
-        helper.popClipRegions(c, blocks.size());
-    }
-
-    @Deprecated
-    private void paintReplacedElements(RenderingContext c, List<Box> blocks, BoxRangeLists rangeLists) {
-        BoxRangeHelper helper = new BoxRangeHelper(c.getOutputDevice(), rangeLists.getBlock());
-
-        for (int i = 0; i < blocks.size(); i++) {
-            helper.popClipRegions(c, i);
-
-            BlockBox box = (BlockBox)blocks.get(i);
-            if (box.isReplaced()) {
-                paintReplacedElement(c, box);
-            }
-
-            helper.pushClipRegion(c, i);
-        }
-
-        helper.popClipRegions(c, blocks.size());
-    }
-
-    @Deprecated
-    private void paintLayerBackgroundAndBorder(RenderingContext c) {
-        if (getMaster() instanceof BlockBox) {
-            BlockBox box = (BlockBox) getMaster();
-            box.paintBackground(c);
-            box.paintBorder(c);
-        }
-    }
-
     public void positionFixedLayer(RenderingContext c) {
         Rectangle rect = c.getFixedRectangle(true);
 
@@ -842,21 +395,6 @@ public class Layer {
         }
         if (test.height > result.height) {
             result.height = test.height;
-        }
-    }
-    
-    @Deprecated
-    private void paintReplacedElement(RenderingContext c, BlockBox replaced) {
-        Rectangle contentBounds = replaced.getContentAreaEdge(
-                replaced.getAbsX(), replaced.getAbsY(), c);
-        // Minor hack:  It's inconvenient to adjust for margins, border, padding during
-        // layout so just do it here.
-        Point loc = replaced.getReplacedElement().getLocation();
-        if (contentBounds.x != loc.x || contentBounds.y != loc.y) {
-            replaced.getReplacedElement().setLocation(contentBounds.x, contentBounds.y);
-        }
-        if (! c.isInteractive() || replaced.getReplacedElement().isRequiresInteractivePaint()) {
-            c.getOutputDevice().paintReplacedElement(c, replaced);
         }
     }
 

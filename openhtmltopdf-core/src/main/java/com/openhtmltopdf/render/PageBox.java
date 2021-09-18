@@ -480,15 +480,13 @@ public class PageBox {
                         c, this, additionalClearance, mode);
 
                 c.getOutputDevice().translate(p.x, p.y);
-                if (c.getOutputDevice().isFastRenderer()) {
+
                     table.getLayer().propagateCurrentTransformationMatrix(c);
                     SimplePainter painter = new SimplePainter(p.x, p.y);
                     Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, table);
                     painter.paintLayer(c, table.getLayer());
                     c.getOutputDevice().endStructure(token);
-                } else {
-                    table.getLayer().paint(c);
-                }
+
                 c.getOutputDevice().translate(-p.x, -p.y);
             }
         }

@@ -25,7 +25,6 @@ import java.awt.RenderingHints;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
-import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.FSImage;
 
 /**
