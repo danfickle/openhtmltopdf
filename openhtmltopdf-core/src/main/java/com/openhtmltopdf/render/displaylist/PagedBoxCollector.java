@@ -737,7 +737,7 @@ public class PagedBoxCollector {
         }
     }
     
-    private boolean intersectsAny(
+    public static boolean intersectsAny(
             CssContext c, Shape clip, 
             Box master, Box container) {
         if (container instanceof LineBox) {

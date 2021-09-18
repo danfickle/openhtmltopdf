@@ -28,6 +28,8 @@ import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.*;
+import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
+
 import org.w3c.dom.Element;
 
 import java.awt.*;
@@ -477,8 +479,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
                     return true;
                 }
             } else if (obj instanceof Box) {
-                BoxCollector collector = new BoxCollector();
-                if (collector.intersectsAny(cssCtx, clip, (Box)obj)) {
+                if (PagedBoxCollector.intersectsAny(cssCtx, clip, (Box)obj, (Box) obj)) {
                     return true;
                 }
             }

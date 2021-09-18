@@ -34,12 +34,12 @@ import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.extend.StructureType;
-import com.openhtmltopdf.layout.BoxCollector;
 import com.openhtmltopdf.layout.InlineBoxing;
 import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
+import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
 import com.openhtmltopdf.util.XRRuntimeException;
 
 /**
@@ -391,6 +391,7 @@ public class LineBox extends Box implements InlinePaintable {
     private boolean intersectsInlineBlocks(CssContext cssCtx, Shape clip) {
         for (int i = 0; i < getChildCount(); i++) {
             Box child = getChild(i);
+
             if (child instanceof InlineLayoutBox) {
                 boolean possibleResult = ((InlineLayoutBox)child).intersectsInlineBlocks(
                         cssCtx, clip);
@@ -398,8 +399,7 @@ public class LineBox extends Box implements InlinePaintable {
                     return true;
                 }
             } else {
-                BoxCollector collector = new BoxCollector();
-                if (collector.intersectsAny(cssCtx, clip, child)) {
+                if (PagedBoxCollector.intersectsAny(cssCtx, clip, child, child)) {
                     return true;
                 }
             }
