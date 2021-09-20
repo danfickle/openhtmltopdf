@@ -966,10 +966,16 @@ public class CalculatedStyle {
     }
 
     public boolean requiresLayer() {
-    	if (!isIdent(CSSName.TRANSFORM, IdentValue.NONE)) {
-    		return true;
-    	}
-    	
+        if (isIdent(CSSName.DISPLAY, IdentValue.INLINE)) {
+            // Layers must be block or block derived (including inline-block)
+            // according to modern html standards.
+            return false;
+        }
+
+        if (!isIdent(CSSName.TRANSFORM, IdentValue.NONE)) {
+            return true;
+        }
+
         FSDerivedValue value = valueByName(CSSName.POSITION);
 
         if (value instanceof FunctionValue) {  // running(header)
@@ -985,7 +991,6 @@ public class CalculatedStyle {
             IdentValue overflow = getIdent(CSSName.OVERFLOW);
             return (overflow == IdentValue.SCROLL || overflow == IdentValue.AUTO) &&
                     isOverflowApplies();
-
         }
     }
 

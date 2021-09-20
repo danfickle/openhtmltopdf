@@ -129,7 +129,6 @@ public class InlineBoxing {
         List<FloatLayoutResult> pendingFloats = new ArrayList<>();
 
         boolean hasFirstLinePEs = false;
-        List<Layer> pendingInlineLayers = new ArrayList<>();
 
         if (c.getFirstLinesTracker().hasStyles()) {
             box.styleText(c, c.getFirstLinesTracker().deriveAll(box.getStyle()));
@@ -219,7 +218,7 @@ public class InlineBoxing {
 
                         startNewInlineLine(c, box, breakAtLine, blockLayoutDirection, space, current, previous,
                                 contentStart, openInlineBoxes, iBMap, minimumLineHeight, markerData, pendingFloats,
-                                hasFirstLinePEs, pendingInlineLayers, lineOffset, inlineBox, lbContext);
+                                hasFirstLinePEs, lineOffset, inlineBox, lbContext);
 
                         lineOffset++;
                         markerData = null;
@@ -228,7 +227,7 @@ public class InlineBoxing {
                 } while (!lbContext.isFinished());
 
                 if (inlineBox.isEndsHere()) {
-                    endInlineBox(c, space, current, previous, openInlineBoxes, pendingInlineLayers, inlineBox, style);
+                    endInlineBox(c, space, current, previous, openInlineBoxes, inlineBox, style);
                 }
             } else {
                BlockBox child = (BlockBox)node;
@@ -241,7 +240,7 @@ public class InlineBoxing {
                } else if (child.getStyle().isInlineBlock() || child.getStyle().isInlineTable()) {
                    startInlineBlock(c, box, initialY, breakAtLine, blockLayoutDirection, space, current, previous,
                         contentStart, openInlineBoxes, iBMap, minimumLineHeight, markerData, pendingFloats,
-                        hasFirstLinePEs, pendingInlineLayers, lineOffset, child);
+                        hasFirstLinePEs, lineOffset, child);
 
                    needFirstLetter = false;
 
@@ -259,7 +258,7 @@ public class InlineBoxing {
         current.line.trimTrailingSpace(c);
         saveLine(current.line, c, box, minimumLineHeight,
                 space.maxAvailableWidth, pendingFloats, hasFirstLinePEs,
-                pendingInlineLayers, markerData, contentStart,
+                markerData, contentStart,
                 isAlwaysBreak(c, box, breakAtLine, lineOffset));
         if (current.line.isFirstLine() && current.line.getHeight() == 0 && markerData != null) {
             c.setCurrentMarkerData(markerData);
@@ -274,14 +273,14 @@ public class InlineBoxing {
             byte blockLayoutDirection, SpaceVariables space, StateVariables current, StateVariables previous,
             int contentStart, List<InlineBox> openInlineBoxes, Map<InlineBox, InlineLayoutBox> iBMap,
             int minimumLineHeight, MarkerData markerData, List<FloatLayoutResult> pendingFloats,
-            boolean hasFirstLinePEs, List<Layer> pendingInlineLayers, int lineOffset, BlockBox child) {
-        
+            boolean hasFirstLinePEs, int lineOffset, BlockBox child) {
+
            layoutInlineBlockContent(c, box, child, initialY);
 
            if (child.getWidth() > space.remainingWidth && current.line.isContainsContent()) {
                saveLine(current.line, c, box, minimumLineHeight,
                        space.maxAvailableWidth, pendingFloats,  hasFirstLinePEs,
-                       pendingInlineLayers, markerData, contentStart,
+                       markerData, contentStart,
                        isAlwaysBreak(c, box, breakAtLine, lineOffset));
 
                previous.line = current.line;
@@ -315,9 +314,11 @@ public class InlineBoxing {
            }
     }
 
-    private static void endInlineBox(LayoutContext c, SpaceVariables space, StateVariables current,
-            StateVariables previous, List<InlineBox> openInlineBoxes, List<Layer> pendingInlineLayers,
+    private static void endInlineBox(
+            LayoutContext c, SpaceVariables space, StateVariables current,
+            StateVariables previous, List<InlineBox> openInlineBoxes,
             InlineBox inlineBox, CalculatedStyle style) {
+
         int rightMBP = style.getMarginBorderPadding(
                 c, space.maxAvailableWidth, CalculatedStyle.RIGHT);
 
@@ -335,18 +336,6 @@ public class InlineBoxing {
 
         current.layoutBox.setEndsHere(true);
 
-        if (current.layoutBox.getStyle().requiresLayer()) {
-            if (! current.layoutBox.isPending() && (current.layoutBox.getElement() == null ||
-                    current.layoutBox.getElement() != c.getLayer().getMaster().getElement())) {
-                throw new RuntimeException("internal error");
-            }
-            if (! current.layoutBox.isPending()) {
-                c.getLayer().setEnd(current.layoutBox);
-                c.popLayer();
-                pendingInlineLayers.add(current.layoutBox.getContainingLayer());
-            }
-        }
-
         previous.layoutBox = current.layoutBox;
         current.layoutBox = current.layoutBox.getParent() instanceof LineBox ?
                 null : (InlineLayoutBox) current.layoutBox.getParent();
@@ -356,8 +345,8 @@ public class InlineBoxing {
             SpaceVariables space, StateVariables current, StateVariables previous, int contentStart,
             List<InlineBox> openInlineBoxes, Map<InlineBox, InlineLayoutBox> iBMap, int minimumLineHeight,
             MarkerData markerData, List<FloatLayoutResult> pendingFloats, boolean hasFirstLinePEs,
-            List<Layer> pendingInlineLayers, int lineOffset, InlineBox inlineBox, LineBreakContext lbContext) {
-        
+            int lineOffset, InlineBox inlineBox, LineBreakContext lbContext) {
+
         IdentValue align = inlineBox.getStyle().getIdent(CSSName.TEXT_ALIGN);
         if (align != IdentValue.LEFT &&
             (align != IdentValue.START || inlineBox.getTextDirection() != BidiSplitter.LTR)) {
@@ -368,7 +357,7 @@ public class InlineBoxing {
 
         saveLine(current.line, c, box, minimumLineHeight,
                 space.maxAvailableWidth, pendingFloats,
-                hasFirstLinePEs, pendingInlineLayers, markerData,
+                hasFirstLinePEs, markerData,
                 contentStart, isAlwaysBreak(c, box, breakAtLine, lineOffset));
 
         if (current.line.isFirstLine() && hasFirstLinePEs) {
@@ -1021,11 +1010,13 @@ public class InlineBoxing {
         }
     }
 
-    private static void saveLine(LineBox current, LayoutContext c,
-                                 BlockBox block, int minHeight,
-                                 int maxAvailableWidth, List<FloatLayoutResult> pendingFloats,
-                                 boolean hasFirstLinePCs, List<Layer> pendingInlineLayers,
-                                 MarkerData markerData, int contentStart, boolean alwaysBreak) {
+    private static void saveLine(
+        LineBox current, LayoutContext c,
+        BlockBox block, int minHeight,
+        int maxAvailableWidth, List<FloatLayoutResult> pendingFloats,
+        boolean hasFirstLinePCs, 
+        MarkerData markerData, int contentStart, boolean alwaysBreak) {
+
         current.setContentStart(contentStart);
         current.prunePendingInlineBoxes(c);
 
@@ -1060,11 +1051,6 @@ public class InlineBoxing {
         current.calcChildLocations();
 
         block.addChildForLayout(c, current);
-
-        if (pendingInlineLayers.size() > 0) {
-            finishPendingInlineLayers(c, pendingInlineLayers);
-            pendingInlineLayers.clear();
-        }
 
         if (hasFirstLinePCs && current.isFirstLine()) {
             c.setFirstLinesTracker(
@@ -1107,12 +1093,6 @@ public class InlineBoxing {
         current.align(false, c);
         if (! current.isContainsDynamicFunction() && ! current.getParent().getStyle().isTextJustify()) {
             current.setFloatDistances(null);
-        }
-    }
-
-    private static void finishPendingInlineLayers(LayoutContext c, List<Layer> layers) {
-        for (Layer l : layers) {
-            l.positionChildren(c);
         }
     }
 

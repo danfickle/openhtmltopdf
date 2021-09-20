@@ -28,7 +28,8 @@ import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.*;
-import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
+import com.openhtmltopdf.util.LogMessageId.LogMessageId0Param;
+import com.openhtmltopdf.util.XRLog;
 
 import org.w3c.dom.Element;
 
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * A {@link Box} which contains the portion of an inline element layed out on a
@@ -211,26 +213,24 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     public void setPending(boolean b) {
         _pending = b;
     }
-    
+
     public void unmarkPending(LayoutContext c) {
         _pending = false;
-        
+
         if (getParent() instanceof InlineLayoutBox) {
             InlineLayoutBox iB = (InlineLayoutBox)getParent();
             if (iB.isPending()) {
                 iB.unmarkPending(c);
             }
         }
-        
+
         setStartsHere(true);
-        
+
         if (getStyle().requiresLayer()) {
-            c.pushLayer(this);
-            getLayer().setInline(true);
-            connectChildrenToCurrentLayer(c);
+            XRLog.log(Level.WARNING, LogMessageId0Param.LAYOUT_NO_INLINE_LAYERS);
         }
     }
-    
+
     @Override
     public void connectChildrenToCurrentLayer(LayoutContext c) {
         if (getInlineChildCount() > 0) {
@@ -465,26 +465,6 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
                 }
             }
         }
-        return false;
-    }
-    
-    public boolean intersectsInlineBlocks(CssContext cssCtx, Shape clip) {
-        for (int i = 0; i < getInlineChildCount(); i++) {
-            Object obj = getInlineChild(i);
-            
-            if (obj instanceof InlineLayoutBox) {
-                boolean possibleResult = 
-                    ((InlineLayoutBox)obj).intersectsInlineBlocks(cssCtx, clip);
-                if (possibleResult) {
-                    return true;
-                }
-            } else if (obj instanceof Box) {
-                if (PagedBoxCollector.intersectsAny(cssCtx, clip, (Box)obj, (Box) obj)) {
-                    return true;
-                }
-            }
-        }
-        
         return false;
     }
 

@@ -135,18 +135,9 @@ public class SimpleBoxCollector {
         
         return false;
     }
-    
+
     public void collect(RenderingContext c, Layer layer) {
-        if (layer.isInline()) {
-            collectInline(c, layer);
-        } else {
-            collect(c, layer, layer.getMaster());
-        }
-    }
-    
-    private void collectInline(RenderingContext c, Layer layer) {
-        // TODO Auto-generated method stub
-        
+        collect(c, layer, layer.getMaster());
     }
 
     public void collect(RenderingContext c, Layer layer, Box container) {

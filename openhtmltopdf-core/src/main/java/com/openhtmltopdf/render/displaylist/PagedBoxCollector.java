@@ -20,7 +20,6 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.OperatorClip;
 import com.openhtmltopdf.render.DisplayListItem;
-import com.openhtmltopdf.render.InlineLayoutBox;
 import com.openhtmltopdf.render.LineBox;
 import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.render.RenderingContext;
@@ -266,48 +265,12 @@ public class PagedBoxCollector {
 	    }
 	}
 	
-	public void collect(CssContext c, Layer layer) {
-		if (layer.isInline()) {
-			collectInline(c, layer);
-		} else {
-			collect(c, layer, layer.getMaster(), PAGE_ALL);
-		}
-	}
-	
-	// TODO: MAke sahdow page aware.
-	private void collectInline(CssContext c, Layer layer) {
-        InlineLayoutBox iB = (InlineLayoutBox) layer.getMaster();
-        List<Box> content = iB.getElementWithContent();
+    public void collect(CssContext c, Layer layer) {
+        collect(c, layer, layer.getMaster(), PAGE_ALL);
+    }
 
-        for (Box b : content) {
-
-        	int pgStart = findStartPage(c, b, layer.getCurrentTransformMatrix());
-        	int pgEnd = findEndPage(c, b, layer.getCurrentTransformMatrix());
-        	
-        	for (int i = pgStart; i <= pgEnd; i++) {
-        	    Shape pageClip = getPageResult(i).getContentWindowOnDocument(getPageBox(i), c);
-        	
-        		if (b.intersects(c, pageClip)) {
-        			if (b instanceof InlineLayoutBox) {
-        				getPageResult(i).addInline(b);
-        			} else { 
-        				BlockBox bb = (BlockBox) b;
-
-        				if (bb.isInline()) {
-        					if (intersectsAny(c, pageClip, b, b)) {
-        						getPageResult(i).addInline(b);
-        					}
-        				} else {
-        					collect(c, layer, bb, PAGE_ALL);
-        				}
-        			}
-        		}
-        	}
-        }
-	}
-	
-	public void collectFloats(CssContext c, Layer layer) {
-	    for (int iflt = layer.getFloats().size() - 1; iflt >= 0; iflt--) {
+    public void collectFloats(CssContext c, Layer layer) {
+        for (int iflt = layer.getFloats().size() - 1; iflt >= 0; iflt--) {
             BlockBox floater = layer.getFloats().get(iflt);
             
             int pgStart = findStartPage(c, floater, layer.getCurrentTransformMatrix());
@@ -736,35 +699,7 @@ public class PagedBoxCollector {
             return !boxArea.isEmpty();
         }
     }
-    
-    public static boolean intersectsAny(
-            CssContext c, Shape clip, 
-            Box master, Box container) {
-        if (container instanceof LineBox) {
-            if (container.intersects(c, clip)) {
-                return true;
-            }
-        } else {
-            if (container.getLayer() == null || !(container instanceof BlockBox)) {
-                if (container.intersects(c, clip)) {
-                    return true;
-                }
-            }
 
-            if (container.getLayer() == null || container == master) {
-                for (int i = 0; i < container.getChildCount(); i++) {
-                    Box child = container.getChild(i);
-                    boolean possibleResult = intersectsAny(c, clip, master, child);
-                    if (possibleResult) {
-                        return true;
-                    }
-                }
-            }
-        }
-        
-        return false;
-    }
-    
     private static class FourPoint {
         private final Point2D ul;
         private final Point2D ur;
@@ -822,10 +757,11 @@ public class PagedBoxCollector {
 		
 		return maxY;
     }
-    
+
     /**
-     * There is a matrix in effect. We need the max x to see how many shadow pages need creating.
+     * There is a matrix in effect.
      */
+    @SuppressWarnings("unused")
     private static double getMaxXFromTransformedBox(Rectangle bounds, AffineTransform transform) {
         FourPoint corners = getCornersFromTransformedBounds(bounds, transform);
 
@@ -833,10 +769,10 @@ public class PagedBoxCollector {
         double maxX = Math.max(corners.ul.getX(), corners.ur.getX());
         maxX = Math.max(corners.ll.getX(), maxX);
         maxX = Math.max(corners.lr.getX(), maxX);
-        
+
         return maxX;
     }
-    
+
     public static int findPageForY(CssContext c, double y, List<PageBox> pages) {
         PageFinder finder = new PageFinder(pages);
         return finder.findPageAdjusted(c, (int) y);

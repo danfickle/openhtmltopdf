@@ -21,7 +21,7 @@
 package com.openhtmltopdf.render;
 
 import java.awt.Rectangle;
-import java.awt.Shape;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -39,7 +39,6 @@ import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.Layer;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
-import com.openhtmltopdf.render.displaylist.PagedBoxCollector;
 import com.openhtmltopdf.util.XRRuntimeException;
 
 /**
@@ -358,17 +357,6 @@ public class LineBox extends Box implements InlinePaintable {
     public void setContainsBlockLevelContent(boolean containsBlockLevelContent) {
         _containsBlockLevelContent = containsBlockLevelContent;
     }
-    
-    @Override
-    public boolean intersects(CssContext cssCtx, Shape clip) {
-        return clip == null || (intersectsLine(cssCtx, clip) || 
-            (isContainsBlockLevelContent() && intersectsInlineBlocks(cssCtx, clip)));
-    }
-    
-    private boolean intersectsLine(CssContext cssCtx, Shape clip) {
-        Rectangle result = getPaintingClipEdge(cssCtx);
-        return clip.intersects(result);
-    }
 
     @Override
     public Rectangle getPaintingClipEdge(CssContext cssCtx) {
@@ -386,26 +374,6 @@ public class LineBox extends Box implements InlinePaintable {
                     getAbsX(), getAbsY() + _paintingTop, getContentWidth(), _paintingHeight);
         }
         return result;
-    }
-    
-    private boolean intersectsInlineBlocks(CssContext cssCtx, Shape clip) {
-        for (int i = 0; i < getChildCount(); i++) {
-            Box child = getChild(i);
-
-            if (child instanceof InlineLayoutBox) {
-                boolean possibleResult = ((InlineLayoutBox)child).intersectsInlineBlocks(
-                        cssCtx, clip);
-                if (possibleResult) {
-                    return true;
-                }
-            } else {
-                if (PagedBoxCollector.intersectsAny(cssCtx, clip, child, child)) {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
     }
 
     public List<TextDecoration> getTextDecorations() {

@@ -141,7 +141,7 @@ public class DisplayListCollector {
 			addItem(dlo, dlPages.getMinPage(), dlPages.getMaxPage(), dlPages);
 		}
 		
-		if (!layer.isInline() && ((BlockBox) layer.getMaster()).isReplaced()) {
+		if (((BlockBox) layer.getMaster()).isReplaced()) {
 			collectReplacedElementLayer(c, layer, dlPages, layerPageStart, layerPageEnd);
 		} else {
 
@@ -150,7 +150,7 @@ public class DisplayListCollector {
 			collector.collectFloats(c, layer);
 			collector.collect(c, layer);
 
-			if (!layer.isInline() && layer.getMaster() instanceof BlockBox) {
+			if (layer.getMaster() instanceof BlockBox) {
 				collectLayerBackgroundAndBorder(c, layer, dlPages, layerPageStart, layerPageEnd);
 			}
 

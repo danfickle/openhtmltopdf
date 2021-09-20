@@ -26,9 +26,6 @@ import com.openhtmltopdf.css.newmatch.PageInfo;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.EmptyStyle;
-import com.openhtmltopdf.newtable.CollapsedBorderValue;
-import com.openhtmltopdf.newtable.TableBox;
-import com.openhtmltopdf.newtable.TableCellBox;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.render.displaylist.TransformCreator;
 import com.openhtmltopdf.util.SearchUtil;
@@ -64,7 +61,6 @@ public class Layer {
 
     private List<BlockBox> _floats;
 
-    private boolean _inline;
     private boolean _requiresLayout;
 
     private List<PageBox> _pages;
@@ -325,50 +321,6 @@ public class Layer {
         return _floats == null ? Collections.emptyList() : _floats;
     }
 
-    // Bit of a kludge here.  We need to paint collapsed table borders according
-    // to priority so (for example) wider borders float to the top and aren't
-    // overpainted by thinner borders.  This method scans the block boxes
-    // we're about to draw and returns a map with the last cell in a given table
-    // we'll paint as a key and a sorted list of borders as values.  These are
-    // then painted after we've drawn the background for this cell.
-    @Deprecated
-    private Map<TableCellBox, List<CollapsedBorderSide>> collectCollapsedTableBorders(RenderingContext c, List<Box> blocks) {
-        Map<TableBox, List<CollapsedBorderSide>> cellBordersByTable = new HashMap<>();
-        Map<TableBox, TableCellBox> triggerCellsByTable = new HashMap<>();
-
-        Set<CollapsedBorderValue> all = new HashSet<>();
-        for (Iterator<Box> i = blocks.iterator(); i.hasNext(); ) {
-            Box b = i.next();
-            if (b instanceof TableCellBox) {
-                TableCellBox cell = (TableCellBox)b;
-                if (cell.hasCollapsedPaintingBorder()) {
-                    List<CollapsedBorderSide> borders = cellBordersByTable.get(cell.getTable());
-                    if (borders == null) {
-                        borders = new ArrayList<>();
-                        cellBordersByTable.put(cell.getTable(), borders);
-                    }
-                    triggerCellsByTable.put(cell.getTable(), cell);
-                    cell.addCollapsedBorders(all, borders);
-                }
-            }
-        }
-
-        if (triggerCellsByTable.size() == 0) {
-            return null;
-        } else {
-            Map<TableCellBox, List<CollapsedBorderSide>> result = new HashMap<>();
-
-            for (Iterator<TableCellBox> i = triggerCellsByTable.values().iterator(); i.hasNext(); ) {
-                TableCellBox cell = i.next();
-                List<CollapsedBorderSide> borders = cellBordersByTable.get(cell.getTable());
-                Collections.sort(borders);
-                result.put(cell, borders);
-            }
-
-            return result;
-        }
-    }
-
     public void positionFixedLayer(RenderingContext c) {
         Rectangle rect = c.getFixedRectangle(true);
 
@@ -453,14 +405,6 @@ public class Layer {
         setForDeletion(true);
     }
 
-    public boolean isInline() {
-        return _inline;
-    }
-
-    public void setInline(boolean inline) {
-        _inline = inline;
-    }
-
     public Box getEnd() {
         return _end;
     }
@@ -481,11 +425,10 @@ public class Layer {
         if (c.isPrint()) {
             layoutAbsoluteChildren(c);
         }
-        if (! isInline()) {
-            positionChildren(c);
-        }
+
+        positionChildren(c);
     }
-    
+
     private void layoutAbsoluteChildren(LayoutContext c) {
         List<Layer> children = getChildren();
         
@@ -534,13 +477,11 @@ public class Layer {
         if (getMaster().getStyle().isAbsolute() && ! c.isPrint()) {
             ((BlockBox)getMaster()).positionAbsolute(c, BlockBox.POSITION_BOTH);
         } else if (getMaster().getStyle().isRelative() &&
-                (isInline() || ((BlockBox)getMaster()).isInline())) {
-            getMaster().positionRelative(c);
-            if (! isInline()) {
-                getMaster().calcCanvasLocation();
-                getMaster().calcChildLocations();
-            }
+                ((BlockBox)getMaster()).isInline()) {
 
+            getMaster().positionRelative(c);
+            getMaster().calcCanvasLocation();
+            getMaster().calcChildLocations();
         }
     }
 
