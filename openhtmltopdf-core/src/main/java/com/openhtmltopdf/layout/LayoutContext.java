@@ -43,6 +43,7 @@ import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.extend.UserAgentCallback;
 import com.openhtmltopdf.layout.counter.AbstractCounterContext;
 import com.openhtmltopdf.layout.counter.CounterContext;
+import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
@@ -286,11 +287,11 @@ public class LayoutContext implements CssContext {
         _bfcs.removeLast();
     }
 
-    public void pushLayerIsolated(Box master) {
+    public void pushLayerIsolated(BlockBox master) {
         pushLayer(new Layer(master, this, true));
     }
 
-    public void pushLayer(Box master) {
+    public void pushLayer(BlockBox master) {
         Layer layer = null;
 
         if (_rootLayer == null) {

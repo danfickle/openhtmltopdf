@@ -38,13 +38,14 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * All positioned content as well as content with an overflow value other
+ * All positioned and transformed content as well as content with an overflow value other
  * than visible creates a layer.  Layers which define stacking contexts
  * provide the entry for rendering the box tree to an output device.  The main
  * purpose of this class is to provide an implementation of Appendix E of the
  * spec, but it also provides additional utility services including page
- * management and mapping boxes to coordinates (for e.g. links).  When
- * rendering to a paged output device, the layer is also responsible for laying
+ * management.
+ * <br><br>
+ * When rendering to a paged output device, the layer is also responsible for laying
  * out absolute content (which is layed out after its containing block has
  * completed layout).
  */
@@ -55,9 +56,7 @@ public class Layer {
     private Layer _parent;
     private boolean _stackingContext;
     private List<Layer> _children;
-    private Box _master;
-
-    private Box _end;
+    private BlockBox _master;
 
     private List<BlockBox> _floats;
 
@@ -71,18 +70,9 @@ public class Layer {
 
     private Map<String, List<BlockBox>> _runningBlocks;
 
-    private Box _selectionStart;
-    private Box _selectionEnd;
-
-    private int _selectionStartX;
-    private int _selectionStartY;
-
-    private int _selectionEndX;
-    private int _selectionEndY;
-    
     private boolean _forDeletion;
     private boolean _hasFixedAncester;
-    
+
     /**
      * @see {@link #getCurrentTransformMatrix()}
      */
@@ -94,12 +84,12 @@ public class Layer {
     /**
      * Creates the root layer.
      */
-    public Layer(Box master, CssContext c) {
+    public Layer(BlockBox master, CssContext c) {
         this(null, master, c);
         setStackingContext(true);
     }
 
-    public Layer(Box master, CssContext c, boolean isolated) {
+    public Layer(BlockBox master, CssContext c, boolean isolated) {
         this(master, c);
         if (isolated) {
             setIsolated(true);
@@ -113,7 +103,7 @@ public class Layer {
     /**
      * Creates a child layer.
      */
-    public Layer(Layer parent, Box master, CssContext c) {
+    public Layer(Layer parent, BlockBox master, CssContext c) {
         _parent = parent;
         _master = master;
         setStackingContext(
@@ -192,7 +182,7 @@ public class Layer {
     	return _master.getStyle().isIdent(CSSName.Z_INDEX, IdentValue.AUTO);
     }
 
-    public Box getMaster() {
+    public BlockBox getMaster() {
         return _master;
     }
 
@@ -405,14 +395,6 @@ public class Layer {
         setForDeletion(true);
     }
 
-    public Box getEnd() {
-        return _end;
-    }
-
-    public void setEnd(Box end) {
-        _end = end;
-    }
-
     public boolean isRequiresLayout() {
         return _requiresLayout;
     }
@@ -446,7 +428,7 @@ public class Layer {
                         child.getMaster().getStyle().isAvoidPageBreakInside() &&
                         child.getMaster().crossesPageBreak(c)) {
                         
-                        BlockBox master = (BlockBox) child.getMaster();
+                        BlockBox master = child.getMaster();
                         
                         master.reset(c);
                         master.setNeedPageClear(true);
@@ -473,15 +455,8 @@ public class Layer {
     }
 
     private void position(LayoutContext c) {
-
         if (getMaster().getStyle().isAbsolute() && ! c.isPrint()) {
-            ((BlockBox)getMaster()).positionAbsolute(c, BlockBox.POSITION_BOTH);
-        } else if (getMaster().getStyle().isRelative() &&
-                ((BlockBox)getMaster()).isInline()) {
-
-            getMaster().positionRelative(c);
-            getMaster().calcCanvasLocation();
-            getMaster().calcChildLocations();
+            getMaster().positionAbsolute(c, BlockBox.POSITION_BOTH);
         }
     }
 
@@ -500,14 +475,14 @@ public class Layer {
     }
 
     private void layoutAbsoluteChild(LayoutContext c, Layer child) {
-        BlockBox master = (BlockBox)child.getMaster();
+        BlockBox master = child.getMaster();
 
         if (child.getMaster().getStyle().isBottomAuto()) {
             // Set top, left
             master.positionAbsolute(c, BlockBox.POSITION_BOTH);
             master.positionAbsoluteOnPage(c);
             c.reInit(true);
-            ((BlockBox)child.getMaster()).layout(c);
+            child.getMaster().layout(c);
             // Set right
             master.positionAbsolute(c, BlockBox.POSITION_HORIZONTALLY);
         } else {
@@ -527,7 +502,7 @@ public class Layer {
             master.setBoxDimensions(after);
 
             c.reInit(true);
-            ((BlockBox)child.getMaster()).layout(c);
+            child.getMaster().layout(c);
         }
     }
 
@@ -1050,54 +1025,6 @@ public class Layer {
         }
 
         return -1;
-    }
-
-    public Box getSelectionEnd() {
-        return _selectionEnd;
-    }
-
-    public void setSelectionEnd(Box selectionEnd) {
-        _selectionEnd = selectionEnd;
-    }
-
-    public Box getSelectionStart() {
-        return _selectionStart;
-    }
-
-    public void setSelectionStart(Box selectionStart) {
-        _selectionStart = selectionStart;
-    }
-
-    public int getSelectionEndX() {
-        return _selectionEndX;
-    }
-
-    public void setSelectionEndX(int selectionEndX) {
-        _selectionEndX = selectionEndX;
-    }
-
-    public int getSelectionEndY() {
-        return _selectionEndY;
-    }
-
-    public void setSelectionEndY(int selectionEndY) {
-        _selectionEndY = selectionEndY;
-    }
-
-    public int getSelectionStartX() {
-        return _selectionStartX;
-    }
-
-    public void setSelectionStartX(int selectionStartX) {
-        _selectionStartX = selectionStartX;
-    }
-
-    public int getSelectionStartY() {
-        return _selectionStartY;
-    }
-
-    public void setSelectionStartY(int selectionStartY) {
-        _selectionStartY = selectionStartY;
     }
 
     private PageBox getLastRequestedPage() {

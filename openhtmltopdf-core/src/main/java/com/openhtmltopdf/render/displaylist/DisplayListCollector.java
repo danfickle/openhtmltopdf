@@ -141,7 +141,7 @@ public class DisplayListCollector {
 			addItem(dlo, dlPages.getMinPage(), dlPages.getMaxPage(), dlPages);
 		}
 		
-		if (((BlockBox) layer.getMaster()).isReplaced()) {
+		if (layer.getMaster().isReplaced()) {
 			collectReplacedElementLayer(c, layer, dlPages, layerPageStart, layerPageEnd);
 		} else {
 
@@ -150,9 +150,7 @@ public class DisplayListCollector {
 			collector.collectFloats(c, layer);
 			collector.collect(c, layer);
 
-			if (layer.getMaster() instanceof BlockBox) {
-				collectLayerBackgroundAndBorder(c, layer, dlPages, layerPageStart, layerPageEnd);
-			}
+			collectLayerBackgroundAndBorder(c, layer, dlPages, layerPageStart, layerPageEnd);
 
 			if (layer.isRootLayer() || layer.isStackingContext()) {
 				collectLayers(c, layer.getSortedLayers(Layer.NEGATIVE), dlPages, flags);
@@ -283,7 +281,7 @@ public class DisplayListCollector {
 		DisplayListOperation dlo = new PaintLayerBackgroundAndBorder(layer.getMaster());
 		addItem(dlo, pgStart, pgEnd, dlPages);
 
-		DisplayListOperation dlo2 = new PaintReplacedElement((BlockBox) layer.getMaster());
+		DisplayListOperation dlo2 = new PaintReplacedElement(layer.getMaster());
 		addItem(dlo2, pgStart, pgEnd, dlPages);
 	}
 
