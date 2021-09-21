@@ -466,21 +466,6 @@ public abstract class Box implements Styleable, DisplayListItem {
         return getPaintingPaddingEdge(c);
     }
 
-    /**
-     * <B>NOTE</B>: This method does not consider any children of this box
-     * but does consider the transformation matrix of the containing layer.
-     */
-    public boolean intersects(CssContext cssCtx, Shape clip) {
-    	AffineTransform ctm = this.getContainingLayer().getCurrentTransformMatrix();
-    	
-    	if (ctm == null || clip == null) {
-    		return clip == null || clip.intersects(getPaintingClipEdge(cssCtx));
-    	} else {
-    		Shape boxShape = ctm.createTransformedShape(getPaintingClipEdge(cssCtx));
-    		return clip.intersects(boxShape.getBounds2D());
-    	}
-    }
-
     public Rectangle getBorderEdge(int left, int top, CssContext cssCtx) {
         RectPropertySet margin = getMargin(cssCtx);
         Rectangle result = new Rectangle(left + (int) margin.left(),
@@ -674,22 +659,7 @@ public abstract class Box implements Styleable, DisplayListItem {
         if (getLayer() != null) {
             setContainingLayer(getLayer());
         } else if (getContainingLayer() == null) {
-            if (getParent() == null || getParent().getContainingLayer() == null) {
-                throw new RuntimeException("internal error");
-            }
             setContainingLayer(getParent().getContainingLayer());
-
-            // FIXME Will be glacially slow for large inline relative layers.  Could
-            // be much more efficient.  We're just looking for block boxes which are
-            // directly wrapped by an inline relative layer (i.e. block boxes sandwiched
-            // between anonymous block boxes)
-            if (c.getLayer().isInline()) {
-                List<Box> content =
-                    ((InlineLayoutBox)c.getLayer().getMaster()).getElementWithContent();
-                if (content.contains(this)) {
-                    setContainingLayer(c.getLayer());
-                }
-            }
         }
     }
 

@@ -47,7 +47,6 @@ import com.openhtmltopdf.layout.BreakAtLineContext;
 import com.openhtmltopdf.layout.CounterFunction;
 import com.openhtmltopdf.layout.FloatManager;
 import com.openhtmltopdf.layout.InlineBoxing;
-import com.openhtmltopdf.layout.InlinePaintable;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.PersistentBFC;
@@ -60,7 +59,7 @@ import com.openhtmltopdf.util.ThreadCtx;
  * other kinds of block content (for example table rows or cells).
  * See {@link ContentType}
  */
-public class BlockBox extends Box implements InlinePaintable {
+public class BlockBox extends Box {
 
     public static final int POSITION_VERTICALLY = 1;
     public static final int POSITION_HORIZONTALLY = 2;
@@ -316,15 +315,6 @@ public class BlockBox extends Box implements InlinePaintable {
         }
 
         return result;
-    }
-
-    @Override
-    public void paintInline(RenderingContext c) {
-        if (! getStyle().isVisible(c, this)) {
-            return;
-        }
-
-        getContainingLayer().paintAsLayer(c, this);
     }
 
     public boolean isInline() {

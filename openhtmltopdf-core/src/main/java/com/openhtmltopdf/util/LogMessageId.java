@@ -30,6 +30,7 @@ public interface LogMessageId {
         LAYOUT_ERROR_PARSING_SHAPE_COORDS(XRLog.LAYOUT, "Error while parsing shape coords"),
         LAYOUT_NO_CONTENT_LIMIT_FOUND(XRLog.LAYOUT, "No content limit found"),
         LAYOUT_BOX_HAS_NO_PAGE(XRLog.LAYOUT, "Box has no page"),
+        LAYOUT_NO_INLINE_LAYERS(XRLog.LAYOUT, "Boxes with display: inline can not be positioned or transformed, try using inline-block"),
 
         CASCADE_IS_ABSOLUTE_CSS_UNKNOWN_GIVEN(XRLog.CASCADE, "Asked whether type was absolute, given CSS_UNKNOWN as the type. " +
                 "Might be one of those funny values like background-position."),

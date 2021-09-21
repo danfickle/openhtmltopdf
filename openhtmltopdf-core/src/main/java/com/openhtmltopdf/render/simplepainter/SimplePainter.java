@@ -48,14 +48,14 @@ public class SimplePainter {
             c.getOutputDevice().pushTransformLayer(transform);
         }
         
-        if (!layer.isInline() && ((BlockBox) master).isReplaced()) {
+        if (((BlockBox) master).isReplaced()) {
             paintLayerBackgroundAndBorder(c, master);
             paintReplacedElement(c, (BlockBox) master);
         } else {
             SimpleBoxCollector boxCollector = new SimpleBoxCollector();
             boxCollector.collect(c, layer);
             
-            if (!layer.isInline() && master instanceof BlockBox) {
+            if (master instanceof BlockBox) {
                 paintLayerBackgroundAndBorder(c, master);
             }
 

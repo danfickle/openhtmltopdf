@@ -37,8 +37,8 @@ import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
-import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.FontRun;
-import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
+import com.openhtmltopdf.pdfboxout.PdfBoxUtil.FontRun;
+import com.openhtmltopdf.pdfboxout.PdfBoxUtil.Metadata;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.ArrayUtil;
@@ -66,7 +66,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -147,9 +146,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     // The currently set stroke on the PDF graphics stream. When we call setStokeDiff
     // this is compared with _stroke and only the differences are output to the graphics stream.
     private Stroke _oldStroke = null;
-
-    // The clipped area, as set on the PDF graphics stream, in PDF points units.
-    private Area _clip;
 
     // Essentially per-run global variables.
     private SharedContext _sharedContext;
@@ -736,29 +732,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         return new BasicStroke(st.getLineWidth() * scale, st.getEndCap(), st.getLineJoin(), st.getMiterLimit(), dash, st.getDashPhase()
                 * scale);
     }
-
-    public void clip(Shape s) {
-        if (isFastRenderer()) {
-            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId1Param.RENDER_OP_MUST_NOT_BE_USED_BY_FAST_RENDERER, "clip");
-            return;
-        }
-        
-        if (s != null) {
-            s = _transform.createTransformedShape(s);
-            if (_clip == null)
-                _clip = new Area(s);
-            else
-                _clip.intersect(new Area(s));
-            followPath(s, GraphicsOperation.CLIP);
-        } else {
-            assert(s != null);
-        }
-        //throw new RuntimeException(s.toString());
-    }
-
-    public Shape getClip() {
-        throw new UnsupportedOperationException();
-    }
     
     @Override
     public void popClip() {
@@ -776,11 +749,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             Shape s1 = _transform.createTransformedShape(s);
             followPath(s1, GraphicsOperation.CLIP);
         }
-    }
-
-    @Override
-    public void setClip(Shape s) {
-        throw new UnsupportedOperationException();
     }
 
     public Stroke getStroke() {
@@ -1015,45 +983,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     /**
-     * Replaces all copies of the named metadata with a single value. A a new
-     * value of null will result in the removal of all copies of the named
-     * metadata. Use <code>addMetadata</code> to append additional values with
-     * the same name.
-     * 
-     * @param name
-     *            the metadata element name to locate.
-     */
-    public void setMetadata(String name, String value) {
-        if (name != null) {
-            boolean remove = (value == null); // removing all instances of name?
-            int free = -1; // first open slot in array
-            for (int i = 0, len = _metadata.size(); i < len; i++) {
-                Metadata m = _metadata.get(i);
-                if (m != null) {
-                    if (m.getName().equalsIgnoreCase(name)) {
-                        if (!remove) {
-                            remove = true; // remove all other instances
-                            m.setContent(value);
-                        } else {
-                            _metadata.set(i, null);
-                        }
-                    }
-                } else if (free == -1) {
-                    free = i;
-                }
-            }
-            if (!remove) { // not found?
-                Metadata m = new Metadata(name, value);
-                if (free == -1) { // no open slots?
-                    _metadata.add(m);
-                } else {
-                    _metadata.set(free, m);
-                }
-            }
-        }
-    }
-
-    /**
      * @return All metadata entries
      */
     public List<Metadata> getMetadata() {
@@ -1220,26 +1149,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     @Override
     public void setBidiReorderer(BidiReorderer reorderer) {
         _reorderer = reorderer;
-    }
-    
-    @Override
-    public void popTransforms(List<AffineTransform> inverse) {
-        throw new UnsupportedOperationException();
-    }
-    
-    @Override
-    public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public float getAbsoluteTransformOriginX() {
-        throw new UnsupportedOperationException();
-    }
-    
-    @Override
-    public float getAbsoluteTransformOriginY() {
-        throw new UnsupportedOperationException();
     }
     
     @Override

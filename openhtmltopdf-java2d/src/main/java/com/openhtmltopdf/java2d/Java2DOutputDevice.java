@@ -103,22 +103,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
         _graphics.fillRect(x, y, width, height);
     }
 
-    @Deprecated
-    @Override
-    public void setClip(Shape s) {
-    }
-
-    @Deprecated
-    @Override
-    public Shape getClip() {
-        return null;
-    }
-
-    @Deprecated
-    @Override
-    public void clip(Shape s) {
-    }
-
     @Override
     public void translate(double tx, double ty) {
         _graphics.translate(tx, ty);
@@ -215,29 +199,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
         _graphics.setPaint(paint);
     }
 
-    @Override
-    @Deprecated
-    public List<AffineTransform> pushTransforms(List<AffineTransform> transforms) {
-        return null;
-    }
-
-    @Override
-    @Deprecated
-    public void popTransforms(List<AffineTransform> inverse) {
-    }
-
-	@Deprecated
-    @Override
-    public float getAbsoluteTransformOriginX() {
-        return 0;
-    }
-
-	@Deprecated
-    @Override
-    public float getAbsoluteTransformOriginY() {
-        return 0;
-    }
-
     public void setBidiReorderer(BidiReorderer _reorderer) {
         // TODO Auto-generated method stub
     }
@@ -289,11 +250,6 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     public void pushClip(Shape s) {
         _graphics.clip(s);
         _clipStack.push(_graphics.getClip());
-    }
-
-    @Override
-    public boolean isFastRenderer() {
-        return true;
     }
 
     @Override
