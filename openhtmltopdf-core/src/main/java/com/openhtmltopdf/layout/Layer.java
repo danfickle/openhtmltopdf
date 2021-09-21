@@ -649,6 +649,17 @@ public class Layer {
      * are created until y offset is included and the last page is returned.
      */
     public PageBox getPage(CssContext c, int yOffset) {
+        return getPage(c, yOffset, true);
+    }
+
+    private static final int MAX_REAR_SEARCH = 5;
+
+    /**
+     * Differs from {@link #getPage(CssContext, int)} by allowing the caller to
+     * control whether a yOffset past the last page will add pages or just
+     * return null.
+     */
+    public PageBox getPage(CssContext c, int yOffset, boolean addPages) {
         List<PageBox> pages = getPages();
 
         if (yOffset < 0) {
@@ -666,26 +677,19 @@ public class Layer {
             PageBox last = pages.get(pages.size() - 1);
 
             if (yOffset < last.getBottom()) {
-                final int MAX_REAR_SEARCH = 5;
+                PageBox needle;
 
-                // The page we're looking for is probably at the end of the
-                // document so do a linear search for the first few pages
-                // and then fall back to a binary search if that doesn't work
-                // out
-                int count = pages.size();
-                for (int i = count - 1; i >= 0 && i >= count - MAX_REAR_SEARCH; i--) {
-                    PageBox pageBox = pages.get(i);
+                int pageIdx = searchLastPages(pages, predicate, MAX_REAR_SEARCH);
 
-                    if (predicate.test(pageBox)) {
-                        setLastRequestedPage(pageBox);
-                        return pageBox;
-                    }
+                if (pageIdx < 0) {
+                    int needleIndex = SearchUtil.intBinarySearch(
+                        pageFinder(pages, yOffset, predicate), 0, pages.size() - MAX_REAR_SEARCH);
+
+                    needle = pages.get(needleIndex);
+                } else {
+                    needle = pages.get(pageIdx);
                 }
 
-                int needleIndex = SearchUtil.intBinarySearch(
-                        pageFinder(pages, yOffset, predicate), 0, count - MAX_REAR_SEARCH);
-
-                PageBox needle = pages.get(needleIndex);
                 setLastRequestedPage(needle);
                 return needle;
 
@@ -696,6 +700,48 @@ public class Layer {
                 return result;
             }
         }
+    }
+
+    /**
+     * Returns the zero based index of a page containing yOffset or
+     * -1 if yOffset is before the first page or after the last.
+     */
+    public int getPageIndex(int yOffset) {
+        List<PageBox> pages = getPages();
+        Predicate<PageBox> predicate = pagePredicate(yOffset);
+
+        int pageIdx = searchLastPages(pages, predicate, MAX_REAR_SEARCH);
+
+        if (pageIdx >= 0) {
+            return pageIdx;
+        }
+
+        return SearchUtil.intBinarySearch(
+                pageFinder(pages, yOffset, predicate), 0, pages.size() - MAX_REAR_SEARCH);
+    }
+
+    /**
+     * Searches the last maxRearPages for a page that matches predicate,
+     * else returns a value less than zero.
+     */
+    private int searchLastPages(
+            List<PageBox> pages, Predicate<PageBox> predicate, final int maxRearPages) {
+        // The page we're looking for is probably at the end of the
+        // document so do a linear search for the first few pages
+        // and then fall back to a binary search if that doesn't work
+        // out
+        int count = pages.size();
+
+        for (int i = count - 1; i >= 0 && i >= count - maxRearPages; i--) {
+            PageBox pageBox = pages.get(i);
+
+            if (predicate.test(pageBox)) {
+                setLastRequestedPage(pageBox);
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private void addPagesUntilPosition(CssContext c, int position) {
