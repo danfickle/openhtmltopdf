@@ -688,10 +688,9 @@ public class PdfBoxForm {
     private void processSubmitControl(PDAcroForm acro, int i, Control ctrl, Box root) throws IOException {
         final int FLAG_USE_GET = 1 << 3;
         final int FLAG_USE_HTML_SUBMIT = 1 << 2;
-        
+
         PDPushButton btn = new PDPushButton(acro);
-        btn.setPushButton(true);
-        
+
         if (ctrl.box.getElement().hasAttribute("name")) {
             // Buttons can't have a value so we create a hidden text field instead.
             PDTextField field = new PDTextField(acro);
@@ -734,13 +733,13 @@ public class PdfBoxForm {
         
         if (ctrl.box.getElement().getAttribute("type").equals("reset")) {
             PDActionResetForm reset = new PDActionResetForm();
-            reset.setFields(fieldsToInclude.toList());
+            reset.setFields(fieldsToInclude.getCOSArray());
             widget.setAction(reset);;
         } else {
             PDFileSpecification fs = PDFileSpecification.createFS(new COSString(element.getAttribute("action")));
             PDActionSubmitForm submit = new PDActionSubmitForm();
             
-            submit.setFields(fieldsToInclude.toList());
+            submit.setFields(fieldsToInclude.getCOSArray());
             submit.setFile(fs);
 
             if (!element.getAttribute("method").equalsIgnoreCase("post")) {

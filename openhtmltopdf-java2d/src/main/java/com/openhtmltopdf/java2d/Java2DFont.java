@@ -32,11 +32,12 @@ public class Java2DFont implements FSFont {
         _fonts = fonts;
         _size = size;
     }
-    
+
+    @Override
     public float getSize2D() {
         return _size;
     }
-    
+
     public List<Font> getAWTFonts() {
         return _fonts;
     }

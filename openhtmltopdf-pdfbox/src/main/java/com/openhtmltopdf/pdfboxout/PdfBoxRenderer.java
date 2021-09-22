@@ -281,7 +281,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     
     /**
      * Get the PDF-BOX font resolver. Can be used to add fonts in code.
-     * @return
      */
     public PdfBoxFontResolver getFontResolver() {
         return (PdfBoxFontResolver) _sharedContext.getFontResolver();
@@ -818,14 +817,17 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     }
 
     private static final class NullUserInterface implements UserInterface {
+        @Override
         public boolean isHover(Element e) {
             return false;
         }
 
+        @Override
         public boolean isActive(Element e) {
             return false;
         }
 
+        @Override
         public boolean isFocus(Element e) {
             return false;
         }

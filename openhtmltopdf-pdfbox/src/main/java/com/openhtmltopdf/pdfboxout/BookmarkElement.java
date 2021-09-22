@@ -29,22 +29,27 @@ public class BookmarkElement implements PdfBoxReplacedElement {
     private Point _location = new Point(0, 0);
     private String _anchorName;
 
+    @Override
     public int getIntrinsicWidth() {
         return 0;
     }
 
+    @Override
     public int getIntrinsicHeight() {
         return 0;
     }
 
+    @Override
     public Point getLocation() {
         return _location;
     }
 
+    @Override
     public void setLocation(int x, int y) {
         _location = new Point(x, y);
     }
 
+    @Override
     public void detach(LayoutContext c) {
         c.removeBoxId(getAnchorName());
     }
@@ -57,19 +62,23 @@ public class BookmarkElement implements PdfBoxReplacedElement {
         _anchorName = anchorName;
     }
 
+    @Override
     public boolean isRequiresInteractivePaint() {
         // N/A
         return false;
     }
 
+    @Override
     public void paint(RenderingContext c, PdfBoxOutputDevice outputDevice,
             BlockBox box) {
     }
 
+    @Override
     public int getBaseline() {
         return 0;
     }
 
+    @Override
     public boolean hasBaseline() {
         return false;
     }

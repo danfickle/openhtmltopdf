@@ -46,11 +46,13 @@ public interface PdfBoxOutputDevice extends OutputDevice {
 
     void finishPage();
 
+    @Override
     void paintReplacedElement(RenderingContext c, BlockBox box);
 
     /**
      * We use paintBackground to do extra stuff such as processing links, forms and form controls.
      */
+    @Override
     void paintBackground(RenderingContext c, Box box);
 
     /**
@@ -58,28 +60,40 @@ public interface PdfBoxOutputDevice extends OutputDevice {
      */
     float getDeviceLength(float length);
 
+    @Override
     void drawBorderLine(Shape bounds, int side, int lineWidth, boolean solid);
 
+    @Override
     void setColor(FSColor color);
 
+    @Override
     void draw(Shape s);
 
+    @Override
     void drawRect(int x, int y, int width, int height);
 
+    @Override
     void drawOval(int x, int y, int width, int height);
 
+    @Override
     void fill(Shape s);
 
+    @Override
     void fillRect(int x, int y, int width, int height);
 
+    @Override
     void fillOval(int x, int y, int width, int height);
 
+    @Override
     void translate(double tx, double ty);
 
+    @Override
     Object getRenderingHint(Key key);
 
+    @Override
     void setRenderingHint(Key key, Object value);
 
+    @Override
     void setFont(FSFont font);
 
     void drawString(String s, float x, float y, JustificationInfo info);
@@ -96,16 +110,21 @@ public interface PdfBoxOutputDevice extends OutputDevice {
      */
     float normalizeY(float y, float pageHeight);
 
+    @Override
     void setStroke(Stroke s);
 
+    @Override
     void popClip();
 
+    @Override
     void pushClip(Shape s);
 
+    @Override
     Stroke getStroke();
 
     void realizeImage(PdfBoxImage img);
 
+    @Override
     void drawImage(FSImage fsImage, int x, int y, boolean interpolate);
 
     float getDotsPerPoint();
@@ -157,12 +176,16 @@ public interface PdfBoxOutputDevice extends OutputDevice {
 
     void setStartPageNo(int startPageNo);
 
+    @Override
     void drawSelection(RenderingContext c, InlineText inlineText);
 
+    @Override
     boolean isSupportsSelection();
 
+    @Override
     boolean isSupportsCMYKColors();
 
+    @Override
     void drawWithGraphics(float x, float y, float width, float height,
             OutputDeviceGraphicsDrawer renderer);
 
@@ -172,8 +195,10 @@ public interface PdfBoxOutputDevice extends OutputDevice {
 
     void setBidiReorderer(BidiReorderer reorderer);
 
+    @Override
     void setPaint(Paint paint);
 
+    @Override
     boolean isPDF();
 
     /**
@@ -181,8 +206,10 @@ public interface PdfBoxOutputDevice extends OutputDevice {
      */
     void close();
 
+    @Override
     void pushTransformLayer(AffineTransform transform);
 
+    @Override
     void popTransformLayer();
 
     boolean isFastRenderer();

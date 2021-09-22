@@ -20,10 +20,10 @@ public class DefaultPageProcessor implements FSPageProcessor {
 			if (_img.getColorModel().hasAlpha()) {
 				/* We need to clear with white transparent */
 				_g2d.setBackground(new Color(255, 255, 255, 0));
-				_g2d.clearRect(0, 0, (int) _img.getWidth(), (int) _img.getHeight());
+				_g2d.clearRect(0, 0, _img.getWidth(), _img.getHeight());
 			} else {
 				_g2d.setColor(Color.WHITE);
-				_g2d.fillRect(0, 0, (int) _img.getWidth(), (int) _img.getHeight());
+				_g2d.fillRect(0, 0, _img.getWidth(), _img.getHeight());
 			}
 			
 			_pgNo = pgNo;
@@ -73,7 +73,6 @@ public class DefaultPageProcessor implements FSPageProcessor {
 	/**
 	 * Create a graphics device that can be supplied to useLayoutGraphics.
 	 * The caller is responsible for calling dispose on the returned device.
-	 * @return
 	 */
 	public Graphics2D createLayoutGraphics() {
 		BufferedImage bf = new BufferedImage(1, 1, _imageType);

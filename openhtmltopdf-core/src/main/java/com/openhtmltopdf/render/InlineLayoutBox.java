@@ -57,7 +57,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     private boolean _endsHere;
     
     /**
-     * @see {@link #getInlineChildren()}
+     * See {@link #getInlineChildren()}
      */
     private List<Object> _inlineChildren;
     

@@ -133,8 +133,6 @@ public class TextUtil {
     /**
      * According to the CSS spec the first letter includes certain punctuation immediately
      * preceding or following the actual first letter.
-     * @param currentChar
-     * @return
      */
     public static boolean isFirstLetterSeparatorChar( int currentChar ) {
         switch (Character.getType(currentChar)) {

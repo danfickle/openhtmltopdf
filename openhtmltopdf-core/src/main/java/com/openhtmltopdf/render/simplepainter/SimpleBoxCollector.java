@@ -155,15 +155,14 @@ public class SimpleBoxCollector {
             if (container.getLayer() == null ||
                 layer.getMaster() == container ||
                 !(container instanceof BlockBox)) {
-        
-                if (c instanceof RenderingContext &&
-                    container instanceof BlockBox) {
+
+                if (container instanceof BlockBox) {
 
                     BlockBox block = (BlockBox) container;
                     
-                    if (block.isNeedsClipOnPaint((RenderingContext) c)) {
+                    if (block.isNeedsClipOnPaint(c)) {
                         // A box with overflow set to hidden.
-                        ourClip = block.getChildrenClipEdge((RenderingContext) c);
+                        ourClip = block.getChildrenClipEdge(c);
                     }
                 }
                 
@@ -173,8 +172,7 @@ public class SimpleBoxCollector {
             if (container instanceof TableSectionBox &&
                 (((TableSectionBox) container).isHeader() || ((TableSectionBox) container).isFooter()) &&
                 ((TableSectionBox) container).getTable().hasContentLimitContainer() &&
-                (container.getLayer() == null || container == layer.getMaster()) &&
-                c instanceof RenderingContext) {
+                (container.getLayer() == null || container == layer.getMaster())) {
                 // TODO
                 //addTableHeaderFooter(c, layer, container);
             } else {

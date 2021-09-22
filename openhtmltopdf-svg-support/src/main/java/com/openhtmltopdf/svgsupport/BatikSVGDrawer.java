@@ -106,6 +106,7 @@ public class BatikSVGDrawer implements SVGDrawer {
     public void close() {
     }
 
+    @Override
     public void addFontFile(File fontFile, String family, Integer weight, FontStyle style) throws IOException, FontFormatException {
         this.fontResolver.addFontFile(fontFile, family, weight, style);
     }

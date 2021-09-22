@@ -167,9 +167,7 @@ public class Java2DTextRenderer implements TextRenderer {
             }
         }
     }
-    
-    /** {@inheritDoc} 
-     * @param bidiReorderer */
+
     public void setup(FontContext fontContext, BidiReorderer bidiReorderer) {
         //Uu.p("setup graphics called");
 //        ((Java2DFontContext)fontContext).getGraphics().setRenderingHint( 

@@ -46,7 +46,6 @@ import com.openhtmltopdf.render.simplepainter.SimplePainter;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.swing.NaiveUserAgent;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 

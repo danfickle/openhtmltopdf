@@ -43,6 +43,7 @@ public class MainFontStore extends AbstractFontStore implements Closeable {
         this._fontMetricsCache = pdfMetricsCache;
     }
 
+    @Override
     public void close() throws IOException {
         // Close all still open TrueTypeCollections
         for (TrueTypeCollection collection : _collectionsToClose) {

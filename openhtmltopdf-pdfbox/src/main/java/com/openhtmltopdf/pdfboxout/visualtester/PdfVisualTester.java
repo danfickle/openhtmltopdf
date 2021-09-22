@@ -60,7 +60,7 @@ public class PdfVisualTester {
          * Creates a diff image to quickly spot differences between expected and actual.
          * NOTE: May be expensive for large images.
          * @return the diff image.
-         * @see {@link #hasDifferences}
+         * See {@link #hasDifferences}
          */
         public BufferedImage createDiff() {
             if (actual == null) {
@@ -125,7 +125,6 @@ public class PdfVisualTester {
      * @param testName
      * @param keepSameImages Whether to return the images in the case they are good (ie. the same).
      * @return A list of {@link PdfCompareResult} instances describing differences.
-     * @throws Exception
      */
     public static List<PdfCompareResult> comparePdfDocuments(byte[] expected, byte[] actual, String testName, boolean keepSameImages) throws IOException {
         List<PdfCompareResult> problems = new ArrayList<>();
@@ -380,9 +379,6 @@ public class PdfVisualTester {
 
     /**
     * Calculate the combined intensity of a pixel and normalizes it to a value of at most 255.
-    *
-    * @param element
-    * @return
     */
     private static int calcCombinedIntensity(final int element) {
         final Color color = new Color(element);

@@ -257,6 +257,7 @@ public class ImageUtil {
      * Old AWT-style scaling, poor quality
      */
     static class OldScaler extends AbstractFastScaler {
+        @Override
         protected int getImageScalingMethod() {
             return Image.SCALE_FAST;
         }
@@ -266,6 +267,7 @@ public class ImageUtil {
      * AWT-style one-step scaling, using area averaging
      */
     static class AreaAverageScaler extends AbstractFastScaler {
+        @Override
         protected int getImageScalingMethod() {
             return Image.SCALE_AREA_AVERAGING;
         }

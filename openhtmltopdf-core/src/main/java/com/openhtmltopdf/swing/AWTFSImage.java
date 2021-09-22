@@ -64,6 +64,7 @@ public abstract class AWTFSImage implements FSImage {
             return img.getHeight(null);
         }
 
+        @Override
         public BufferedImage getImage() {
             return img;
         }
@@ -104,6 +105,7 @@ public abstract class AWTFSImage implements FSImage {
         public void scale(int width, int height) {
         }
 
+        @Override
         public BufferedImage getImage() {
             return EMPTY_IMAGE;
         }

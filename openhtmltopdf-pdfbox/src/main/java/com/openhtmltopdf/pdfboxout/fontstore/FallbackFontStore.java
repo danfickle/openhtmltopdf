@@ -158,6 +158,7 @@ public class FallbackFontStore implements Closeable {
         }
     }
 
+    @Override
     public void close() throws IOException {
         for (TrueTypeCollection collection : _collectionsToClose) {
             FontUtil.tryClose(collection);

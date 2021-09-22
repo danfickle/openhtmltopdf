@@ -72,7 +72,7 @@ public class TransformCreator {
         AffineTransform translateBackFromOrigin = AffineTransform.getTranslateInstance(-pageTranslateX,
                 -pageTranslateY);
 
-        List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
+        List<PropertyValue> transformList = ((ListValue) transforms).getValues();
 
         AffineTransform result = new AffineTransform();
         result.concatenate(translateToOrigin);
@@ -148,7 +148,7 @@ public class TransformCreator {
 			translateBackFromOrigin = AffineTransform.getTranslateInstance(-absTranslateX, -absTranslateY);
 		}
 		
-		List<PropertyValue> transformList = (List<PropertyValue>) ((ListValue) transforms).getValues();
+		List<PropertyValue> transformList = ((ListValue) transforms).getValues();
 
 		result.concatenate(translateToOrigin);
 		applyTransformFunctions(flipFactor, transformList, result, box, c);

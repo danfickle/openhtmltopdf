@@ -9,7 +9,6 @@ import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontGroup;
-import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
@@ -50,8 +49,6 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	/**
 	 * Build a PdfBoxRenderer for further customization. Remember to call
 	 * {@link PdfBoxRenderer#cleanup()} after use.
-	 *
-	 * @return
 	 */
 	public PdfBoxRenderer buildPdfRenderer() {
 		return buildPdfRenderer(applyDiagnosticConsumer());
@@ -152,9 +149,6 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	/**
 	 * An output stream to output the resulting PDF. The caller is required to close
 	 * the output stream after calling run.
-	 *
-	 * @param out
-	 * @return
 	 */
 	public PdfRendererBuilder toStream(OutputStream out) {
 		state._os = out;
@@ -164,9 +158,6 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	/**
 	 * Set the PDF version, typically we use 1.7. If you set a lower version, it is
 	 * your responsibility to make sure no more recent PDF features are used.
-	 *
-	 * @param version
-	 * @return
 	 */
 	public PdfRendererBuilder usePdfVersion(float version) {
 		state._pdfVersion = version;
@@ -179,9 +170,6 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * Note: PDF/A documents require fonts to be embedded. So if this is not set to NONE,
 	 * the built-in fonts will not be available and currently any text without a
 	 * specified and embedded font will cause the renderer to crash with an exception.
-	 *
-	 * @param pdfAConformance
-	 * @return
 	 */
 	public PdfRendererBuilder usePdfAConformance(PdfAConformance pdfAConformance) {
 		this.state._pdfAConformance = pdfAConformance;
@@ -205,9 +193,6 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * Sets the color profile, needed for PDF/A conformance.
 	 *
 	 * You can use the sRGB.icc from https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/resources/org/apache/pdfbox/resources/pdfa/
-	 *
-	 * @param colorProfile
-	 * @return
 	 */
 	public PdfRendererBuilder useColorProfile(byte[] colorProfile) {
 		this.state._colorProfile = colorProfile;

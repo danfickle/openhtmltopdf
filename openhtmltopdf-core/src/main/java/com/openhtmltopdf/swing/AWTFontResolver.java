@@ -146,7 +146,7 @@ public class AWTFontResolver implements FontResolver {
         Font fnt = rootFont.deriveFont(fontConst, size);
         if (variant != null) {
             if (variant == IdentValue.SMALL_CAPS) {
-                fnt = fnt.deriveFont((float) (((float) fnt.getSize()) * 0.6));
+                fnt = fnt.deriveFont((float) ((fnt.getSize()) * 0.6));
             }
         }
 

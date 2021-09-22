@@ -90,7 +90,7 @@ public class PdfBoxImage implements FSImage {
 
             if (height == -1 && _intrinsicWidth != 0) {
                 // Use the width ratio to set the height.
-                setHeight = (int) (((float) setWidth / (float) _intrinsicWidth) * _intrinsicHeight);
+                setHeight = (int) ((setWidth / _intrinsicWidth) * _intrinsicHeight);
             } else {
                 setHeight = height;
             }
@@ -99,7 +99,7 @@ public class PdfBoxImage implements FSImage {
 
             if (_intrinsicHeight != 0) {
                 // Use the height ratio to set the width.
-                setWidth = (int) (((float) setHeight / (float) _intrinsicHeight) * _intrinsicWidth);
+                setWidth = (int) ((setHeight / _intrinsicHeight) * _intrinsicWidth);
             } else {
                 setWidth = 0;
             }

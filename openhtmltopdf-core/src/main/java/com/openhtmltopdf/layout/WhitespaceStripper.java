@@ -111,9 +111,7 @@ public class WhitespaceStripper {
      * 2.1 spec on whitespace handling. It accounts for the different whitespace
      * settings like normal, nowrap, pre, etc
      *
-     * @param style
-     * @param collapseLeading
-     * @param tc              the TextContent to strip. The text in it is
+     * @param iB              the InlineBox to strip. The text in it is
      *                        modified.
      * @return whether the next leading space should collapse or
      *         not.
@@ -148,9 +146,6 @@ public class WhitespaceStripper {
      * 
      * NOTE: Slightly different behavior to using regular expressions as definition of space characters
      * differ, but I believe this is the correct definition according to CSS specifications.
-     * @param text
-     * @param collapseLeading
-     * @return
      */
     private static String collapseWhitespaceNormalOrNoWrap(String text, boolean collapseLeading) {
 		char[] chs = text.toCharArray();

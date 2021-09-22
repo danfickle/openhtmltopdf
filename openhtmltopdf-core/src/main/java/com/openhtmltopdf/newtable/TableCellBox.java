@@ -796,7 +796,8 @@ public class TableCellBox extends BlockBox {
         
         return bounds;
     }
-    
+
+    @Override
     public Rectangle getPaintingClipEdge(CssContext c) {
         if (hasCollapsedPaintingBorder()) {
             return getCollapsedBorderBounds(c);

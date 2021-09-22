@@ -153,6 +153,7 @@ public class FSCatalog {
          * Receive notification of the beginning of an element; here used to pick up the mappings
          * for public IDs to local URIs in the catalog.
          */
+        @Override
         public void startElement(String namespaceURI, String localName, String qName, Attributes atts) {
             if (localName.equalsIgnoreCase("public") ||
                     (localName.equals("") && qName.equalsIgnoreCase("public"))) {

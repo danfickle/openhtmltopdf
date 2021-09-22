@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.openhtmltopdf.css.parser.FSColor;
-import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.util.XRRuntimeException;

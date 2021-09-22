@@ -47,12 +47,7 @@ import java.util.Map;
  * use a new instance for every run.
  */
 public class SharedContext {
-	/**
-	 * @deprecated Belongs in Java2D renderer.
-	 */
-    @Deprecated
-    private final static float DEFAULT_DPI = 72;
-	
+
     /**
      * @deprecated Belongs in Java2D renderer.
      */

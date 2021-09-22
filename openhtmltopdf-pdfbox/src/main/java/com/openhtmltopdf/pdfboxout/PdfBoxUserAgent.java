@@ -52,10 +52,11 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
         out.close();
         return out.toByteArray();
     }
-    
+
+    @Override
     public ImageResource getImageResource(String uriStr) {
         String uriResolved = resolveURI(uriStr);
-        
+
         if (uriResolved == null) {
             XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image", uriStr);
            return new ImageResource(uriStr, null);

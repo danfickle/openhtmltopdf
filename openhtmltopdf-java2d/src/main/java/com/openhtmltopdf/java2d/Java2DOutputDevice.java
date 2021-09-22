@@ -39,7 +39,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private final Deque<Shape> _clipStack = new ArrayDeque<>();
@@ -52,6 +51,7 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     	this._graphics = layoutGraphics;
     }
 
+    @Override
     @Deprecated
     public void drawSelection(RenderingContext c, InlineText inlineText) {
     }

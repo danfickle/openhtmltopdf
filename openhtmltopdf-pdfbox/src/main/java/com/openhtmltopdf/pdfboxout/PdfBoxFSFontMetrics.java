@@ -29,6 +29,7 @@ public class PdfBoxFSFontMetrics implements FSFontMetrics {
     private float _underlineOffset;
     private float _underlineThickness;
     
+    @Override
     public float getAscent() {
         return _ascent;
     }
@@ -36,6 +37,7 @@ public class PdfBoxFSFontMetrics implements FSFontMetrics {
     public void setAscent(float ascent) {
         _ascent = ascent;
     }
+    @Override
     public float getDescent() {
         return _descent;
     }
@@ -44,6 +46,7 @@ public class PdfBoxFSFontMetrics implements FSFontMetrics {
         _descent = descent;
     }
     
+    @Override
     public float getStrikethroughOffset() {
         return _strikethroughOffset;
     }
@@ -52,6 +55,7 @@ public class PdfBoxFSFontMetrics implements FSFontMetrics {
         _strikethroughOffset = strikethroughOffset;
     }
     
+    @Override
     public float getStrikethroughThickness() {
         return _strikethroughThickness;
     }
@@ -60,6 +64,7 @@ public class PdfBoxFSFontMetrics implements FSFontMetrics {
         _strikethroughThickness = strikethroughThickness;
     }
     
+    @Override
     public float getUnderlineOffset() {
         return _underlineOffset;
     }
@@ -67,11 +72,12 @@ public class PdfBoxFSFontMetrics implements FSFontMetrics {
     public void setUnderlineOffset(float underlineOffset) {
         _underlineOffset = underlineOffset;
     }
-    
+
+    @Override
     public float getUnderlineThickness() {
         return _underlineThickness;
     }
-    
+
     public void setUnderlineThickness(float underlineThickness) {
         _underlineThickness = underlineThickness;
     }

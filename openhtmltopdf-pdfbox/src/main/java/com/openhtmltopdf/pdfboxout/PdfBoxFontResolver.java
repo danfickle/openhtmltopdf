@@ -149,6 +149,7 @@ public class PdfBoxFontResolver implements FontResolver {
         File f = new File(dir);
         if (f.isDirectory()) {
             File[] files = f.listFiles(new FilenameFilter() {
+                @Override
                 public boolean accept(File dir, String name) {
                     String lower = name.toLowerCase(Locale.US);
                     return lower.endsWith(".ttf") || lower.endsWith(".ttc");

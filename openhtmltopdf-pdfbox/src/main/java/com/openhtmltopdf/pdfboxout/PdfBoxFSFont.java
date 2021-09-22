@@ -33,10 +33,11 @@ public class PdfBoxFSFont implements FSFont {
         _size = size;
     }
 
+    @Override
     public float getSize2D() {
         return _size;
     }
-    
+
     public List<FontDescription> getFontDescription() {
         return _fonts;
     }

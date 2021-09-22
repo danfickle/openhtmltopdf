@@ -139,6 +139,7 @@ public class MathMLDrawer implements SVGDrawer {
 		FontFactory.clearThreadFontFactory();
 	}
 
+    @Override
     public void addFontFile(File fontFile, String family, Integer weight, FontStyle style) {
         FontEntry entry = new FontEntry();
         entry.file = fontFile;

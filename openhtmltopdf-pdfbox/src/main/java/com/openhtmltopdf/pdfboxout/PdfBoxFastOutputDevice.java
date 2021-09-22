@@ -180,11 +180,10 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     
     // Link manage handles a links. We add the link in paintBackground and then output links when the document is finished.
     private PdfBoxFastLinkManager _linkManager;
-    
+
     // Not used currently.
-    @SuppressWarnings("unused")
     private RenderingContext _renderingContext;
-    
+
     // The bidi reorderer is responsible for shaping Arabic text, deshaping and 
     // converting RTL text into its visual order.
     private BidiReorderer _reorderer = new SimpleBidiReorderer();
@@ -266,6 +265,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public void paintReplacedElement(RenderingContext c, BlockBox box) {
         PdfBoxReplacedElement element = (PdfBoxReplacedElement) box.getReplacedElement();
         element.paint(c, this, box);
@@ -298,14 +298,17 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     /**
      * Given a value in dots units, converts to PDF points.
      */
+    @Override
     public float getDeviceLength(float length) {
         return length / _dotsPerPoint;
     }
 
+    @Override
     public void drawBorderLine(Shape bounds, int side, int lineWidth, boolean solid) {
         draw(bounds);
     }
 
+    @Override
     public void setColor(FSColor color) {
         if (color instanceof FSRGBColor) {
              this._desiredPageState.fillColor = color;
@@ -318,28 +321,34 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public void draw(Shape s) {
         followPath(s, GraphicsOperation.STROKE);
     }
 
+    @Override
     protected void drawLine(int x1, int y1, int x2, int y2) {
         Line2D line = new Line2D.Double(x1, y1, x2, y2);
         draw(line);
     }
 
+    @Override
     public void drawRect(int x, int y, int width, int height) {
         draw(new Rectangle(x, y, width, height));
     }
 
+    @Override
     public void drawOval(int x, int y, int width, int height) {
         Ellipse2D oval = new Ellipse2D.Float(x, y, width, height);
         draw(oval);
     }
 
+    @Override
     public void fill(Shape s) {
         followPath(s, GraphicsOperation.FILL);
     }
 
+    @Override
     public void fillRect(int x, int y, int width, int height) {
         if (ROUND_RECT_DIMENSIONS_DOWN) {
             fill(new Rectangle(x, y, width - 1, height - 1));
@@ -348,22 +357,27 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public void fillOval(int x, int y, int width, int height) {
         Ellipse2D oval = new Ellipse2D.Float(x, y, width, height);
         fill(oval);
     }
 
+    @Override
     public void translate(double tx, double ty) {
         _transform.translate(tx, ty);
     }
 
+    @Override
     public Object getRenderingHint(Key key) {
         return null;
     }
 
+    @Override
     public void setRenderingHint(Key key, Object value) {
     }
 
+    @Override
     public void setFont(FSFont font) {
         _font = ((PdfBoxFSFont) font);
     }
@@ -382,6 +396,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         return result;
     }
 
+    @Override
     public void drawString(String s, float x, float y, JustificationInfo info) {
         PDFont firstFont = _font.getFontDescription().get(0).getFont();
 
@@ -418,6 +433,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public void drawStringFast(String s, float x, float y, JustificationInfo info, FontDescription desc, float fontSize) {
         if (s.length() == 0)
             return;
@@ -543,10 +559,12 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public PdfContentStreamAdapter getCurrentPage() {
         return _cp;
     }
 
+    @Override
     public PDPage getPage(){
         return _page;
     }
@@ -640,6 +658,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     /**
      * Converts a top down unit to a bottom up PDF unit for the specified page height.
      */
+    @Override
     public float normalizeY(float y, float pageHeight) {
         return pageHeight - y;
     }
@@ -714,6 +733,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public void setStroke(Stroke s) {
         _originalStroke = s;
         this._stroke = transformStroke(s);
@@ -751,6 +771,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public Stroke getStroke() {
         return _originalStroke;
     }
@@ -844,10 +865,12 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _cp.restoreGraphics();
     }
 
+    @Override
     public float getDotsPerPoint() {
         return _dotsPerPoint;
     }
 
+    @Override
     public void start(Document doc) {
         _bmManager = new PdfBoxBookmarkManager(doc, _writer, _sharedContext, _dotsPerPoint, this);
         _linkManager = new PdfBoxFastLinkManager(_sharedContext, _dotsPerPoint, _root, this);
@@ -858,6 +881,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public void finish(RenderingContext c, Box root) {
         if (_pdfUa != null) {
             _pdfUa.finishPdfUa();
@@ -897,6 +921,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      * @param name
      *            the name of the metadata element to add.
      */
+    @Override
     public void addMetadata(String name, String value) {
         if ((name != null) && (value != null)) {
             Metadata m = new Metadata(name, value);
@@ -914,6 +939,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      * @return the content value of the first found metadata element; otherwise
      *         null.
      */
+    @Override
     public String getMetadataByName(String name) {
         if (name != null) {
             for (Metadata m : _metadata) {
@@ -935,6 +961,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      * @return an ArrayList with matching content values; otherwise an empty
      *         list.
      */
+    @Override
     public List<String> getMetadataListByName(String name) {
         List<String> result = new ArrayList<>();
         if (name != null) {
@@ -985,39 +1012,48 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     /**
      * @return All metadata entries
      */
+    @Override
     public List<Metadata> getMetadata() {
         return _metadata;
     }
 
+    @Override
     public SharedContext getSharedContext() {
         return _sharedContext;
     }
 
+    @Override
     public void setSharedContext(SharedContext sharedContext) {
         _sharedContext = sharedContext;
         sharedContext.getCss().setSupportCMYKColors(true);
     }
 
+    @Override
     public void setRoot(Box root) {
         _root = root;
     }
 
+    @Override
     public int getStartPageNo() {
         return _startPageNo;
     }
 
+    @Override
     public void setStartPageNo(int startPageNo) {
         _startPageNo = startPageNo;
     }
 
+    @Override
     public void drawSelection(RenderingContext c, InlineText inlineText) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isSupportsSelection() {
         return false;
     }
 
+    @Override
     public boolean isSupportsCMYKColors() {
         return true;
     }
@@ -1110,6 +1146,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
+    @Override
     public List<PagePosition<Box>> findPagePositionsByID(CssContext c, Pattern pattern) {
         Map<String, Box> idMap = _sharedContext.getIdMap();
         if (idMap == null) {

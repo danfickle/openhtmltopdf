@@ -101,6 +101,7 @@ public class CollapsedBorderSide implements Comparable<CollapsedBorderSide> {
         }
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof CollapsedBorderSide)) return false;
@@ -113,6 +114,7 @@ public class CollapsedBorderSide implements Comparable<CollapsedBorderSide> {
         return true;
     }
 
+    @Override
     public int hashCode() {
         int result = _cell.hashCode();
         result = 31 * result + _side;
