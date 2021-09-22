@@ -19,18 +19,14 @@
  */
 package com.openhtmltopdf.resource;
 
-import org.xml.sax.InputSource;
-
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.swing.AWTFSImage;
 
-public class ImageResource extends AbstractResource {
+public class ImageResource {
     private final String _imageUri;
-    private FSImage _img;
+    private final FSImage _img;
 
-    //HACK: at least for now, till we know what we want to do here
     public ImageResource(final String uri, FSImage img) {
-        super((InputSource) null);
         _imageUri = uri;
         _img = img;
     }

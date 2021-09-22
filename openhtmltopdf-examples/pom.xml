@@ -81,22 +81,6 @@
     </dependency>
 
     <dependency>
-    <groupId>com.vladsch.flexmark</groupId>
-    <artifactId>flexmark</artifactId>
-    <version>0.19.6</version>
-    </dependency>
-    <dependency>
-    <groupId>com.vladsch.flexmark</groupId>
-    <artifactId>flexmark-ext-anchorlink</artifactId>
-    <version>0.19.6</version>
-    </dependency>
-    <dependency>
-    <groupId>com.vladsch.flexmark</groupId>
-    <artifactId>flexmark-ext-toc</artifactId>
-    <version>0.19.6</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.jfree</groupId>
       <artifactId>jfreechart</artifactId>
       <version>1.5.0</version>

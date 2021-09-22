@@ -48,7 +48,7 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 		final JFreeChart chart1 = ChartFactory.createPieChart(e.getAttribute("title"), dataset, false, false, true);
 		((PiePlot) chart1.getPlot()).setURLGenerator(new PieURLGenerator() {
 			@Override
-			public String generateURL(PieDataset dataset, Comparable key, int pieIndex) {
+			public String generateURL(PieDataset dataset, @SuppressWarnings("rawtypes") Comparable key, int pieIndex) {
 				return urls.get(key.toString());
 			}
 		});

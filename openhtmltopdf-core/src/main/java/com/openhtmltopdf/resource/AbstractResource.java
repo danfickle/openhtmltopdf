@@ -21,7 +21,11 @@ package com.openhtmltopdf.resource;
 
 import org.xml.sax.InputSource;
 
+import com.openhtmltopdf.util.OpenUtil;
+
 import java.io.BufferedInputStream;
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -30,38 +34,43 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author Patrick Wright
  */
-public abstract class AbstractResource implements Resource {
-	private enum StreamType { READER, STREAM, INPUT_SOURCE; }
-	private final StreamType streamType;
-	
-	private InputSource inputSource;
-	private InputStream inputStream;
-	private Reader inputReader;
-	
-    private long createTimeStamp;
+public abstract class AbstractResource implements Resource, Closeable {
+    private enum StreamType { READER, STREAM, INPUT_SOURCE; }
+    private final StreamType streamType;
+
+    private InputSource inputSource;
+    private final InputStream inputStream;
+    private Reader inputReader;
+
+    private final long createTimeStamp;
     private long elapsedLoadTime;
 
-    private AbstractResource(StreamType streamType) {
+    private AbstractResource(
+            StreamType streamType, InputSource source, Reader reader, InputStream stream) {
         this.createTimeStamp = System.currentTimeMillis();
         this.streamType = streamType;
+
+        this.inputSource = source;
+        this.inputReader = reader;
+        this.inputStream = stream;
     }
 
-    /**
-     * Creates a new instance of AbstractResource
-     */
     public AbstractResource(InputSource source) {
-        this(StreamType.INPUT_SOURCE);
-        this.inputSource = source;
+        this(StreamType.INPUT_SOURCE, source, null, null);
     }
-    
+
     public AbstractResource(Reader reader) {
-    	this(StreamType.READER);
-    	this.inputReader = reader;
+        this(StreamType.READER, null, reader, null);
     }
-    
+
     public AbstractResource(InputStream is) {
-    	this(StreamType.STREAM);
-    	this.inputStream = is;
+        this(StreamType.STREAM, null, null, is);
+    }
+
+    @Override
+    public void close() throws IOException {
+        OpenUtil.closeQuietly(inputReader);
+        OpenUtil.closeQuietly(inputStream);
     }
 
     public InputSource getResourceInputSource() {
@@ -73,18 +82,17 @@ public abstract class AbstractResource implements Resource {
     }
 
     public Reader getResourceReader() {
-    	if (streamType == StreamType.STREAM &&
-        	this.inputReader == null) {
+        if (streamType == StreamType.STREAM &&
+            this.inputReader == null) {
             this.inputReader = new InputStreamReader(this.inputStream, StandardCharsets.UTF_8);
         }
         return this.inputReader;
     }
-    
-    
+
     public InputStream getResourceInputStream() {
-    	return this.inputStream;
+        return this.inputStream;
     }
-    
+
     public long getResourceLoadTimeStamp() {
         return this.createTimeStamp;
     }
@@ -93,27 +101,7 @@ public abstract class AbstractResource implements Resource {
         return elapsedLoadTime;
     }
 
-    /*package*/
-    void setElapsedLoadTime(long elapsedLoadTime) {
+    public void setElapsedLoadTime(long elapsedLoadTime) {
         this.elapsedLoadTime = elapsedLoadTime;
     }
 }
-
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.4  2005/06/15 10:56:14  tobega
- * cleaned up a bit of URL mess, centralizing URI-resolution and loading to UserAgentCallback
- *
- * Revision 1.3  2005/06/01 21:36:40  tobega
- * Got image scaling working, and did some refactoring along the way
- *
- * Revision 1.2  2005/02/05 11:33:33  pdoubleya
- * Added load() to XMLResource, and accept overloaded input: InputSource, stream, URL.
- *
- * Revision 1.1  2005/02/03 20:39:35  pdoubleya
- * Added to CVS.
- *
- *
- */

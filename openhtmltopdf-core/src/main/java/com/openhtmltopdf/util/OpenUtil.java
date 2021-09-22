@@ -1,5 +1,10 @@
 package com.openhtmltopdf.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.util.Objects;
 
 public class OpenUtil {
@@ -76,6 +81,41 @@ public class OpenUtil {
             }
         }
         return 0;
+    }
+
+    public static void closeQuietly(Closeable resource) {
+        if (resource != null) {
+            try {
+                resource.close();
+            } catch (IOException e) {
+            }
+        }
+    }
+
+    public static byte[] readAll(InputStream is) throws IOException {
+        ByteArrayOutputStream result = new ByteArrayOutputStream(512);
+
+        byte[] buf = new byte[10240];
+        int i;
+
+        while ((i = is.read(buf)) != -1) {
+            result.write(buf, 0, i);
+        }
+
+        return result.toByteArray();
+    }
+
+    public static String readAll(Reader reader) throws IOException {
+        StringBuilder buffer = new StringBuilder(256);
+
+        char[] arr = new char[10240];
+        int numCharsRead;
+
+        while ((numCharsRead = reader.read(arr, 0, arr.length)) != -1) {
+            buffer.append(arr, 0, numCharsRead);
+        }
+
+        return buffer.toString();
     }
 
 }

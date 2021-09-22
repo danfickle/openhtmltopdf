@@ -48,6 +48,7 @@ import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.util.ImageUtil;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 
 /**
@@ -94,7 +95,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 			return null;
 		}
     }
-    
+
     public static class DefaultHttpStreamFactory implements FSStreamFactory {
         final static int CONNECTION_TIMEOUT = 10_000;
         final static int READ_TIMEOUT = 30_000;
@@ -120,7 +121,8 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
             this(CONNECTION_TIMEOUT, READ_TIMEOUT);
         }
 
-		@Override
+        @SuppressWarnings("resource")
+        @Override
 		public FSStream getUrl(String uri) {
 			InputStream is = null;
 			
@@ -138,6 +140,8 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 	        } catch (java.io.IOException e) {
 				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_IO_PROBLEM_FOR_URI, uri, e);
 	        }
+
+            // Ownership is transferred to DefaultHttpStream which implements Closeable.
 	        return new DefaultHttpStream(is);
 		}
     }
@@ -281,17 +285,11 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
 		return is == null ? null : new InputStreamReader(is, StandardCharsets.UTF_8);
     }
-    
+
     protected String readAll(Reader reader) throws IOException {
-    	char[] arr = new char[8 * 1024];
-    	StringBuilder buffer = new StringBuilder();
-    	int numCharsRead;
-    	while ((numCharsRead = reader.read(arr, 0, arr.length)) != -1) {
-    		buffer.append(arr, 0, numCharsRead);
-    	}
-    	return buffer.toString();
+        return OpenUtil.readAll(reader);
     }
-    
+
     /**
      * Retrieves the CSS located at the given URI.  It's assumed the URI does point to a CSS file--the URI will
      * be resolved, accessed (using the set FSStreamFactory or URL::openStream), opened, read and then passed into the CSS parser.
@@ -300,12 +298,14 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      * @param uri Location of the CSS source.
      * @return A CSSResource containing the CSS reader or null if not available.
      */
+    @SuppressWarnings("resource")
     @Override
     public CSSResource getCSSResource(String uri, ExternalResourceType type) {
         if (!checkAccessAllowed(uri, type, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI)) {
             return null;
         }
-    	String resolved = _resolver.resolveURI(this._baseUri, uri);
+
+        String resolved = _resolver.resolveURI(this._baseUri, uri);
         if (!checkAccessAllowed(resolved, type, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)) {
             return null;
         }
@@ -314,8 +314,9 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
     		XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "CSS resource", uri);
     		return null;
     	}
-    	
-		return new CSSResource(openReader(resolved));
+
+        // Ownership is transferred to CSSResource which implements Closeable.
+        return new CSSResource(openReader(resolved));
     }
 
     /**
@@ -328,58 +329,57 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
      */
     @Override
     public ImageResource getImageResource(String uri, ExternalResourceType type) {
+        // NOTE: This is the implementation for the Java2D output device, the 
+        // PDFBOX user-agent supplies its own.
+
         ImageResource ir;
 
         if (!checkAccessAllowed(uri, type, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI)) {
             return null;
         }
-		String resolved = _resolver.resolveURI(this._baseUri, uri);
+
+        String resolved = _resolver.resolveURI(this._baseUri, uri);
+
         if (!checkAccessAllowed(resolved, type, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)) {
             return null;
         }
 
-		if (resolved == null) {
-			XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
-			return null;
-		}
+        if (resolved == null) {
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
+            return null;
+        }
 
-		// First, we check the internal per run cache.
-		ir = _imageCache.get(resolved);
-		if (ir != null) {
-			return ir;
-		}
+        // First, we check the internal per run cache.
+        ir = _imageCache.get(resolved);
+        if (ir != null) {
+            return ir;
+        }
 
-		// Finally we fetch from the network or file, etc.
-		InputStream is = openStream(resolved);
+        // Finally we fetch from the network or file, etc.
+        try (InputStream is = openStream(resolved)) {
+            if (is != null) {
 
-		if (is != null) {
-				try {
-					BufferedImage img = ImageIO.read(is);
-					if (img == null) {
-						throw new IOException("ImageIO.read() returned null");
-					}
+                BufferedImage img = ImageIO.read(is);
 
-					AWTFSImage fsImage2 = (AWTFSImage) AWTFSImage.createImage(img);
+                if (img == null) {
+                    throw new IOException("ImageIO.read() returned null");
+                }
 
-					ir = new ImageResource(resolved, fsImage2);
-					_imageCache.put(resolved, ir);
+                AWTFSImage fsImage2 = (AWTFSImage) AWTFSImage.createImage(img);
 
-					return ir;
-				} catch (FileNotFoundException e) {
-					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND, resolved);
-				} catch (IOException e) {
-					XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uri, e);
-				} finally {
-					try {
-						is.close();
-					} catch (IOException e) {
-						// ignore
-					}
-				}
-			}
+                ir = new ImageResource(resolved, fsImage2);
+                _imageCache.put(resolved, ir);
 
-			return new ImageResource(resolved, null);
+                return ir;
+            }
+        } catch (FileNotFoundException e) {
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND, resolved);
+        } catch (IOException e) {
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uri, e);
+        }
 
+        // Failed.
+        return new ImageResource(resolved, null);
     }
 
     /**
@@ -428,34 +428,15 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 			XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "binary resource", uri);
     		return null;
     	}
-    	
-        InputStream is = openStream(resolved);
-        if (is == null) {
-        	return null;
-        }
-        
-        try {
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            byte[] buf = new byte[10240];
-            int i;
-            while ((i = is.read(buf)) != -1) {
-                result.write(buf, 0, i);
-            }
-            is.close();
-            is = null;
 
-            byte[] bytes2 = result.toByteArray();
-            return bytes2;
+        try (InputStream is = openStream(resolved)) {
+            if (is == null) {
+                return null;
+            }
+
+            return OpenUtil.readAll(is);
         } catch (IOException e) {
             return null;
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
         }
     }
 
@@ -624,132 +605,3 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 		return _resolver.resolveURI(baseUri, uri);
 	}
 }
-
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.40  2009/05/15 16:20:10  pdoubleya
- * ImageResource now tracks the URI for the image that was created and handles mutable images.
- *
- * Revision 1.39  2009/04/12 11:16:51  pdoubleya
- * Remove proposed patch for URLs that are incorrectly handled on Windows; need a more reliable solution.
- *
- * Revision 1.38  2008/04/30 23:14:18  peterbrant
- * Do a better job of cleaning up open file streams (patch by Christophe Marchand)
- *
- * Revision 1.37  2007/11/23 07:03:30  pdoubleya
- * Applied patch from N. Barozzi to allow either toolkit or buffered images to be used, see https://xhtmlrenderer.dev.java.net/servlets/ReadMsg?list=dev&msgNo=3847
- *
- * Revision 1.36  2007/10/31 23:14:43  peterbrant
- * Add rudimentary support for @font-face rules
- *
- * Revision 1.35  2007/06/20 12:24:31  pdoubleya
- * Fix bug in shrink cache, trying to modify iterator without using safe remove().
- *
- * Revision 1.34  2007/06/19 21:25:41  pdoubleya
- * Cleanup for caching in NUA, making it more suitable to use as a reusable UAC. NUA is also now a document listener and uses this to try and trim its cache down. PanelManager and iTextUA are now NUA subclasses.
- *
- * Revision 1.33  2007/05/20 23:25:33  peterbrant
- * Various code cleanups (e.g. remove unused imports)
- *
- * Patch from Sean Bright
- *
- * Revision 1.32  2007/05/09 21:52:06  pdoubleya
- * Fix for rendering problems introduced by removing GraphicsUtil class. Use Image instead of BufferedImage in most cases, convert to AWT image if necessary. Not complete, requires cleanup.
- *
- * Revision 1.31  2007/05/05 21:08:27  pdoubleya
- * Changed image-related interfaces (FSImage, ImageUtil, scaling) to all use BufferedImage, since there were no Image-specific APIs we depended on, and we have more control over what we do with BIs as compared to Is.
- *
- * Revision 1.30  2007/05/05 18:05:21  pdoubleya
- * Remove references to GraphicsUtil and the class itself, no longer needed
- *
- * Revision 1.29  2007/04/10 20:46:02  pdoubleya
- * Fix, was not closing XML source stream when done
- *
- * Revision 1.28  2007/02/07 16:33:31  peterbrant
- * Initial commit of rewritten table support and associated refactorings
- *
- * Revision 1.27  2006/06/28 13:46:59  peterbrant
- * ImageIO.read() can apparently return sometimes null instead of throwing an exception when processing an invalid image
- *
- * Revision 1.26  2006/04/27 13:28:48  tobega
- * Handle situations without base url and no file access gracefully
- *
- * Revision 1.25  2006/04/25 00:23:20  peterbrant
- * Fixes from Mike Curtis
- *
- * Revision 1.23  2006/04/08 08:21:24  tobega
- * relative urls and linked stylesheets
- *
- * Revision 1.22  2006/02/02 02:47:33  peterbrant
- * Support non-AWT images
- *
- * Revision 1.21  2005/10/25 19:40:38  tobega
- * Suggestion from user to use File.toURI.toURL instead of File.toURL because the latter is buggy
- *
- * Revision 1.20  2005/10/09 09:40:27  tobega
- * Use current directory as default base URL
- *
- * Revision 1.19  2005/08/11 01:35:37  joshy
- * removed debugging
- * updated stylesheet to use right aligns
- * Issue number:
- * Obtained from:
- * Submitted by:
- * Reviewed by:
- *
- * Revision 1.17  2005/06/25 19:27:47  tobega
- * UAC now supplies Resources
- *
- * Revision 1.16  2005/06/25 17:23:35  tobega
- * first refactoring of UAC: ImageResource
- *
- * Revision 1.15  2005/06/21 17:52:10  joshy
- * new hover code
- * removed some debug statements
- * Issue number:
- * Obtained from:
- * Submitted by:
- * Reviewed by:
- *
- * Revision 1.14  2005/06/20 23:45:56  joshy
- * hack to fix the mangled background images on osx
- * Issue number:
- * Obtained from:
- * Submitted by:
- * Reviewed by:
- *
- * Revision 1.13  2005/06/20 17:26:45  joshy
- * debugging for image issues
- * font scale stuff
- *
- * Issue number:
- * Obtained from:
- * Submitted by:
- * Reviewed by:
- *
- * Revision 1.12  2005/06/15 11:57:18  tobega
- * Making Browser a better model application with UserAgentCallback
- *
- * Revision 1.11  2005/06/15 11:53:47  tobega
- * Changed UserAgentCallback to getInputStream instead of getReader. Fixed up some consequences of previous change.
- *
- * Revision 1.10  2005/06/13 06:50:16  tobega
- * Fixed a bug in table content resolution.
- * Various "tweaks" in other stuff.
- *
- * Revision 1.9  2005/06/03 00:29:49  tobega
- * fixed potential bug
- *
- * Revision 1.8  2005/06/01 21:36:44  tobega
- * Got image scaling working, and did some refactoring along the way
- *
- * Revision 1.7  2005/03/28 14:24:22  pdoubleya
- * Remove stack trace on loading images.
- *
- * Revision 1.6  2005/02/02 12:14:01  pdoubleya
- * Clean, format, buffer reader.
- *
- *
- */
