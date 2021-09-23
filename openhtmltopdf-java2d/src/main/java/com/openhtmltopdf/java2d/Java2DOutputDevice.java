@@ -30,9 +30,10 @@ import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
+import com.openhtmltopdf.java2d.image.AWTFSImage;
+import com.openhtmltopdf.java2d.image.ImageReplacedElement;
 import com.openhtmltopdf.render.*;
-import com.openhtmltopdf.swing.AWTFSImage;
-import com.openhtmltopdf.swing.ImageReplacedElement;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;

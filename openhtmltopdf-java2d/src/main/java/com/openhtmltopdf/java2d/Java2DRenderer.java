@@ -91,7 +91,7 @@ public class Java2DRenderer implements Closeable {
         _objectDrawerFactory = state._objectDrawerFactory;
 		_outputDevice = new Java2DOutputDevice(state._layoutGraphics);
 		
-		NaiveUserAgent uac = new NaiveUserAgent();
+		NaiveUserAgent uac = new Java2DUserAgent();
 		
 		uac.setProtocolsStreamFactory(state._streamFactoryMap);
 		

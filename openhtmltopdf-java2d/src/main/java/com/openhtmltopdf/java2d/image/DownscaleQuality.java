@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  * }}}
  */
-package com.openhtmltopdf.util;
+package com.openhtmltopdf.java2d.image;
 
 import java.util.Map;
 import java.util.HashMap;

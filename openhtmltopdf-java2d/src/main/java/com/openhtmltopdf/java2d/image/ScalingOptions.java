@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  * }}}
  */
-package com.openhtmltopdf.util;
+package com.openhtmltopdf.java2d.image;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.Map;
 
 /**
  * POJO used when calling
- * {@link com.openhtmltopdf.util.ImageUtil#getScaledInstance(ScalingOptions,java.awt.image.BufferedImage)}.
+ * {@link com.openhtmltopdf.java2d.image.ImageUtil#getScaledInstance(ScalingOptions,java.awt.image.BufferedImage)}.
  * Encapsulates a set of parameters related to scaling quality and output. Values are final once constructed, except
  * for target width and height, which can be change and the options instance reused.
  * There is a default constructor for average quality and performance.
@@ -41,8 +41,8 @@ public class ScalingOptions {
 	 * Constructor with all options.
 	 *
 	 * @param downscalingHint   Directs downscaling quality. One of the enumerated types of
-	 *                          {@link com.openhtmltopdf.util.DownscaleQuality} such as
-	 *                          {@link com.openhtmltopdf.util.DownscaleQuality#FAST}.
+	 *                          {@link com.openhtmltopdf.java2d.image.DownscaleQuality} such as
+	 *                          {@link com.openhtmltopdf.java2d.image.DownscaleQuality#FAST}.
 	 * @param interpolationHint Hint for interpolation to AWT image renderer, one of the Object constants from
 	 *                          {@link java.awt.RenderingHints} using {@link java.awt.RenderingHints#KEY_INTERPOLATION}
 	 */
@@ -67,8 +67,8 @@ public class ScalingOptions {
 	 * @param type		 Type of {@link java.awt.image.BufferedImage} to create for output; see docs for
 	 *                     {@link java.awt.image.BufferedImage#BufferedImage(int,int,int)}
 	 * @param downscalingHint   Directs downscaling quality. One of the enumerated types of
-	 *                          {@link com.openhtmltopdf.util.DownscaleQuality} such as
-	 *                          {@link com.openhtmltopdf.util.DownscaleQuality#FAST}.
+	 *                          {@link com.openhtmltopdf.java2d.image.DownscaleQuality} such as
+	 *                          {@link com.openhtmltopdf.java2d.image.DownscaleQuality#FAST}.
 	 * @param hint		 Hint for interpolation to AWT image renderer, one of the Object constants from
 	 *                     {@link java.awt.RenderingHints} using {@link java.awt.RenderingHints#KEY_INTERPOLATION}
 	 */

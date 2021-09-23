@@ -17,14 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  * }}}
  */
-package com.openhtmltopdf.swing;
+package com.openhtmltopdf.java2d.image;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.layout.LayoutContext;
-import com.openhtmltopdf.util.ImageUtil;
 
 /**
  * An ImageReplacedElement is a {@link ReplacedElement} that contains a {@link java.awt.Image}. It's used as a
@@ -76,31 +75,37 @@ public class ImageReplacedElement implements ReplacedElement {
     }
 
     /** {@inheritDoc} */
+    @Override
     public void detach(LayoutContext c) {
         // nothing to do in this case
     }
 
     /** {@inheritDoc} */
+    @Override
     public int getIntrinsicHeight() {
         return _image.getHeight(null);
     }
 
     /** {@inheritDoc} */
+    @Override
     public int getIntrinsicWidth() {
         return _image.getWidth(null);
     }
 
     /** {@inheritDoc} */
+    @Override
     public Point getLocation() {
         return _location;
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean isRequiresInteractivePaint() {
         return true;
     }
 
     /** {@inheritDoc} */
+    @Override
     public void setLocation(int x, int y) {
         _location = new Point(x, y);
     }
@@ -113,11 +118,13 @@ public class ImageReplacedElement implements ReplacedElement {
         return _image;
     }
 
-	public int getBaseline() {
+	@Override
+    public int getBaseline() {
 		return 0;
 	}
 
-	public boolean hasBaseline() {
+	@Override
+    public boolean hasBaseline() {
 		return false;
 	}
 }

@@ -19,7 +19,6 @@
  */
 package com.openhtmltopdf.swing;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -27,14 +26,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.logging.Level;
-
-import javax.imageio.ImageIO;
+import java.util.regex.Pattern;
 
 import com.openhtmltopdf.event.DocumentListener;
 import com.openhtmltopdf.extend.FSUriResolver;
@@ -46,7 +45,6 @@ import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.resource.CSSResource;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.resource.XMLResource;
-import com.openhtmltopdf.util.ImageUtil;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
@@ -60,7 +58,7 @@ import com.openhtmltopdf.util.XRLog;
  *
  * @author Torbjoern Gannholm
  */
-public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
+public abstract class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 
     /**
      * a (simple) cache
@@ -174,7 +172,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 				String data = url.substring(idxSeparator+1);
 				byte[] res;
 				if (url.indexOf("base64,") == idxSeparator - 6 /* 6 = "base64,".length */) {
-					res = ImageUtil.fromBase64Encoded(data);
+					res = fromBase64Encoded(data);
 				} else {
 					res = data.getBytes(StandardCharsets.UTF_8);
 				}
@@ -182,8 +180,31 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
 			}
 			return null;
 		}
+		
+        static final Pattern WHITE_SPACE = Pattern.compile("\\s+");
+
+        static byte[] fromBase64Encoded(String b64encoded) {
+            return Base64.getMimeDecoder().decode(WHITE_SPACE.matcher(b64encoded).replaceAll(""));
+        }
 	}
-    
+
+    /**
+     * Get the binary content of an embedded base 64 image.
+     *
+     * @param imageDataUri URI of the embedded image
+     * @return The binary content
+     */
+    public static byte[] getEmbeddedBase64Image(String imageDataUri) {
+        int b64Index = imageDataUri.indexOf("base64,");
+        if (b64Index != -1) {
+            String b64encoded = imageDataUri.substring(b64Index + "base64,".length());
+            return DataUriFactory.fromBase64Encoded(b64encoded);
+        } else {
+            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_EMBEDDED_DATA_URI_MUST_BE_ENCODED_IN_BASE64);
+        }
+        return null;
+    }
+
     public NaiveUserAgent() {
     	FSStreamFactory factory = new DefaultHttpStreamFactory();
     	this._protocolsStreamFactory.put("http", factory);
@@ -319,68 +340,7 @@ public class NaiveUserAgent implements UserAgentCallback, DocumentListener {
         return new CSSResource(openReader(resolved));
     }
 
-    /**
-     * Retrieves the image located at the given URI. It's assumed the URI does point to an image--the URI will
-     * be accessed (using the set HttpStreamFactory or URL::openStream), opened, read and then passed into the JDK image-parsing routines.
-     * The result is packed up into an ImageResource for later consumption.
-     *
-     * @param uri Location of the image source.
-     * @return An ImageResource containing the image.
-     */
-    @Override
-    public ImageResource getImageResource(String uri, ExternalResourceType type) {
-        // NOTE: This is the implementation for the Java2D output device, the 
-        // PDFBOX user-agent supplies its own.
-
-        ImageResource ir;
-
-        if (!checkAccessAllowed(uri, type, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI)) {
-            return null;
-        }
-
-        String resolved = _resolver.resolveURI(this._baseUri, uri);
-
-        if (!checkAccessAllowed(resolved, type, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)) {
-            return null;
-        }
-
-        if (resolved == null) {
-            XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image resource", uri);
-            return null;
-        }
-
-        // First, we check the internal per run cache.
-        ir = _imageCache.get(resolved);
-        if (ir != null) {
-            return ir;
-        }
-
-        // Finally we fetch from the network or file, etc.
-        try (InputStream is = openStream(resolved)) {
-            if (is != null) {
-
-                BufferedImage img = ImageIO.read(is);
-
-                if (img == null) {
-                    throw new IOException("ImageIO.read() returned null");
-                }
-
-                AWTFSImage fsImage2 = (AWTFSImage) AWTFSImage.createImage(img);
-
-                ir = new ImageResource(resolved, fsImage2);
-                _imageCache.put(resolved, ir);
-
-                return ir;
-            }
-        } catch (FileNotFoundException e) {
-            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND, resolved);
-        } catch (IOException e) {
-            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI, uri, e);
-        }
-
-        // Failed.
-        return new ImageResource(resolved, null);
-    }
+    public abstract ImageResource getImageResource(String uri, ExternalResourceType type);
 
     /**
      * Retrieves the XML located at the given URI. It's assumed the URI does point to a XML--the URI will

@@ -33,11 +33,11 @@ import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.extend.FontContext;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.TextRenderer;
+import com.openhtmltopdf.java2d.font.AWTFSFont;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.render.LineMetricsAdapter;
-import com.openhtmltopdf.swing.AWTFSFont;
 
 
 /**

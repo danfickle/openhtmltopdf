@@ -20,7 +20,6 @@
 package com.openhtmltopdf.resource;
 
 import com.openhtmltopdf.extend.FSImage;
-import com.openhtmltopdf.swing.AWTFSImage;
 
 public class ImageResource {
     private final String _imageUri;
@@ -41,18 +40,5 @@ public class ImageResource {
 
     public String getImageUri() {
         return _imageUri;
-    }
-
-    public boolean hasDimensions(final int width, final int height) {
-        if (isLoaded()) {
-            if (_img instanceof AWTFSImage) {
-                AWTFSImage awtfi = (AWTFSImage) _img;
-                return awtfi.getWidth() == width && awtfi.getHeight() == height;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
     }
 }

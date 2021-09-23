@@ -2,6 +2,7 @@ package eeze;
 
 import junit.framework.TestCase;
 
+import com.openhtmltopdf.extend.FSUriResolver;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 
 public class TestNaiveUserAgentUrlResolver extends TestCase
@@ -10,13 +11,13 @@ public class TestNaiveUserAgentUrlResolver extends TestCase
     {
         return resolve(null,uri);
     }
+
     protected String resolve(String baseUri, String uri)
     {
-        NaiveUserAgent userAgent=new NaiveUserAgent();
-        userAgent.setBaseURL(baseUri);
-        return userAgent.resolveURI(uri);
+        FSUriResolver resolver = new NaiveUserAgent.DefaultUriResolver();
+        return resolver.resolveURI(baseUri, uri);
     }
-    
+
     public void testBasicResolve()
     {
         // absolut uris shold be unchanged
