@@ -140,9 +140,6 @@ public class AWTFontResolver implements FontResolver {
             fontConst = fontConst | Font.ITALIC;
         }
 
-        // scale vs font scale value too
-        size *= ctx.getTextRenderer().getFontScale();
-
         Font fnt = rootFont.deriveFont(fontConst, size);
         if (variant != null) {
             if (variant == IdentValue.SMALL_CAPS) {
@@ -225,7 +222,7 @@ public class AWTFontResolver implements FontResolver {
      * This incorporates size, weight, etc.
      */
     protected static String getFontInstanceHashName(SharedContext ctx, String name, float size, IdentValue weight, IdentValue style, IdentValue variant) {
-        return name + "-" + (size * ctx.getTextRenderer().getFontScale()) + "-" + weight + "-" + style + "-" + variant;
+        return name + "-" + size + "-" + weight + "-" + style + "-" + variant;
     }
 
     public FSFont resolveFont(SharedContext renderingContext, FontSpecification spec) {

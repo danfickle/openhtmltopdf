@@ -18,9 +18,9 @@
  */
 package com.openhtmltopdf.simple.extend;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
+
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -39,7 +41,6 @@ import com.openhtmltopdf.css.extend.StylesheetFactory;
 import com.openhtmltopdf.css.sheet.Stylesheet;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 import com.openhtmltopdf.simple.NoNamespaceHandler;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
 
 /**
@@ -385,22 +386,16 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
                     return null;
                 }
 
-                Stylesheet sheet = factory.parse(new InputStreamReader(is), info);
-                info.setStylesheet(sheet);
-
-                is.close();
-                is = null;
+                try (Reader reader = new InputStreamReader(is)) {
+                    Stylesheet sheet = factory.parse(reader, info);
+                    info.setStylesheet(sheet);
+                }
             } catch (Exception e) {
                 _defaultStylesheetError = true;
                 XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_COULD_NOT_PARSE_DEFAULT_STYLESHEET, e);
             } finally {
-                if (is != null) {
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        //  ignore
-                    }
-                }
+                OpenUtil.closeQuietly(is);
+                is = null;
             }
 
             _defaultStylesheet = info;
@@ -411,7 +406,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
 
     private InputStream getDefaultStylesheetStream() {
         InputStream stream = null;
-        String defaultStyleSheet = Configuration.valueFor("xr.css.user-agent-default-css") + "XhtmlNamespaceHandler.css";
+        String defaultStyleSheet = "/resources/css/XhtmlNamespaceHandler.css";
         stream = this.getClass().getResourceAsStream(defaultStyleSheet);
         if (stream == null) {
             XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_DEFAULT_CSS, defaultStyleSheet);

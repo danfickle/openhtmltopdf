@@ -339,8 +339,6 @@ public class Java2DFontResolver implements FontResolver {
                 Font baseFont = resolveFontFaceBaseFont(normal, size, weight, style);
 
                 if (baseFont != null) {
-                    // scale vs font scale value too
-                    size *= ctx.getTextRenderer().getFontScale();
 
                     // We always use Font.PLAIN here as the provided font is already in the specifed
                     // weight and style.
@@ -418,13 +416,10 @@ public class Java2DFontResolver implements FontResolver {
             fontConst = fontConst | Font.ITALIC;
         }
 
-        // scale vs font scale value too
-        size *= ctx.getTextRenderer().getFontScale();
-
         Font fnt = rootFont.deriveFont(fontConst, size);
         if (variant != null) {
             if (variant == IdentValue.SMALL_CAPS) {
-                fnt = fnt.deriveFont((float) (((float) fnt.getSize()) * 0.6));
+                fnt = fnt.deriveFont((float) (fnt.getSize() * 0.6));
             }
         }
 
@@ -436,7 +431,7 @@ public class Java2DFontResolver implements FontResolver {
      * This incorporates size, weight, etc.
      */
     protected static String getFontInstanceHashName(SharedContext ctx, String name, float size, IdentValue weight, IdentValue style, IdentValue variant) {
-        return name + "-" + (size * ctx.getTextRenderer().getFontScale()) + "-" + weight + "-" + style + "-" + variant;
+        return name + "-" + (size) + "-" + weight + "-" + style + "-" + variant;
     }
 
     @Override

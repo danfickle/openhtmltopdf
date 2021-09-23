@@ -62,28 +62,5 @@ public interface TextRenderer {
      * Instead favor {@link Breaker} static method instead.
      */
     int getWidth(FontContext context, FSFont font, String string);
-
-    void setFontScale(float scale);
-
-    float getFontScale();
-
-    /**
-     * Set the smoothing threashold. This is a font size above which
-     * all text will be anti-aliased. Text below this size will not be antialiased. 
-     * Set to -1 for no antialiasing. 
-     * Set to 0 for all antialising.
-     * Else, set to the threshold font size. does not take font scaling
-     * into account.
-     */
-    void setSmoothingThreshold(float fontsize);
-
-    int getSmoothingLevel();
-
-    /**
-     * @deprecated no-op, will be removed in a future release. Anti-aliasing is now controlled via the smoothing
-     * threshhold.
-     * @param level no-op
-     */
-    void setSmoothingLevel(int level);
 }
 

@@ -337,7 +337,7 @@ public class PdfBoxForm {
         
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
@@ -388,7 +388,7 @@ public class PdfBoxForm {
         
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
@@ -461,7 +461,7 @@ public class PdfBoxForm {
         
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
@@ -598,7 +598,7 @@ public class PdfBoxForm {
            field.getCOSObject().setItem(COSName.DV, COSName.Off);
         }
         
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         PDAnnotationWidget widget = field.getWidgets().get(0);
@@ -647,7 +647,7 @@ public class PdfBoxForm {
         int radioCnt = 0;
         
         for (Control ctrl : group) {
-            Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+            Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
             PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
             
             PDAnnotationWidget widget = new PDAnnotationWidget();
@@ -718,7 +718,7 @@ public class PdfBoxForm {
         
         PDAnnotationWidget widget = btn.getWidgets().get(0);
         
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);

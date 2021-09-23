@@ -57,7 +57,7 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 				new OutputDeviceGraphicsDrawer() {
 					@Override
 					public void render(Graphics2D graphics2D) {
-						chart1.draw(graphics2D, new Rectangle2D.Float((float) 0, (float) 0,
+						chart1.draw(graphics2D, new Rectangle2D.Float(0f, 0f,
 								(float) (width / dotsPerPixel), (float) (height / dotsPerPixel)), renderingInfo);
 					}
 				});

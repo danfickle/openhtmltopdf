@@ -158,11 +158,10 @@ public class ImageUtil {
      * @return The scaled image instance.
      */
     public static BufferedImage getScaledInstance(BufferedImage orgImage, int targetWidth, int targetHeight) {
-        String downscaleQuality = Configuration.valueFor("xr.image.scale", DownscaleQuality.HIGH_QUALITY.asString());
+        String downscaleQuality = DownscaleQuality.HIGH_QUALITY.asString();
         DownscaleQuality quality = DownscaleQuality.forString(downscaleQuality, DownscaleQuality.HIGH_QUALITY);
 
-        Object hint = Configuration.valueFromClassConstant("xr.image.render-quality",
-                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        Object hint = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
         ScalingOptions opt = new ScalingOptions(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB, quality, hint);
 

@@ -22,14 +22,12 @@ package com.openhtmltopdf.java2d;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.Toolkit;
 import java.awt.font.GlyphVector;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Point2D;
 import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.extend.FontContext;
@@ -39,7 +37,6 @@ import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.render.LineMetricsAdapter;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.swing.AWTFSFont;
 
 
@@ -50,39 +47,18 @@ import com.openhtmltopdf.swing.AWTFSFont;
  * @author   Torbjoern Gannholm
  */
 public class Java2DTextRenderer implements TextRenderer {
-    protected float scale;
-    protected float threshold;
-    protected Object antiAliasRenderingHint;
-    protected Object fractionalFontMetricsHint;
+    protected static final int ANTI_ALIAS_FONT_SIZE_MIN = 7;
+
+    protected final Object antiAliasRenderingHint;
+    protected final Object fractionalFontMetricsHint;
 
     public Java2DTextRenderer() {
-        scale = Configuration.valueAsFloat("xr.text.scale", 1.0f);
-        threshold = Configuration.valueAsFloat("xr.text.aa-fontsize-threshhold", 7);
+        antiAliasRenderingHint = RenderingHints.VALUE_TEXT_ANTIALIAS_ON;
+        fractionalFontMetricsHint = RenderingHints.VALUE_FRACTIONALMETRICS_OFF;
+    }
 
-        Object dummy = new Object();
-
-        Object aaHint = Configuration.valueFromClassConstant("xr.text.aa-rendering-hint", dummy);        
-        if (aaHint == dummy) {
-            try {
-                Map<RenderingHints.Key, ?> map;
-                // we should be able to look up the "recommended" AA settings (that correspond to the user's
-                // desktop preferences and machine capabilities
-                // see: http://java.sun.com/javase/6/docs/api/java/awt/doc-files/DesktopProperties.html
-                Toolkit tk = Toolkit.getDefaultToolkit();
-                map = (Map<RenderingHints.Key, ?>) (tk.getDesktopProperty("awt.font.desktophints"));
-                antiAliasRenderingHint = map.get(RenderingHints.KEY_TEXT_ANTIALIASING);
-            } catch (Exception e) {
-                // conceivably could get an exception in a webstart environment? not sure
-                antiAliasRenderingHint = RenderingHints.VALUE_TEXT_ANTIALIAS_ON;
-            }
-        } else {
-            antiAliasRenderingHint = aaHint;
-        }
-        if("true".equals(Configuration.valueFor("xr.text.fractional-font-metrics", "false"))) {
-            fractionalFontMetricsHint = RenderingHints.VALUE_FRACTIONALMETRICS_ON;
-        } else {
-            fractionalFontMetricsHint = RenderingHints.VALUE_FRACTIONALMETRICS_OFF;
-        }
+    protected int getAntiAliasMinFontSize() {
+        return ANTI_ALIAS_FONT_SIZE_MIN;
     }
 
     /** {@inheritDoc} */
@@ -95,7 +71,7 @@ public class Java2DTextRenderer implements TextRenderer {
         Object aaHint = null;
         Object fracHint = null;
         Graphics2D graphics = ((Java2DOutputDevice)outputDevice).getGraphics();
-        if ( graphics.getFont().getSize() > threshold ) {
+        if ( graphics.getFont().getSize() > getAntiAliasMinFontSize() ) {
             aaHint = graphics.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
             graphics.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, antiAliasRenderingHint );
         }
@@ -115,14 +91,14 @@ public class Java2DTextRenderer implements TextRenderer {
 
         graphics.drawString(attString.getIterator(), (int) x, (int) y);
         
-        if ( graphics.getFont().getSize() > threshold ) {
+        if ( graphics.getFont().getSize() > getAntiAliasMinFontSize() ) {
             graphics.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, aaHint );
         }
         graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, fracHint);
     }
     
     /**
-     * Draws a justified string. TODO: Font fallback.
+     * Draws a justified string.
      */
     @Override
     public void drawString(
@@ -130,7 +106,7 @@ public class Java2DTextRenderer implements TextRenderer {
         Object aaHint = null;
         Object fracHint = null;
         Graphics2D graphics = ((Java2DOutputDevice)outputDevice).getGraphics();
-        if ( graphics.getFont().getSize() > threshold ) {
+        if ( graphics.getFont().getSize() > getAntiAliasMinFontSize() ) {
             aaHint = graphics.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
             graphics.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, antiAliasRenderingHint );
         }
@@ -144,7 +120,7 @@ public class Java2DTextRenderer implements TextRenderer {
         
         graphics.drawGlyphVector(vector, x, y);
         
-        if ( graphics.getFont().getSize() > threshold ) {
+        if ( graphics.getFont().getSize() > getAntiAliasMinFontSize() ) {
             graphics.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, aaHint );
         }
         graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, fracHint);
@@ -173,19 +149,6 @@ public class Java2DTextRenderer implements TextRenderer {
 //        ((Java2DFontContext)fontContext).getGraphics().setRenderingHint( 
 //                RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF );
     }
-
-    @Override
-    public void setFontScale( float scale ) {
-        this.scale = scale;
-    }
-
-    @Override
-    public void setSmoothingThreshold( float fontsize ) {
-        threshold = fontsize;
-    }
-
-    @Override
-    public void setSmoothingLevel( int level ) { /* no-op */ }
 
     @Override
     public FSFontMetrics getFSFontMetrics(FontContext fc, FSFont font, String string ) {
@@ -295,17 +258,6 @@ public class Java2DTextRenderer implements TextRenderer {
     	
     	return getWidthSlow(fc, fonts, string);
     }
-    
-
-    @Override
-    public float getFontScale() {
-        return this.scale;
-    }
-
-    @Override
-    public int getSmoothingLevel() {
-        return 0;
-    }
 
     /**
      * If anti-alias text is enabled, the value from RenderingHints to use for AA smoothing in Java2D. Defaults to
@@ -318,16 +270,6 @@ public class Java2DTextRenderer implements TextRenderer {
     }
 
     /**
-     * If anti-alias text is enabled, the value from RenderingHints to use for AA smoothing in Java2D. Defaults to
-     * {@link java.awt.RenderingHints#VALUE_TEXT_ANTIALIAS_ON}.
-     *
-     * @param renderingHints  rendering hint for AA smoothing in Java2D
-     */
-    public void setRenderingHints(Object renderingHints) {
-        this.antiAliasRenderingHint = renderingHints;
-    }
-
-    /**
      * This method gets glyph positions for purposes of selecting text. WE are not too worried about selecting text
      * at this point so we just use the first font available.
      */
@@ -337,7 +279,7 @@ public class Java2DTextRenderer implements TextRenderer {
         Graphics2D graphics = ((Java2DOutputDevice)outputDevice).getGraphics();
         Font awtFont = ((AWTFSFont)font).getAWTFonts().get(0);
         
-        if (awtFont.getSize() > threshold ) {
+        if (awtFont.getSize() > getAntiAliasMinFontSize() ) {
             aaHint = graphics.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
             graphics.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, antiAliasRenderingHint );
         }
@@ -350,18 +292,16 @@ public class Java2DTextRenderer implements TextRenderer {
                 text);
         float[] result = vector.getGlyphPositions(0, text.length() + 1, null);
         
-        if (awtFont.getSize() > threshold ) {
+        if (awtFont.getSize() > getAntiAliasMinFontSize() ) {
             graphics.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, aaHint );
         }
         graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, fracHint);
         
         return result;
     }
-    
+
 	@Override
 	public void setup(FontContext context) {
-		// TODO Auto-generated method stub
-		
 	}
 }
 
