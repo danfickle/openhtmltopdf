@@ -37,13 +37,10 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	/**
 	 * Run the XHTML/XML to PDF conversion and output to an output stream set by
 	 * toStream.
-	 *
-	 * @throws IOException
 	 */
     public void run() throws IOException {
         try (Closeable d = applyDiagnosticConsumer();
-             PdfBoxRenderer renderer = this.buildPdfRenderer(d)){
-            renderer.layout();
+             PdfBoxRenderer renderer = this.buildPdfRenderer(d)) {
             renderer.createPDF();
         }
     }

@@ -445,36 +445,35 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
     /**
      * @deprecated
-     * @throws IOException
      */
     @Deprecated 
     public void finishPDF() throws IOException {
         if (_pdfDoc != null) {
             fireOnClose();
-            _pdfDoc.close();
+            OpenUtil.closeQuietly(_pdfDoc);
         }
     }
-    
+
     /**
      * Go fast!
      */
     private void createPdfFast(boolean finish, int initialPageNo) throws IOException {
         boolean success = false;
 
-        XRLog.log(Level.INFO, LogMessageId.LogMessageId0Param.GENERAL_PDF_USING_FAST_MODE);
-
         try {
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId0Param.GENERAL_PDF_USING_FAST_MODE);
+
             // renders the layout if it wasn't created
             if (_root == null) {
                 this.layout();
             }
-            
+
             List<PageBox> pages = _root.getLayer().getPages();
 
             RenderingContext c = newRenderingContext();
             c.setInitialPageNo(initialPageNo != 0 ? initialPageNo : _initialPageNumber);
             c.setFastRenderer(true);
-        
+
             PageBox firstPage = pages.get(0);
             Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
                     firstPage.getWidth(c) / _dotsPerPoint,
