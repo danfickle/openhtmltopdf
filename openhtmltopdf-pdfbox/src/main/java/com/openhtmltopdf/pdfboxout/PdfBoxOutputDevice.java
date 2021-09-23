@@ -6,6 +6,7 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
+import java.io.Closeable;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -31,7 +32,7 @@ import com.openhtmltopdf.render.InlineText;
 import com.openhtmltopdf.render.JustificationInfo;
 import com.openhtmltopdf.render.RenderingContext;
 
-public interface PdfBoxOutputDevice extends OutputDevice {
+public interface PdfBoxOutputDevice extends OutputDevice, Closeable {
 
     void setWriter(PDDocument writer);
 
@@ -204,6 +205,7 @@ public interface PdfBoxOutputDevice extends OutputDevice {
     /**
      * Perform any internal cleanup needed
      */
+    @Override
     void close();
 
     @Override

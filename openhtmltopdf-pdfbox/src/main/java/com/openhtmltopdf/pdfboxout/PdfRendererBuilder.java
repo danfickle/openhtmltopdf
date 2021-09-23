@@ -10,6 +10,7 @@ import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontGroup;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -39,20 +40,27 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 *
 	 * @throws IOException
 	 */
-	public void run() throws IOException {
-		try (Closeable d = applyDiagnosticConsumer(); PdfBoxRenderer renderer = this.buildPdfRenderer(d)){
-			renderer.layout();
-			renderer.createPDF();
-		}
-	}
+    public void run() throws IOException {
+        try (Closeable d = applyDiagnosticConsumer();
+             PdfBoxRenderer renderer = this.buildPdfRenderer(d)){
+            renderer.layout();
+            renderer.createPDF();
+        }
+    }
 
 	/**
 	 * Build a PdfBoxRenderer for further customization. Remember to call
-	 * {@link PdfBoxRenderer#cleanup()} after use.
+	 * {@link PdfBoxRenderer#close()} after use.
 	 */
-	public PdfBoxRenderer buildPdfRenderer() {
-		return buildPdfRenderer(applyDiagnosticConsumer());
-	}
+    public PdfBoxRenderer buildPdfRenderer() {
+        Closeable d = applyDiagnosticConsumer();
+        try {
+            return buildPdfRenderer(d);
+        } catch (Throwable e) {
+            OpenUtil.closeQuietly(d);
+            throw e;
+        }
+    }
 
 	public PdfBoxRenderer buildPdfRenderer(Closeable diagnosticConsumer) {
 		UnicodeImplementation unicode = new UnicodeImplementation(state._reorderer, state._splitter, state._lineBreaker,
@@ -63,84 +71,86 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 
 		BaseDocument doc = new BaseDocument(state._baseUri, state._html, state._document, state._file, state._uri);
 
-		PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, pageSize, state, diagnosticConsumer);
+        PdfBoxRenderer renderer = new PdfBoxRenderer(doc, unicode, pageSize, state, diagnosticConsumer);
 
-		/*
-		 * Register all Fonts
-		 */
-		PdfBoxFontResolver resolver = renderer.getFontResolver();
+        try {
+            PdfBoxFontResolver resolver = renderer.getFontResolver();
 
-        for (AddedFont font : state._fonts) {
+            for (AddedFont font : state._fonts) {
 
-            if (state._svgImpl != null &&
-                font.fontFile != null &&
-                font.usedFor.contains(FSFontUseCase.SVG)) {
-                try {
-                    state._svgImpl.addFontFile(font.fontFile, font.family, font.weight, font.style);
-                } catch (IOException | FontFormatException e) {
-                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
-                }
-            }
-
-            if (state._mathmlImpl != null &&
-                font.fontFile != null &&
-                font.usedFor.contains(FSFontUseCase.MATHML)) {
-                try {
-                    state._mathmlImpl.addFontFile(font.fontFile, font.family, font.weight, font.style);
-                } catch (IOException | FontFormatException e) {
-                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
-                }
-            }
-
-            if (font.usedFor.contains(FSFontUseCase.DOCUMENT) ||
-                font.usedFor.contains(FSFontUseCase.FALLBACK_PRE) ||
-                font.usedFor.contains(FSFontUseCase.FALLBACK_FINAL)) {
-                IdentValue fontStyle = null;
-
-				if (font.style != null) {
-					switch (font.style)
-					{
-					case NORMAL:
-						fontStyle = IdentValue.NORMAL;
-						break;
-					case ITALIC:
-						fontStyle = IdentValue.ITALIC;
-						break;
-					case OBLIQUE:
-						fontStyle = IdentValue.OBLIQUE;
-						break;
-					default:
-						fontStyle = null;
-						break;
-					}
-				}
-
-                FontGroup group;
-                if (font.usedFor.contains(FSFontUseCase.FALLBACK_PRE)) {
-                    group = FontGroup.PRE_BUILT_IN_FALLBACK;
-                } else if (font.usedFor.contains(FSFontUseCase.FALLBACK_FINAL)) {
-                    group = FontGroup.FINAL_FALLBACK;
-                } else {
-                    group = FontGroup.MAIN;
-                }
-
-                // use InputStream supplier
-                if (font.supplier != null) {
-                    resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset, group);
-                }
-                // use PDFont supplier
-                else if (font.pdfontSupplier != null) {
-                    resolver.addFont((PDFontSupplier) font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset, group);
-                }
-                // load via font File
-                else {
+                if (state._svgImpl != null &&
+                    font.fontFile != null &&
+                    font.usedFor.contains(FSFontUseCase.SVG)) {
                     try {
-                        resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset, group);
-                    } catch (Exception e) {
+                        state._svgImpl.addFontFile(font.fontFile, font.family, font.weight, font.style);
+                    } catch (IOException | FontFormatException e) {
                         XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
                     }
                 }
+
+                if (state._mathmlImpl != null &&
+                    font.fontFile != null &&
+                    font.usedFor.contains(FSFontUseCase.MATHML)) {
+                    try {
+                        state._mathmlImpl.addFontFile(font.fontFile, font.family, font.weight, font.style);
+                    } catch (IOException | FontFormatException e) {
+                        XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
+                    }
+                }
+
+                if (font.usedFor.contains(FSFontUseCase.DOCUMENT) ||
+                    font.usedFor.contains(FSFontUseCase.FALLBACK_PRE) ||
+                    font.usedFor.contains(FSFontUseCase.FALLBACK_FINAL)) {
+                    IdentValue fontStyle = null;
+
+                    if (font.style != null) {
+                        switch (font.style)
+                        {
+                        case NORMAL:
+                            fontStyle = IdentValue.NORMAL;
+                            break;
+                        case ITALIC:
+                            fontStyle = IdentValue.ITALIC;
+                            break;
+                        case OBLIQUE:
+                            fontStyle = IdentValue.OBLIQUE;
+                            break;
+                        default:
+                            fontStyle = null;
+                            break;
+                        }
+                    }
+
+                    FontGroup group;
+                    if (font.usedFor.contains(FSFontUseCase.FALLBACK_PRE)) {
+                        group = FontGroup.PRE_BUILT_IN_FALLBACK;
+                    } else if (font.usedFor.contains(FSFontUseCase.FALLBACK_FINAL)) {
+                        group = FontGroup.FINAL_FALLBACK;
+                    } else {
+                        group = FontGroup.MAIN;
+                    }
+
+                    // use InputStream supplier
+                    if (font.supplier != null) {
+                        resolver.addFont(font.supplier, font.family, font.weight, fontStyle, font.subset, group);
+                    }
+                    // use PDFont supplier
+                    else if (font.pdfontSupplier != null) {
+                        resolver.addFont((PDFontSupplier) font.pdfontSupplier, font.family, font.weight, fontStyle, font.subset, group);
+                    }
+                    // load via font File
+                    else {
+                        try {
+                            resolver.addFont(font.fontFile, font.family, font.weight, fontStyle, font.subset, group);
+                        } catch (Exception e) {
+                            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.INIT_FONT_COULD_NOT_BE_LOADED, font.fontFile.getPath(), e);
+                        }
+                    }
+                }
             }
+        } catch (Throwable e) {
+            OpenUtil.closeQuietly(renderer);
+            throw e;
         }
 
         return renderer;

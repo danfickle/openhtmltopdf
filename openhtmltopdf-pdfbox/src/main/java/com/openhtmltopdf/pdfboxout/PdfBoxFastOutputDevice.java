@@ -43,6 +43,7 @@ import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.util.XRLog;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2D;
 import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
@@ -1208,11 +1209,9 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      */
     @Override
     public void close() {
-        if (_fontTextDrawer != null) {
-            _fontTextDrawer.close();
-        }
+        OpenUtil.closeQuietly(_fontTextDrawer);
     }
-    
+
     private AffineTransform normalizeTransform(AffineTransform transform) {
         double[] mx = new double[6];
         transform.getMatrix(mx);

@@ -61,6 +61,7 @@ import com.openhtmltopdf.testcases.TestcaseRunner;
 import com.openhtmltopdf.testlistener.PrintingRunner;
 import com.openhtmltopdf.util.Diagnostic;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.visualregressiontests.VisualRegressionTest;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
@@ -117,23 +118,17 @@ public class NonVisualRegressionTest {
 
         return load(fileName);
     }
-    
+
     private static PDDocument run(String filename) throws IOException {
-        return run(filename, new BuilderConfig() {
-            @Override
-            public void configure(PdfRendererBuilder builder) {
-            }
-        });
+        return run(filename, b -> {});
     }
-    
+
     private static PDDocument load(String filename) throws IOException {
         return PDDocument.load(new File(OUT_PATH, filename + ".pdf"));
     }
 
     private static void remove(String fileName, PDDocument doc) throws IOException {
-        if (doc != null) {
-            doc.close();
-        }
+        OpenUtil.closeQuietly(doc);
         new File(OUT_PATH, fileName + ".pdf").delete();
     }
 
@@ -1363,38 +1358,37 @@ public class NonVisualRegressionTest {
 
         float lastContentLine;
 
-        try (PdfBoxRenderer renderer = builder.buildPdfRenderer()) {
-            renderer.createPDFWithoutClosing();
+        try (PdfBoxRenderer renderer = builder.buildPdfRenderer();
+             PDDocument doc = renderer.createPDFKeepOpen()) {
 
             List<PagePosition<Layer>> posList = renderer.getLayersPositions();
             lastContentLine = renderer.getLastContentBottom();
 
-            int i = -1;
-            PDPageContentStream stream = null;
-            for (PagePosition<Layer> pos : posList) {
-                if (i != pos.getPageNo()) {
-                    if (stream != null) {
-                        stream.close();
-                    }
+            for (int idx = 0; idx < posList.size(); ) {
+                int pageIdx = posList.get(idx).getPageNo();
+                List<PagePosition<Layer>> pageLayers = new ArrayList<>();
 
-                    stream = new PDPageContentStream(renderer.getPdfDocument(), 
-                            renderer.getPdfDocument().getPage(pos.getPageNo()), AppendMode.APPEND, false, false);
+                while (idx < posList.size() && posList.get(idx).getPageNo() == pageIdx) {
+                    pageLayers.add(posList.get(idx));
+                    idx++;
+                }
+
+                try (PDPageContentStream stream = new PDPageContentStream(
+                        renderer.getPdfDocument(), renderer.getPdfDocument().getPage(pageIdx),
+                        AppendMode.APPEND, false, false)) {
+
                     stream.setLineWidth(1f);
                     stream.setStrokingColor(Color.ORANGE);
 
-                    i = pos.getPageNo();
+                    for (PagePosition<Layer> pos : pageLayers) {
+                        stream.addRect(pos.getX(), pos.getY(), pos.getWidth(), pos.getHeight());
+                        stream.stroke();
+                    }
                 }
-
-
-                stream.addRect(pos.getX(), pos.getY(), pos.getWidth(), pos.getHeight());
-                stream.stroke();
-            }
-
-            if (stream != null) {
-                stream.close();
             }
 
             renderer.getPdfDocument().save(os);
+
             writePdfToFile(filename, os);
         }
 

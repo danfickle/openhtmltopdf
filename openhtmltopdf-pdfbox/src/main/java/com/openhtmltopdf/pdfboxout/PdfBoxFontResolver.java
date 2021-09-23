@@ -46,6 +46,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDFontDescriptor;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -56,7 +57,7 @@ import java.util.logging.Level;
 /**
  * This class handles all font resolving for the PDF generation.
  */
-public class PdfBoxFontResolver implements FontResolver {
+public class PdfBoxFontResolver implements FontResolver, Closeable {
     public enum FontGroup {
         MAIN,
         PRE_BUILT_IN_FALLBACK,
@@ -94,6 +95,7 @@ public class PdfBoxFontResolver implements FontResolver {
      * Free all font resources (i.e. open files), the document should already be
      * closed.
      */
+    @Override
     public void close() {
         FontUtil.tryClose(this._suppliedFonts);
         FontUtil.tryClose(this._preBuiltinFallbackFonts);
