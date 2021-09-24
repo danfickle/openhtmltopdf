@@ -923,19 +923,11 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         _listener = listener;
     }
 
-    private void tryQuietly(Runnable r) {
-        try {
-            r.run();
-        } catch (Throwable e) {
-            // Swallow.
-        }
-    }
-
     private void cleanup() {
         OpenUtil.closeQuietly(_outputDevice);
-        tryQuietly(_sharedContext::removeFromThread);
+        OpenUtil.tryQuietly(_sharedContext::removeFromThread);
         OpenUtil.closeQuietly(_diagnosticConsumer);
-        tryQuietly(ThreadCtx::cleanup);
+        OpenUtil.tryQuietly(ThreadCtx::cleanup);
 
         // Close all still open font files
         OpenUtil.closeQuietly((PdfBoxFontResolver) getSharedContext().getFontResolver());

@@ -92,6 +92,14 @@ public class OpenUtil {
         }
     }
 
+    public static void tryQuietly(Runnable r) {
+        try {
+            r.run();
+        } catch (Throwable e) {
+            // Swallow.
+        }
+    }
+
     public static byte[] readAll(InputStream is) throws IOException {
         ByteArrayOutputStream result = new ByteArrayOutputStream(512);
 

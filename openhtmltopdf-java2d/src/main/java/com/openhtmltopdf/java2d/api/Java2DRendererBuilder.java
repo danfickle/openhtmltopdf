@@ -93,7 +93,8 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * document to the specified page processor.
 	 */
 	public void runFirstPage() throws IOException {
-		try (Closeable d = this.applyDiagnosticConsumer(); Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
+		try (Closeable d = this.applyDiagnosticConsumer();
+		     Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
 			renderer.layout();
 			if (state._pagingMode == Layer.PAGED_MODE_PRINT)
 				renderer.writePage(0);

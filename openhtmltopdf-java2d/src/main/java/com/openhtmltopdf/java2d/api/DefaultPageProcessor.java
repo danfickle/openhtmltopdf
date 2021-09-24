@@ -1,5 +1,8 @@
 package com.openhtmltopdf.java2d.api;
 import javax.imageio.ImageIO;
+
+import com.openhtmltopdf.util.OpenUtil;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -12,25 +15,31 @@ public class DefaultPageProcessor implements FSPageProcessor {
 		private final int _pgNo;
 		private final FSPageOutputStreamSupplier _osf;
 		private final String _imgFrmt;
-		
-		public DefaultPage(int pgNo, int w, int h, FSPageOutputStreamSupplier osFactory, int imageType, String imageFormat) {
-			_img = new BufferedImage(w, h, imageType);
-			_g2d = _img.createGraphics();
 
-			if (_img.getColorModel().hasAlpha()) {
-				/* We need to clear with white transparent */
-				_g2d.setBackground(new Color(255, 255, 255, 0));
-				_g2d.clearRect(0, 0, _img.getWidth(), _img.getHeight());
-			} else {
-				_g2d.setColor(Color.WHITE);
-				_g2d.fillRect(0, 0, _img.getWidth(), _img.getHeight());
-			}
-			
-			_pgNo = pgNo;
-			_osf = osFactory;
-			_imgFrmt = imageFormat;
-		}
-		
+        public DefaultPage(int pgNo, int w, int h, FSPageOutputStreamSupplier osFactory, int imageType, String imageFormat) {
+            _img = new BufferedImage(w, h, imageType);
+            _g2d = _img.createGraphics();
+
+            try {
+                if (_img.getColorModel().hasAlpha()) {
+                    /* We need to clear with white transparent */
+                    _g2d.setBackground(new Color(255, 255, 255, 0));
+                    _g2d.clearRect(0, 0, _img.getWidth(), _img.getHeight());
+                } else {
+                    _g2d.setColor(Color.WHITE);
+                    _g2d.fillRect(0, 0, _img.getWidth(), _img.getHeight());
+                }
+
+                _pgNo = pgNo;
+                _osf = osFactory;
+                _imgFrmt = imageFormat;
+
+            } catch (Throwable e) {
+                _g2d.dispose();
+                throw e;
+            }
+        }
+
 		@Override
 		public Graphics2D getGraphics() {
 			return _g2d;
@@ -44,11 +53,7 @@ public class DefaultPageProcessor implements FSPageProcessor {
 			} catch (IOException e) {
 				throw new RuntimeException("Couldn't write page image to output stream", e);
 			} finally {
-				if (os != null)
-					try {
-						os.close();
-					} catch (IOException e) {
-					}
+                OpenUtil.closeQuietly(os);
 			}
 		}
 	}

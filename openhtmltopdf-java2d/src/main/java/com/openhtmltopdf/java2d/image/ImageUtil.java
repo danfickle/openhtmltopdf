@@ -216,6 +216,7 @@ public class ImageUtil {
     }
 
     abstract static class AbstractFastScaler implements Scaler {
+        @Override
         public BufferedImage getScaledInstance(BufferedImage img, ScalingOptions opt) {
             // target is always >= 1
             Image scaled = img.getScaledInstance(opt.getTargetWidth(), opt.getTargetHeight(), getImageScalingMethod());
@@ -250,6 +251,7 @@ public class ImageUtil {
      * Fast but decent scaling
      */
     static class FastScaler implements Scaler {
+        @Override
         public BufferedImage getScaledInstance(BufferedImage img, ScalingOptions opt) {
             int w, h;
 
@@ -272,6 +274,7 @@ public class ImageUtil {
      * Step-wise downscaling
      */
     static class HighQualityScaler implements Scaler {
+        @Override
         public BufferedImage getScaledInstance(BufferedImage img, ScalingOptions opt) {
             int w, h;
             int imgw = img.getWidth(null);
