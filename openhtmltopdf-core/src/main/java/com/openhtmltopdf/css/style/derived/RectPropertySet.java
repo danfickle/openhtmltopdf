@@ -56,7 +56,14 @@ public class RectPropertySet {
 
     @Override
     public String toString() {
-        return "RectPropertySet[top=" + _top + ",right=" + _right + ",bottom=" + _bottom + ",left=" + _left + "]";
+        return toString("RectPropertySet");
+    }
+
+    /**
+     * Returns the four values prepended with name.
+     */
+    public String toString(String name) {
+        return name + "[top=" + _top + ",right=" + _right + ",bottom=" + _bottom + ",left=" + _left + "]";
     }
 
     public float top() {

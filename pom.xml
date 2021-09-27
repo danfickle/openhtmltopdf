@@ -5,13 +5,12 @@
 
   <groupId>com.openhtmltopdf</groupId>
   <artifactId>openhtmltopdf-parent</artifactId>
-  <version>1.0.9-SNAPSHOT</version>
+  <version>1.0.11-SNAPSHOT</version>
 
   <packaging>pom</packaging>
 
   <name>Openhtmltopdf</name>
   <description>Open-HTML-to-PDF is a HTML and CSS renderer written in Java.  It supports Java2D and PDF output. Open-HTML-to-PDF is a fork of Flying-saucer with additional features.</description>
-
   <url>https://github.com/danfickle/openhtmltopdf</url>
 
   <licenses>
@@ -44,9 +43,13 @@
   </scm>
 
   <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
     <repository>
-      <id>bintray</id>
-      <url>https://api.bintray.com/maven/danfickle/maven/com.openhtmltopdf:openhtmltopdf-parent</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
     </repository>
   </distributionManagement>
 
@@ -78,6 +81,35 @@
         <javadoc.opts>-Xdoclint:none</javadoc.opts>
       </properties>
     </profile>
+
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <!-- Prevent gpg from using pinentry programs. Fixes: gpg: signing 
+                    failed: Inappropriate ioctl for device -->
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <build>
@@ -86,7 +118,47 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>${open.deploy.plugin.version}</version>
+          <version>3.0.0-M1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>3.0.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>3.0.0-M4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.1</version>
+          <configuration>
+            <compilerArgs>
+              <arg>-Xlint:deprecation</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>5.1.2</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -94,16 +166,14 @@
     <plugins>
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.2</version>
         <configuration>
-          <useReleaseProfile>false</useReleaseProfile>
           <releaseProfiles>release</releaseProfiles>
           <autoVersionSubmodules>true</autoVersionSubmodules>
         </configuration>
       </plugin>
+
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.3</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
@@ -113,7 +183,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>3.0.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -127,7 +196,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.0.1</version>
         <configuration>
           <source>8</source>
           <doclint>none</doclint>
@@ -146,11 +214,15 @@
   </build>
 
   <properties>
-    <open.deploy.plugin.version>3.0.0-M1</open.deploy.plugin.version>
-    <open.bundle.plugin.version>5.1.1</open.bundle.plugin.version>
-    <open.jar.plugin.version>3.2.0</open.jar.plugin.version>
+    <open.batik.version>1.14</open.batik.version>
 
-    <open.batik.version>1.13</open.batik.version>
+    <!-- Please keep xmlgraphics-commons up to date with batik. -->
+    <open.xmlgraphics.commons.version>2.6</open.xmlgraphics.commons.version>
+
+    <!-- NOTE: Rhino is an optional dependency of Batik-Bridge. This version should match
+         the version specified by Batik-Bridge. -->
+    <open.rhino.version>1.7.13</open.rhino.version>
+
     <open.junit4.version>4.13.1</open.junit4.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

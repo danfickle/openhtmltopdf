@@ -1,0 +1,50 @@
+<html>
+<head>
+<style>
+@page {
+    size: 300px 400px;
+}
+@page {
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid green;
+        background-size: cover;
+        max-height: 65%;
+    }
+}
+
+body {
+  margin: 0 10px;
+  font-size: 18px;
+  border: 1px solid black;
+
+  orphans: 0;
+  widows: 0;
+}
+::footnote-call {
+  counter-increment: footnote 1;
+}
+.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  content: url(../../../demos/bullet.gif);
+  width: 20px;
+  height: 20px;
+}
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+}
+</style>
+</head>
+<body>
+<p style="margin: 0;">
+  This text needs some footnotes. 
+  <div id="1" class="footnote">
+   This is a footnote.
+  </div>
+</p>
+</body>
+</html>

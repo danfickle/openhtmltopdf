@@ -40,7 +40,8 @@ public class Slf4JLoggerTest {
         ps.flush();
         String log = baos.toString("UTF-8");
 
-        old.println(log);
+        // Uncomment to see what is being logged.
+        // old.println(log);
         System.setErr(old);
 
         assertThat(log, containsString("] [INFO]"));
@@ -70,10 +71,8 @@ public class Slf4JLoggerTest {
 
             builder.useFastMode();
             builder.toStream(os);
-            builder.withHtmlContent("<>INVALID-XML", null);
+            builder.withHtmlContent("<html><body style=\"invalid-prop: 5;\">Test</body></html>", null);
             builder.run();
-        } catch (Exception e) {
-            // Ignore.
         }
     }
 }

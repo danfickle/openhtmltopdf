@@ -7,13 +7,6 @@ import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 
-/**
- * Created by IntelliJ IDEA.
- * User: tobe
- * Date: 2005-jun-23
- * Time: 00:12:50
- * To change this template use File | Settings | File Templates.
- */
 public interface CssContext {
     float getMmPerDot();
     
@@ -35,4 +28,10 @@ public interface CssContext {
     FontContext getFontContext();
     
     TextRenderer getTextRenderer();
+
+    /**
+     * Returns true if we are laying out the footnote area rather
+     * than general content.
+     */
+    boolean isInFloatBottom();
 }

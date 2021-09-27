@@ -1,0 +1,72 @@
+<html>
+<head>
+<style>
+@page {
+    size: 300px 400px;
+}
+@page {
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid green;
+        background-size: cover;
+        max-height: 65%;
+    }
+}
+@page:first {
+    @footnote {
+        background-image: url(../../../demos/images/flyingsaucer.png);
+    }
+}
+
+body {
+  background-color: pink;
+  margin: 0 10px;
+  font-size: 18px;
+  border: 1px solid black;
+
+  orphans: 0;
+  widows: 0;
+}
+::footnote-call {
+  counter-increment: footnote 1;
+}
+.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  content: " [" counter(footnote) "]";
+  width: 20px;
+  height: 20px;
+}
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+}
+</style>
+</head>
+<body>
+<p style="margin: 0;">
+  This text needs some footnotes. 
+  <div id="1" class="footnote">
+   This is a footnote.
+  </div>
+  Also a footnote for this sentence.
+  <img src="../../../demos/images/flyingsaucer.png" alt="Flying saucer" style="border: 2px solid orange;"/>
+  <span id="2" class="footnote">
+   <img src="../../../demos/images/flyingsaucer.png" alt="Flying saucer" style="border: 2px solid black;"/>
+   Another <strong>footnote</strong>!
+  </span>
+</p>
+
+<p style="page-break-before: always; margin: 0;">
+  Footnote numbers.
+  <div id="3" class="footnote">
+   Just to be silly this is a really long footnote that will need wrapping and such.
+   This is a multiple page footnote so here we go on and on to get to the next page.
+  </div>
+  <div class="footnote" id="4"><img src="../../../demos/images/flyingsaucer.png" alt="Flying saucer" style="border: 2px solid blue;"/></div>
+</p>
+
+</body>
+</html>

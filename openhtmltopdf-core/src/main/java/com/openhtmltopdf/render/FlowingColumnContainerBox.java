@@ -20,16 +20,8 @@ import com.openhtmltopdf.layout.PersistentBFC;
 public class FlowingColumnContainerBox extends BlockBox {
     private FlowingColumnBox _child;
 
-    // FIXME: Inefficient, replace with binary search.
-    private int findPageIndex(List<PageBox> pages, int y) {
-        int idx = 0;
-        for (PageBox page : pages) {
-            if (y >= page.getTop() && y <= page.getBottom()) {
-                return idx;
-            }
-            idx++;
-        }
-        return idx - 1;
+    private int findPageIndex(LayoutContext c, int y) {
+        return c.getRootLayer().getPageIndex(y);
     }
 
     private static class ColumnPosition {
@@ -180,7 +172,7 @@ public class FlowingColumnContainerBox extends BlockBox {
         final TreeMap<Integer, ColumnPosition> columnMap = haveFloats ? new TreeMap<>() : null;
         
         // These are all running values that change as we layout our boxes into columns.
-        int pageIdx      = findPageIndex(pages, startY);
+        int pageIdx      = findPageIndex(c, startY);
         int colStart     = startY;
         int colHeight    = pages.get(pageIdx).getBottom() - this.getChild().getAbsY();
         int colIdx       = 0;

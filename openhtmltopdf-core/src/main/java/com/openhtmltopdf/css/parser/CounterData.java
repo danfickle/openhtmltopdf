@@ -22,17 +22,22 @@ package com.openhtmltopdf.css.parser;
 public class CounterData {
     private final String _name;
     private final int _value;
-    
+
     public CounterData(String name, int value) {
         _name = name;
         _value = value;
     }
-    
+
     public String getName() {
         return _name;
     }
 
     public int getValue() {
         return _value;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("CounterData [_name=%s, _value=%s]", _name, _value);
     }
 }

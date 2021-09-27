@@ -48,11 +48,11 @@ public class PageSize {
             new PropertyValue(CSSPrimitiveValue.CSS_MM, 420f, "420mm"));
     
     /**
-     * ISO B3 media: 176mm wide by 250mm high
+     * ISO B3 media: 353mm wide by 500mm high
      */
     public static final PageSize B3 = new PageSize(
-            new PropertyValue(CSSPrimitiveValue.CSS_MM, 176f, "176mm"),
-            new PropertyValue(CSSPrimitiveValue.CSS_MM, 250, "250mm"));    
+            new PropertyValue(CSSPrimitiveValue.CSS_MM, 353f, "353mm"),
+            new PropertyValue(CSSPrimitiveValue.CSS_MM, 500f, "500mm"));    
     
     /**
      * ISO B4 media: 250mm wide by 353mm high

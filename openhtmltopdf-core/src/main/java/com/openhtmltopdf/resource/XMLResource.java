@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
@@ -37,15 +36,12 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXSource;
 
 import com.openhtmltopdf.util.*;
+
 import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 
 /**
@@ -54,11 +50,9 @@ import org.xml.sax.helpers.XMLReaderFactory;
 public class XMLResource extends AbstractResource {
     private Document document;
     private static final XMLResourceBuilder XML_RESOURCE_BUILDER;
-    private static boolean useConfiguredParser;
 
     static {
         XML_RESOURCE_BUILDER = new XMLResourceBuilder();
-        useConfiguredParser = true;
     }
 
     private XMLResource(InputStream stream) {
@@ -81,118 +75,117 @@ public class XMLResource extends AbstractResource {
         return XML_RESOURCE_BUILDER.createXMLResource(new XMLResource(new InputSource(reader)));
     }
 
-    @Deprecated
-    public static XMLResource load(Source source) {
-        return XML_RESOURCE_BUILDER.createXMLResource(source);
-    }
-
     public Document getDocument() {
         return document;
     }
 
-    /*package*/
-    void setDocument(Document document) {
+    /*package*/ void setDocument(Document document) {
         this.document = document;
     }
 
     public static final XMLReader newXMLReader() {
         XMLReader xmlReader = null;
-        String xmlReaderClass = Configuration.valueFor("xr.load.xml-reader");
-        
-        //TODO: if it doesn't find the parser, note that in a static boolean--otherwise
-        // you get exceptions on every load
+
         try {
-            if (xmlReaderClass != null &&
-                    !xmlReaderClass.toLowerCase().equals("default") &&
-                    XMLResource.useConfiguredParser) {
-                try {
-                    Class.forName(xmlReaderClass);
-                } catch (Exception ex) {
-                    XMLResource.useConfiguredParser = false;
-                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_XMLREADER_CLASS_SPECIFIED_COULD_NOT_BE_FOUND, xmlReaderClass);
-                }
-                if (XMLResource.useConfiguredParser) {
-                    xmlReader = XMLReaderFactory.createXMLReader(xmlReaderClass);
-                }
-            }
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            setSaxParserRequestedFeatures(factory);
+
+            SAXParser parser = factory.newSAXParser();
+            xmlReader = parser.getXMLReader();
         } catch (Exception ex) {
-            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_COULD_NOT_INSTANTIATE_CUSTOM_XML_READER, xmlReaderClass, ex);
+            XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.GENERAL_MESSAGE, ex.getMessage());
         }
-        if (xmlReader == null) {
-            try {
-                // JDK default
-                // HACK: if
-                /*CHECK: does this code do anything?
-                if (System.getProperty("org.xml.sax.driver") == null) {
-                    String newDefault = "org.apache.crimson.parser.XMLReaderImpl";
-                    XRLog.load(Level.WARNING,
-                            "No value for system property 'org.xml.sax.driver'.");
-                }
-                */
-                xmlReader = XMLReaderFactory.createXMLReader();
-                xmlReaderClass = "{JDK default}";
-            } catch (Exception ex) {
-                XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.GENERAL_MESSAGE, ex.getMessage());
-            }
-        }
-        if (xmlReader == null) {
-            try {
-                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LOAD_FALLING_BACK_ON_THE_DEFAULT_PARSER);
-                SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
-                xmlReader = parser.getXMLReader();
-                xmlReaderClass = "SAXParserFactory default";
-            } catch (Exception ex) {
-                XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.GENERAL_MESSAGE, ex.getMessage());
-            }
-        }
+
         if (xmlReader == null) {
             throw new XRRuntimeException("Could not instantiate any SAX 2 parser, including JDK default. " +
-                    "The name of the class to use should have been read from the org.xml.sax.driver System " +
-                    "property, which is set to: "/*CHECK: is this meaningful? + System.getProperty("org.xml.sax.driver")*/);
+                    "The name of the class to use may have been read from the 'javax.xml.parsers.SAXParserFactory' System " +
+                    "property, which is set to: " + System.getProperty("javax.xml.parsers.SAXParserFactory"));
         }
+
         XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_SAX_XMLREADER_IN_USE, xmlReader.getClass().getName());
+
         return xmlReader;
     }
 
+    @FunctionalInterface
+    interface SetFeature<T> {
+        void setFeature(String feature, T set) throws Exception;
+    }
+
+    private static <T> boolean trySetFeature(
+            String feature,
+            T value,
+            SetFeature<T> tryer) {
+        try {
+            tryer.setFeature(feature, value);
+            return true;
+        } catch (Exception e) {
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId2Param.XML_FEATURE_NOT_ABLE_TO_SET, feature, value, e);
+            return false;
+        }
+    }
+
+    private static void setSaxParserRequestedFeatures(SAXParserFactory factory) {
+        factory.setValidating(false);
+        factory.setNamespaceAware(true);
+
+        boolean b = true;
+
+        b &= trySetFeature("http://apache.org/xml/features/disallow-doctype-decl", false, factory::setFeature);
+        b &= trySetFeature("http://xml.org/sax/features/external-general-entities", false, factory::setFeature);
+        b &= trySetFeature("http://xml.org/sax/features/external-parameter-entities", false, factory::setFeature);
+        b &= trySetFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", true, factory::setFeature);
+        b &= trySetFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true, factory::setFeature);
+
+        if (!b) {
+            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES);
+        }
+    }
+
     private static class XMLResourceBuilder {
-    	
-    	private void setXmlReaderSecurityFeatures(XMLReader xmlReader) {
-            try {
-           	 // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
-           	 // DO NOT REMOVE!
-          	 xmlReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
-           	 xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
-           	 xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-           	 xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", true);
-           	 xmlReader.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-           } catch (SAXNotSupportedException | SAXNotRecognizedException e) {
-                XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES, e);
-           }
-    	}
-    	
-    	private void setDocumentBuilderSecurityFeatures(DocumentBuilderFactory dbf) {
-    		try {
-       	      // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
-       	      // DO NOT REMOVE!
-              dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
-              dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-              dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-              dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-              dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-    		} catch (ParserConfigurationException e) {
-                XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES, e);
-    		}
-    	}
-    	
-    	private void setTranformerFactorySecurityFeatures(TransformerFactory xformFactory) {
-    		try {
-    		  xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-              xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-    		} catch (IllegalArgumentException e) {
-                XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES, e);
-    		}
-    	}
-    	
+        private void setXmlReaderSecurityFeatures(XMLReader xmlReader) {
+            boolean b = true;
+
+            // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
+            // DO NOT REMOVE!
+            b &= trySetFeature("http://apache.org/xml/features/disallow-doctype-decl", false, xmlReader::setFeature);
+            b &= trySetFeature("http://xml.org/sax/features/external-general-entities", false, xmlReader::setFeature);
+            b &= trySetFeature("http://xml.org/sax/features/external-parameter-entities", false, xmlReader::setFeature);
+            b &= trySetFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", true, xmlReader::setFeature);
+            b &= trySetFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true, xmlReader::setFeature);
+
+            if (!b) {
+                XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES);
+            }
+        }
+
+        private void setDocumentBuilderSecurityFeatures(DocumentBuilderFactory dbf) {
+            boolean b = true;
+
+            // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
+            // DO NOT REMOVE!
+            b &= trySetFeature("http://apache.org/xml/features/disallow-doctype-decl", false, dbf::setFeature);
+            b &= trySetFeature("http://xml.org/sax/features/external-general-entities", false, dbf::setFeature);
+            b &= trySetFeature("http://xml.org/sax/features/external-parameter-entities", false, dbf::setFeature);
+            b &= trySetFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false, dbf::setFeature);
+            b &= trySetFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true, dbf::setFeature);
+
+            if (!b) {
+                XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES);
+            }
+        }
+
+        private void setTranformerFactorySecurityFeatures(TransformerFactory xformFactory) {
+            boolean b = true;
+
+            b &= trySetFeature(XMLConstants.ACCESS_EXTERNAL_DTD, "", xformFactory::setAttribute);
+            b &= trySetFeature(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "", xformFactory::setAttribute);
+
+            if (!b) {
+                XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES);
+            }
+        }
+
     	private TransformerFactory loadPreferredTransformerFactory(String preferredImpl) {
             try {
             	return TransformerFactory.newInstance(preferredImpl, null);
@@ -298,175 +291,18 @@ public class XMLResource extends AbstractResource {
         }
 
         /**
-         * Sets all standard features for SAX parser, using values from Configuration.
+         * Sets all standard features for SAX parser.
          */
         private void setParserFeatures(XMLReader xmlReader) {
-            try {        // perf: validation off
-                xmlReader.setFeature("http://xml.org/sax/features/validation", false);
-                // perf: namespaces
-                xmlReader.setFeature("http://xml.org/sax/features/namespaces", true);
-            } catch (SAXException s) {
+            boolean b = true;
+
+            b &= trySetFeature("http://xml.org/sax/features/validation", false, xmlReader::setFeature);
+            b &= trySetFeature("http://xml.org/sax/features/namespaces", true, xmlReader::setFeature);
+
+            if (!b) {
                 // nothing to do--some parsers will not allow setting features
-                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LOAD_COULD_NOT_SET_VALIDATION_NAMESPACE_FEATURES_FOR_XML_PARSER, s);
+                XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.LOAD_COULD_NOT_SET_VALIDATION_NAMESPACE_FEATURES_FOR_XML_PARSER);
             }
-            if (Configuration.isFalse("xr.load.configure-features", false)) {
-                XRLog.log(Level.FINE, LogMessageId.LogMessageId0Param.LOAD_SAX_PARSER_BY_REQUEST_NOT_CHANGING_PARSER_FEATURES);
-                return;
-            }
-            
-            // perf: validation off
-            setFeature(xmlReader, "http://xml.org/sax/features/validation", "xr.load.validation");
-            
-            // mem: intern strings
-            setFeature(xmlReader, "http://xml.org/sax/features/string-interning", "xr.load.string-interning");
-            
-            // perf: namespaces
-            setFeature(xmlReader, "http://xml.org/sax/features/namespaces", "xr.load.namespaces");
-            setFeature(xmlReader, "http://xml.org/sax/features/namespace-prefixes", "xr.load.namespace-prefixes");
-        }
-
-        /**
-         * Attempts to set requested feature on the parser; logs exception if not supported
-         * or not recognized.
-         */
-        private void setFeature(XMLReader xmlReader, String featureUri, String configName) {
-            try {
-                xmlReader.setFeature(featureUri, Configuration.isTrue(configName, false));
-                XRLog.log(Level.FINE, LogMessageId.LogMessageId2Param.LOAD_SAX_FEATURE_SET, featureUri.substring(featureUri.lastIndexOf("/")), xmlReader.getFeature(featureUri));
-            } catch (SAXNotSupportedException ex) {
-                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_SAX_FEATURE_NOT_SUPPORTED, featureUri);
-            } catch (SAXNotRecognizedException ex) {
-                XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_SAX_FEATURE_NOT_RECOGNIZED, featureUri);
-            }
-        }
-
-        @Deprecated
-        public XMLResource createXMLResource(Source source) {
-            DOMResult output = null;
-            TransformerFactory xformFactory = null;
-            Transformer idTransform = null;
-            long st = 0L;
-
-            st = System.currentTimeMillis();
-            try {
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                
-           	    // VERY IMPORTANT: Without these lines, users can pull in arbitary files from the system using XXE.
-           	    // DO NOT REMOVE!
-                dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
-                dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-                dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-                dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-                
-                dbf.setNamespaceAware(true);
-                dbf.setValidating(false);//validation is the root of all evil in xml - tobe
-                output = new DOMResult(dbf.newDocumentBuilder().newDocument());
-                
-                try {
-                	xformFactory = TransformerFactory.newInstance("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl", null);
-                } catch(Exception e) {
-                    XRLog.log(Level.SEVERE, LogMessageId.LogMessageId1Param.LOAD_COULD_NOT_LOAD_PREFERRED_XML, "transformer");
-                	xformFactory = TransformerFactory.newInstance();
-                }
-                
-                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-                xformFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
-                
-                idTransform = xformFactory.newTransformer();
-            } catch (Exception ex) {
-                throw new XRRuntimeException("Failed on configuring SAX to DOM transformer.", ex);
-            }
-
-            try {
-                idTransform.transform(source, output);
-            } catch (Exception ex) {
-                throw new XRRuntimeException("Can't load the XML resource (using TRaX transformer). " + ex.getMessage(), ex);
-            }
-
-            long end = System.currentTimeMillis();
-
-            //HACK: should rather use a default constructor
-            XMLResource target = new XMLResource((InputSource) null);
-
-            target.setElapsedLoadTime(end - st);
-
-            XRLog.log(Level.INFO, LogMessageId.LogMessageId1Param.LOAD_LOADED_DOCUMENT_TIME, target.getElapsedLoadTime());
-
-            target.setDocument((Document) output.getNode());
-            return target;
         }
     }
 }
-
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.20  2007/05/15 22:01:42  peterbrant
- * Remove unused code
- *
- * Revision 1.19  2006/07/26 18:09:42  pdoubleya
- * Clean exception throws.
- *
- * Revision 1.18  2006/02/02 02:47:36  peterbrant
- * Support non-AWT images
- *
- * Revision 1.17  2005/10/22 00:09:18  peterbrant
- * Rollback to 1.15
- *
- * Revision 1.15  2005/07/02 09:40:24  tobega
- * More robust parsing
- *
- * Revision 1.14  2005/06/26 01:02:21  tobega
- * Now checking for SecurityException on System.getProperty
- *
- * Revision 1.13  2005/06/25 22:16:23  tobega
- * Browser now handles both plain text files and images
- *
- * Revision 1.12  2005/06/15 10:56:14  tobega
- * cleaned up a bit of URL mess, centralizing URI-resolution and loading to UserAgentCallback
- *
- * Revision 1.11  2005/06/13 06:50:16  tobega
- * Fixed a bug in table content resolution.
- * Various "tweaks" in other stuff.
- *
- * Revision 1.10  2005/06/01 21:36:41  tobega
- * Got image scaling working, and did some refactoring along the way
- *
- * Revision 1.9  2005/04/20 19:13:18  tobega
- * Fixed vertical align. Middle works and all look pretty much like in firefox
- *
- * Revision 1.8  2005/04/03 21:51:31  joshy
- * fixed code that gets the XMLReader on the mac
- * added isMacOSX() to GeneralUtil
- * added app name and single menu bar to browser
- *
- * Issue number:
- * Obtained from:
- * Submitted by:
- * Reviewed by:
- *
- * Revision 1.7  2005/03/28 18:33:03  pdoubleya
- * Don't show stack trace if XML can't be loaded.
- *
- * Revision 1.6  2005/03/22 15:34:23  pdoubleya
- * Changed to use XMLReaderFactory, appears to solve namespaces issue (thanks to Elliot Rusty Harold, again!).
- *
- * Revision 1.5  2005/03/16 19:26:31  pdoubleya
- * Fixed to use proper javax.xml.transform instantiation for parser, and only try to load custom parser once, so that you don't get exceptions on each page.
- *
- * Revision 1.4  2005/02/05 18:09:39  pdoubleya
- * Add specific SAX class name if none was specified and if system property is not already set.
- *
- * Revision 1.3  2005/02/05 17:19:47  pdoubleya
- * Refactoring for features support, static factory method for XMLReaders.
- *
- * Revision 1.2  2005/02/05 11:33:33  pdoubleya
- * Added load() to XMLResource, and accept overloaded input: InputSource, stream, URL.
- *
- * Revision 1.1  2005/02/03 20:39:35  pdoubleya
- * Added to CVS.
- *
- *
- */

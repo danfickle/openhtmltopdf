@@ -185,7 +185,9 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 */
 	public PdfRendererBuilder usePdfAConformance(PdfAConformance pdfAConformance) {
 		this.state._pdfAConformance = pdfAConformance;
-		this.state._pdfVersion = pdfAConformance.getPdfVersion();
+        if (pdfAConformance.getPdfVersion() != 0f) {
+            this.state._pdfVersion = pdfAConformance.getPdfVersion();
+        }
 		return this;
 	}
 	
@@ -291,22 +293,6 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 		state._pageSupplier = pageSupplier;
 		return this;
 	}
-
-    /**
-     * Fast mode is the default from version 1.0.5. You can call this
-     * temporary method to use the slow renderer until it is removed in a
-     * near future version.
-     * 
-     * This method is marked deprecated to prompt you to upgrade to the fast
-     * renderer.
-     * 
-     * @return this for method chaining.
-     */
-    @Deprecated
-    public PdfRendererBuilder useSlowMode() {
-        state._useFastRenderer = false;
-        return this;
-    }
 
 	/**
 	 * Various level of PDF/A conformance:

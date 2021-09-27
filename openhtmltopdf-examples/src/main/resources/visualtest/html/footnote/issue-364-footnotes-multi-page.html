@@ -1,0 +1,77 @@
+<html>
+<head>
+<style>
+@page {
+    size: 250px 300px;
+}
+@page {
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border-top: 3px solid blue;
+        border-bottom: 1px solid green;
+    }
+}
+body {
+  margin: 0 10px;
+  padding: 3px;
+  border: 1px solid black;
+  font-size: 18px;
+  orphans: 0;
+  widows: 0;
+}
+::footnote-call {
+  counter-increment: footnote;
+}
+span.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  content: "[" counter(footnote) "]";
+}
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+}
+p {
+  margin: 0;
+}
+</style>
+</head>
+<body>
+<p>
+  Some text for page one. More text to overflow to page two.
+  One two three four five six seven eight nine ten eleven twelve thirteen
+</p>
+
+<p>
+  thirty fourty fifty sixty seventy eighty ninety
+
+  <br/>
+  fn1
+
+  <span class="footnote">
+    This is a very long footnote that will need wrapping. Someone once said
+    about footnotes that they are hard to implement!
+    We need another few lines to go over an entire page and a half to demonstrate
+    what happens with multi-page footnotes.
+  </span>
+
+  fn2
+
+  <span class="footnote">
+    start second footnote eleven twelve thirteen fourteen fifteen sixteen
+    seventeen eighteen nineteen twenty thirty fourty fifty sixty seventy
+    eighty ninety hundred footnote note foot lorem ipsum
+    etc start again one two three four five six seven eight
+    nine ten end.
+  </span>
+</p>
+
+<p>
+  Last page content. This is to make sure text after multi-page footnotes works.
+  Some more content. Even more.
+</p>
+
+</body>
+</html>

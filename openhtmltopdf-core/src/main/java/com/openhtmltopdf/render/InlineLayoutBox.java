@@ -28,6 +28,9 @@ import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.RectPropertySet;
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.layout.*;
+import com.openhtmltopdf.util.LogMessageId.LogMessageId0Param;
+import com.openhtmltopdf.util.XRLog;
+
 import org.w3c.dom.Element;
 
 import java.awt.*;
@@ -35,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * A {@link Box} which contains the portion of an inline element layed out on a
@@ -161,18 +165,23 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         return _inlineWidth;
     }
     
-    public void prunePending() {
+    public void prunePending(LayoutContext c) {
         if (getInlineChildCount() > 0) {
             for (int i = getInlineChildCount() - 1; i >= 0; i--) {
                 Object child = getInlineChild(i);
                 if (! (child instanceof InlineLayoutBox)) {
                     break;
                 }
-                
+
                 InlineLayoutBox iB = (InlineLayoutBox)child;
-                iB.prunePending();
-                
+                iB.prunePending(c);
+
                 if (iB.isPending()) {
+                    if (iB.getElement() != null &&
+                        iB.getElement().hasAttribute("id")) {
+                       c.removeBoxId(iB.getElement().getAttribute("id"));
+                    }
+
                     removeChild(i);
                 } else {
                     break;
@@ -204,26 +213,24 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
     public void setPending(boolean b) {
         _pending = b;
     }
-    
+
     public void unmarkPending(LayoutContext c) {
         _pending = false;
-        
+
         if (getParent() instanceof InlineLayoutBox) {
             InlineLayoutBox iB = (InlineLayoutBox)getParent();
             if (iB.isPending()) {
                 iB.unmarkPending(c);
             }
         }
-        
+
         setStartsHere(true);
-        
+
         if (getStyle().requiresLayer()) {
-            c.pushLayer(this);
-            getLayer().setInline(true);
-            connectChildrenToCurrentLayer(c);
+            XRLog.log(Level.WARNING, LogMessageId0Param.LAYOUT_NO_INLINE_LAYERS);
         }
     }
-    
+
     @Override
     public void connectChildrenToCurrentLayer(LayoutContext c) {
         if (getInlineChildCount() > 0) {
@@ -460,27 +467,6 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         }
         return false;
     }
-    
-    public boolean intersectsInlineBlocks(CssContext cssCtx, Shape clip) {
-        for (int i = 0; i < getInlineChildCount(); i++) {
-            Object obj = getInlineChild(i);
-            
-            if (obj instanceof InlineLayoutBox) {
-                boolean possibleResult = 
-                    ((InlineLayoutBox)obj).intersectsInlineBlocks(cssCtx, clip);
-                if (possibleResult) {
-                    return true;
-                }
-            } else if (obj instanceof Box) {
-                BoxCollector collector = new BoxCollector();
-                if (collector.intersectsAny(cssCtx, clip, (Box)obj)) {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
-    }
 
     public List<TextDecoration> getTextDecorations() {
         return _textDecorations == null ? Collections.emptyList() : _textDecorations;
@@ -512,7 +498,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         
         List<Box> result = new ArrayList<>();
         
-        BlockBox container = (BlockBox)getLineBox().getParent();
+        BlockBox container = getLineBox().getParent();
         while (true) {
             List<Box> elementBoxes = container.getElementBoxes(getElement());
             for (int i = 0; i < elementBoxes.size(); i++) {
@@ -636,21 +622,32 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             }
         }
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void removeChild(Box child) {
+    public boolean removeChild(Box child) {
         if (_inlineChildren != null) {
-            _inlineChildren.remove(child);
+            return _inlineChildren.remove(child);
         }
+
+        return false;
     }
-    
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void removeChild(int i) {
+    public boolean removeChild(int i) {
         if (_inlineChildren != null) {
             _inlineChildren.remove(i);
+            return true;
         }
+
+        return false;
     }
-    
+
     @Override
     protected Box getPrevious(Box child) {
         if (_inlineChildren == null) {
@@ -865,31 +862,7 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
         
         return result.toString();
     }
-    
-    @Override
-    public void restyle(LayoutContext c) {
-        super.restyle(c);
-        calculateTextDecoration(c);
-    }
-    
-    @Override
-    protected void restyleChildren(LayoutContext c) {
-        for (int i = 0; i < getInlineChildCount(); i++) {
-            Object obj = getInlineChild(i);
-            if (obj instanceof Box) {
-                ((Box)obj).restyle(c);
-            }
-        }
-    }
-    
-    @Override
-    public Box getRestyleTarget() {
-        // Inline boxes may be broken across lines so back out
-        // to the nearest block box
-        Box result = findAncestor(bx -> !(bx instanceof InlineLayoutBox));
-        return result.getParent();
-    }
-    
+
     @Override
     public void collectText(RenderingContext c, StringBuilder buffer) {
         for (Object obj : getInlineChildren()) {

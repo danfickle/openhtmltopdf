@@ -16,10 +16,10 @@ import com.openhtmltopdf.render.RenderingContext;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
+
 import org.apache.batik.bridge.BridgeContext;
 import org.apache.batik.bridge.FontFace;
 import org.apache.batik.bridge.FontFamilyResolver;
-import org.apache.batik.bridge.svg12.SVG12BridgeContext;
 import org.apache.batik.gvt.font.GVTFontFamily;
 import org.apache.batik.transcoder.ErrorHandler;
 import org.apache.batik.transcoder.SVGAbstractTranscoder;
@@ -264,14 +264,10 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
         this.allowedProtocols = allowedProtocols;
     }
 
-	@Override
-	protected BridgeContext createBridgeContext(String svgVersion) {
-		if ("1.2".equals(svgVersion)) {
-			return new SVG12BridgeContext(userAgent, new OpenHtmlDocumentLoader(userAgent, userAgentCallback));
-		} else {
-			return new BridgeContext(userAgent, new OpenHtmlDocumentLoader(userAgent, userAgentCallback));
-		}
-	}
+    @Override
+    protected BridgeContext createBridgeContext(String svgVersion) {
+        return SVGImageExtension.newBridge(svgVersion, userAgent, userAgentCallback);
+    }
 
 	@Override
 	protected void transcode(Document svg, String uri, TranscoderOutput out) throws TranscoderException {

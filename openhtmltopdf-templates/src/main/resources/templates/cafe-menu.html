@@ -1,0 +1,137 @@
+<!--
+=====
+description: Restaurant menu with bold colors.
+license: MIT
+attributions:
+  - author: danfickle
+    link: https://github.com/danfickle/
+=====
+-->
+<html>
+<head>
+<style>
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+html {
+  font-family: sans-serif;
+  font-size: 14px;
+}
+body {
+  margin: 0;
+}
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 297mm;
+  width: 60mm;
+  background-color: orange;
+  color: white;
+}
+#heading {
+  background-color: black;
+  padding-bottom: 50mm;
+}
+h1 {
+  font-family: monospace;
+  font-size: 30px;
+  margin: 0;
+  margin-top: 30px;
+  padding: 20px;
+}
+h2 {
+  font-size: 24px;
+  letter-spacing: 3px;
+  font-weight: normal;
+  margin: 0;
+  padding: 0 20px;
+}
+#company {
+  position: absolute;
+  color: black;
+  bottom: 0;
+  left: 0;
+  padding: 0 0 20px 20px;
+  font-size: 15px;
+  font-weight: bold;
+  line-height: 26px;
+  letter-spacing: 1.4px;
+}
+#company a {
+  text-decoration: none;
+  font-weight: normal;
+  font-size: 13px;
+  letter-spacing: 0;
+  color: white;
+}
+#menu {
+  margin: 3mm 20mm 3mm 60mm;
+  height: 290mm;
+  box-sizing: border-box;
+}
+#columns {
+  column-count: 2;
+}
+.section {
+  width: 60mm;
+  padding: 0 6mm;
+}
+h3 {
+  font-size: 25px;
+  margin-top: 20px;
+}
+h4 {
+  clear: both;
+  font-weight: normal;
+}
+.price {
+  display: block;
+  float: right;
+  color: gray;
+  line-height: 28px;
+}
+.title {
+  line-height: 28px;
+  font-size: 24px;
+  font-family: monospace;
+}
+.description {
+  font-size: 20px;
+}
+</style>
+</head>
+<body>
+  <div id="sidebar">
+    <div id="heading">
+      <h1 th:text="${menu.company.name}"></h1>
+      <h2>Menu</h2>
+    </div>
+
+    <div id="company">
+      <div th:text="${menu.company.address.line1}"></div>
+      <div th:text="${menu.company.address.line2}"></div>
+      <div th:text="${menu.company.address.city}"></div>
+      <div><a th:href="|mailto:${menu.company.email}|" th:text="${menu.company.email}"></a></div>
+    </div>
+  </div>
+
+
+  <div id="menu">
+    <div id="columns">
+      <div th:each="section : ${menu.sections}" class="section">
+        <h3 th:text="${section.title}"></h3>
+
+        <div th:each="item : ${section.items}">
+          <h4>
+            <span class="price" th:text="${item.price}"></span>
+            <span class="title" th:text="${item.title}"></span>
+          </h4>
+          <div class="description" th:text="${item.description}"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

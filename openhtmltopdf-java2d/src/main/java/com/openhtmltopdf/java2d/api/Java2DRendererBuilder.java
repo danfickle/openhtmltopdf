@@ -3,6 +3,7 @@ package com.openhtmltopdf.java2d.api;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
+import java.io.IOException;
 
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.java2d.Java2DRenderer;
@@ -33,17 +34,6 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 */
 	public Java2DRendererBuilder useLayoutGraphics(Graphics2D g2d) {
 		state._layoutGraphics = g2d;
-		return this;
-	}
-
-	/**
-	 * Used to set an initial page number for use with page counters, etc.
-	 *
-	 * @param pageNumberInitial
-	 * @return this for method chaining
-	 */
-	public Java2DRendererBuilder useInitialPageNumber(int pageNumberInitial) {
-		state._initialPageNumber = pageNumberInitial;
 		return this;
 	}
 
@@ -88,7 +78,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 *
 	 * @throws Exception
 	 */
-	public void runPaged() throws Exception {
+	public void runPaged() throws IOException {
 		try (Closeable d = this.applyDiagnosticConsumer(); Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
 			renderer.layout();
 			if (state._pagingMode == Layer.PAGED_MODE_PRINT)
@@ -106,7 +96,7 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 *
 	 * @throws Exception
 	 */
-	public void runFirstPage() throws Exception {
+	public void runFirstPage() throws IOException {
 		try (Closeable d = this.applyDiagnosticConsumer(); Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
 			renderer.layout();
 			if (state._pagingMode == Layer.PAGED_MODE_PRINT)

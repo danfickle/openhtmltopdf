@@ -220,6 +220,20 @@ public final class CSSName implements Comparable<CSSName> {
             );
 
     /**
+     * If this property is set to no-bevel then borders are rendered without
+     * bevels. This can be useful to avoid anti-aliasing.
+     */
+    public final static CSSName FS_BORDER_RENDERING =
+            addProperty(
+                    "-fs-border-rendering",
+                    PRIMITIVE,
+                    "auto",
+                    INHERITS,
+                    new PrimitivePropertyBuilders.FSBorderRendering()
+             );
+
+
+    /**
      * Unique CSSName instance for fictitious property.
      */
     public final static CSSName FS_BORDER_SPACING_HORIZONTAL =

@@ -1,0 +1,39 @@
+<html>
+<head>
+<style>
+table {
+  border-collapse: collapse;
+  border: 1px solid black;
+  -fs-border-rendering: no-bevel;
+}
+table td {
+  border: 1px solid black;
+  width: 100px;
+}
+table td.no-border-right {
+  border-right: none;
+}
+table td.no-border-left {
+  border-left: none;
+}
+</style>
+</head>
+<body>
+
+<table>
+  <tr>
+    <td>1</td>
+    <td class="no-border-right">2</td>
+    <td class="no-border-left no-border-right">3</td>
+    <td class="no-border-left">4</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>6</td>
+    <td>7</td>
+    <td>8</td>
+  </tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+}
+html {
+  orphans: 0;
+  widows: 0;
+}
+body {
+  font-size: 20px;
+}
+.footnote {
+  float: footnote;
+  color: blue;
+}
+::footnote-call {
+  content: " [fn]";
+}
+::footnote-marker {
+  content: "fn. ";
+}
+.footnote::before {
+  content: "[fn-start] ";
+}
+.footnote::after {
+  content: " [fn-end]";
+}
+</style>
+</head>
+<body>
+This is some text.
+<div class="footnote">
+<table>
+<caption>Footnote table</caption>
+<tr><td>One</td></tr>
+<tr><td>Two</td></tr>
+<tr><td>Three</td></tr>
+<tr><td>Four</td></tr>
+<tr><td>Five</td></tr>
+<tr><td>Six</td></tr>
+</table>
+</div>
+And some more text.
+<table class="in-flow">
+<tr><td>One</td></tr>
+<tr><td>Two</td></tr>
+<tr><td>
+ Three
+ <span class="footnote">Footnote called from in-flow table</span>
+</td></tr>
+<tr><td>Four</td></tr>
+<tr><td>Five</td></tr>
+<tr><td>Six</td></tr>
+<tr><td>Seven</td></tr>
+<tr><td>Eight</td></tr>
+<tr><td>Nine</td></tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<html>
+<head>
+<style>
+@page {
+    size: 300px 300px;
+    margin: 0;
+
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid green;
+        max-height: 50%;
+    }
+}
+body {
+  border: 1px solid black;
+  font-size: 14px;
+}
+::footnote-call {
+  color: orange;
+  counter-increment: footnote 1;
+  content: "[" counter(footnote) "]";
+}
+::footnote-marker {
+  color: blue;
+  content: counter(footnote) ". ";
+  float: left;
+  width: 1.5em;
+  border: 1px solid orange;
+}
+.footnote {
+  clear: both;
+  color: green;
+  float: footnote;
+}
+div {
+  height: 70px;
+  page-break-inside: avoid;
+}
+div.footnote {
+  height: auto;
+  border-top: 2px solid black;
+}
+#one { background: red; }
+#two { background: green; }
+#three { background: orange; }
+#four { background: purple; }
+#five { background: gray; }
+</style>
+</head>
+<body>
+ <div id="one"></div>
+ <div id="two"></div>
+
+ <div class="footnote">
+   <p style="margin-top: 0;">
+     Footnote with <strong>large</strong> text!
+   </p>
+   <p>
+     Another paragraph!
+   </p>
+ </div>
+ <div class="footnote">
+    This however is a purely inline footnote.
+ </div>
+
+ <div id="three"></div>
+ <div id="four"></div>
+ <div id="five"></div>
+</body>
+</html>

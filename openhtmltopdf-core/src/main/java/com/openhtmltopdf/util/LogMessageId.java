@@ -12,7 +12,6 @@ public interface LogMessageId {
 
         RENDER_BUG_FONT_DIDNT_CONTAIN_EXPECTED_CHARACTER(XRLog.RENDER, "BUG. Font didn't contain expected character."),
         RENDER_FONT_LIST_IS_EMPTY(XRLog.RENDER, "Font list is empty."),
-        RENDER_FONT_IS_NULL(XRLog.RENDER, "Font is null."),
 
         LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES(XRLog.LOAD, "Unable to disable XML External Entities, which might put you at risk to XXE attacks"),
         LOAD_COULD_NOT_SET_VALIDATION_NAMESPACE_FEATURES_FOR_XML_PARSER(XRLog.LOAD, "Could not set validation/namespace features for XML parser, exception thrown."),
@@ -31,12 +30,14 @@ public interface LogMessageId {
         LAYOUT_ERROR_PARSING_SHAPE_COORDS(XRLog.LAYOUT, "Error while parsing shape coords"),
         LAYOUT_NO_CONTENT_LIMIT_FOUND(XRLog.LAYOUT, "No content limit found"),
         LAYOUT_BOX_HAS_NO_PAGE(XRLog.LAYOUT, "Box has no page"),
+        LAYOUT_NO_INLINE_LAYERS(XRLog.LAYOUT, "Boxes with display: inline can not be positioned or transformed, try using inline-block"),
 
         CASCADE_IS_ABSOLUTE_CSS_UNKNOWN_GIVEN(XRLog.CASCADE, "Asked whether type was absolute, given CSS_UNKNOWN as the type. " +
                 "Might be one of those funny values like background-position."),
 
         MATCH_TRYING_TO_SET_MORE_THAN_ONE_PSEUDO_ELEMENT(XRLog.MATCH, "Trying to set more than one pseudo-element"),
 
+        GENERAL_NO_FOOTNOTES_INSIDE_FOOTNOTES(XRLog.GENERAL, "Footnotes inside footnotes or fixed position area are not supported"),
         GENERAL_IMPORT_FONT_FACE_RULES_HAS_NOT_BEEN_CALLED(XRLog.GENERAL, "importFontFaceRules has not been called for this pdf transcoder"),
         GENERAL_PDF_ACCESSIBILITY_NO_ALT_ATTRIBUTE_PROVIDED_FOR_IMAGE(XRLog.GENERAL, "No alt attribute provided for image/replaced in PDF/UA document."),
         GENERAL_PDF_SPECIFIED_FONTS_DONT_CONTAIN_A_SPACE_CHARACTER(XRLog.GENERAL, "Specified fonts don't contain a space character!"),
@@ -56,8 +57,8 @@ public interface LogMessageId {
         EXCEPTION_TRIED_TO_OPEN_A_PASSWORD_PROTECTED_DOCUMENT_AS_SRC_FOR_IMG(XRLog.EXCEPTION, "Tried to open a password protected document as src for an img!"),
         EXCEPTION_COULD_NOT_READ_PDF_AS_SRC_FOR_IMG(XRLog.EXCEPTION, "Could not read pdf passed as src for img element!"),
         EXCEPTION_COULD_NOT_PARSE_DEFAULT_STYLESHEET(XRLog.EXCEPTION, "Could not parse default stylesheet"),
-        EXCEPTION_SELECTOR_BAD_SIBLING_AXIS(XRLog.EXCEPTION, "Bad sibling axis"),
-        EXCEPTION_FONT_METRICS_NOT_AVAILABLE(XRLog.EXCEPTION, "Font metrics not available. Probably a bug.");
+        EXCEPTION_SELECTOR_BAD_SIBLING_AXIS(XRLog.EXCEPTION, "Bad sibling axis");
+        
 
         private final String where;
         private final String messageFormat;
@@ -103,7 +104,7 @@ public interface LogMessageId {
         RENDER_OP_MUST_NOT_BE_USED_BY_FAST_RENDERER(XRLog.RENDER, "{} MUST not be used by the fast renderer. Please consider reporting this bug."),
         RENDER_UNKNOWN_PAINT(XRLog.RENDER, "Unknown paint: {}"),
         RENDER_USING_CSS_IMPLEMENTATION_FROM(XRLog.RENDER, "Using CSS implementation from: {}"),
-
+        RENDER_FONT_IS_NULL(XRLog.RENDER, "Font is null for font-description: {}"),
 
         MATCH_TRYING_TO_APPEND_CONDITIONS_TO_PSEUDO_ELEMENT(XRLog.MATCH, "Trying to append conditions to pseudoElement {}"),
         MATCH_MATCHER_CREATED_WITH_SELECTOR(XRLog.MATCH, "Matcher created with {} selectors"),
@@ -148,8 +149,14 @@ public interface LogMessageId {
         GENERAL_PDF_A_ELEMENT_DOES_NOT_HAVE_OPTION_CHILDREN(XRLog.GENERAL, "A <{}> element does not have <option> children"),
         GENERAL_FORCED_OUTPUT_TO_AVOID_INFINITE_LOOP(XRLog.GENERAL, "Forced text ({}) output after trying to move to next line unsuccessfully. Probably a bug."),
 
+        GENERAL_FOOTNOTE_INVALID(XRLog.GENERAL, "Element not valid for use as footnote, treating as normal content. Reason: {}. Non-compliant content may be nested in basic <div>."),
+        GENERAL_FOOTNOTE_PSEUDO_INVALID(XRLog.GENERAL, "Footnote pseudo element found with invalid style, ignoring. Reason: {}"),
+        GENERAL_FOOTNOTE_CAN_NOT_BE_PSEUDO(XRLog.GENERAL, "Pseudo element (::{}) can not have float: footnote set, ignoring."),
+
+        EXCEPTION_FONT_METRICS_NOT_AVAILABLE(XRLog.EXCEPTION, "Font metrics not available for font-description: {}"),
         EXCEPTION_URI_SYNTAX_WHILE_LOADING_EXTERNAL_SVG_RESOURCE(XRLog.EXCEPTION, "URI syntax exception while loading external svg resource: {}"),
         EXCEPTION_SVG_ERROR_HANDLER(XRLog.EXCEPTION, "SVG {}"),
+        EXCEPTION_SVG_CREATE_FONT(XRLog.EXCEPTION, "Error while creating a font with family: {}"),
         EXCEPTION_PDF_IN_WRITING_METHOD(XRLog.EXCEPTION, "Exception in PDF writing method: {}"),
         EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI(XRLog.EXCEPTION, "Can't read image file; unexpected problem for URI '{}'"),
         EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI_NOT_FOUND(XRLog.EXCEPTION, "Can't read image file; image at URI '{}' not found"),
@@ -202,6 +209,7 @@ public interface LogMessageId {
         CSS_PARSE_COULDNT_PARSE_STYLESHEET_AT_URI(XRLog.CSS_PARSE, "Couldn't parse stylesheet at URI {}: {}"),
         CSS_PARSE_GENERIC_MESSAGE(XRLog.CSS_PARSE, "({}) {}"),
 
+        XML_FEATURE_NOT_ABLE_TO_SET(XRLog.LOAD, "Could not set XML/SAX feature. This may be a security issue if using untrusted XML. Feature: {} -> {}"),
         XML_ENTITIES_SAX_FEATURE_SET(XRLog.XML_ENTITIES, "SAX Parser feature: {} set to {}"),
         XML_ENTITIES_ENTITY_PUBLIC_NOT_FOUND_OR_LOCAL(XRLog.XML_ENTITIES, "Entity public: {} -> {}"),
         XML_ENTITIES_ENTITY_CANT_FIND_LOCAL_REFERENCE(XRLog.XML_ENTITIES, "Can't find a local reference for Entity for public ID: {}" +
@@ -227,6 +235,7 @@ public interface LogMessageId {
         GENERAL_EXPECTING_BOX_CHILDREN_OF_TYPE_BUT_GOT(XRLog.GENERAL, "Expecting box children to be of type ({}) but got ({})."),
         GENERAL_PDF_FOUND_ELEMENT_WITHOUT_ATTRIBUTE_NAME(XRLog.GENERAL, "found a <{} {}> element without attribute name, the element will not work without this attribute"),
         GENERAL_UNABLE_TO_PARSE_VALUE_AS(XRLog.GENERAL, "Unable to parse value '{}' as {}"),
+        GENERAL_FOOTNOTE_AREA_INVALID_STYLE(XRLog.GENERAL, "Invalid value ({}) specified for @footnote area in {} property. Ignoring declaration."),
 
         EXCEPTION_SVG_EXTERNAL_RESOURCE_NOT_ALLOWED(XRLog.EXCEPTION, "Tried to fetch external resource from SVG. Refusing. Details: {}, {}"),
         EXCEPTION_DEFAULT_USERAGENT_IS_NOT_ABLE_TO_RESOLVE_URL_WITH_BASE_URL(XRLog.EXCEPTION, "The default NaiveUserAgent cannot resolve the URL {} with base URL {}");

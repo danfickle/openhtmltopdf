@@ -28,6 +28,10 @@ import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 
 public class DerivedValueFactory {
+    /**
+     * Derived value factory. Requires a reference to a style so that it
+     * can resolve explicit <code>inherit</code> values with values from an ancestor.
+     */
     public static FSDerivedValue newDerivedValue(
             CalculatedStyle style, CSSName cssName, PropertyValue value) {
         if (value.getCssValueType() == CSSValue.CSS_INHERIT) {

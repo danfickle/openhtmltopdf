@@ -106,17 +106,19 @@ public class TableCellBox extends BlockBox {
         CollapsedBorderValue right = collapsedRightBorder(c);
         CollapsedBorderValue bottom = collapsedBottomBorder(c);
         CollapsedBorderValue left = collapsedLeftBorder(c);
-        
-        _collapsedPaintingBorder = new BorderPropertySet(top, right, bottom, left);
-        
+
+        boolean allowBevel = getStyle().isIdent(CSSName.FS_BORDER_RENDERING, IdentValue.AUTO);
+
+        _collapsedPaintingBorder = new BorderPropertySet(allowBevel, top, right, bottom, left);
+
         // Give the extra pixel to top and left.
         top.setWidth((top.width()+1)/2);
         right.setWidth(right.width()/2);
         bottom.setWidth(bottom.width()/2);
         left.setWidth((left.width()+1)/2);
-        
-        _collapsedLayoutBorder = new BorderPropertySet(top, right, bottom, left);
-        
+
+        _collapsedLayoutBorder = new BorderPropertySet(allowBevel, top, right, bottom, left);
+
         _collapsedBorderTop = top;
         _collapsedBorderRight = right;
         _collapsedBorderBottom = bottom;
@@ -231,20 +233,26 @@ public class TableCellBox extends BlockBox {
         
         calcChildLocations();
     }
-    
+
     public boolean isPageBreaksChange(LayoutContext c, int posDeltaY) {
         if (! c.isPageBreaksAllowed()) {
             return false;
         }
-        
+
         PageBox page = c.getRootLayer().getFirstPage(c, this);
-        
+
+        if (page == null) {
+            return false;
+        }
+
         int bottomEdge = getAbsY() + getChildrenHeight();
-        
-        return page != null && (bottomEdge >= page.getBottom() - c.getExtraSpaceBottom() ||
-                    bottomEdge + posDeltaY >= page.getBottom() - c.getExtraSpaceBottom());
+
+        int pageUsableBottom = page.getBottom(c) - c.getExtraSpaceBottom();
+
+        return (bottomEdge >= pageUsableBottom ||
+                    bottomEdge + posDeltaY >= pageUsableBottom);
     }
-    
+
     public IdentValue getVerticalAlign() {
         IdentValue val = getStyle().getIdent(CSSName.VERTICAL_ALIGN);
         
@@ -254,16 +262,15 @@ public class TableCellBox extends BlockBox {
             return IdentValue.BASELINE;
         }
     }
-    
+
     private boolean isPaintBackgroundsAndBorders() {
         boolean showEmpty = getStyle().isShowEmptyCells();
         // XXX Not quite right, but good enough for now 
         // (e.g. absolute boxes will be counted as content here when the spec 
         // says the cell should be treated as empty).  
-        return showEmpty || getChildrenContentType() != BlockBox.CONTENT_EMPTY;
-                    
+        return showEmpty || getChildrenContentType() != BlockBox.ContentType.EMPTY;
     }
-    
+
     @Override
     public void paintBackground(RenderingContext c) {
         if (isPaintBackgroundsAndBorders() && getStyle().isVisible(c, this)) {

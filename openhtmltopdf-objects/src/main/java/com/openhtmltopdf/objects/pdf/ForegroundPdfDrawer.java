@@ -3,6 +3,8 @@ package com.openhtmltopdf.objects.pdf;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.pdfboxout.PdfBoxOutputDevice;
 import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.XRLog;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSStream;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class ForegroundPdfDrawer extends PdfDrawerBase
 {
@@ -60,7 +63,7 @@ public class ForegroundPdfDrawer extends PdfDrawerBase
         }
         catch (IOException e1)
         {
-            e1.printStackTrace();
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_MESSAGE, "Error while drawing with the ForegroundPdfDrawer ", e1);
         }
         return null;
     }

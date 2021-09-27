@@ -37,7 +37,7 @@ import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.extend.FSDOMMutator;
 import com.openhtmltopdf.outputdevice.helper.PageDimensions;
 import com.openhtmltopdf.outputdevice.helper.UnicodeImplementation;
-import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
+import com.openhtmltopdf.pdfboxout.PdfBoxUtil.Metadata;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.CacheStore;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.PdfAConformance;
 import com.openhtmltopdf.render.BlockBox;
@@ -71,13 +71,9 @@ import org.apache.xmpbox.type.BadFieldValueException;
 import org.apache.xmpbox.xml.XmpSerializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
@@ -133,12 +129,13 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     private BidiSplitterFactory _splitterFactory;
     private byte _defaultTextDirection = BidiSplitter.LTR;
     private BidiReorderer _reorderer;
-    private final boolean _useFastMode;
 
     private PageSupplier _pageSupplier;
 
     private final Closeable diagnosticConsumer;
-    
+
+    private final int _initialPageNumber;
+
     /**
      * This method is constantly changing as options are added to the builder.
      */
@@ -149,6 +146,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
         _pdfDoc = state.pddocument != null ? state.pddocument : new PDDocument();
         _pdfDoc.setVersion(state._pdfVersion);
+        _pdfVersion = state._pdfVersion;
 
         _producer = state._producer;
 
@@ -163,12 +161,10 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
 
         _dotsPerPoint = DEFAULT_DOTS_PER_POINT;
         _testMode = state._testMode;
-        _useFastMode = state._useFastRenderer;
-        _outputDevice = state._useFastRenderer ? 
+        _outputDevice = 
                 new PdfBoxFastOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode,
                         state._pdfUaConform || state._pdfAConformance.getConformanceValue().equals("A"),
-                        state._pdfAConformance != PdfAConformance.NONE) : 
-                new PdfBoxSlowOutputDevice(DEFAULT_DOTS_PER_POINT, _testMode);
+                        state._pdfAConformance != PdfAConformance.NONE);
         _outputDevice.setWriter(_pdfDoc);
         _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
         
@@ -268,6 +264,8 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         }
         
         this._os = state._os;
+
+        this._initialPageNumber = state._initialPageNumber;
     }
 
     public Document getDocument() {
@@ -342,8 +340,14 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
     public void layout() {
         LayoutContext c = newLayoutContext();
         BlockBox root = BoxBuilder.createRootBox(c, _doc);
-        root.setContainingBlock(new ViewportBox(getInitialExtents(c)));
+        Box viewport = new ViewportBox(getInitialExtents(c));
+
+        root.setContainingBlock(viewport);
         root.layout(c);
+
+        // Useful to see the box tree after layout.
+        // System.out.println(com.openhtmltopdf.util.LambdaUtil.descendantDump(root));
+
         Dimension dim = root.getLayer().getPaintingDimension(c);
         root.getLayer().trimEmptyPages(c, dim.height);
         root.getLayer().layoutPages(c);
@@ -395,7 +399,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
      *  Creates a PDF with setup specified by builder. On finsihing or failing, saves (if successful) and closes the PDF document.
      */
     public void createPDF() throws IOException {
-        createPDF(_os);
+        createPdfFast(true, 0);
     }
 
     /**
@@ -403,47 +407,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
      *  Useful for post-processing the PDDocument which can be retrieved by getPdfDocument().
      */
     public void createPDFWithoutClosing() throws IOException {
-        createPDF(_os, false, 0);
-    }
-    
-    /**
-     * @deprecated Use builder to set output stream.
-     * @param os
-     * @throws IOException
-     */
-    @Deprecated
-    public void createPDF(OutputStream os) throws IOException {
-        createPDF(os, true, 0);
-    }
-
-    /**
-     * @deprecated Doubt this still works as untested.
-     * @throws IOException
-     */
-    @Deprecated 
-    public void writeNextDocument() throws IOException {
-        writeNextDocument(0);
-    }
-
-    /**
-     * @deprecated Doubt this still works as untested.
-     * @throws IOException
-     */
-    @Deprecated 
-    public void writeNextDocument(int initialPageNo) throws IOException {
-        List<PageBox> pages = _root.getLayer().getPages();
-
-        RenderingContext c = newRenderingContext();
-        c.setInitialPageNo(initialPageNo);
-
-        PageBox firstPage = pages.get(0);
-        Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
-                firstPage.getWidth(c) / _dotsPerPoint,
-                firstPage.getHeight(c) / _dotsPerPoint);
-
-        _outputDevice.setStartPageNo(_pdfDoc.getNumberOfPages());
-
-        writePDF(pages, c, firstPageSize, _pdfDoc);
+        createPdfFast(false, 0);
     }
 
     /**
@@ -457,76 +421,11 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             _pdfDoc.close();
         }
     }
-
-    /**
-     * @deprecated Use builder to set output stream.
-     * @throws IOException
-     */
-    @Deprecated 
-    public void createPDF(OutputStream os, boolean finish) throws IOException {
-        createPDF(os, finish, 0);
-    }
-
-    /**
-     * @deprecated Use builder to set output stream.
-     * <B>NOTE:</B> Caller is responsible for cleaning up the OutputStream.
-     * 
-     * @throws IOException
-     */
-    @Deprecated
-    public void createPDF(OutputStream os, boolean finish, int initialPageNo) throws IOException {
-        if (_useFastMode) {
-            createPdfFast(finish);
-            return;
-        }
-        
-        boolean success = false;
-        
-        try {
-            // renders the layout if it wasn't created
-            if (_root == null) {
-                this.layout();
-            }
-            
-            List<PageBox> pages = _root.getLayer().getPages();
-
-            RenderingContext c = newRenderingContext();
-            c.setInitialPageNo(initialPageNo);
-        
-            PageBox firstPage = pages.get(0);
-            Rectangle2D firstPageSize = new Rectangle2D.Float(0, 0,
-                    firstPage.getWidth(c) / _dotsPerPoint,
-                    firstPage.getHeight(c) / _dotsPerPoint);
-
-            if (_pdfVersion != 0f) {
-                _pdfDoc.setVersion(_pdfVersion);
-            }
-        
-            if (_pdfEncryption != null) {
-                _pdfDoc.setEncryptionDictionary(_pdfEncryption);
-            }
-
-            firePreOpen();
-
-            writePDF(pages, c, firstPageSize, _pdfDoc);
-            
-            success = true;
-        } finally {
-            if (finish) {
-                fireOnClose();
-                if (success) {
-                    _pdfDoc.save(os);
-                }
-                _pdfDoc.close();
-                _pdfDoc = null;
-            }
-        }
-    }
     
     /**
      * Go fast!
      */
-    private void createPdfFast(boolean finish) throws IOException {
+    private void createPdfFast(boolean finish, int initialPageNo) throws IOException {
         boolean success = false;
 
         XRLog.log(Level.INFO, LogMessageId.LogMessageId0Param.GENERAL_PDF_USING_FAST_MODE);
@@ -540,7 +439,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             List<PageBox> pages = _root.getLayer().getPages();
 
             RenderingContext c = newRenderingContext();
-            c.setInitialPageNo(0);
+            c.setInitialPageNo(initialPageNo != 0 ? initialPageNo : _initialPageNumber);
             c.setFastRenderer(true);
         
             PageBox firstPage = pages.get(0);
@@ -548,10 +447,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                     firstPage.getWidth(c) / _dotsPerPoint,
                     firstPage.getHeight(c) / _dotsPerPoint);
 
-            if (_pdfVersion != 0f) {
-                _pdfDoc.setVersion(_pdfVersion);
-            }
-        
             if (_pdfEncryption != null) {
                 _pdfDoc.setEncryptionDictionary(_pdfEncryption);
             }
@@ -603,6 +498,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         
         int pageCount = _root.getLayer().getPages().size();
         c.setPageCount(pageCount);
+
         firePreWrite(pageCount); // opportunity to adjust meta data
         setDidValues(doc); // set PDF header fields from meta data
         
@@ -670,46 +566,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         _outputDevice.finish(c, _root);
     }
 
-    private void writePDF(List<PageBox> pages, RenderingContext c, Rectangle2D firstPageSize, PDDocument doc) throws IOException {
-        _outputDevice.setRoot(_root);
-        _outputDevice.start(_doc);
-        
-        PDPage page = _pageSupplier.requestPage(doc, (float) firstPageSize.getWidth(), (float) firstPageSize.getHeight(), 0, -1);
-        PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, !_testMode);
-        
-        _outputDevice.initializePage(cs, page, (float) firstPageSize.getHeight());
-        _root.getLayer().assignPagePaintingPositions(c, Layer.PAGED_MODE_PRINT);
-
-        int pageCount = _root.getLayer().getPages().size();
-        c.setPageCount(pageCount);
-        firePreWrite(pageCount); // opportunity to adjust meta data
-        setDidValues(doc); // set PDF header fields from meta data
-
-        if (_pdfUaConformance || _pdfAConformance != PdfAConformance.NONE) {
-            addPdfASchema(doc, _pdfAConformance, _pdfUaConformance);
-        }
-
-        for (int i = 0; i < pageCount; i++) {
-            PageBox currentPage = pages.get(i);
-            
-            c.setPage(i, currentPage);
-            paintPage(c, currentPage);
-            _outputDevice.finishPage();
-            
-            if (i != pageCount - 1) {
-                PageBox nextPage = pages.get(i + 1);
-                Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / _dotsPerPoint,
-                        nextPage.getHeight(c) / _dotsPerPoint);
-                PDPage pageNext = 
-                		_pageSupplier.requestPage(doc, (float) nextPageSize.getWidth(), (float) nextPageSize.getHeight(), i + 1, -1);
-                PDPageContentStream csNext = new PDPageContentStream(doc, pageNext, AppendMode.APPEND, !_testMode);
-                _outputDevice.initializePage(csNext, pageNext, (float) nextPageSize.getHeight());
-            }
-        }
-
-        _outputDevice.finish(c, _root);
-    }
-
     // Kindly provided by GurpusMaximus at:
     // https://stackoverflow.com/questions/49682339/how-can-i-create-an-accessible-pdf-with-java-pdfbox-2-0-8-library-that-is-also-v
     private void addPdfASchema(PDDocument document, PdfAConformance pdfAConformance, boolean isPdfUa) {
@@ -756,21 +612,24 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                 if (modDate != null) {
                     xmpBasicSchema.setModifyDate(modDate);
                 }
+            }
 
+            DublinCoreSchema dc = metadata.createAndAddDublinCoreSchema();
+            dc.setFormat("application/pdf");
 
-                DublinCoreSchema dc = metadata.createAndAddDublinCoreSchema();
-                dc.setFormat("application/pdf");
-                if (author != null) {
-                    dc.addCreator(author);
-                }
-                if (title != null) {
-                    dc.setTitle(title);
-                }
-                if (subject != null) {
-                    dc.setDescription(subject);
-                } else if (isPdfUa) {
-                    XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_DESCRIPTION_PROVIDED);
-                }
+            if (author != null) {
+                dc.addCreator(author);
+            }
+
+            if (title != null) {
+                dc.setTitle(title);
+            }
+
+            if (subject != null) {
+                dc.setDescription(subject);
+            } else if (isPdfUa) {
+                XRLog.log(Level.WARNING,
+                        LogMessageId.LogMessageId0Param.GENERAL_PDF_ACCESSIBILITY_NO_DOCUMENT_DESCRIPTION_PROVIDED);
             }
 
             PDFAExtensionSchema pdfAExt = metadata.createAndAddPDFAExtensionSchemaWithDefaultNS();
@@ -799,6 +658,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
                 pdfAExt.addBagValue("schemas",
                         createPdfaSchema("PDF/A ID Schema", "http://www.aiim.org/pdfa/ns/id/", "pdfaid", pdfaidProperties));
             }
+
             if (isPdfUa) {
                 // Description of PDF/UA
                 List<XMPSchema> pdfUaProperties = new ArrayList<>(1);
@@ -819,7 +679,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             PDDocumentCatalog catalog = document.getDocumentCatalog();
             catalog.setMetadata(metadataStream);
             catalog.setMarkInfo(markInfo);
-            
+
             String lang = _doc.getDocumentElement().getAttribute("lang");
             catalog.setLanguage(!lang.isEmpty() ? lang : "EN-US");
             catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
@@ -847,7 +707,9 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         }
     }
 
-    // Creates an XML Schema to be used in the PDFA Extension
+    /**
+     * Creates an XML Schema to be used in the PDFA Extension
+     */
     private XMPSchema createPdfaSchema(String schema, String namespace, String prefix, List<XMPSchema> properties) {
         XMPSchema xmpSchema = new XMPSchema(XMPMetadata.createXMPMetadata(),
                 "pdfaSchema", "pdfaSchema", "pdfaSchema");
@@ -860,7 +722,9 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         return xmpSchema;
     }
 
-    // Creates an XML Property to be used in the PDFA Extension
+    /**
+     * Creates an XML Property to be used in the PDFA Extension
+     */
     private XMPSchema createPdfaProperty(String category, String description, String name, String valueType) {
         XMPSchema xmpSchema = new XMPSchema(XMPMetadata.createXMPMetadata(),
                 "pdfaProperty", "pdfaProperty", "pdfaProperty");
@@ -871,7 +735,9 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         return xmpSchema;
     }
 
-    // Sets the document information dictionary values from html metadata
+    /**
+     * Sets the document information dictionary values from html metadata
+     */
     private void setDidValues(PDDocument doc) {
         PDDocumentInformation info = new PDDocumentInformation();
 
@@ -911,7 +777,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         c.setInPageMargins(true);
         page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
         c.setInPageMargins(false);
-        
+
         page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
 
         Rectangle content = page.getPrintClippingBounds(c);
@@ -931,107 +797,12 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         _outputDevice.popClip();
     }
 
-    private void paintPage(RenderingContext c, PageBox page) {
-        // TODO: provideMetadataToPage(_pdfDoc, page);
-
-        page.paintBackground(c, 0, Layer.PAGED_MODE_PRINT);
-        page.paintMarginAreas(c, 0, Layer.PAGED_MODE_PRINT);
-        page.paintBorder(c, 0, Layer.PAGED_MODE_PRINT);
-
-        Shape working = _outputDevice.getClip();
-
-        Rectangle content = page.getPrintClippingBounds(c);
-        _outputDevice.clip(content);
-
-        int top = -page.getPaintingTop() + page.getMarginBorderPadding(c, CalculatedStyle.TOP);
-
-        int left = page.getMarginBorderPadding(c, CalculatedStyle.LEFT);
-
-        _outputDevice.translate(left, top);
-        _root.getLayer().paint(c);
-        _outputDevice.translate(-left, -top);
-
-        _outputDevice.setClip(working);
-    }
-/* TODO : Metadata
-    private void provideMetadataToPage(PdfWriter writer, PageBox page) throws IOException {
-        byte[] metadata = null;
-        if (page.getMetadata() != null) {
-            try {
-                String metadataBody = stringfyMetadata(page.getMetadata());
-                if (metadataBody != null) {
-                    metadata = createXPacket(stringfyMetadata(page.getMetadata())).getBytes("UTF-8");
-                }
-            } catch (UnsupportedEncodingException e) {
-                // Can't happen
-                throw new RuntimeException(e);
-            }
-        }
-
-        if (metadata != null) {
-            writer.setPageXmpMetadata(metadata);
-        }
-    }
-*/
-    private String stringfyMetadata(Element element) {
-        Element target = getFirstChildElement(element);
-        if (target == null) {
-            return null;
-        }
-
-        try {
-            TransformerFactory factory = TransformerFactory.newInstance();
-            Transformer transformer = factory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            StringWriter output = new StringWriter();
-            transformer.transform(new DOMSource(target), new StreamResult(output));
-
-            return output.toString();
-        } catch (TransformerException e) {
-            // Things must be in pretty bad shape to get here so
-            // rethrow as runtime exception
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static Element getFirstChildElement(Element element) {
-        Node n = element.getFirstChild();
-        while (n != null) {
-            if (n.getNodeType() == Node.ELEMENT_NODE) {
-                return (Element) n;
-            }
-            n = n.getNextSibling();
-        }
-        return null;
-    }
-
-    private String createXPacket(String metadata) {
-        StringBuilder result = new StringBuilder(metadata.length() + 50);
-        result.append("<?xpacket begin='\uFEFF' id='W5M0MpCehiHzreSzNTczkc9d'?>\n");
-        result.append(metadata);
-        result.append("\n<?xpacket end='r'?>");
-
-        return result.toString();
-    }
-
     public PdfBoxOutputDevice getOutputDevice() {
         return _outputDevice;
     }
 
     public SharedContext getSharedContext() {
         return _sharedContext;
-    }
-
-    /**
-     * @deprecated unused and untested.
-     * @param writer
-     * @throws IOException
-     */
-    @Deprecated
-    public void exportText(Writer writer) throws IOException {
-        RenderingContext c = newRenderingContext();
-        c.setPageCount(_root.getLayer().getPages().size());
-        _root.exportText(c, writer);
     }
 
     public BlockBox getRootBox() {
@@ -1068,11 +839,7 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
         _listener = listener;
     }
     
-    /**
-     * @deprecated Use close instead.
-     */
-    @Deprecated
-    public void cleanup() {
+    private void cleanup() {
         _outputDevice.close();
         _sharedContext.removeFromThread();
         try {

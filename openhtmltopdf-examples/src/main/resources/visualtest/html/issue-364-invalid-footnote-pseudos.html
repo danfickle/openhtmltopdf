@@ -1,0 +1,79 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+  @footnote {
+    border: 1px solid red;
+    padding: 10px;
+    display: table;
+    position: fixed;
+    float: footnote !important;
+    max-height: 80%;
+  }
+}
+html {
+  orphans: 0;
+  widows: 0;
+}
+body {
+  font-size: 16px;
+}
+.footnote {
+  color: green;
+  float: footnote;
+}
+::footnote-call {
+  counter-increment: footnote;
+  content: " [fn " counter(footnote) "] ";
+  float: footnote;
+}
+::footnote-marker {
+  content: "fn " counter(footnote) ".  ";
+  float: footnote;
+}
+.fixed::footnote-call,
+.fixed::footnote-marker {
+  position: fixed;
+}
+.normal::footnote-call,
+.normal::footnote-marker {
+  float: none;
+}
+.invalid::before {
+  float: footnote;
+  content: "Before";
+}
+.invalid::after {
+  position: fixed;
+  content: "After";
+}
+.end::before {
+  content: "The end";
+  float: footnote;
+}
+</style>
+</head>
+<body>
+  This is some in-flow content.
+
+  <div class="footnote invalid">
+    This footnote has invalid (float: footnote) pseudo elements.
+  </div>
+
+  <div class="end">
+    End of document.
+  </div>
+
+  <div class="footnote fixed">
+    This footnote has position: fixed on pseudo elements.
+  </div>
+
+  <div class="footnote normal">
+    Normal footnote
+  </div>
+
+  Whoops, this is a postscript on page 2.
+
+</body>
+</html>

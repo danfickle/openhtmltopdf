@@ -144,6 +144,7 @@ public class Application {
             _websiteBase.mkdirs();
 
             fail |= runTemplate("arboshiki-invoice", DataGenerator.INVOICE);
+            fail |= runTemplate("cafe-menu", DataGenerator.MENU);
 
             Map<String, Object> args = Collections.singletonMap("templates", _templates);
             String indexHtml = _thymeleaf.process("webpage-index", args);

@@ -97,7 +97,7 @@
 	File: ${.template_name}
 </div>
 <div id="left">
-	<div style="transform: rotate(90deg); text-transform: uppercase">
+	<div style="transform: translateX(1.4cm) rotate(90deg); text-transform: uppercase; transform-origin: left top;">
 		Feature Documentation
 	</div>
 </div>
@@ -228,13 +228,14 @@ rendered using the MathML support.
 
 [@htmlCodeAndExec]
 <latex>
-	This is a small inline formular: $$a^2 + b^2 = c^2$$. You can use many LaTeX
-	features and environments. The exact amount of supported features is depending on
-	StruggleTex and JEuclid which are the backing libraries for the LaTeX and MathML support.
+	This is a small inline formular: $$a^2 + b^2 = c^2$$. You can use
+	many LaTeX features and environments. The exact amount of supported
+	features is depending on SnuggleTex and JEuclid which are the backing
+	libraries for the LaTeX and MathML support.
 
-	$$\sum\limits_{i=1}^n i^2 = \frac{n(n+1)(2n+1)}{6}$$
+	$$\sum_{i=1}^n i^2 = \frac{n(n+1)(2n+1)}{6}$$
 
-	$\prod\limits_{i=1}^n x = x^n$
+	$\prod_{i=1}^n x = x^n$
 </latex>
 [/@htmlCodeAndExec]
 
@@ -337,6 +338,10 @@ Note: This only works in Acrobat Reader, all other PDF Viewer ignore this featur
 	<data series="Price/kg" category="Pear" value="4.2"/>
 	<data series="Price/kg" category="Orange" value="5.2"/>
 </object>
+
+<a id="apple">Apple content...</a><br/>
+<a id="pear">Pear content...</a><br/>
+<a id="orange">Orange content...</a><br/>
 [/@htmlCodeAndExec]
 
 <br style="page-break-after: always"/>

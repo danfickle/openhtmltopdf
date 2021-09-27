@@ -20,10 +20,8 @@
 package com.openhtmltopdf.layout;
 
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
@@ -34,9 +32,6 @@ import com.openhtmltopdf.bidi.SimpleBidiReorderer;
 import com.openhtmltopdf.bidi.SimpleBidiSplitterFactory;
 import com.openhtmltopdf.context.ContentFunctionFactory;
 import com.openhtmltopdf.context.StyleReference;
-import com.openhtmltopdf.css.constants.CSSName;
-import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.css.parser.CounterData;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.value.FontSpecification;
@@ -46,6 +41,9 @@ import com.openhtmltopdf.extend.NamespaceHandler;
 import com.openhtmltopdf.extend.ReplacedElementFactory;
 import com.openhtmltopdf.extend.TextRenderer;
 import com.openhtmltopdf.extend.UserAgentCallback;
+import com.openhtmltopdf.layout.counter.AbstractCounterContext;
+import com.openhtmltopdf.layout.counter.CounterContext;
+import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
@@ -59,6 +57,14 @@ import com.openhtmltopdf.render.PageBox;
  * {@link SharedContext}.
  */
 public class LayoutContext implements CssContext {
+    public enum BlockBoxingState {
+        NOT_SET,
+        ALLOW,
+        DENY;
+    }
+
+    private BlockBoxingState _blockBoxingState = BlockBoxingState.NOT_SET;
+
     private SharedContext _sharedContext;
 
     private Layer _rootLayer;
@@ -77,7 +83,7 @@ public class LayoutContext implements CssContext {
     private int _extraSpaceTop;
     private int _extraSpaceBottom;
 
-    private final Map<CalculatedStyle, CounterContext> _counterContextMap = new HashMap<>();
+    public final Map<CalculatedStyle, CounterContext> _counterContextMap = new HashMap<>();
 
     private String _pendingPageName;
     private String _pageName;
@@ -92,8 +98,16 @@ public class LayoutContext implements CssContext {
     private boolean _lineBreakedBecauseOfNoWrap = false;
 
     private BreakAtLineContext _breakAtLineContext;
-    
+
     private Boolean isPrintOverride = null; // True, false, or null for no override.
+
+    private boolean _isInFloatBottom;
+
+    private LayoutState _savedLayoutState;
+
+    private int _footnoteIndex;
+    private FootnoteManager _footnoteManager;
+    private boolean _isFootnoteAllowed = true;
 
     @Override
     public TextRenderer getTextRenderer() {
@@ -129,7 +143,7 @@ public class LayoutContext implements CssContext {
     }
     
     private BidiReorderer _bidiReorderer = new SimpleBidiReorderer();
-    
+
     public void setBidiReorderer(BidiReorderer reorderer) {
     	_bidiReorderer = reorderer;
     }
@@ -173,13 +187,13 @@ public class LayoutContext implements CssContext {
         _bfcs = new LinkedList<>();
         _layers = new LinkedList<>();
 
-        _firstLines = new StyleTracker();
-        _firstLetters = new StyleTracker();
+        _firstLines = StyleTracker.withNoStyles();
+        _firstLetters = StyleTracker.withNoStyles();
     }
 
     public void reInit(boolean keepLayers) {
-        _firstLines = new StyleTracker();
-        _firstLetters = new StyleTracker();
+        _firstLines = StyleTracker.withNoStyles();
+        _firstLetters = StyleTracker.withNoStyles();
         _currentMarkerData = null;
 
         _bfcs = new LinkedList<>();
@@ -194,22 +208,23 @@ public class LayoutContext implements CssContext {
     }
 
     public LayoutState captureLayoutState() {
-        LayoutState result = new LayoutState();
-
-        result.setFirstLines(_firstLines);
-        result.setFirstLetters(_firstLetters);
-        result.setCurrentMarkerData(_currentMarkerData);
-
-        result.setBFCs(_bfcs);
-
-        if (isPrint()) {
-            result.setPageName(getPageName());
-            result.setExtraSpaceBottom(getExtraSpaceBottom());
-            result.setExtraSpaceTop(getExtraSpaceTop());
-            result.setNoPageBreak(getNoPageBreak());
+        if (!isPrint()) {
+            return new LayoutState(
+                _bfcs,
+                _currentMarkerData,
+                _firstLetters,
+                _firstLines);
+        } else {
+            return new LayoutState(
+                    _bfcs,
+                    _currentMarkerData,
+                    _firstLetters,
+                    _firstLines,
+                    getPageName(),
+                    getExtraSpaceTop(),
+                    getExtraSpaceBottom(),
+                    getNoPageBreak());
         }
-
-        return result;
     }
 
     public void restoreLayoutState(LayoutState layoutState) {
@@ -229,17 +244,24 @@ public class LayoutContext implements CssContext {
     }
 
     public LayoutState copyStateForRelayout() {
-        LayoutState result = new LayoutState();
+        if (_savedLayoutState != null &&
+            _savedLayoutState.equal(
+                    _currentMarkerData,
+                    _firstLetters,
+                    _firstLines,
+                    isPrint() ? getPageName() : null)) {
 
-        result.setFirstLetters(_firstLetters.copyOf());
-        result.setFirstLines(_firstLines.copyOf());
-        result.setCurrentMarkerData(_currentMarkerData);
-
-        if (isPrint()) {
-            result.setPageName(getPageName());
+            return _savedLayoutState;
         }
 
-        return result;
+        _savedLayoutState =
+            new LayoutState(
+                _firstLetters,
+                _firstLines,
+                _currentMarkerData,
+                isPrint() ? getPageName() : null);
+
+        return _savedLayoutState;
     }
 
     public void restoreStateForRelayout(LayoutState layoutState) {
@@ -265,7 +287,11 @@ public class LayoutContext implements CssContext {
         _bfcs.removeLast();
     }
 
-    public void pushLayer(Box master) {
+    public void pushLayerIsolated(BlockBox master) {
+        pushLayer(new Layer(master, this, true));
+    }
+
+    public void pushLayer(BlockBox master) {
         Layer layer = null;
 
         if (_rootLayer == null) {
@@ -395,25 +421,37 @@ public class LayoutContext implements CssContext {
         return _sharedContext;
     }
 
+    /**
+     * Returns the extra space set aside for the footers of paginated tables.
+     */
     public int getExtraSpaceBottom() {
         return _extraSpaceBottom;
     }
 
+    /**
+     * See {@link #getExtraSpaceBottom()}
+     */
     public void setExtraSpaceBottom(int extraSpaceBottom) {
         _extraSpaceBottom = extraSpaceBottom;
     }
 
+    /**
+     * Returns the extra space set aside for the head section of paginated tables.
+     */
     public int getExtraSpaceTop() {
         return _extraSpaceTop;
     }
 
+    /**
+     * See {@link #getExtraSpaceTop()}
+     */
     public void setExtraSpaceTop(int extraSpaceTop) {
         _extraSpaceTop = extraSpaceTop;
     }
 
     public void resolveCounters(CalculatedStyle style, Integer startIndex) {
         //new context for child elements
-        CounterContext cc = new CounterContext(style, startIndex);
+        CounterContext cc = new CounterContext(this, style, startIndex);
         _counterContextMap.put(style, cc);
     }
 
@@ -421,133 +459,12 @@ public class LayoutContext implements CssContext {
     	resolveCounters(style, null);
     }
 
-    public CounterContext getCounterContext(CalculatedStyle style) {
+    public AbstractCounterContext getCounterContext(CalculatedStyle style) {
         return _counterContextMap.get(style);
     }
 
     public FSFontMetrics getFSFontMetrics(FSFont font) {
         return getTextRenderer().getFSFontMetrics(getFontContext(), font, "");
-    }
-
-    public class CounterContext {
-        private Map<String, Integer> _counters = new HashMap<>();
-        /**
-         * This is different because it needs to work even when the counter- properties cascade
-         * and it should also logically be redefined on each level (think list-items within list-items)
-         */
-        private CounterContext _parent;
-
-        /**
-         * A CounterContext should really be reflected in the element hierarchy, but CalculatedStyles
-         * reflect the ancestor hierarchy just as well and also handles pseudo-elements seamlessly.
-         *
-         * @param style
-         */
-        CounterContext(CalculatedStyle style, Integer startIndex) {
-        	// Numbering restarted via <ol start="x">
-			if (startIndex != null) {
-				_counters.put("list-item", startIndex);
-			}
-            _parent = _counterContextMap.get(style.getParent());
-            if (_parent == null) _parent = new CounterContext();//top-level context, above root element
-            //first the explicitly named counters
-            List<CounterData> resets = style.getCounterReset();
-            if (resets != null) {
-                resets.forEach(_parent::resetCounter);
-            }
-
-            List<CounterData> increments = style.getCounterIncrement();
-            if (increments != null) {
-                for (CounterData cd : increments) {
-                    if (!_parent.incrementCounter(cd)) {
-                        _parent.resetCounter(new CounterData(cd.getName(), 0));
-                        _parent.incrementCounter(cd);
-                    }
-                }
-            }
-
-            // then the implicit list-item counter
-			if (style.isIdent(CSSName.DISPLAY, IdentValue.LIST_ITEM)) {
-				// Numbering restarted via <li value="x">
-				if (startIndex != null) {
-					_parent._counters.put("list-item", startIndex);
-				}
-				_parent.incrementListItemCounter(1);
-			}
-        }
-
-        private CounterContext() {
-
-        }
-
-        /**
-         * @param cd
-         * @return true if a counter was found and incremented
-         */
-        private boolean incrementCounter(CounterData cd) {
-            if ("list-item".equals(cd.getName())) {//reserved name for list-item counter in CSS3
-                incrementListItemCounter(cd.getValue());
-                return true;
-            } else {
-                Integer currentValue = (Integer) _counters.get(cd.getName());
-                if (currentValue == null) {
-                    if (_parent == null) return false;
-                    return _parent.incrementCounter(cd);
-                } else {
-                    _counters.put(cd.getName(), new Integer(currentValue.intValue() + cd.getValue()));
-                    return true;
-                }
-            }
-        }
-
-        private void incrementListItemCounter(int increment) {
-            Integer currentValue = (Integer) _counters.get("list-item");
-            if (currentValue == null) {
-                currentValue = new Integer(0);
-            }
-            _counters.put("list-item", new Integer(currentValue.intValue() + increment));
-        }
-
-        private void resetCounter(CounterData cd) {
-            _counters.put(cd.getName(), new Integer(cd.getValue()));
-        }
-
-        public int getCurrentCounterValue(String name) {
-            //only the counters of the parent are in scope
-            //_parent is never null for a publicly accessible CounterContext
-            Integer value = _parent.getCounter(name);
-            if (value == null) {
-                _parent.resetCounter(new CounterData(name, 0));
-                return 0;
-            } else {
-                return value.intValue();
-            }
-        }
-
-        private Integer getCounter(String name) {
-            Integer value = _counters.get(name);
-            if (value != null) return value;
-            if (_parent == null) return null;
-            return _parent.getCounter(name);
-        }
-
-        public List<Integer> getCurrentCounterValues(String name) {
-            //only the counters of the parent are in scope
-            //_parent is never null for a publicly accessible CounterContext
-            List<Integer> values = new ArrayList<>();
-            _parent.getCounterValues(name, values);
-            if (values.size() == 0) {
-                _parent.resetCounter(new CounterData(name, 0));
-                values.add(Integer.valueOf(0));
-            }
-            return values;
-        }
-
-        private void getCounterValues(String name, List<Integer> values) {
-            if (_parent != null) _parent.getCounterValues(name, values);
-            Integer value = _counters.get(name);
-            if (value != null) values.add(value);
-        }
     }
 
     public String getPageName() {
@@ -602,6 +519,14 @@ public class LayoutContext implements CssContext {
         _mayCheckKeepTogether = mayKeepTogether;
     }
 
+    public void setBlockBoxingState(BlockBoxingState state) {
+        _blockBoxingState = state;
+    }
+
+    public BlockBoxingState getBlockBoxingState() {
+        return _blockBoxingState;
+    }
+
     public boolean isLineBreakedBecauseOfNoWrap() {
         return _lineBreakedBecauseOfNoWrap;
     }
@@ -617,4 +542,73 @@ public class LayoutContext implements CssContext {
     public void setBreakAtLineContext(BreakAtLineContext breakAtLineContext) {
         _breakAtLineContext = breakAtLineContext;
     }
+
+    /**
+     * Whether further footnote content is allowed. Used to prohibit
+     * footnotes inside footnotes.
+     */
+    public boolean isFootnoteAllowed() {
+        return _isFootnoteAllowed;
+    }
+
+    /**
+     * See {@link #isFootnoteAllowed()}.
+     */
+    public void setFootnoteAllowed(boolean allowed) {
+        this._isFootnoteAllowed = allowed;
+    }
+
+    /**
+     * See {@link #isInFloatBottom()}
+     */
+    public void setIsInFloatBottom(boolean inFloatBottom) {
+        _isInFloatBottom = inFloatBottom;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isInFloatBottom() {
+        return _isInFloatBottom;
+    }
+
+    /**
+     * See {@link #getFootnoteIndex()}
+     */
+    public void setFootnoteIndex(int footnoteIndex) {
+        _footnoteIndex = footnoteIndex;
+    }
+
+    /**
+     * The zero-based footnote index, which will likely be different from any
+     * counter used with the footnote.
+     */
+    public int getFootnoteIndex() {
+        return _footnoteIndex;
+    }
+
+    public boolean hasActiveFootnotes() {
+        return _footnoteManager != null;
+    }
+
+    /**
+     * Gets the document's footnote manager, creating it if required.
+     * From the footnote manager, one can add and remove footnote bodies.
+     */
+    public FootnoteManager getFootnoteManager() {
+        if (_footnoteManager == null) {
+            _footnoteManager = new FootnoteManager();
+        }
+
+        return _footnoteManager;
+    }
+
+    public void setFirstLettersTracker(StyleTracker firstLetters) {
+        _firstLetters = firstLetters;
+    }
+
+    public void setFirstLinesTracker(StyleTracker firstLines) {
+        _firstLines = firstLines;
+    }
+
 }

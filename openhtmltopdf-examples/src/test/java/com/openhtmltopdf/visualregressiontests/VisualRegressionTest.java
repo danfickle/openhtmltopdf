@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.openhtmltopdf.latexsupport.LaTeXDOMMutator;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.jfreechart.JFreeChartBarDiagramObjectDrawer;
@@ -30,14 +32,17 @@ import com.openhtmltopdf.render.DefaultObjectDrawerFactory;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgExternalResourceMode;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer.SvgScriptMode;
+import com.openhtmltopdf.testlistener.PrintingRunner;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester;
 
+@RunWith(PrintingRunner.class)
 public class VisualRegressionTest {
     private VisualTester vt;
 
     @BeforeClass
     public static void configureTests() throws IOException {
+        TestSupport.quietLogs();
         TestSupport.makeFontFiles();
     }
 
@@ -645,16 +650,16 @@ public class VisualRegressionTest {
     public void testRtlPageOverflowHiddenHidden() throws IOException {
         assertTrue(vt.runTest("rtl-page-overflow-hidden-hidden"));
     }
-    
+
     /**
-     * Tests that tds with a background-color do not have fine lines between them. Issues: 291 and 169.
+     * Tests that tds with a background-color do not have fine lines between them.
+     * Issues: 291 and 169.
      */
     @Test
-    @Ignore // Fine lines appear between tds.
     public void testTableFineLines() throws IOException {
         assertTrue(vt.runTest("table-fine-lines"));
     }
-    
+
     /**
      * Further tests on collapsed table cell borders. Issue 303.
      */
@@ -1406,6 +1411,64 @@ public class VisualRegressionTest {
     @Test
     public void testIssue649MultipleBgImagesPageBox() throws IOException {
         assertTrue(vt.runTest("issue-649-multiple-bg-images-page-box"));
+    }
+
+    /**
+     * Tests setting an initial page number with CSS page and pages counters.
+     */
+    @Test
+    public void testPr727InitialPageNumber() throws IOException {
+        assertTrue(vt.runTest("pr-727-initial-page-number", builder -> {
+            builder.useInitialPageNumber(5);
+        }));
+    }
+
+    /**
+     * Test for a bug where a table with <code>position: absolute</code>
+     * caused an exception as no block formatting context was created for
+     * positioned tables.
+     */
+    @Test
+    public void testIssue732NoBlockFormattingContext() throws IOException {
+        assertTrue(vt.runTest("issue-732-no-bfc"));
+    }
+
+    /**
+     * Tests that pseudo elements such as ::before are boxed correctly.
+     */
+    @Test
+    public void testPseudoElements() throws IOException {
+        assertTrue(vt.runTest("pseudo-elements"));
+    }
+
+    /**
+     * Tests a now-fixed near-infinite loop when page-break-inside: avoid
+     * is used on heavily nested content.
+     */
+    @Test
+    public void testIssue551PageBreakInsideAvoidDeep() throws IOException {
+        assertTrue(vt.runTest("issue-551-page-break-inside-avoid-deep"));
+    }
+
+    /**
+     * Test weirdness in table borders when PDF is zoomed.
+     * Apparently was caused by anti-aliasing selectively applied
+     * to beveled borders.
+     * To fix we add the <code>-fs-border-rendering</code> property
+     * to selectively turn off border bevelling.
+     */
+    @Test
+    public void testIssue752TableBorderInconcistency() throws IOException {
+        assertTrue(vt.runTest("issue-752-table-border-strange"));
+    }
+
+    /**
+     * Further test for the <code>-fs-border-rendering: no-bevel</code> property
+     * on boxes other than table cells.
+     */
+    @Test
+    public void testIssue752FSBorderRenderingProperty() throws IOException {
+        assertTrue(vt.runTest("issue-752-fs-border-rendering-property"));
     }
 
     // TODO:

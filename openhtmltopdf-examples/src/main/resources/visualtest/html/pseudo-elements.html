@@ -1,0 +1,64 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+  margin: 0;
+}
+body {
+  border: 1px solid black;
+  margin: 0;
+  max-width: 300px;
+  font-size: 20px;
+}
+div.inline::before {
+  text-transform: lowercase;
+  border: 1px solid red;
+  content: "Say" "to" "me ";
+}
+span.inline::before {
+  text-transform: lowercase;
+  border: 1px solid green;
+  content: "And" "it's" "done ";
+}
+div.block::before {
+  display: block;
+  text-transform: uppercase;
+  border: 1px solid blue;
+  content: "Multiple" "boxes";
+}
+div.inline-block::before,
+span.inline-block::before {
+  display: inline-block;
+  text-transform: lowercase;
+  border: 1px solid red;
+  content: "Some" "boxes";
+}
+.image::before {
+  content: "Some " url(../../images/go-home.png) " image";
+  text-transform: uppercase;
+  border: 1px solid blue;
+}
+.blocky::before {
+  display: block;
+}
+.ib::before {
+  display: inline-block;
+}
+</style>
+</head>
+<body>
+  <div class="inline">Hello</div>
+  <span class="inline">World!</span>
+
+  <div class="block">One</div>
+  <div class="inline-block">Two</div>
+  <span class="inline-block">Three</span>
+
+  <div class="image">Four</div>
+  <span class="image">Five</span>
+
+  <div class="image blocky">Six</div>
+  <span class="image ib">Seven</span>
+</body>
+</html>

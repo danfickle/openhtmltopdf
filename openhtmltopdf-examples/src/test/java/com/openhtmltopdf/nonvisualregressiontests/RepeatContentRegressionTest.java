@@ -23,15 +23,25 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.testcases.TestcaseRunner;
+import com.openhtmltopdf.testlistener.PrintingRunner;
+import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
+@RunWith(PrintingRunner.class)
 public class RepeatContentRegressionTest {
     private static final String RES_PATH = "/repeated-content-tests/";
     private static final String OUT_PATH = "target/test/visual-tests/test-output/";
+
+    @BeforeClass
+    public static void configure() {
+        TestSupport.quietLogs();
+    }
 
     interface StringMatcher {
         List<String> problems(String expected, String actual);

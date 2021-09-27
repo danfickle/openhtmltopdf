@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
-    <version>1.0.9-SNAPSHOT</version>
+    <version>1.0.11-SNAPSHOT</version>
   </parent>
 
   <artifactId>openhtmltopdf-examples</artifactId>
@@ -57,7 +57,7 @@
       -->
       <groupId>org.mozilla</groupId>
       <artifactId>rhino</artifactId>
-      <version>1.7.7</version>
+      <version>${open.rhino.version}</version>
     </dependency>
     <dependency>
       <groupId>com.openhtmltopdf</groupId>
@@ -117,7 +117,7 @@
     <dependency>
         <groupId>org.jsoup</groupId>
         <artifactId>jsoup</artifactId>
-        <version>1.13.1</version>
+        <version>1.14.2</version>
     </dependency>
 
     <!-- JMH Benchmarks -->
@@ -145,7 +145,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>${open.deploy.plugin.version}</version>
         <configuration>
           <skip>true</skip>
         </configuration>
@@ -178,7 +177,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
       </plugin>
       <!-- Create an all-in JAR for running JMH benchmarks -->
       <plugin>

@@ -1,0 +1,65 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+  @footnote {
+    border-top: 4px solid purple;
+    padding-top: 5px;
+    width: 100%;
+  }
+}
+html {
+  orphans: 0;
+  widows: 0;
+}
+.fn {
+  float: footnote;
+  color: red;
+  border: 1px solid green;
+}
+.ib {
+  display: inline-block;
+  border: 1px solid orange;
+  white-space: nowrap;
+}
+::footnote-call {
+  counter-increment: footnote;
+  content: "[" counter(footnote) "]";
+  display: inline-block;
+}
+::footnote-marker {
+  content: "Here be footnote no. " counter(footnote) ":";
+  display: block;
+  text-transform: uppercase;
+  font-size: 9px;
+  color: blue;
+}
+</style>
+</head>
+<body>
+  This is some content
+  <div class="ib" style="width: 100%;">
+    with footnotes.
+    <div class="fn">
+      First footnote!
+    </div>
+  </div>
+  This is some more content
+  <div class="ib">
+    with inline-blocks.
+  </div>
+  <div class="fn">
+    Second footnote with inline
+    <div class="ib">
+      BLOCK!
+    </div>
+  </div>
+  <div class="ib">
+    Testing what happens...
+  </div>
+  <div class="ib">
+    when the cow jumps!
+  </div>
+</body>
+</html>

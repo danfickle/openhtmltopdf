@@ -1,0 +1,54 @@
+<html>
+<head>
+<style>
+@page {
+    size: 250px 330px;
+}
+@page {
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid green;
+        max-height: 65%;
+        z-index: 1000;
+    }
+}
+body {
+  margin: 0 10px;
+  font-size: 18px;
+  border: 1px solid black;
+
+  /* When there is limited space for lines (such as with large footnote area)
+     then orphans and widows can create undesirable layout. */
+  orphans: 0;
+  widows: 0;
+}
+::footnote-call {
+  counter-increment: footnote 1;
+}
+span.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  content: "[" counter(footnote) "]";
+}
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+}
+</style>
+</head>
+<body>
+<p style="margin: 0;">
+  This text needs some footnotes. <span id="1" class="footnote">This is a footnote.</span>
+  Also a footnote for this sentence. <span id="2" class="footnote">Another <strong>footnote</strong>!</span>
+</p>
+
+<p style="page-break-before: always; margin: 0;">
+  Footnote numbers. <span id="3" class="footnote">Just to be silly this is a really long footnote that will need wrapping and such. This is a multiple page footnote so here we go on and on to get to the next page.</span>
+</p>
+
+<div style="border: 1px solid blue; position: fixed; bottom: 0; left: 40%; width: 40%; height: 150px;">FIXED</div>
+<div style="border: 1px solid red; position: absolute; top: 120px; left: 0; width: 40%; height: 40px;">ABS</div>
+</body>
+</html>

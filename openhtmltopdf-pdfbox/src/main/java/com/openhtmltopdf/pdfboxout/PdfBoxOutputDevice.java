@@ -23,7 +23,7 @@ import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.layout.SharedContext;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
-import com.openhtmltopdf.pdfboxout.PdfBoxSlowOutputDevice.Metadata;
+import com.openhtmltopdf.pdfboxout.PdfBoxUtil.Metadata;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
@@ -98,15 +98,9 @@ public interface PdfBoxOutputDevice extends OutputDevice {
 
     void setStroke(Stroke s);
 
-    void clip(Shape s);
-
-    Shape getClip();
-
     void popClip();
 
     void pushClip(Shape s);
-
-    void setClip(Shape s);
 
     Stroke getStroke();
 
@@ -153,17 +147,6 @@ public interface PdfBoxOutputDevice extends OutputDevice {
      */
     List<String> getMetadataListByName(String name);
 
-    /**
-     * Replaces all copies of the named metadata with a single value. A a new
-     * value of null will result in the removal of all copies of the named
-     * metadata. Use <code>addMetadata</code> to append additional values with
-     * the same name.
-     * 
-     * @param name
-     *            the metadata element name to locate.
-     */
-    void setMetadata(String name, String value);
-
     SharedContext getSharedContext();
 
     void setSharedContext(SharedContext sharedContext);
@@ -188,14 +171,6 @@ public interface PdfBoxOutputDevice extends OutputDevice {
     void setRenderingContext(RenderingContext result);
 
     void setBidiReorderer(BidiReorderer reorderer);
-
-    void popTransforms(List<AffineTransform> inverse);
-
-    List<AffineTransform> pushTransforms(List<AffineTransform> transforms);
-
-    float getAbsoluteTransformOriginX();
-
-    float getAbsoluteTransformOriginY();
 
     void setPaint(Paint paint);
 

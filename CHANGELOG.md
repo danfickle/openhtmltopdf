@@ -1,7 +1,38 @@
 ## CHANGELOG
 
-### head - 1.0.9-SNAPSHOT
+### head - 1.0.11-SNAPSHOT
 + See commit log.
+
+### 1.0.10 (2021-September-13)
+**NOTE**: After this release the old slow renderer will be deleted. Fast mode has been the default (since 1.0.5) so you only have to check your code if you are calling the `useSlowMode` method which will be removed.
+
++ [#551](https://github.com/danfickle/openhtmltopdf/issues/551) **SECURITY** Fix near-infinite loop for very deeply nested content with `page-break-inside: avoid` constraint. Thanks for persisting @swillis12 and debugging @syjer.
++ [#729](https://github.com/danfickle/openhtmltopdf/issues/729) **SECURITY** Upgrade xmlgraphics-commons (used in SVG rendering) to avoid CVE. Thanks @electrofLy.
++ [#711](https://github.com/danfickle/openhtmltopdf/pull/711) Footnote support (beta). See [footnote documentation on wiki](https://github.com/danfickle/openhtmltopdf/wiki/Footnotes). Thanks for requesting @a-leithner and @slumki.
++ [#761](https://github.com/danfickle/openhtmltopdf/pull/761) CSS property to disable bevels on borders to prevent ugly anti-aliasing effects, especially on table cells. See [-fs-border-rendering property on wiki](https://github.com/danfickle/openhtmltopdf/wiki/Custom-CSS-properties#-fs-border-rendering-no-bevel). Thanks for providing sample @gandboy91.
++ [#103](https://github.com/danfickle/openhtmltopdf/issues/103) Output exception class name and message by default for log messages with an associated exception.
++ #711 (mixed) Better boxing for `::before` and `::after` content. Should now be able to define a border around pseudo content correctly.
++ [#738](https://github.com/danfickle/openhtmltopdf/issues/738) Support for additional elements in PDF/UA including art, part, sect, section, caption and blockquote. Thanks @AndreasJacobsen.
++ [#736](https://github.com/danfickle/openhtmltopdf/issues/736) New example of using a dom mutator to implement unsupported content such as font tag attributes. Thanks for requesting @mgabhishek06kodur.
++ [#707](https://github.com/danfickle/openhtmltopdf/issues/707) Fix regression where PDF/UA documents that weren't also PDF/A compliant were missing Dublin Core metadata. Thanks @mgm-rwagner, @syjer.
++ [#732](https://github.com/danfickle/openhtmltopdf/issues/732) Allow `table` element to be positioned. Thanks @fcorneli.
++ [#727](https://github.com/danfickle/openhtmltopdf/pull/727) Allow the use of an initial page number for `page` and `pages` counters. Thanks for PR @fanthos.
+
+
+### 1.0.9 (2021-June-18)
+**SECURITY RELEASE**: This release will be brought forward due to security releases of the PDFBOX and Batik dependencies.
+
++ [#722](https://github.com/danfickle/openhtmltopdf/pull/722) Upgrade PDFBOX (to 2.0.24) - avoids CVEs in earlier versions and PDFBoxGraphics2D. Thanks a lot @rototor.
++ [#678](https://github.com/danfickle/openhtmltopdf/pull/678) Upgrade Batik Version to 1.14 (CVE-2020-11987) - Again it is strongly advised to avoid untrusted SVG and XML. Thanks @rototor.
++ [#716](https://github.com/danfickle/openhtmltopdf/pull/716) Replace rogue `println` calls with log calls. Thanks @syjer for PR, @tfo for reporting.
++ [#708](https://github.com/danfickle/openhtmltopdf/pull/708) Allow `shape-rendering` SVG CSS property. Thanks @syjer for PR, @RAlfoeldi for reporting.
++ [#703](https://github.com/danfickle/openhtmltopdf/pull/703) Remove calls to deprecated method calls in JRE standard library. May change XML reader class. Implemented by @danfickle.
++ [#702](https://github.com/danfickle/openhtmltopdf/pull/702) Set timeouts for default HTTP/HTTPS handlers. Thanks for reporting @gengzi.
++ [162228](https://github.com/danfickle/openhtmltopdf/commit/16222810df1cc40dba8bfa1465111b96841bb3b5) Put links to raster images in SVGs through the URL resolver.
++ [#694](https://github.com/danfickle/openhtmltopdf/issues/694) Fix incorrect B3 paper size. Thanks @lfintalan for reporting with line number!
++ [ab48fd](https://github.com/danfickle/openhtmltopdf/commit/ab48fd0d7236ad3129f3393fcb0ebc7df6c5973f) Do not log a missing font more than once.
+
+NOTE: PDFBOX CVEs relate to the loading of untrusted PDFs in PDFBOX and thus this project is not directly affected. However, it is not a good idea to have CVEs on your classpath.
 
 
 ### 1.0.8 (2021-March-22)
@@ -64,7 +95,7 @@ NOTE: These CVEs relate to the loading of untrusted PDFs in PDFBOX and thus this
 + [#613](https://github.com/danfickle/openhtmltopdf/pull/613) Allow adding fonts for SVG, MathML as files instead of input streams to avoid JDK bug. Thanks @syjer, @sureshkumar-ramalingam, @olayinkasf.
 
 
-## 1.0.4 (2020-July-25)
+### 1.0.4 (2020-July-25)
 + [b88538](https://github.com/danfickle/openhtmltopdf/commit/b8853841b44d1e689d9bb3510a36633485fe21ab) Fix for endless loop when using `word-wrap: break-word`. Thanks for reporting, testing and investigating @swarl. Thanks for tests and debugging  @rototor and @syjer.
 + [#492](https://github.com/danfickle/openhtmltopdf/pull/492) Lots of testing of the line-breaking algorithm to avoid future endless loops. By @danfickle.
 + [#515](https://github.com/danfickle/openhtmltopdf/pull/515) Pass document CSS styles applying to SVG element to SVG implementation. Thanks for requesting and contributing @amckain92.

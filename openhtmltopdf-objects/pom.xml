@@ -18,7 +18,7 @@
 	<parent>
 		<groupId>com.openhtmltopdf</groupId>
 		<artifactId>openhtmltopdf-parent</artifactId>
-		<version>1.0.9-SNAPSHOT</version>
+		<version>1.0.11-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>openhtmltopdf-objects</artifactId>
@@ -36,12 +36,48 @@
 			<url>http://www.gnu.org/licenses/lgpl.html</url>
 		</license>
 	</licenses>
-	<distributionManagement>
-		<repository>
-			<id>bintray</id>
-			<url>https://api.bintray.com/maven/danfickle/maven/com.openhtmltopdf:openhtmltopdf-parent</url>
-		</repository>
-	</distributionManagement>
+
+    <distributionManagement>
+      <snapshotRepository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+      <repository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+      </repository>
+    </distributionManagement>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -84,7 +120,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${open.jar.plugin.version}</version>
         <configuration>
           <archive>
             <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -95,7 +130,6 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>${open.bundle.plugin.version}</version>
         <configuration>
           <instructions>
             <Export-Package>*</Export-Package>

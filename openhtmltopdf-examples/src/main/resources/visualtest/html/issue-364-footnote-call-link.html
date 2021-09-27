@@ -1,0 +1,43 @@
+<html>
+<head>
+<style>
+@page {
+    size: 330px 300px;
+    @footnote {
+        float: bottom;
+        box-sizing: border-box;
+        width: 100%;
+        max-height: 100%;
+    }
+}
+body {
+  margin: 0 10px;
+  padding: 3px;
+  font-size: 18px;
+}
+::footnote-call {
+  color: blue;
+  counter-increment: footnote 1;
+}
+span.footnote {
+  float: footnote;
+}
+.footnote::footnote-call {
+  content: "[" counter(footnote) "]";
+}
+.footnote::footnote-marker {
+  color: blue;
+  content: counter(footnote) ". ";
+}
+</style>
+</head>
+<body>
+<p style="">
+  This is some text in a paragraph.
+  <span class="footnote">Not very exciting text.</span>
+  More text, hopefully it shows the wrapping.
+  <span class="footnote">We need wrapping for this test so this is a very long footnote!</span>
+  Even more text.
+</p>
+</body>
+</html>

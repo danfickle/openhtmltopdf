@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.openhtmltopdf</groupId>
     <artifactId>openhtmltopdf-parent</artifactId>
-    <version>1.0.9-SNAPSHOT</version>
+    <version>1.0.11-SNAPSHOT</version>
   </parent>
 
   <artifactId>openhtmltopdf-pdfa-testing</artifactId>
@@ -39,7 +39,7 @@
       <!-- NOTE: VeraPDF is licensed under the GPL or MPL. -->
       <groupId>org.verapdf</groupId>
       <artifactId>validation-model</artifactId>
-      <version>1.14.102</version>
+      <version>1.18.8</version>
     </dependency>
     
     <dependency>
@@ -55,7 +55,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>${open.deploy.plugin.version}</version>
         <configuration>
           <skip>true</skip>
         </configuration>

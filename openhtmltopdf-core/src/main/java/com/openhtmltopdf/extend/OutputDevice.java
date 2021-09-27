@@ -30,30 +30,10 @@ import com.openhtmltopdf.util.XRLog;
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
-import java.util.List;
 import java.util.logging.Level;
 
 public interface OutputDevice {
 	public void setPaint(Paint paint);
-
-	// Required for CSS transforms.
-
-	/**
-	 * Apply the given transform on top of the current one in the PDF graphics stream.
-	 * This is a cumulative operation. You should popTransform after the box and children are painted.
-	 * @return the list of inverse transforms to undo the effect of this transform
-	 */
-	@Deprecated
-	public List<AffineTransform> pushTransforms(List<AffineTransform> transforms);
-	
-	@Deprecated
-	public void popTransforms(List<AffineTransform> inverse);
-	
-	@Deprecated
-	float getAbsoluteTransformOriginX();
-	
-	@Deprecated
-	float getAbsoluteTransformOriginY();
 	
 	// And the rest.
     public void drawText(RenderingContext c, InlineText inlineText);
@@ -98,15 +78,6 @@ public interface OutputDevice {
     public void fill(Shape s);
     public void fillRect(int x, int y, int width, int height);
     public void fillOval(int x, int y, int width, int height);
-    
-    @Deprecated
-    public void clip(Shape s);
-    
-    @Deprecated
-    public Shape getClip();
-    
-    @Deprecated
-    public void setClip(Shape s);
     
     public void translate(double tx, double ty);
     
@@ -171,11 +142,6 @@ public interface OutputDevice {
 	 * be nested correctly.
 	 */
 	public void popClip();
-	
-	/**
-	 * The new (2018) fast renderer is in use.
-	 */
-	public boolean isFastRenderer();
 	
 	/**
 	 * Propagate the structure heirachy to allow for PDF/UA compliance.

@@ -12,10 +12,12 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
 import com.openhtmltopdf.util.Diagnostic;
+import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.XRLog;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.w3c.dom.Element;
@@ -55,14 +59,14 @@ public class TestSupport {
         outputDirectory.mkdirs();
 
         File fontFile = new File("target/test/visual-tests/" + resource);
-        
+
         if (!fontFile.exists()) {
             try (InputStream in = TestSupport.class.getResourceAsStream("/visualtest/html/fonts/" + resource)) {
-                Files.copy(in, fontFile.toPath());
+                Files.write(fontFile.toPath(), IOUtils.toByteArray(in));
             }
         }
     }
-    
+
     /**
      * Output the test fonts from classpath to files in target so we can use them 
      * without streams.
@@ -72,7 +76,7 @@ public class TestSupport {
         makeFontFile("NotoNaskhArabic-Regular.ttf");
         makeFontFile("SourceSansPro-Regular.ttf");
     }
-    
+
     public static class StringBuilderLogger implements XRLogger {
         private final StringBuilder sb;
         private final XRLogger delegate;
@@ -106,7 +110,10 @@ public class TestSupport {
         @Override
         public void log(String where, Level level, String msg) {
             sb.append(where + ": " + level + ": " + msg + "\n");
-            delegate.log(where, level, msg);
+
+            if (!level.equals(Level.INFO)) {
+              delegate.log(where, level, msg);
+            }
         }
     }
     
@@ -276,5 +283,30 @@ public class TestSupport {
         }
 
         return problems.isEmpty();
+    }
+
+    public static void quietLogs() {
+        XRLog.listRegisteredLoggers().forEach(log -> XRLog.setLevel(log, Level.WARNING));
+    }
+
+    @FunctionalInterface
+    public interface WithLog {
+        void accept(List<LogMessageId> log, Consumer<Diagnostic> con) throws IOException;
+    }
+
+    @FunctionalInterface
+    public interface WithLogBuilder {
+        void accept(List<LogMessageId> log, BuilderConfig config) throws IOException;
+    }
+
+    public static void withLogConsumer(WithLog consumer) throws IOException {
+        List<LogMessageId> log = new ArrayList<>();
+        Consumer<Diagnostic> diagCon = (d) -> log.add(d.getLogMessageId());
+
+        consumer.accept(log, diagCon);
+    }
+
+    public static void withLog(WithLogBuilder consumer) throws IOException {
+        withLogConsumer((log, con) -> consumer.accept(log, (builder) -> builder.withDiagnosticConsumer(con)));
     }
 }

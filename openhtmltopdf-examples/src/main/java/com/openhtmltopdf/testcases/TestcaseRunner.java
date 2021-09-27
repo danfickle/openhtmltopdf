@@ -23,9 +23,9 @@ import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.extend.FSObjectDrawer;
 import com.openhtmltopdf.extend.OutputDevice;
 import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
+import com.openhtmltopdf.extend.SVGDrawer;
 import com.openhtmltopdf.java2d.api.BufferedImagePageProcessor;
 import com.openhtmltopdf.java2d.api.DefaultPageProcessor;
-import com.openhtmltopdf.java2d.api.FSPageOutputStreamSupplier;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
 import com.openhtmltopdf.mathmlsupport.MathMLDrawer;
 import com.openhtmltopdf.objects.StandardObjectDrawerFactory;
@@ -38,7 +38,10 @@ import com.openhtmltopdf.util.JDKXRLogger;
 import com.openhtmltopdf.util.XRLog;
 import com.openhtmltopdf.util.XRLogger;
 
-
+/**
+ * NOTE: This is mostly obsolete.
+ * New test cases should go in VisualRegressionTest or NonVisualRegressionTest, etc.
+ */
 public class TestcaseRunner {
 
 
@@ -49,7 +52,10 @@ public class TestcaseRunner {
 	 * 
 	 * If you only want to run one spefic test, you can specify
 	 * -DONLY_TEST=&lt;testname&gt;. I.e. -DONLY_TEST=adobe-borderstyle-bugs
+	 *
+	 * @deprecated Use <code>TestcaseRunnerTest</code> to run testcases instead.
 	 */
+    @Deprecated
 	public static void main(String[] args) throws Exception {
 
 		runTestCase("soft-hypen-oom");
@@ -144,70 +150,76 @@ public class TestcaseRunner {
 		runTestWithoutOutput(testCaseFile, PdfAConformance.NONE, true);
 	}
 
-	private static void runTestWithoutOutput(String testCaseFile, PdfAConformance pdfaConformance, boolean allowWarnings) throws Exception {
-		System.out.println("Trying to run: " + testCaseFile);
+    private static void runTestWithoutOutput(String testCaseFile, PdfAConformance pdfaConformance, boolean allowWarnings) throws Exception {
+        System.out.println("Trying to run: " + testCaseFile);
 
-		byte[] htmlBytes = IOUtils
-				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
-		String html = new String(htmlBytes, StandardCharsets.UTF_8);
-		OutputStream outputStream = new ByteArrayOutputStream(4096);
+        try (InputStream is = TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html");
+             OutputStream outputStream = new ByteArrayOutputStream(4096)) {
 
-		// We wan't to throw if we get a warning or severe log message.
-		final XRLogger delegate = new JDKXRLogger();
-		final java.util.List<RuntimeException> warnings = new ArrayList<>();
-		XRLog.setLoggerImpl(new XRLogger() {
-			@Override
-			public void setLevel(String logger, Level level) {
-			}
+            byte[] htmlBytes = IOUtils.toByteArray(is);
+            String html = new String(htmlBytes, StandardCharsets.UTF_8);
 
-			@Override
-			public boolean isLogLevelEnabled(Diagnostic diagnostic) {
-				return true;
-			}
+            // We wan't to throw if we get a warning or severe log message.
+            final XRLogger delegate = new JDKXRLogger();
+            final java.util.List<RuntimeException> warnings = new ArrayList<>();
 
-			@Override
-			public void log(String where, Level level, String msg, Throwable th) {
-				if (level.equals(Level.WARNING) || level.equals(Level.SEVERE)) {
-					warnings.add(new RuntimeException(where + ": " + msg, th));
-				}
-				delegate.log(where, level, msg, th);
-			}
+            XRLog.setLoggerImpl(new XRLogger() {
+                @Override
+                public void setLevel(String logger, Level level) {
+                }
 
-			@Override
-			public void log(String where, Level level, String msg) {
-				if (level.equals(Level.WARNING) || level.equals(Level.SEVERE)) {
-					warnings.add(new RuntimeException(where + ": " + msg));
-				}
-				delegate.log(where, level, msg);
-			}
-		});
+                @Override
+                public boolean isLogLevelEnabled(Diagnostic diagnostic) {
+                    return true;
+                }
 
-		renderPDF(html, pdfaConformance, outputStream);
+                @Override
+                public void log(String where, Level level, String msg, Throwable th) {
+                    if (level.equals(Level.WARNING) || level.equals(Level.SEVERE)) {
+                        warnings.add(new RuntimeException(where + ": " + msg, th));
+                        }
+                    delegate.log(where, level, msg, th);
+                }
 
-		if (!warnings.isEmpty() && !allowWarnings) {
-			throw warnings.get(0);
-		}
-	}
+                @Override
+                public void log(String where, Level level, String msg) {
+                    if (level.equals(Level.WARNING) || level.equals(Level.SEVERE)) {
+                        warnings.add(new RuntimeException(where + ": " + msg));
+                    }
+                    if (!level.equals(Level.INFO)) {
+                        delegate.log(where, level, msg);
+                    }
+                }
+            });
 
-	private static void renderPDF(String html, PdfAConformance pdfaConformance, OutputStream outputStream) throws Exception {
-		try {
-			PdfRendererBuilder builder = new PdfRendererBuilder();
-			builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
-			builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
-			builder.defaultTextDirection(BaseRendererBuilder.TextDirection.LTR);
-			builder.useSVGDrawer(new BatikSVGDrawer());
-			builder.useMathMLDrawer(new MathMLDrawer());
-			builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
-			builder.useObjectDrawerFactory(buildObjectDrawerFactory());
-                        builder.usePdfAConformance(pdfaConformance);
+            renderPDF(html, pdfaConformance, outputStream);
 
-			builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
-			builder.toStream(outputStream);
-			builder.run();
-		} finally {
-			outputStream.close();
-		}
-	}
+            if (!warnings.isEmpty() && !allowWarnings) {
+                throw warnings.get(0);
+            }
+        }
+    }
+
+    private static void renderPDF(String html, PdfAConformance pdfaConformance, OutputStream outputStream) throws IOException {
+        try (SVGDrawer svg = new BatikSVGDrawer();
+             SVGDrawer mathMl = new MathMLDrawer()) {
+
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+
+            builder.useUnicodeBidiSplitter(new ICUBidiSplitter.ICUBidiSplitterFactory());
+            builder.useUnicodeBidiReorderer(new ICUBidiReorderer());
+            builder.defaultTextDirection(BaseRendererBuilder.TextDirection.LTR);
+            builder.useSVGDrawer(svg);
+            builder.useMathMLDrawer(mathMl);
+            builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+            builder.useObjectDrawerFactory(buildObjectDrawerFactory());
+            builder.usePdfAConformance(pdfaConformance);
+
+            builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
+            builder.toStream(outputStream);
+            builder.run();
+        }
+    }
 
 	static DefaultObjectDrawerFactory buildObjectDrawerFactory() {
 		DefaultObjectDrawerFactory objectDrawerFactory = new StandardObjectDrawerFactory();
@@ -215,67 +227,71 @@ public class TestcaseRunner {
 		return objectDrawerFactory;
 	}
 
-	private static void renderPNG(String html, final String filename) throws Exception {
-		Java2DRendererBuilder builder = new Java2DRendererBuilder();
-		builder.useSVGDrawer(new BatikSVGDrawer());
-		builder.useMathMLDrawer(new MathMLDrawer());
-		builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
-		builder.useObjectDrawerFactory(buildObjectDrawerFactory());
-		builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
-		BufferedImagePageProcessor bufferedImagePageProcessor = new BufferedImagePageProcessor(
-				BufferedImage.TYPE_INT_RGB, 2.0);
-		builder.useDefaultPageSize(210, 297, Java2DRendererBuilder.PageSizeUnits.MM);
-        builder.useEnvironmentFonts(true);
+    private static void renderPNG(String html, final String filename) throws IOException {
+        try (SVGDrawer svg = new BatikSVGDrawer();
+             SVGDrawer mathMl = new MathMLDrawer()) {
 
-		/*
-		 * Render Single Page Image
-		 */
-		builder.toSinglePage(bufferedImagePageProcessor).runFirstPage();
-		BufferedImage image = bufferedImagePageProcessor.getPageImages().get(0);
+            Java2DRendererBuilder builder = new Java2DRendererBuilder();
+            builder.useSVGDrawer(svg);
+            builder.useMathMLDrawer(mathMl);
+            builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
+            builder.useObjectDrawerFactory(buildObjectDrawerFactory());
+            builder.withHtmlContent(html, TestcaseRunner.class.getResource("/testcases/").toString());
 
-		FileOutputStream output = new FileOutputStream(filename);
-		ImageIO.write(image, "PNG", output);
-		output.close();
+            BufferedImagePageProcessor bufferedImagePageProcessor = new BufferedImagePageProcessor(
+                    BufferedImage.TYPE_INT_RGB, 2.0);
 
-		/*
-		 * Render Multipage Image Files
-		 */
-		builder.toPageProcessor(new DefaultPageProcessor(new FSPageOutputStreamSupplier() {
-			@Override
-			public OutputStream supply(int zeroBasedPageNumber) throws IOException {
-				return new FileOutputStream(filename.replace(".png", "_" + zeroBasedPageNumber + ".png"));
-			}
-		}, BufferedImage.TYPE_INT_ARGB, "PNG")).runPaged();
-	}
+            builder.useDefaultPageSize(210, 297, Java2DRendererBuilder.PageSizeUnits.MM);
+            builder.useEnvironmentFonts(true);
 
-	private static void runTestCase(String testCaseFile) throws Exception {
-		String onlyTest = System.getProperty("ONLY_TEST", "");
-		if (!onlyTest.isEmpty() && !onlyTest.equals(testCaseFile))
-			return;
-		byte[] htmlBytes = IOUtils
-				.toByteArray(TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html"));
-		String html = new String(htmlBytes, StandardCharsets.UTF_8);
-		String outDir = prepareOutDir();
-		String testCaseOutputFile = outDir + "/" + testCaseFile + ".pdf";
-		String testCaseOutputPNGFile = outDir + "/" + testCaseFile + ".png";
-		FileOutputStream outputStream = new FileOutputStream(testCaseOutputFile);
-		renderPDF(html, PdfAConformance.NONE, outputStream);
-		System.out.println("Wrote " + testCaseOutputFile);
+            /*
+             * Render Single Page Image
+             */
+            builder.toSinglePage(bufferedImagePageProcessor).runFirstPage();
+            BufferedImage image = bufferedImagePageProcessor.getPageImages().get(0);
 
-		renderPNG(html, testCaseOutputPNGFile);
-	}
+            ImageIO.write(image, "PNG", new File(filename));
 
-	private static String prepareOutDir() {
-		String outDir = System.getProperty("OUT_DIRECTORY", ".");
-		File outDirFile = new File(outDir);
-		if (!outDirFile.exists()) {
-			boolean created = outDirFile.mkdirs();
-			if (!created) {
-				throw new IllegalStateException("Can't create out dir '" + outDir + "'.");
-			}
-		}
-		return outDir;
-	}
+            /*
+             * Render Multipage Image Files
+             */
+            builder.toPageProcessor(new DefaultPageProcessor(
+                    zeroBasedPageNumber -> new FileOutputStream(filename.replace(".png", "_" + zeroBasedPageNumber + ".png")),
+                    BufferedImage.TYPE_INT_ARGB, "PNG")).runPaged();
+        }
+    }
+
+    public static void runTestCase(String testCaseFile) throws IOException {
+        String onlyTest = System.getProperty("ONLY_TEST", "");
+        if (!onlyTest.isEmpty() && !onlyTest.equals(testCaseFile))
+            return;
+
+        try (InputStream is = TestcaseRunner.class.getResourceAsStream("/testcases/" + testCaseFile + ".html")) {
+            byte[] htmlBytes = IOUtils.toByteArray(is);
+            String html = new String(htmlBytes, StandardCharsets.UTF_8);
+            String outDir = prepareOutDir();
+
+            String testCaseOutputFile = outDir + "/" + testCaseFile + ".pdf";
+            String testCaseOutputPNGFile = outDir + "/png/" + testCaseFile + ".png";
+
+            try (FileOutputStream outputStream = new FileOutputStream(testCaseOutputFile)) {
+                renderPDF(html, PdfAConformance.NONE, outputStream);
+            }
+
+            renderPNG(html, testCaseOutputPNGFile);
+        }
+    }
+
+    private static String prepareOutDir() {
+        String outDir = System.getProperty("OUT_DIRECTORY", "target/testcases");
+        File outDirFile = new File(outDir);
+        File pngOutDir = new File(outDirFile, "/png/");
+
+        outDirFile.mkdirs();
+        pngOutDir.mkdirs();
+
+        return outDirFile.getAbsolutePath();
+    }
 
 	public static class SampleObjectDrawerBinaryTree implements FSObjectDrawer {
 		int fanout;

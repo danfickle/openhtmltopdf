@@ -514,6 +514,13 @@ public class PdfBoxFontResolver implements FontResolver {
         private PdfBoxRawPDFontMetrics _metrics;
         private final FSCacheEx<String, FSCacheValue> _metricsCache;
 
+        @Override
+        public String toString() {
+            return String.format(
+                    "FontDescription [_style=%s, _weight=%s, _family=%s, _isFromFontFace=%s, _isSubset=%s]",
+                    _style, _weight, _family, _isFromFontFace, _isSubset);
+        }
+
         /**
          * Create a font description from one of the PDF built-in fonts.
          */

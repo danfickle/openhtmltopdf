@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.openhtmltopdf.css.parser.FSColor;
+import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders;
 import com.openhtmltopdf.css.style.CssContext;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.util.XRRuntimeException;
@@ -255,6 +256,18 @@ public class IdentValue implements FSDerivedValue {
      * Column break. 
      */
     public static final IdentValue COLUMN = addValue("column");
+
+    /**
+     * CSS footnotes for use in float: footnote
+     */
+    public static final IdentValue FOOTNOTE = addValue("footnote");
+    public static final IdentValue FS_FOOTNOTE_BODY = addValue("-fs-footnote-body");
+
+    /**
+     * Value for the -fs-border-rendering property.
+     * See {@link CSSName#FS_BORDER_RENDERING}
+     */
+    public static final IdentValue NO_BEVEL = addValue("no-bevel");
 
     /**
      * Constructor for the IdentValue object

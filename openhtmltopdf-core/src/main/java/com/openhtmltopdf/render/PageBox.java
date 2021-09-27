@@ -86,7 +86,9 @@ public class PageBox {
     
     private int _basePagePdfPageIndex;
     private int _shadowPageCount;
-    
+
+    private int _totalFootnoteHeight;
+
     public void setBasePagePdfPageIndex(int idx) {
         this._basePagePdfPageIndex = idx;
     }
@@ -232,14 +234,69 @@ public class PageBox {
         _style = style;
     }
 
+    /**
+     * Gets the document Y position in top down units (20 per CSS pixel for PDF)
+     * <br><br>
+     * Example: If each page is 500px high and has a 50px margin, then if this is called
+     * on the second page it will return 16_000, which is 2 x 400px x 20.
+     * <br><br>
+     * Note: Does not take into account footnotes and any other <code>float: bottom</code>
+     * content. For this, you can use {@link #getBottomUsable()}.
+     * <br><br>
+     * Important: Prefer {@link #getBottom(CssContext)} over this method.
+     */
     public int getBottom() {
         return _bottom;
     }
 
+    /**
+     * Gets the document Y position taking into account <code>float: bottom</code>
+     * content such as footnotes. When laying in-flow content we use this method
+     * while when in footnotes we use {@link #getBottom()}.
+     * <br><br>
+     * Important: Prefer {@link #getBottom(CssContext)} over this method.
+     */
+    public int getBottomUsable() {
+        return _bottom - _totalFootnoteHeight;
+    }
+
+    /**
+     * If we are in a footnote calls {@link #getBottom()}, otherwise uses
+     * {@link #getBottomUsable()}.
+     */
+    public int getBottom(CssContext c) {
+        return c.isInFloatBottom() ? getBottom() : getBottomUsable();
+    }
+
+    /**
+     * If this page is reserved for footnote content.
+     */
+    public boolean isFootnoteReserved(CssContext c) {
+        return c.isInFloatBottom() ? false : _totalFootnoteHeight >= getContentHeight(c);
+    }
+
+    /**
+     * See {@link #setFootnoteAreaHeight(int)}
+     */
+    public int getFootnoteAreaHeight() {
+        return _totalFootnoteHeight;
+    }
+
+    /**
+     * Sets the footnote area height on this page.
+     */
+    public void setFootnoteAreaHeight(int footnoteAreaHeight) {
+        _totalFootnoteHeight = footnoteAreaHeight;
+    }
+
+    /**
+     * Get the document Y index into this page.
+     * See {@link #getBottom()} for example.
+     */
     public int getTop() {
         return _top;
     }
-    
+
     public void setTopAndBottom(CssContext cssCtx, int top) {
         _top = top;
         _bottom = top + getContentHeight(cssCtx);
@@ -316,8 +373,8 @@ public class PageBox {
      */
     public int getMaxShadowPagesForXPos(CssContext c, int x) {
         IdentValue dir = getCutOffPageDirection();
-        float fx = (float) x;
-        float fw = (float) getContentWidth(c);
+        float fx = x;
+        float fw = getContentWidth(c);
         
         if (fw == 0f) {
             return 0;
@@ -423,15 +480,13 @@ public class PageBox {
                         c, this, additionalClearance, mode);
 
                 c.getOutputDevice().translate(p.x, p.y);
-                if (c.getOutputDevice().isFastRenderer()) {
+
                     table.getLayer().propagateCurrentTransformationMatrix(c);
                     SimplePainter painter = new SimplePainter(p.x, p.y);
                     Object token = c.getOutputDevice().startStructure(StructureType.RUNNING, table);
                     painter.paintLayer(c, table.getLayer());
                     c.getOutputDevice().endStructure(token);
-                } else {
-                    table.getLayer().paint(c);
-                }
+
                 c.getOutputDevice().translate(-p.x, -p.y);
             }
         }
@@ -513,6 +568,7 @@ public class PageBox {
     }
 
     private void layoutMarginAreas(LayoutContext c) {
+        c.setFootnoteAllowed(false);
         RectPropertySet margin = getMargin(c);
         for (int i = 0; i < MARGIN_AREA_DEFS.length; i++) {
             MarginArea area = MARGIN_AREA_DEFS[i];
@@ -541,6 +597,7 @@ public class PageBox {
                 _marginAreas[i] = new MarginAreaContainer(area, table);
             }
         }
+        c.setFootnoteAllowed(true);
     }
     
     public boolean isLeftPage() {
@@ -568,7 +625,21 @@ public class PageBox {
             }
         }
     }
-    
+
+    /**
+     * Gets the footnote area max-height if it is provided
+     * in the footnote at-rule for this page, otherwise -1.
+     */
+    public float getFootnoteMaxHeight(CssContext c) {
+        CalculatedStyle style = getPageInfo().getFootnoteAreaRawMaxHeightStyle();
+
+        if (style == null || style.isMaxHeightNone()) {
+            return -1;
+        } else {
+            return style.getFloatPropertyProportionalHeight(CSSName.MAX_HEIGHT, getContentHeight(c), c);
+        }
+    }
+
     private static final class PageDimensions {
         private int _width;
         private int _height;
@@ -856,4 +927,5 @@ public class PageBox {
             return new Point(left, top);
         }
     }
+
 }
