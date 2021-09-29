@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
@@ -60,7 +61,7 @@ public class JsoupNonVisualRegressionTest {
     }
 
     private static PDDocument load(String filename) throws IOException {
-        return PDDocument.load(new File(OUT_PATH, filename + ".pdf"));
+        return Loader.loadPDF(new File(OUT_PATH, filename + ".pdf"));
     }
     
     private PDDocument run(String fileName, BuilderConfig config) throws IOException {

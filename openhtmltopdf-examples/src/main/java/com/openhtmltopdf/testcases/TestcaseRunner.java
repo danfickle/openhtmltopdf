@@ -52,7 +52,7 @@ public class TestcaseRunner {
 	 * 
 	 * If you only want to run one spefic test, you can specify
 	 * -DONLY_TEST=&lt;testname&gt;. I.e. -DONLY_TEST=adobe-borderstyle-bugs
-	 * 
+	 *
 	 * @deprecated Use <code>TestcaseRunnerTest</code> to run testcases instead.
 	 */
     @Deprecated

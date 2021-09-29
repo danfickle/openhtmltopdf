@@ -1,18 +1,5 @@
 package com.openhtmltopdf.freemarker;
 
-import com.openhtmltopdf.freemarker.FreeMarkerGenerator.FreemarkerRootObject;
-import com.openhtmltopdf.testlistener.PrintingRunner;
-import com.openhtmltopdf.util.XRLog;
-import com.openhtmltopdf.visualtest.TestSupport;
-
-import freemarker.template.TemplateException;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
@@ -20,6 +7,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.Loader;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import com.openhtmltopdf.freemarker.FreeMarkerGenerator.FreemarkerRootObject;
+import com.openhtmltopdf.testlistener.PrintingRunner;
+import com.openhtmltopdf.util.XRLog;
+import com.openhtmltopdf.visualtest.TestSupport;
+
+import freemarker.template.TemplateException;
 
 @RunWith(PrintingRunner.class)
 public class FreeMarkerGeneratorTest {
@@ -54,7 +55,7 @@ public class FreeMarkerGeneratorTest {
             fileOutputStream.write(pdf);
         }
 
-        try (PDDocument doc = PDDocument.load(pdfFile)) {
+        try (PDDocument doc = Loader.loadPDF(pdfFile)) {
             assertEquals(6, doc.getNumberOfPages());
         }
     }
@@ -81,7 +82,7 @@ public class FreeMarkerGeneratorTest {
             fileOutputStream.write(pdf);
         }
 
-        try (PDDocument doc = PDDocument.load(pdfFile)) {
+        try (PDDocument doc = Loader.loadPDF(pdfFile)) {
             assertEquals(31, doc.getNumberOfPages());
         }
 

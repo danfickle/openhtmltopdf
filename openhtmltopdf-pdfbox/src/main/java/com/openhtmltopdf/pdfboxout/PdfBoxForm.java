@@ -1,22 +1,16 @@
 package com.openhtmltopdf.pdfboxout;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
+import com.openhtmltopdf.css.constants.CSSName;
+import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.parser.FSCMYKColor;
+import com.openhtmltopdf.css.parser.FSColor;
+import com.openhtmltopdf.css.parser.FSRGBColor;
+import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.RenderingContext;
+import com.openhtmltopdf.util.ArrayUtil;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
+import com.openhtmltopdf.util.XRLog;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -42,20 +36,26 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDNonTerminalField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDPushButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDRadioButton;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
+import org.apache.pdfbox.pdmodel.interactive.form.PDVariableText;
 import org.w3c.dom.Element;
-
-import com.openhtmltopdf.css.constants.CSSName;
-import com.openhtmltopdf.css.constants.IdentValue;
-import com.openhtmltopdf.css.parser.FSCMYKColor;
-import com.openhtmltopdf.css.parser.FSColor;
-import com.openhtmltopdf.css.parser.FSRGBColor;
-import com.openhtmltopdf.render.Box;
-import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.util.ArrayUtil;
-import com.openhtmltopdf.util.OpenUtil;
-import com.openhtmltopdf.util.XRLog;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 public class PdfBoxForm {
@@ -358,17 +358,14 @@ public class PdfBoxForm {
         List<String> labels = new ArrayList<>();
         List<String> values = new ArrayList<>();
         String selectedLabel = populateOptions(ctrl.box.getElement(), labels, values, null);
-        
+
+        setAppearance(pair, ctrl, field);
+
         field.setOptions(values, labels);
         field.setValue(selectedLabel);
         field.setDefaultValue(selectedLabel);
-        
-        FSColor color = ctrl.box.getStyle().getColor();
-        String colorOperator = getColorOperator(color);
-        
-        String fontInstruction = "/" + pair.fontName + " 0 Tf";
-        field.setDefaultAppearance(fontInstruction + ' ' + colorOperator);
-        
+
+
         if (ctrl.box.getElement().hasAttribute("required")) {
             field.setRequired(true);
         }
@@ -397,14 +394,28 @@ public class PdfBoxForm {
       
         ctrl.page.getAnnotations().add(widget);
     }
-    
+
+    private void setAppearance(ControlFontPair pair, Control ctrl, PDVariableText field)
+    {
+        FSColor color = ctrl.box.getStyle().getColor();
+        String colorOperator = getColorOperator(color);
+
+        String fontName = pair.fontName;
+        if (fontName == null)
+            return;
+
+        String fontInstruction = "/" + fontName + " 0 Tf";
+        field.setDefaultAppearance(fontInstruction + ' ' + colorOperator);
+    }
+
     private void processHiddenControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root) throws IOException {
         PDTextField field = new PDTextField(acro);
 
         setPartialNameToField(ctrl, field);
         
         String value = ctrl.box.getElement().getAttribute("value");
-        
+
+        setAppearance(pair, ctrl, field);
         field.setDefaultValue(value);
         field.setValue(value);
         
@@ -421,12 +432,8 @@ public class PdfBoxForm {
 
         setPartialNameToField(ctrl, field);
         
-        FSColor color = ctrl.box.getStyle().getColor();
-        String colorOperator = getColorOperator(color);
+        setAppearance(pair, ctrl, field);
 
-        String fontInstruction = "/" + pair.fontName + " 0 Tf";
-        field.setDefaultAppearance(fontInstruction + ' ' + colorOperator);
-        
         String value = ctrl.box.getElement().getNodeName().equals("textarea") ?
                 getTextareaText(ctrl.box.getElement()) :
                 ctrl.box.getElement().getAttribute("value");

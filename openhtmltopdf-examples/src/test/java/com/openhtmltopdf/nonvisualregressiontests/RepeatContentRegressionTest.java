@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -137,7 +138,7 @@ public class RepeatContentRegressionTest {
 
         byte[] pdfBytes = actual.toByteArray();
 
-        try (PDDocument doc = PDDocument.load(pdfBytes)) {
+        try (PDDocument doc = Loader.loadPDF(pdfBytes)) {
             PDFTextStripper stripper = new PDFTextStripper();
             stripper.setSuppressDuplicateOverlappingText(false);
             stripper.setLineSeparator("\n");
