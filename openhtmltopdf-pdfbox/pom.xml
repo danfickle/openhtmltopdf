@@ -9,7 +9,7 @@
       <name>Apache Repository</name>
       <url>https://repository.apache.org/content/groups/snapshots/</url>
       <snapshots>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </snapshots>
     </repository>
     </repositories>
@@ -152,7 +152,7 @@
   </build>
 
   <properties>
-    <pdfbox.version>3.0.0-alpha2</pdfbox.version>
+    <pdfbox.version>3.0.0-SNAPSHOT</pdfbox.version>
   </properties>
 
 </project>
