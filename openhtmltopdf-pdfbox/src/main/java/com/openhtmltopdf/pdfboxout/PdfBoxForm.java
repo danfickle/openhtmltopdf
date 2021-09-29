@@ -740,13 +740,13 @@ public class PdfBoxForm {
         
         if (ctrl.box.getElement().getAttribute("type").equals("reset")) {
             PDActionResetForm reset = new PDActionResetForm();
-            reset.setFields(fieldsToInclude.getCOSArray());
+            reset.setFields(fieldsToInclude.toList());
             widget.setAction(reset);;
         } else {
             PDFileSpecification fs = PDFileSpecification.createFS(new COSString(element.getAttribute("action")));
             PDActionSubmitForm submit = new PDActionSubmitForm();
             
-            submit.setFields(fieldsToInclude.getCOSArray());
+            submit.setFields(fieldsToInclude.toList());
             submit.setFile(fs);
 
             if (!element.getAttribute("method").equalsIgnoreCase("post")) {
