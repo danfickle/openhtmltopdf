@@ -36,25 +36,29 @@ import com.openhtmltopdf.util.XRLog;
  */
 public class XhtmlNamespaceHandler extends XhtmlCssOnlyNamespaceHandler {
     private static final String DEFAULT_SVG_DIMS = "";
-    
+
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isImageElement(Element e) {
         return (e != null && e.getNodeName().equalsIgnoreCase("img"));
     }
-    
+
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isFormElement(Element e) {
         return (e != null && e.getNodeName().equalsIgnoreCase("form"));
     }
 
+    @Override
     public String getImageSourceURI(Element e) {
         return e != null ? e.getAttribute("src") : null;
     }
 
+    @Override
     public String getNonCssStyling(Element e) {
         switch(e.getNodeName()) {
         case "table":

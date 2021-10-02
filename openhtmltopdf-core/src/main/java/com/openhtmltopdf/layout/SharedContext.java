@@ -29,7 +29,6 @@ import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
 import com.openhtmltopdf.render.RenderingContext;
-import com.openhtmltopdf.swing.AWTFontResolver;
 import com.openhtmltopdf.util.ThreadCtx;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -47,12 +46,7 @@ import java.util.Map;
  * use a new instance for every run.
  */
 public class SharedContext {
-	/**
-	 * @deprecated Belongs in Java2D renderer.
-	 */
-    @Deprecated
-    private final static float DEFAULT_DPI = 72;
-	
+
     /**
      * @deprecated Belongs in Java2D renderer.
      */
@@ -408,37 +402,6 @@ public class SharedContext {
             setMedia("print");
         } else {
             setMedia("screen");
-        }
-    }
-
-    /**
-     * Adds or overrides a font mapping, meaning you can associate a particular
-     * font with a particular string. For example, the following would load a
-     * font out of the cool.ttf file and associate it with the name <i>CoolFont
-     * </i>:
-     * <pre>
-     *   Font font = Font.createFont(Font.TRUETYPE_FONT,
-     *   new FileInputStream("cool.ttf");
-     *   setFontMapping("CoolFont", font);
-     * </pre>
-     * You could then put the following css in your page
-     * <pre>
-     *   p { font-family: CoolFont Arial sans-serif; }
-     * </pre>
-     * You can also override existing font mappings, like replacing Arial with
-     * Helvetica.
-     *
-     * @param name The new font name
-     * @param font The actual Font to map
-     * @deprecated Definitely shouldn't use this method as it only applies for
-     * Java2D font resolver. Instead call getFontResolver, cast and use font adding 
-     * methods on that.
-     */
-    @Deprecated
-    public void setFontMapping(String name, Font font) {
-        FontResolver resolver = getFontResolver();
-        if (resolver instanceof AWTFontResolver) {
-            ((AWTFontResolver)resolver).setFontMapping(name, font);
         }
     }
 

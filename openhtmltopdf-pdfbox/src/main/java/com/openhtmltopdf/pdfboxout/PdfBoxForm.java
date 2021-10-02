@@ -337,7 +337,7 @@ public class PdfBoxForm {
         
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
@@ -388,7 +388,7 @@ public class PdfBoxForm {
         
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
@@ -461,7 +461,7 @@ public class PdfBoxForm {
         
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
@@ -598,7 +598,7 @@ public class PdfBoxForm {
            field.getCOSObject().setItem(COSName.DV, COSName.Off);
         }
         
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         PDAnnotationWidget widget = field.getWidgets().get(0);
@@ -647,7 +647,7 @@ public class PdfBoxForm {
         int radioCnt = 0;
         
         for (Control ctrl : group) {
-            Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+            Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
             PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
             
             PDAnnotationWidget widget = new PDAnnotationWidget();
@@ -688,10 +688,9 @@ public class PdfBoxForm {
     private void processSubmitControl(PDAcroForm acro, int i, Control ctrl, Box root) throws IOException {
         final int FLAG_USE_GET = 1 << 3;
         final int FLAG_USE_HTML_SUBMIT = 1 << 2;
-        
+
         PDPushButton btn = new PDPushButton(acro);
-        btn.setPushButton(true);
-        
+
         if (ctrl.box.getElement().hasAttribute("name")) {
             // Buttons can't have a value so we create a hidden text field instead.
             PDTextField field = new PDTextField(acro);
@@ -719,7 +718,7 @@ public class PdfBoxForm {
         
         PDAnnotationWidget widget = btn.getWidgets().get(0);
         
-        Rectangle2D rect2D = PdfBoxLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform, root, od);
         PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(), (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
@@ -734,13 +733,13 @@ public class PdfBoxForm {
         
         if (ctrl.box.getElement().getAttribute("type").equals("reset")) {
             PDActionResetForm reset = new PDActionResetForm();
-            reset.setFields(fieldsToInclude.toList());
+            reset.setFields(fieldsToInclude.getCOSArray());
             widget.setAction(reset);;
         } else {
             PDFileSpecification fs = PDFileSpecification.createFS(new COSString(element.getAttribute("action")));
             PDActionSubmitForm submit = new PDActionSubmitForm();
             
-            submit.setFields(fieldsToInclude.toList());
+            submit.setFields(fieldsToInclude.getCOSArray());
             submit.setFile(fs);
 
             if (!element.getAttribute("method").equalsIgnoreCase("post")) {

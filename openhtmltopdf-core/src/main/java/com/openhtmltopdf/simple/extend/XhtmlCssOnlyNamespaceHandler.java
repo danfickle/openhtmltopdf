@@ -18,9 +18,9 @@
  */
 package com.openhtmltopdf.simple.extend;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
+
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -39,7 +41,6 @@ import com.openhtmltopdf.css.extend.StylesheetFactory;
 import com.openhtmltopdf.css.sheet.Stylesheet;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 import com.openhtmltopdf.simple.NoNamespaceHandler;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.XRLog;
 
 /**
@@ -63,6 +64,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
      *
      * @return The namespace value
      */
+    @Override
     public String getNamespace() {
         return _namespace;
     }
@@ -70,9 +72,9 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     /**
      * Gets the class attribute of the XhtmlNamespaceHandler object
      *
-     * @param e PARAM
      * @return The class value
      */
+    @Override
     public String getClass(org.w3c.dom.Element e) {
         return e.getAttribute("class");
     }
@@ -80,9 +82,9 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     /**
      * Gets the iD attribute of the XhtmlNamespaceHandler object
      *
-     * @param e PARAM
      * @return The iD value
      */
+    @Override
     public String getID(org.w3c.dom.Element e) {
         String result = e.getAttribute("id").trim();
         return result.length() == 0 ? null : result;
@@ -151,6 +153,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
      * @param e PARAM
      * @return The linkUri value
      */
+    @Override
     public String getLinkUri(org.w3c.dom.Element e) {
         String href = null;
         if (e.getNodeName().equalsIgnoreCase("a") && e.hasAttribute("href")) {
@@ -159,6 +162,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         return href;
     }
 
+    @Override
     public String getAnchorName(Element e) {
         if (e != null && e.getNodeName().equalsIgnoreCase("a") &&
                 e.hasAttribute("name")) {
@@ -169,9 +173,9 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     /**
      * Gets the elementStyling attribute of the XhtmlNamespaceHandler object
      *
-     * @param e PARAM
      * @return The elementStyling value
      */
+    @Override
     public String getElementStyling(org.w3c.dom.Element e) {
         StringBuilder style = new StringBuilder();
         if (e.getNodeName().equals("td") || e.getNodeName().equals("th")) {
@@ -227,6 +231,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
      * @param doc the document to search for a title
      * @return The document's title, or "" if none found
      */
+    @Override
     public String getDocumentTitle(org.w3c.dom.Document doc) {
         String title = "";
 
@@ -318,9 +323,9 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
     /**
      * Gets the stylesheetLinks attribute of the XhtmlNamespaceHandler object
      *
-     * @param doc PARAM
      * @return The stylesheetLinks value
      */
+    @Override
     public StylesheetInfo[] getStylesheets(org.w3c.dom.Document doc) {
         List<StylesheetInfo> result = new ArrayList<>();
         //get the processing-instructions (actually for XmlDocuments)
@@ -356,6 +361,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
         return result.toArray(new StylesheetInfo[result.size()]);
     }
 
+    @Override
     public StylesheetInfo getDefaultStylesheet(StylesheetFactory factory) {
         synchronized (XhtmlCssOnlyNamespaceHandler.class) {
             if (_defaultStylesheet != null) {
@@ -380,22 +386,16 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
                     return null;
                 }
 
-                Stylesheet sheet = factory.parse(new InputStreamReader(is), info);
-                info.setStylesheet(sheet);
-
-                is.close();
-                is = null;
+                try (Reader reader = new InputStreamReader(is)) {
+                    Stylesheet sheet = factory.parse(reader, info);
+                    info.setStylesheet(sheet);
+                }
             } catch (Exception e) {
                 _defaultStylesheetError = true;
                 XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_COULD_NOT_PARSE_DEFAULT_STYLESHEET, e);
             } finally {
-                if (is != null) {
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        //  ignore
-                    }
-                }
+                OpenUtil.closeQuietly(is);
+                is = null;
             }
 
             _defaultStylesheet = info;
@@ -406,7 +406,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
 
     private InputStream getDefaultStylesheetStream() {
         InputStream stream = null;
-        String defaultStyleSheet = Configuration.valueFor("xr.css.user-agent-default-css") + "XhtmlNamespaceHandler.css";
+        String defaultStyleSheet = "/resources/css/XhtmlNamespaceHandler.css";
         stream = this.getClass().getResourceAsStream(defaultStyleSheet);
         if (stream == null) {
             XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.EXCEPTION_COULD_NOT_LOAD_DEFAULT_CSS, defaultStyleSheet);
@@ -466,6 +466,7 @@ public class XhtmlCssOnlyNamespaceHandler extends NoNamespaceHandler {
      * Gets the language of an element as specified (in order of precedence) by the lang attribute on the element itself,
      * the first ancestor with a lang attribute, the Content-Language meta tag or the empty string.
      */
+    @Override
     public String getLang(org.w3c.dom.Element e) {
         String lang = e.getAttribute("lang");
 

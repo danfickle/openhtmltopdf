@@ -160,7 +160,7 @@ public class PdfContentStreamAdapter {
 
     public void setStrokingColor(int r, int g, int b) {
         try {
-            cs.setStrokingColor(r, g, b);
+            cs.setStrokingColor(r / 255f, g / 255f, b / 255f);
         } catch (IOException e) {
             logAndThrow("setStrokingColor", e);
         }
@@ -176,7 +176,7 @@ public class PdfContentStreamAdapter {
 
     public void setFillColor(int r, int g, int b) {
         try {
-            cs.setNonStrokingColor(r, g, b);
+            cs.setNonStrokingColor(r / 255f, g / 255f, b / 255f);
         } catch (IOException e) {
             logAndThrow("setFillColor", e);
         }

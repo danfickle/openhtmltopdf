@@ -90,7 +90,7 @@ public class LineBreakContext {
     }
 
     /**
-     * @see {@link #newLine()}
+     * See {@link #newLine()}
      */
     public boolean possibleEndlessLoop() {
         return _newlineAttemptsForLastStartPosition > 5;

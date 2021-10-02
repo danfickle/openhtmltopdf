@@ -74,7 +74,7 @@ public class Layer {
     private boolean _hasFixedAncester;
 
     /**
-     * @see {@link #getCurrentTransformMatrix()}
+     * See {@link #getCurrentTransformMatrix()}
      */
     private AffineTransform _ctm;
     private final boolean _hasLocalTransform;

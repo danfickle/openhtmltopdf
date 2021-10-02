@@ -193,6 +193,7 @@ public class TableRowBox extends BlockBox {
         _extraSpaceBottom = maxBorderAndPadding;
     }
 
+    @Override
     protected void layoutChildren(LayoutContext c, int contentStart) {
         setState(Box.CHILDREN_FLUX);
         ensureChildren(c);
@@ -308,7 +309,8 @@ public class TableRowBox extends BlockBox {
             return result;
         }
     }
-    
+
+    @Override
     protected void calcLayoutHeight(
             LayoutContext c, BorderPropertySet border, 
             RectPropertySet margin, RectPropertySet padding) {
@@ -453,7 +455,8 @@ public class TableRowBox extends BlockBox {
         
         cell.layout(c, contentStart);
     } 
-    
+
+    @Override
     public void initStaticPos(LayoutContext c, BlockBox parent, int childOffset) {
         setX(0);
         
@@ -500,7 +503,8 @@ public class TableRowBox extends BlockBox {
     public void setHaveBaseline(boolean haveBaseline) {
         _haveBaseline = haveBaseline;
     }
-    
+
+    @Override
     protected String getExtraBoxDescription() {
         if (isHaveBaseline()) {
             return "(baseline=" + getBaseline() + ") ";

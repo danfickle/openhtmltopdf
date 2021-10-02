@@ -33,42 +33,52 @@ public class ViewportBox extends BlockBox {
         _viewport = viewport;
     }
 
+    @Override
     public int getWidth() {
         return _viewport.width;
     }
 
+    @Override
     public int getHeight() {
         return _viewport.height;
     }
 
+    @Override
     public int getContentWidth() {
         return _viewport.width;
     }
 
+    @Override
     public Rectangle getContentAreaEdge(int left, int top, CssContext cssCtx) {
         return new Rectangle(-_viewport.x, -_viewport.y, _viewport.width, _viewport.height);
     }
 
+    @Override
     public Rectangle getPaddingEdge(int left, int top, CssContext cssCtx) {
         return new Rectangle(-_viewport.x, -_viewport.y, _viewport.width, _viewport.height);
     }
 
+    @Override
     protected int getPaddingWidth(CssContext cssCtx) {
         return _viewport.width;
     }
 
+    @Override
     public BlockBox copyOf() {
         throw new IllegalArgumentException("cannot be copied");
     }
 
+    @Override
     public boolean isAutoHeight() {
         return false;
     }
 
+    @Override
     protected int getCSSHeight(CssContext c) {
         return _viewport.height;
     }
 
+    @Override
     protected boolean isInitialContainingBlock() {
         return true;
     }

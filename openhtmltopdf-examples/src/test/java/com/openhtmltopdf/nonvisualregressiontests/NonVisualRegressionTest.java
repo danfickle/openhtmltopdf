@@ -61,6 +61,7 @@ import com.openhtmltopdf.testcases.TestcaseRunner;
 import com.openhtmltopdf.testlistener.PrintingRunner;
 import com.openhtmltopdf.util.Diagnostic;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.visualregressiontests.VisualRegressionTest;
 import com.openhtmltopdf.visualtest.TestSupport;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
@@ -117,23 +118,17 @@ public class NonVisualRegressionTest {
 
         return load(fileName);
     }
-    
+
     private static PDDocument run(String filename) throws IOException {
-        return run(filename, new BuilderConfig() {
-            @Override
-            public void configure(PdfRendererBuilder builder) {
-            }
-        });
+        return run(filename, b -> {});
     }
-    
+
     private static PDDocument load(String filename) throws IOException {
         return PDDocument.load(new File(OUT_PATH, filename + ".pdf"));
     }
 
     private static void remove(String fileName, PDDocument doc) throws IOException {
-        if (doc != null) {
-            doc.close();
-        }
+        OpenUtil.closeQuietly(doc);
         new File(OUT_PATH, fileName + ".pdf").delete();
     }
 
@@ -180,15 +175,16 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testMetaInformation() throws IOException {
-        PDDocument doc = run("meta-information");
-        PDDocumentInformation did = doc.getDocumentInformation();
-        
-        assertThat(did.getTitle(), equalTo("Test title"));
-        assertThat(did.getAuthor(), equalTo("Test author"));
-        assertThat(did.getSubject(), equalTo("Test subject"));
-        assertThat(did.getKeywords(), equalTo("Test keywords"));
-        
-        remove("meta-information", doc);
+        try (PDDocument doc = run("meta-information")) {
+            PDDocumentInformation did = doc.getDocumentInformation();
+
+            assertThat(did.getTitle(), equalTo("Test title"));
+            assertThat(did.getAuthor(), equalTo("Test author"));
+            assertThat(did.getSubject(), equalTo("Test subject"));
+            assertThat(did.getKeywords(), equalTo("Test keywords"));
+
+            remove("meta-information", doc);
+        }
     }
 
     /**
@@ -196,19 +192,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testBookmarkHeadSimple() throws IOException {
-        PDDocument doc = run("bookmark-head-simple");
-        PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
-        
-        PDOutlineItem bm = outline.getFirstChild();
-        assertThat(bm.getTitle(), equalTo("Test bookmark"));
-        assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
-        
-        // At top of second page.
-        assertEquals(dest.getPage(), doc.getPage(1));
-        assertEquals(doc.getPage(1).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
-        
-        remove("bookmark-head-simple", doc);
+        try (PDDocument doc = run("bookmark-head-simple")) {
+            PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+
+            PDOutlineItem bm = outline.getFirstChild();
+            assertThat(bm.getTitle(), equalTo("Test bookmark"));
+            assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
+
+            // At top of second page.
+            assertEquals(dest.getPage(), doc.getPage(1));
+            assertEquals(doc.getPage(1).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
+
+            remove("bookmark-head-simple", doc);
+        }
     }
 
     /**
@@ -216,19 +213,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testBookmarkBodySimple() throws IOException {
-        PDDocument doc = run("bookmark-body-simple");
-        PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+        try (PDDocument doc = run("bookmark-body-simple")) {
+            PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
 
-        PDOutlineItem bm = outline.getFirstChild();
-        assertThat(bm.getTitle(), equalTo("Test bookmark"));
-        assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
+            PDOutlineItem bm = outline.getFirstChild();
+            assertThat(bm.getTitle(), equalTo("Test bookmark"));
+            assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
 
-        // At top of second page.
-        assertEquals(dest.getPage(), doc.getPage(1));
-        assertEquals(doc.getPage(1).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
+            // At top of second page.
+            assertEquals(dest.getPage(), doc.getPage(1));
+            assertEquals(doc.getPage(1).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
 
-        remove("bookmark-body-simple", doc);
+            remove("bookmark-body-simple", doc);
+        }
     }
 
     /**
@@ -236,19 +234,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testBookmarkHeadTransform() throws IOException {
-        PDDocument doc = run("bookmark-head-transform");
-        PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
-        
-        PDOutlineItem bm = outline.getFirstChild();
-        assertThat(bm.getTitle(), equalTo("Test bookmark"));
-        assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
-        
-        // At top of third page.
-        assertEquals(dest.getPage(), doc.getPage(2));
-        assertEquals(doc.getPage(2).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
-        
-        remove("bookmark-head-transform", doc);
+        try (PDDocument doc = run("bookmark-head-transform")) {
+            PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+
+            PDOutlineItem bm = outline.getFirstChild();
+            assertThat(bm.getTitle(), equalTo("Test bookmark"));
+            assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
+
+            // At top of third page.
+            assertEquals(dest.getPage(), doc.getPage(2));
+            assertEquals(doc.getPage(2).getMediaBox().getUpperRightY(), dest.getTop(), 1.0d);
+
+            remove("bookmark-head-transform", doc);
+        }
     }
     
     /**
@@ -256,19 +255,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testBookmarkHeadOnOverflowPage() throws IOException {
-        PDDocument doc = run("bookmark-head-on-overflow-page");
-        PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
-        
-        PDOutlineItem bm = outline.getFirstChild();
-        assertThat(bm.getTitle(), equalTo("Test bookmark"));
-        assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
-        
-        assertEquals(dest.getPage(), doc.getPage(2));
-        // Should be 11px down (10px margin, 1px outer border).
-        assertEquals(cssPixelYToPdfPoints(11, 50), dest.getTop(), 1.0d);
-        
-        remove("bookmark-head-on-overflow-page", doc);
+        try (PDDocument doc = run("bookmark-head-on-overflow-page")) {
+            PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+
+            PDOutlineItem bm = outline.getFirstChild();
+            assertThat(bm.getTitle(), equalTo("Test bookmark"));
+            assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
+
+            assertEquals(dest.getPage(), doc.getPage(2));
+            // Should be 11px down (10px margin, 1px outer border).
+            assertEquals(cssPixelYToPdfPoints(11, 50), dest.getTop(), 1.0d);
+
+            remove("bookmark-head-on-overflow-page", doc);
+        }
     }
 
     /**
@@ -276,19 +276,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testBookmarkHeadAfterOverflowPage() throws IOException {
-        PDDocument doc = run("bookmark-head-after-overflow-page");
-        PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
-        
-        PDOutlineItem bm = outline.getFirstChild();
-        assertThat(bm.getTitle(), equalTo("Test bookmark"));
-        assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
-        
-        assertEquals(dest.getPage(), doc.getPage(3));
-        // Should be 10px down (10px page margin).
-        assertEquals(cssPixelYToPdfPoints(10, 50), dest.getTop(), 1.0d);
-        
-        remove("bookmark-head-after-overflow-page", doc);
+        try (PDDocument doc = run("bookmark-head-after-overflow-page")) {
+            PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+
+            PDOutlineItem bm = outline.getFirstChild();
+            assertThat(bm.getTitle(), equalTo("Test bookmark"));
+            assertThat(bm.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) bm.getDestination();
+
+            assertEquals(dest.getPage(), doc.getPage(3));
+            // Should be 10px down (10px page margin).
+            assertEquals(cssPixelYToPdfPoints(10, 50), dest.getTop(), 1.0d);
+
+            remove("bookmark-head-after-overflow-page", doc);
+        }
     }
     
     /**
@@ -296,28 +297,29 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testBookmarkHeadNested() throws IOException {
-        PDDocument doc = run("bookmark-head-nested");
-        PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
+        try (PDDocument doc = run("bookmark-head-nested")) {
+            PDDocumentOutline outline = doc.getDocumentCatalog().getDocumentOutline();
 
-        PDOutlineItem bm1 = outline.getFirstChild();
-        assertThat(bm1.getTitle(), equalTo("Outer"));
-        assertThat(bm1.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest1 = (PDPageXYZDestination) bm1.getDestination();
-        
-        // At top of second page.
-        assertEquals(dest1.getPage(), doc.getPage(1));
-        assertEquals(doc.getPage(1).getMediaBox().getUpperRightY(), dest1.getTop(), 1.0d);
-        
-        PDOutlineItem bm2 = bm1.getFirstChild();
-        assertThat(bm2.getTitle(), equalTo("Inner"));
-        assertThat(bm2.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest2 = (PDPageXYZDestination) bm2.getDestination();
-        
-        // At top of third page.
-        assertEquals(dest2.getPage(), doc.getPage(2));
-        assertEquals(doc.getPage(2).getMediaBox().getUpperRightY(), dest2.getTop(), 1.0d);
-        
-        remove("bookmark-head-nested", doc);
+            PDOutlineItem bm1 = outline.getFirstChild();
+            assertThat(bm1.getTitle(), equalTo("Outer"));
+            assertThat(bm1.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest1 = (PDPageXYZDestination) bm1.getDestination();
+
+            // At top of second page.
+            assertEquals(dest1.getPage(), doc.getPage(1));
+            assertEquals(doc.getPage(1).getMediaBox().getUpperRightY(), dest1.getTop(), 1.0d);
+
+            PDOutlineItem bm2 = bm1.getFirstChild();
+            assertThat(bm2.getTitle(), equalTo("Inner"));
+            assertThat(bm2.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest2 = (PDPageXYZDestination) bm2.getDestination();
+
+            // At top of third page.
+            assertEquals(dest2.getPage(), doc.getPage(2));
+            assertEquals(doc.getPage(2).getMediaBox().getUpperRightY(), dest2.getTop(), 1.0d);
+
+            remove("bookmark-head-nested", doc);
+        }
     }
     
     /**
@@ -325,25 +327,26 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkSimpleBlock() throws IOException {
-        PDDocument doc = run("link-simple-block");
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
-        
-        // LINK: Top of first page, 100px by 10px.
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(0f, 0f, 100f, 10f), 200d));
-        
-        assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
-        PDActionGoTo action = (PDActionGoTo) link.getAction();
-        
-        assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
-        
-        // TARGET: Top of second page.
-        assertEquals(doc.getPage(1), dest.getPage());
-        assertEquals(cssPixelYToPdfPoints(0, 200), dest.getTop(), 1.0d);
-        
-        remove("link-simple-block", doc);
+        try (PDDocument doc = run("link-simple-block")) {
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+
+            // LINK: Top of first page, 100px by 10px.
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(0f, 0f, 100f, 10f), 200d));
+
+            assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
+            PDActionGoTo action = (PDActionGoTo) link.getAction();
+
+            assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
+
+            // TARGET: Top of second page.
+            assertEquals(doc.getPage(1), dest.getPage());
+            assertEquals(cssPixelYToPdfPoints(0, 200), dest.getTop(), 1.0d);
+
+            remove("link-simple-block", doc);
+        }
     }
     
     /**
@@ -351,25 +354,26 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkTransformTarget() throws IOException {
-        PDDocument doc = run("link-transform-target");
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
-        
-        // LINK: Top of first page, 100px by 10px.
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(0f, 0f, 100f, 10f), 100d));
-        
-        assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
-        PDActionGoTo action = (PDActionGoTo) link.getAction();
-        
-        assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
-        
-        // TARGET: Top of third page.
-        assertEquals(doc.getPage(2), dest.getPage());
-        assertEquals(cssPixelYToPdfPoints(0, 100), dest.getTop(), 1.0d);
-        
-        remove("link-transform-target", doc);
+        try (PDDocument doc = run("link-transform-target")) {
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+
+            // LINK: Top of first page, 100px by 10px.
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(0f, 0f, 100f, 10f), 100d));
+
+            assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
+            PDActionGoTo action = (PDActionGoTo) link.getAction();
+
+            assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
+
+            // TARGET: Top of third page.
+            assertEquals(doc.getPage(2), dest.getPage());
+            assertEquals(cssPixelYToPdfPoints(0, 100), dest.getTop(), 1.0d);
+
+            remove("link-transform-target", doc);
+        }
     }
     
     /**
@@ -377,21 +381,22 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkInlineTarget() throws IOException {
-        PDDocument doc = run("link-inline-target");
-        
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        
-        assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
-        PDActionGoTo action = (PDActionGoTo) link.getAction();
-        
-        assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
-        
-        // TARGET: Top of second page.
-        assertEquals(doc.getPage(1), dest.getPage());
-        assertEquals(cssPixelYToPdfPoints(0, 100), dest.getTop(), 1.0d);
-        
-        remove("link-inline-target", doc);
+        try (PDDocument doc = run("link-inline-target")) {
+
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+
+            assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
+            PDActionGoTo action = (PDActionGoTo) link.getAction();
+
+            assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
+
+            // TARGET: Top of second page.
+            assertEquals(doc.getPage(1), dest.getPage());
+            assertEquals(cssPixelYToPdfPoints(0, 100), dest.getTop(), 1.0d);
+
+            remove("link-inline-target", doc);
+        }
     }
     
     /**
@@ -399,25 +404,26 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAfterOverflowTarget() throws IOException {
-        PDDocument doc = run("link-after-overflow-target");
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
-        
-        // LINK: Top of first page, 80px by 10px (page margin is 10px).
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
-        
-        assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
-        PDActionGoTo action = (PDActionGoTo) link.getAction();
-        
-        assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
-        
-        // TARGET: Top of third page.
-        assertEquals(doc.getPage(2), dest.getPage());
-        assertEquals(cssPixelYToPdfPoints(10, 100), dest.getTop(), 1.0d);
-        
-        remove("link-after-overflow-target", doc);
+        try (PDDocument doc = run("link-after-overflow-target")) {
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+
+            // LINK: Top of first page, 80px by 10px (page margin is 10px).
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
+
+            assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
+            PDActionGoTo action = (PDActionGoTo) link.getAction();
+
+            assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
+
+            // TARGET: Top of third page.
+            assertEquals(doc.getPage(2), dest.getPage());
+            assertEquals(cssPixelYToPdfPoints(10, 100), dest.getTop(), 1.0d);
+
+            remove("link-after-overflow-target", doc);
+        }
     }
     
     /**
@@ -425,25 +431,26 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkOnOverflowTarget() throws IOException {
-        PDDocument doc = run("link-on-overflow-target");
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
-        
-        // LINK: Top of first page, 80px by 10px (page margin is 10px).
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
-        
-        assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
-        PDActionGoTo action = (PDActionGoTo) link.getAction();
-        
-        assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
-        PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
-        
-        // TARGET: Top of third page.
-        assertEquals(doc.getPage(2), dest.getPage());
-        assertEquals(cssPixelYToPdfPoints(11, 100), dest.getTop(), 1.0d);
-        
-        remove("link-on-overflow-target", doc);
+        try (PDDocument doc = run("link-on-overflow-target")) {
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+
+            // LINK: Top of first page, 80px by 10px (page margin is 10px).
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
+
+            assertThat(link.getAction(), instanceOf(PDActionGoTo.class));
+            PDActionGoTo action = (PDActionGoTo) link.getAction();
+
+            assertThat(action.getDestination(), instanceOf(PDPageXYZDestination.class));
+            PDPageXYZDestination dest = (PDPageXYZDestination) action.getDestination();
+
+            // TARGET: Top of third page.
+            assertEquals(doc.getPage(2), dest.getPage());
+            assertEquals(cssPixelYToPdfPoints(11, 100), dest.getTop(), 1.0d);
+
+            remove("link-on-overflow-target", doc);
+        }
     }
 
     /**
@@ -580,15 +587,16 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaTransformTranslateY() throws IOException {
-        PDDocument doc = run("link-area-transform-translatey");
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
-        
-        // 150px by 50px, top of page + 10px pg margin + 1px border + 50px translateY = 61px.
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 61f, 150f, 50f), 200d));
+        try (PDDocument doc = run("link-area-transform-translatey")) {
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
 
-        remove("link-area-transform-translatey", doc);
+            // 150px by 50px, top of page + 10px pg margin + 1px border + 50px translateY = 61px.
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 61f, 150f, 50f), 200d));
+
+            remove("link-area-transform-translatey", doc);
+        }
     }
     
     /**
@@ -596,18 +604,19 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaTransformRotate() throws IOException {
-        PDDocument doc = run("link-area-transform-rotate");
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
-        
-        // Confirmed by looking at the resulting PDF.
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertEquals(11.4375, link.getRectangle().getLowerLeftX(), 1.0d);
-        assertEquals(69.975, link.getRectangle().getLowerLeftY(), 1.0d);
-        assertEquals(117.4875, link.getRectangle().getUpperRightX(), 1.0d);
-        assertEquals(142.5, link.getRectangle().getUpperRightY(), 1.0d);
+        try (PDDocument doc = run("link-area-transform-rotate")) {
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
 
-        remove("link-area-transform-rotate", doc);
+            // Confirmed by looking at the resulting PDF.
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertEquals(11.4375, link.getRectangle().getLowerLeftX(), 1.0d);
+            assertEquals(69.975, link.getRectangle().getLowerLeftY(), 1.0d);
+            assertEquals(117.4875, link.getRectangle().getUpperRightX(), 1.0d);
+            assertEquals(142.5, link.getRectangle().getUpperRightY(), 1.0d);
+
+            remove("link-area-transform-rotate", doc);
+        }
     }
     
     /**
@@ -615,16 +624,17 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaOverflowPage() throws IOException {
-        PDDocument doc = run("link-area-overflow-page");
-        
-        assertEquals(0, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(1).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+        try (PDDocument doc = run("link-area-overflow-page")) {
 
-        // On second page (which is the first overflow page).
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(30f, 11f, 40f, 10f), 100d));
-        
-        remove("link-area-overflow-page", doc);
+            assertEquals(0, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(1).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+
+            // On second page (which is the first overflow page).
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(30f, 11f, 40f, 10f), 100d));
+
+            remove("link-area-overflow-page", doc);
+        }
     }
 
     /**
@@ -632,19 +642,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaAfterOverflowPage() throws IOException {
-        PDDocument doc = run("link-area-after-overflow-page");
-        
-        assertEquals(0, doc.getPage(0).getAnnotations().size());
-        assertEquals(0, doc.getPage(1).getAnnotations().size());
+        try (PDDocument doc = run("link-area-after-overflow-page")) {
 
-        assertEquals(1, doc.getPage(2).getAnnotations().size());
-        assertThat(doc.getPage(2).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+            assertEquals(0, doc.getPage(0).getAnnotations().size());
+            assertEquals(0, doc.getPage(1).getAnnotations().size());
 
-        // On third page (after the first overflow page).
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(2).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
-        
-        remove("link-area-after-overflow-page", doc);
+            assertEquals(1, doc.getPage(2).getAnnotations().size());
+            assertThat(doc.getPage(2).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+
+            // On third page (after the first overflow page).
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(2).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 80f, 10f), 100d));
+
+            remove("link-area-after-overflow-page", doc);
+        }
     }
 
     /**
@@ -652,19 +663,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkExternalUrl() throws IOException {
-        PDDocument doc = run("link-external-url");
+        try (PDDocument doc = run("link-external-url")) {
 
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
 
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        
-        assertThat(link.getAction(), instanceOf(PDActionURI.class));
-        PDActionURI action = (PDActionURI) link.getAction();
-        
-        assertEquals("https://openhtmltopdf.com", action.getURI());
-        
-        remove("link-external-url", doc);
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+
+            assertThat(link.getAction(), instanceOf(PDActionURI.class));
+            PDActionURI action = (PDActionURI) link.getAction();
+
+            assertEquals("https://openhtmltopdf.com", action.getURI());
+
+            remove("link-external-url", doc);
+        }
     }
     
     /**
@@ -672,19 +684,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaPageMargin() throws IOException {
-        PDDocument doc = run("link-area-page-margin");
-        
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertEquals(1, doc.getPage(1).getAnnotations().size());
-        
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 80f, 30f, 10f), 100d));
+        try (PDDocument doc = run("link-area-page-margin")) {
 
-        // Should be repeated on page 2.
-        link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 80f, 30f, 10f), 100d));
-        
-        remove("link-area-page-margin", doc);
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertEquals(1, doc.getPage(1).getAnnotations().size());
+
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 80f, 30f, 10f), 100d));
+
+            // Should be repeated on page 2.
+            link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 80f, 30f, 10f), 100d));
+
+            remove("link-area-page-margin", doc);
+        }
     }
     
     /**
@@ -692,19 +705,20 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaPageMarginTransform() throws IOException {
-        PDDocument doc = run("link-area-page-margin-transform");
-        
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertEquals(1, doc.getPage(1).getAnnotations().size());
-        
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 70f, 10f, 30f), 100d));
+        try (PDDocument doc = run("link-area-page-margin-transform")) {
 
-        // Should be repeated on page 2.
-        link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 70f, 10f, 30f), 100d));
-        
-        remove("link-area-page-margin-transform", doc);
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertEquals(1, doc.getPage(1).getAnnotations().size());
+
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 70f, 10f, 30f), 100d));
+
+            // Should be repeated on page 2.
+            link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(170f, 70f, 10f, 30f), 100d));
+
+            remove("link-area-page-margin-transform", doc);
+        }
     }
     
     /**
@@ -712,14 +726,15 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaTransformNested() throws IOException {
-        PDDocument doc = run("link-area-transform-nested");
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
-        
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(60f, 62f, 50f, 100f), 200d));
+        try (PDDocument doc = run("link-area-transform-nested")) {
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationLink.class));
 
-        remove("link-area-transform-nested", doc);
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(60f, 62f, 50f, 100f), 200d));
+
+            remove("link-area-transform-nested", doc);
+        }
     }
     
     /**
@@ -727,29 +742,30 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaMultiplePage() throws IOException {
-        PDDocument doc = run("link-area-multiple-page");
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertEquals(1, doc.getPage(1).getAnnotations().size());
-        assertEquals(1, doc.getPage(2).getAnnotations().size());
-        assertEquals(1, doc.getPage(3).getAnnotations().size());
-        
-        // First page.
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(11f, 11f, 79f, 79f), 100d));
+        try (PDDocument doc = run("link-area-multiple-page")) {
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertEquals(1, doc.getPage(1).getAnnotations().size());
+            assertEquals(1, doc.getPage(2).getAnnotations().size());
+            assertEquals(1, doc.getPage(3).getAnnotations().size());
 
-        // Overflow page for first page.
-        link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 11f, 61f, 79f), 100d));
+            // First page.
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(11f, 11f, 79f, 79f), 100d));
 
-        // Second page.
-        link = (PDAnnotationLink) doc.getPage(2).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(11f, 10f, 79f, 71f), 100d));
+            // Overflow page for first page.
+            link = (PDAnnotationLink) doc.getPage(1).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 11f, 61f, 79f), 100d));
 
-        // Overflow page for second page.
-        link = (PDAnnotationLink) doc.getPage(3).getAnnotations().get(0);
-        assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 61f, 71f), 100d));
-        
-        remove("link-area-multiple-page", doc);
+            // Second page.
+            link = (PDAnnotationLink) doc.getPage(2).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(11f, 10f, 79f, 71f), 100d));
+
+            // Overflow page for second page.
+            link = (PDAnnotationLink) doc.getPage(3).getAnnotations().get(0);
+            assertThat(link.getRectangle(), rectEquals(new PDRectangle(10f, 10f, 61f, 71f), 100d));
+
+            remove("link-area-multiple-page", doc);
+        }
     }
     
     /**
@@ -757,26 +773,27 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaMultipleLine() throws IOException {
-        PDDocument doc = run("link-area-multiple-line");
-        
-        // One link annotation for each line.
-        assertEquals(2, doc.getPage(0).getAnnotations().size());
-        
-        // First line. Confirmed by looking at the resulting PDF.
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertEquals(6.0, link.getRectangle().getLowerLeftX(), 1.0d);
-        assertEquals(130.012, link.getRectangle().getLowerLeftY(), 1.0d);
-        assertEquals(138.6, link.getRectangle().getUpperRightX(), 1.0d);
-        assertEquals(144.0, link.getRectangle().getUpperRightY(), 1.0d);
-        
-        // Second line runs out of text before right side of page.
-        link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(1);
-        assertEquals(6.0, link.getRectangle().getLowerLeftX(), 1.0d);
-        assertEquals(116.02, link.getRectangle().getLowerLeftY(), 1.0d);
-        assertEquals(101.13, link.getRectangle().getUpperRightX(), 1.0d);
-        assertEquals(130.01, link.getRectangle().getUpperRightY(), 1.0d);
-        
-        remove("link-area-multiple-line", doc);
+        try (PDDocument doc = run("link-area-multiple-line")) {
+
+            // One link annotation for each line.
+            assertEquals(2, doc.getPage(0).getAnnotations().size());
+
+            // First line. Confirmed by looking at the resulting PDF.
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertEquals(6.0, link.getRectangle().getLowerLeftX(), 1.0d);
+            assertEquals(130.012, link.getRectangle().getLowerLeftY(), 1.0d);
+            assertEquals(138.6, link.getRectangle().getUpperRightX(), 1.0d);
+            assertEquals(144.0, link.getRectangle().getUpperRightY(), 1.0d);
+
+            // Second line runs out of text before right side of page.
+            link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(1);
+            assertEquals(6.0, link.getRectangle().getLowerLeftX(), 1.0d);
+            assertEquals(116.02, link.getRectangle().getLowerLeftY(), 1.0d);
+            assertEquals(101.13, link.getRectangle().getUpperRightX(), 1.0d);
+            assertEquals(130.01, link.getRectangle().getUpperRightY(), 1.0d);
+
+            remove("link-area-multiple-line", doc);
+        }
     }
     
     /**
@@ -785,26 +802,27 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testLinkAreaMultipleBoxes() throws IOException {
-        PDDocument doc = run("link-area-multiple-boxes");
-        
-        // One link annotation for each line.
-        assertEquals(2, doc.getPage(0).getAnnotations().size());
-        
-        // First line. Confirmed by looking at the resulting PDF.
-        PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
-        assertEquals(6.0, link.getRectangle().getLowerLeftX(), 1.0d);
-        assertEquals(130.012, link.getRectangle().getLowerLeftY(), 1.0d);
-        assertEquals(138.6, link.getRectangle().getUpperRightX(), 1.0d);
-        assertEquals(144.0, link.getRectangle().getUpperRightY(), 1.0d);
-        
-        // Second line runs out of text before right side of page.
-        link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(1);
-        assertEquals(6.0, link.getRectangle().getLowerLeftX(), 1.0d);
-        assertEquals(113.28, link.getRectangle().getLowerLeftY(), 1.0d);
-        assertEquals(112.57, link.getRectangle().getUpperRightX(), 1.0d);
-        assertEquals(127.27, link.getRectangle().getUpperRightY(), 1.0d);
-        
-        remove("link-area-multiple-boxes", doc);
+        try (PDDocument doc = run("link-area-multiple-boxes")) {
+
+            // One link annotation for each line.
+            assertEquals(2, doc.getPage(0).getAnnotations().size());
+
+            // First line. Confirmed by looking at the resulting PDF.
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(0);
+            assertEquals(6.0, link.getRectangle().getLowerLeftX(), 1.0d);
+            assertEquals(130.012, link.getRectangle().getLowerLeftY(), 1.0d);
+            assertEquals(138.6, link.getRectangle().getUpperRightX(), 1.0d);
+            assertEquals(144.0, link.getRectangle().getUpperRightY(), 1.0d);
+
+            // Second line runs out of text before right side of page.
+            link = (PDAnnotationLink) doc.getPage(0).getAnnotations().get(1);
+            assertEquals(6.0, link.getRectangle().getLowerLeftX(), 1.0d);
+            assertEquals(113.28, link.getRectangle().getLowerLeftY(), 1.0d);
+            assertEquals(112.57, link.getRectangle().getUpperRightX(), 1.0d);
+            assertEquals(127.27, link.getRectangle().getUpperRightY(), 1.0d);
+
+            remove("link-area-multiple-boxes", doc);
+        }
     }
     
     /**
@@ -812,23 +830,24 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testFormControlText() throws IOException {
-        PDDocument doc = run("form-control-text");
-        
-        assertEquals(1, doc.getPage(0).getAnnotations().size());
-        assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
-        
-        PDAnnotationWidget widget = (PDAnnotationWidget) doc.getPage(0).getAnnotations().get(0);
-        assertThat(widget.getRectangle(), rectEquals(new PDRectangle(23f, 23f, 100f, 20f), 200));
-        
-        PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
-        assertEquals(1, form.getFields().size());
-        assertThat(form.getFields().get(0), instanceOf(PDTextField.class));
-        
-        PDTextField field = (PDTextField) form.getFields().get(0);
-        assertEquals("text-input", field.getFullyQualifiedName());
-        assertEquals("Hello World!", field.getValue());
-        
-        remove("form-control-text", doc);
+        try (PDDocument doc = run("form-control-text")) {
+
+            assertEquals(1, doc.getPage(0).getAnnotations().size());
+            assertThat(doc.getPage(0).getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
+
+            PDAnnotationWidget widget = (PDAnnotationWidget) doc.getPage(0).getAnnotations().get(0);
+            assertThat(widget.getRectangle(), rectEquals(new PDRectangle(23f, 23f, 100f, 20f), 200));
+
+            PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
+            assertEquals(1, form.getFields().size());
+            assertThat(form.getFields().get(0), instanceOf(PDTextField.class));
+
+            PDTextField field = (PDTextField) form.getFields().get(0);
+            assertEquals("text-input", field.getFullyQualifiedName());
+            assertEquals("Hello World!", field.getValue());
+
+            remove("form-control-text", doc);
+        }
     }
     
     /**
@@ -836,24 +855,25 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testFormControlOverflowPage() throws IOException {
-        PDDocument doc = run("form-control-overflow-page");
-        
-        assertEquals(0, doc.getPage(0).getAnnotations().size());
-        assertEquals(1, doc.getPage(1).getAnnotations().size());
-        assertThat(doc.getPage(1).getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
-        
-        PDAnnotationWidget widget = (PDAnnotationWidget) doc.getPage(1).getAnnotations().get(0);
-        assertThat(widget.getRectangle(), rectEquals(new PDRectangle(33f, 14f, 40f, 20f), 100));
-        
-        PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
-        assertEquals(1, form.getFields().size());
-        assertThat(form.getFields().get(0), instanceOf(PDTextField.class));
-        
-        PDTextField field = (PDTextField) form.getFields().get(0);
-        assertEquals("text-input", field.getFullyQualifiedName());
-        assertEquals("Hello World!", field.getValue());
-        
-        remove("form-control-overflow-page", doc);
+        try (PDDocument doc = run("form-control-overflow-page")) {
+
+            assertEquals(0, doc.getPage(0).getAnnotations().size());
+            assertEquals(1, doc.getPage(1).getAnnotations().size());
+            assertThat(doc.getPage(1).getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
+
+            PDAnnotationWidget widget = (PDAnnotationWidget) doc.getPage(1).getAnnotations().get(0);
+            assertThat(widget.getRectangle(), rectEquals(new PDRectangle(33f, 14f, 40f, 20f), 100));
+
+            PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
+            assertEquals(1, form.getFields().size());
+            assertThat(form.getFields().get(0), instanceOf(PDTextField.class));
+
+            PDTextField field = (PDTextField) form.getFields().get(0);
+            assertEquals("text-input", field.getFullyQualifiedName());
+            assertEquals("Hello World!", field.getValue());
+
+            remove("form-control-overflow-page", doc);
+        }
     }
     
     /**
@@ -861,25 +881,26 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testFormControlAfterOverflowPage() throws IOException {
-        PDDocument doc = run("form-control-after-overflow-page");
-        
-        assertEquals(0, doc.getPage(0).getAnnotations().size());
-        assertEquals(0, doc.getPage(1).getAnnotations().size());
-        assertEquals(1, doc.getPage(2).getAnnotations().size());
-        assertThat(doc.getPage(2).getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
-        
-        PDAnnotationWidget widget = (PDAnnotationWidget) doc.getPage(2).getAnnotations().get(0);
-        assertThat(widget.getRectangle(), rectEquals(new PDRectangle(13f, 13f, 60f, 30f), 100));
-        
-        PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
-        assertEquals(1, form.getFields().size());
-        assertThat(form.getFields().get(0), instanceOf(PDTextField.class));
-        
-        PDTextField field = (PDTextField) form.getFields().get(0);
-        assertEquals("text-input", field.getFullyQualifiedName());
-        assertEquals("Hello World!", field.getValue());
-        
-        remove("form-control-after-overflow-page", doc);
+        try (PDDocument doc = run("form-control-after-overflow-page")) {
+
+            assertEquals(0, doc.getPage(0).getAnnotations().size());
+            assertEquals(0, doc.getPage(1).getAnnotations().size());
+            assertEquals(1, doc.getPage(2).getAnnotations().size());
+            assertThat(doc.getPage(2).getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
+
+            PDAnnotationWidget widget = (PDAnnotationWidget) doc.getPage(2).getAnnotations().get(0);
+            assertThat(widget.getRectangle(), rectEquals(new PDRectangle(13f, 13f, 60f, 30f), 100));
+
+            PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
+            assertEquals(1, form.getFields().size());
+            assertThat(form.getFields().get(0), instanceOf(PDTextField.class));
+
+            PDTextField field = (PDTextField) form.getFields().get(0);
+            assertEquals("text-input", field.getFullyQualifiedName());
+            assertEquals("Hello World!", field.getValue());
+
+            remove("form-control-after-overflow-page", doc);
+        }
     }
 
     /**
@@ -891,23 +912,25 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testInputWithoutNameAttribute() throws IOException {
-        PDDocument doc = run("input-without-name-attribute");
-        // Note: As of PDFBOX 2.0.22 we have the option of recreating
-        // the acro form from the widgets. We pass null to avoid this behavior.
-        PDAcroForm form = doc.getDocumentCatalog().getAcroForm(null);
-        assertEquals(0, form.getFields().size());
-        remove("input-without-name-attribute", doc);
+        try (PDDocument doc = run("input-without-name-attribute")) {
+            // Note: As of PDFBOX 2.0.22 we have the option of recreating
+            // the acro form from the widgets. We pass null to avoid this behavior.
+            PDAcroForm form = doc.getDocumentCatalog().getAcroForm(null);
+            assertEquals(0, form.getFields().size());
+            remove("input-without-name-attribute", doc);
+        }
     }
 
     @Test
     public void testIssue338RadioReadOnly() throws IOException {
-        PDDocument doc = run("issue-338-radio-read-only");
-        PDAcroForm form = doc.getDocumentCatalog().getAcroForm(null);
+        try (PDDocument doc = run("issue-338-radio-read-only")) {
+            PDAcroForm form = doc.getDocumentCatalog().getAcroForm(null);
 
-        PDRadioButton radio = (PDRadioButton) form.getFields().get(0);
-        assertTrue("radio should be readonly", radio.isReadOnly());
+            PDRadioButton radio = (PDRadioButton) form.getFields().get(0);
+            assertTrue("radio should be readonly", radio.isReadOnly());
 
-        remove("issue-338-radio-read-only", doc);
+            remove("issue-338-radio-read-only", doc);
+        }
     }
 
     private static float[] getQuadPoints(PDDocument doc, int pg, int linkIndex) throws IOException {
@@ -1320,6 +1343,7 @@ public class NonVisualRegressionTest {
      * It does this by drawing a rect around each layer and comparing
      * with the expected document.
      */
+    @SuppressWarnings("resource")
     @Test
     public void testIssue427GetBodyPagePositions() throws IOException {
         String filename = "issue-427-body-page-positions";
@@ -1334,38 +1358,37 @@ public class NonVisualRegressionTest {
 
         float lastContentLine;
 
-        try (PdfBoxRenderer renderer = builder.buildPdfRenderer()) {
-            renderer.createPDFWithoutClosing();
+        try (PdfBoxRenderer renderer = builder.buildPdfRenderer();
+             PDDocument doc = renderer.createPDFKeepOpen()) {
 
             List<PagePosition<Layer>> posList = renderer.getLayersPositions();
             lastContentLine = renderer.getLastContentBottom();
 
-            int i = -1;
-            PDPageContentStream stream = null;
-            for (PagePosition<Layer> pos : posList) {
-                if (i != pos.getPageNo()) {
-                    if (stream != null) {
-                        stream.close();
-                    }
+            for (int idx = 0; idx < posList.size(); ) {
+                int pageIdx = posList.get(idx).getPageNo();
+                List<PagePosition<Layer>> pageLayers = new ArrayList<>();
 
-                    stream = new PDPageContentStream(renderer.getPdfDocument(), 
-                            renderer.getPdfDocument().getPage(pos.getPageNo()), AppendMode.APPEND, false, false);
+                while (idx < posList.size() && posList.get(idx).getPageNo() == pageIdx) {
+                    pageLayers.add(posList.get(idx));
+                    idx++;
+                }
+
+                try (PDPageContentStream stream = new PDPageContentStream(
+                        renderer.getPdfDocument(), renderer.getPdfDocument().getPage(pageIdx),
+                        AppendMode.APPEND, false, false)) {
+
                     stream.setLineWidth(1f);
                     stream.setStrokingColor(Color.ORANGE);
 
-                    i = pos.getPageNo();
+                    for (PagePosition<Layer> pos : pageLayers) {
+                        stream.addRect(pos.getX(), pos.getY(), pos.getWidth(), pos.getHeight());
+                        stream.stroke();
+                    }
                 }
-
-
-                stream.addRect(pos.getX(), pos.getY(), pos.getWidth(), pos.getHeight());
-                stream.stroke();
-            }
-
-            if (stream != null) {
-                stream.close();
             }
 
             renderer.getPdfDocument().save(os);
+
             writePdfToFile(filename, os);
         }
 

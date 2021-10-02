@@ -27,6 +27,8 @@ import java.util.Locale;
 import java.util.logging.Level;
 
 import com.openhtmltopdf.layout.SharedContext;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceControlPriority;
+import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.resource.ImageResource;
 import com.openhtmltopdf.swing.NaiveUserAgent;
 import com.openhtmltopdf.util.LogMessageId;
@@ -52,24 +54,33 @@ public class PdfBoxUserAgent extends NaiveUserAgent {
         out.close();
         return out.toByteArray();
     }
-    
-    public ImageResource getImageResource(String uriStr) {
+
+    @Override
+    public ImageResource getImageResource(String uriStr, ExternalResourceType type) {
+        if (!checkAccessAllowed(uriStr, type, ExternalResourceControlPriority.RUN_BEFORE_RESOLVING_URI)) {
+            return new ImageResource(uriStr, null);
+        }
+
         String uriResolved = resolveURI(uriStr);
-        
+
         if (uriResolved == null) {
             XRLog.log(Level.INFO, LogMessageId.LogMessageId2Param.LOAD_URI_RESOLVER_REJECTED_LOADING_AT_URI, "image", uriStr);
            return new ImageResource(uriStr, null);
         }
-        
+
+        if (!checkAccessAllowed(uriResolved, type, ExternalResourceControlPriority.RUN_AFTER_RESOLVING_URI)) {
+            return new ImageResource(uriStr, null);
+        }
+
         ImageResource resource = _imageCache.get(uriResolved);
-        
+
         if (resource != null && resource.getImage() instanceof PdfBoxImage) {
             // Make copy of PdfBoxImage so we don't stuff up the cache.
             PdfBoxImage original = (PdfBoxImage) resource.getImage();
             PdfBoxImage copy = new PdfBoxImage(original.getBytes(), original.getUri(), original.getWidth(), original.getHeight(), original.getXObject());
             return new ImageResource(resource.getImageUri(), copy);
         }
-        
+
 
         InputStream is = openStream(uriResolved);
 

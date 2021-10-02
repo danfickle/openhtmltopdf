@@ -52,7 +52,8 @@ public class ContentLimit {
             _bottom = bottom;
         }
     }
-    
+
+    @Override
     public String toString() {
         return "[top=" + _top + ", bottom=" + _bottom + "]";
     }

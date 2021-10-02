@@ -12,10 +12,11 @@ public class BufferedImagePageProcessor implements FSPageProcessor {
 	private final double _scale;
 	private final int _imageType;
 
-	private List<BufferedImagePage> _pages = new ArrayList<>();
+	private final List<BufferedImagePage> _pages = new ArrayList<>();
 
 	private class BufferedImagePage implements FSPage {
-		BufferedImage _image;
+        final BufferedImage _image;
+        Graphics2D graphics;
 
 		BufferedImagePage(BufferedImage image) {
 			this._image = image;
@@ -23,7 +24,12 @@ public class BufferedImagePageProcessor implements FSPageProcessor {
 
 		@Override
 		public Graphics2D getGraphics() {
-			Graphics2D graphics = _image.createGraphics();
+            if (graphics != null) {
+                return graphics;
+            }
+
+            graphics = _image.createGraphics();
+
 			if (_image.getColorModel().hasAlpha()) {
 				graphics.clearRect(0, 0, _image.getWidth(), _image.getHeight());
 			} else {
@@ -60,12 +66,12 @@ public class BufferedImagePageProcessor implements FSPageProcessor {
 		return bufferedImagePage;
 	}
 
-	@Override
-	public void finishPage(FSPage pg) {
-		/*
-		 * We don't need to do anything here.
-		 */
-	}
+    @Override
+    public void finishPage(FSPage pg) {
+        BufferedImagePage page = (BufferedImagePage) pg;
+        page.graphics.dispose();
+        page.graphics = null;
+    }
 
 	public List<BufferedImage> getPageImages() {
 		List<BufferedImage> images = new ArrayList<>();

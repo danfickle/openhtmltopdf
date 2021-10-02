@@ -19,31 +19,13 @@
  */
 package com.openhtmltopdf.resource;
 
+import java.io.Closeable;
 import java.io.Reader;
 
-/**
- * @author Administrator
- */
-public class CSSResource extends AbstractResource {
+public class CSSResource extends AbstractResource implements Closeable {
 
-    /**
-     * Creates a new instance of CSSResource
-     */
     public CSSResource(Reader reader) {
         super(reader);
     }
 
 }
-
-/*
- * $Id$
- *
- * $Log$
- * Revision 1.2  2005/06/25 19:27:47  tobega
- * UAC now supplies Resources
- *
- * Revision 1.1  2005/02/03 20:39:35  pdoubleya
- * Added to CVS.
- *
- *
- */

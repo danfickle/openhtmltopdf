@@ -75,8 +75,6 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * been called. Also a document MUST have been set with one of the with*
 	 * methods. This will build the renderer and output each page of the document to
 	 * the specified page processor.
-	 *
-	 * @throws Exception
 	 */
 	public void runPaged() throws IOException {
 		try (Closeable d = this.applyDiagnosticConsumer(); Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
@@ -93,11 +91,10 @@ public class Java2DRendererBuilder extends BaseRendererBuilder<Java2DRendererBui
 	 * been called. Also a document MUST have been set with one of the with*
 	 * methods. This will build the renderer and output the first page of the
 	 * document to the specified page processor.
-	 *
-	 * @throws Exception
 	 */
 	public void runFirstPage() throws IOException {
-		try (Closeable d = this.applyDiagnosticConsumer(); Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
+		try (Closeable d = this.applyDiagnosticConsumer();
+		     Java2DRenderer renderer = this.buildJava2DRenderer(d)) {
 			renderer.layout();
 			if (state._pagingMode == Layer.PAGED_MODE_PRINT)
 				renderer.writePage(0);

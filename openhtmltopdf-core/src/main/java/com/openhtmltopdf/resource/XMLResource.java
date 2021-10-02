@@ -19,6 +19,7 @@
  */
 package com.openhtmltopdf.resource;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.logging.Level;
@@ -64,15 +65,30 @@ public class XMLResource extends AbstractResource {
     }
 
     public static XMLResource load(InputStream stream) {
-        return XML_RESOURCE_BUILDER.createXMLResource(new XMLResource(stream));
+        try (XMLResource resource = new XMLResource(stream)) {
+            return XML_RESOURCE_BUILDER.createXMLResource(resource);
+        } catch (IOException e) {
+            // Thrown on close failure.
+            return null;
+        }
     }
 
     public static XMLResource load(InputSource source) {
-        return XML_RESOURCE_BUILDER.createXMLResource(new XMLResource(source));
+        try (XMLResource resource = new XMLResource(source)) {
+            return XML_RESOURCE_BUILDER.createXMLResource(resource);
+        } catch (IOException e) {
+            // Thrown on close failure.
+            return null;
+        }
     }
 
     public static XMLResource load(Reader reader) {
-        return XML_RESOURCE_BUILDER.createXMLResource(new XMLResource(new InputSource(reader)));
+        try (XMLResource resource = new XMLResource(new InputSource(reader))) {
+            return XML_RESOURCE_BUILDER.createXMLResource(resource);
+        } catch (IOException e) {
+            // Thrown on close failure.
+            return null;
+        }
     }
 
     public Document getDocument() {

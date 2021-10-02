@@ -518,7 +518,7 @@ public class PdfBoxFastLinkManager {
 		QuadPointShape result = new QuadPointShape();
 		result.quadPoints = ret;
 		Rectangle2D.Float boundingRectangle = new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY);
-		Rectangle.intersect(targetArea, boundingRectangle, boundingRectangle);
+		Rectangle2D.intersect(targetArea, boundingRectangle, boundingRectangle);
 		result.boundingBox = boundingRectangle;
 		return result;
 	}

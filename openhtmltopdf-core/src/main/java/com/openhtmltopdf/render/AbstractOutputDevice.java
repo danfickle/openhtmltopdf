@@ -39,7 +39,6 @@ import com.openhtmltopdf.css.style.derived.LengthValue;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
 import com.openhtmltopdf.extend.OutputDevice;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 
@@ -236,9 +235,6 @@ public abstract class AbstractOutputDevice implements OutputDevice {
             RenderingContext c, CalculatedStyle style,
             Rectangle backgroundBounds, Rectangle bgImageContainer,
             BorderPropertySet border) {
-        if (!Configuration.isTrue("xr.renderer.draw.backgrounds", true)) {
-            return;
-        }
 
         if (!style.isHasBackground()) {
             return;

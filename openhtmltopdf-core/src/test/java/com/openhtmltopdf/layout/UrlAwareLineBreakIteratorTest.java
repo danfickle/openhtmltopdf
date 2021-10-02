@@ -4,7 +4,6 @@ import java.text.BreakIterator;
 import java.util.Locale;
 
 import com.openhtmltopdf.extend.FSTextBreaker;
-import com.openhtmltopdf.layout.UrlAwareLineBreakIterator;
 
 import junit.framework.TestCase;
 

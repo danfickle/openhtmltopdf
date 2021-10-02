@@ -159,8 +159,6 @@ public class PageBox {
      * <b>Note:</b> We previously returned different sizes
      * based on locale, but this could lead to different results between developement machines
      * and servers so we now always return A4.
-     * @param cssCtx
-     * @return
      */
     private int resolveAutoPageWidth(CssContext cssCtx) {
       if (ThreadCtx.get().sharedContext().getDefaultPageWidth() != null) {
@@ -183,8 +181,6 @@ public class PageBox {
     
     /**
      * Return the default page height if defined, else A4.
-     * @param cssCtx
-     * @return
      */
     private int resolveAutoPageHeight(CssContext cssCtx) {
         if (ThreadCtx.get().sharedContext().getDefaultPageHeight() != null) {
@@ -709,10 +705,12 @@ public class PageBox {
             super(MarginBoxName.TOP_LEFT_CORNER);
         }
 
+        @Override
         public Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin) {
             return new Dimension((int)margin.left(), (int)margin.top());
         }
 
+        @Override
         public Point getPaintingPosition(
                 RenderingContext c, PageBox page, int additionalClearance, short mode) {
             int left = additionalClearance;
@@ -735,10 +733,12 @@ public class PageBox {
             super(MarginBoxName.TOP_RIGHT_CORNER);
         }
 
+        @Override
         public Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin) {
             return new Dimension((int)margin.right(), (int)margin.top());
         }
 
+        @Override
         public Point getPaintingPosition(
                 RenderingContext c, PageBox page, int additionalClearance, short mode) {
             int left = additionalClearance + page.getWidth(c) - (int)page.getMargin(c).right();
@@ -760,10 +760,12 @@ public class PageBox {
             super(MarginBoxName.BOTTOM_RIGHT_CORNER);
         }
 
+        @Override
         public Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin) {
             return new Dimension((int)margin.right(), (int)margin.bottom());
         }
 
+        @Override
         public Point getPaintingPosition(
                 RenderingContext c, PageBox page, int additionalClearance, short mode) {
             int left = additionalClearance + page.getWidth(c) - (int)page.getMargin(c).right();
@@ -786,10 +788,12 @@ public class PageBox {
             super(MarginBoxName.BOTTOM_LEFT_CORNER);
         }
 
+        @Override
         public Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin) {
             return new Dimension((int)margin.left(), (int)margin.bottom());
         }
 
+        @Override
         public Point getPaintingPosition(
                 RenderingContext c, PageBox page, int additionalClearance, short mode) {
             int left = additionalClearance;
@@ -815,10 +819,12 @@ public class PageBox {
                     MarginBoxName.LEFT_BOTTOM });
         }
 
+        @Override
         public Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin) {
             return new Dimension((int)margin.left(), page.getContentHeight(c));
         }
 
+        @Override
         public Point getPaintingPosition(
                 RenderingContext c, PageBox page, int additionalClearance, short mode) {
             int left = additionalClearance;
@@ -833,7 +839,8 @@ public class PageBox {
             
             return new Point(left, top);
         }
-        
+
+        @Override
         public int getDirection() {
             return BoxBuilder.MARGIN_BOX_VERTICAL;
         }
@@ -847,10 +854,12 @@ public class PageBox {
                     MarginBoxName.RIGHT_BOTTOM });
         }
 
+        @Override
         public Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin) {
             return new Dimension((int)margin.left(), page.getContentHeight(c));
         }
 
+        @Override
         public Point getPaintingPosition(
                 RenderingContext c, PageBox page, int additionalClearance, short mode) {
             int left = additionalClearance + page.getWidth(c) - (int)page.getMargin(c).right();
@@ -865,7 +874,8 @@ public class PageBox {
             
             return new Point(left, top);
         }
-        
+
+        @Override
         public int getDirection() {
             return BoxBuilder.MARGIN_BOX_VERTICAL;
         }        
@@ -879,10 +889,12 @@ public class PageBox {
                     MarginBoxName.TOP_RIGHT });
         }
 
+        @Override
         public Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin) {
             return new Dimension(page.getContentWidth(c), (int)margin.top());
         }
 
+        @Override
         public Point getPaintingPosition(
                 RenderingContext c, PageBox page, int additionalClearance, short mode) {
             int left = additionalClearance + (int)page.getMargin(c).left();
@@ -907,10 +919,12 @@ public class PageBox {
                     MarginBoxName.BOTTOM_RIGHT });
         }
 
+        @Override
         public Dimension getLayoutDimension(CssContext c, PageBox page, RectPropertySet margin) {
             return new Dimension(page.getContentWidth(c), (int)margin.bottom());
         }
 
+        @Override
         public Point getPaintingPosition(
                 RenderingContext c, PageBox page, int additionalClearance, short mode) {
             int left = additionalClearance + (int)page.getMargin(c).left();

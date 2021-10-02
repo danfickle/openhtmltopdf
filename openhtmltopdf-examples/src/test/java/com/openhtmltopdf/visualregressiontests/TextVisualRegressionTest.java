@@ -332,7 +332,7 @@ public class TextVisualRegressionTest {
 
     /**
      * Tests that static inline-block can contain floating static block text.
-     * @see {@link VisualRegressionTest#testInlineBlockFloat()}
+     * See {@link VisualRegressionTest#testInlineBlockFloat()}
      */
     @Ignore // Float is hidden behind the background-color of inline-block.
             // This is because floats are painted before inline-blocks.

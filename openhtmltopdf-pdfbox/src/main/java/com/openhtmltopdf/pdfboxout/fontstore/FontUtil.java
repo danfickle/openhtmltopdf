@@ -1,10 +1,10 @@
 package com.openhtmltopdf.pdfboxout.fontstore;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
+import com.openhtmltopdf.util.OpenUtil;
 
 public class FontUtil {
     public static String normalizeFontFamily(String fontFamily) {
@@ -44,9 +44,6 @@ public class FontUtil {
     }
 
     public static void tryClose(Closeable obj) {
-        try {
-            obj.close();
-        } catch (IOException e) {
-        }
+        OpenUtil.closeQuietly(obj);
     }
 }

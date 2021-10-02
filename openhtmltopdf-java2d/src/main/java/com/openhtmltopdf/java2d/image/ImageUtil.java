@@ -17,15 +17,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  * }}}
  */
-package com.openhtmltopdf.util;
+package com.openhtmltopdf.java2d.image;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
 
 /**
  * Static utility methods for working with images. Meant to suggest "best practices" for the most straightforward
@@ -158,11 +155,10 @@ public class ImageUtil {
      * @return The scaled image instance.
      */
     public static BufferedImage getScaledInstance(BufferedImage orgImage, int targetWidth, int targetHeight) {
-        String downscaleQuality = Configuration.valueFor("xr.image.scale", DownscaleQuality.HIGH_QUALITY.asString());
+        String downscaleQuality = DownscaleQuality.HIGH_QUALITY.asString();
         DownscaleQuality quality = DownscaleQuality.forString(downscaleQuality, DownscaleQuality.HIGH_QUALITY);
 
-        Object hint = Configuration.valueFromClassConstant("xr.image.render-quality",
-                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        Object hint = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
 
         ScalingOptions opt = new ScalingOptions(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB, quality, hint);
 
@@ -204,29 +200,6 @@ public class ImageUtil {
         return bi;
     }
 
-    private static final Pattern WHITE_SPACE = Pattern.compile("\\s+");
-
-    public static byte[] fromBase64Encoded(String b64encoded) {
-        return Base64.getMimeDecoder().decode(WHITE_SPACE.matcher(b64encoded).replaceAll(""));
-    }
-
-    /**
-     * Get the binary content of an embedded base 64 image.
-     *
-     * @param imageDataUri URI of the embedded image
-     * @return The binary content
-     */
-    public static byte[] getEmbeddedBase64Image(String imageDataUri) {
-        int b64Index = imageDataUri.indexOf("base64,");
-        if (b64Index != -1) {
-            String b64encoded = imageDataUri.substring(b64Index + "base64,".length());
-            return fromBase64Encoded(b64encoded);
-        } else {
-            XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_EMBEDDED_DATA_URI_MUST_BE_ENCODED_IN_BASE64);
-        }
-        return null;
-    }
-    
     interface Scaler {
         /**
          * Convenience method that returns a scaled instance of the
@@ -243,6 +216,7 @@ public class ImageUtil {
     }
 
     abstract static class AbstractFastScaler implements Scaler {
+        @Override
         public BufferedImage getScaledInstance(BufferedImage img, ScalingOptions opt) {
             // target is always >= 1
             Image scaled = img.getScaledInstance(opt.getTargetWidth(), opt.getTargetHeight(), getImageScalingMethod());
@@ -257,6 +231,7 @@ public class ImageUtil {
      * Old AWT-style scaling, poor quality
      */
     static class OldScaler extends AbstractFastScaler {
+        @Override
         protected int getImageScalingMethod() {
             return Image.SCALE_FAST;
         }
@@ -266,6 +241,7 @@ public class ImageUtil {
      * AWT-style one-step scaling, using area averaging
      */
     static class AreaAverageScaler extends AbstractFastScaler {
+        @Override
         protected int getImageScalingMethod() {
             return Image.SCALE_AREA_AVERAGING;
         }
@@ -275,6 +251,7 @@ public class ImageUtil {
      * Fast but decent scaling
      */
     static class FastScaler implements Scaler {
+        @Override
         public BufferedImage getScaledInstance(BufferedImage img, ScalingOptions opt) {
             int w, h;
 
@@ -297,6 +274,7 @@ public class ImageUtil {
      * Step-wise downscaling
      */
     static class HighQualityScaler implements Scaler {
+        @Override
         public BufferedImage getScaledInstance(BufferedImage img, ScalingOptions opt) {
             int w, h;
             int imgw = img.getWidth(null);

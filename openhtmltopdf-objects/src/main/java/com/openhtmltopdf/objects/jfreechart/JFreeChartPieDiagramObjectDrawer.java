@@ -48,7 +48,7 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 		final JFreeChart chart1 = ChartFactory.createPieChart(e.getAttribute("title"), dataset, false, false, true);
 		((PiePlot) chart1.getPlot()).setURLGenerator(new PieURLGenerator() {
 			@Override
-			public String generateURL(PieDataset dataset, Comparable key, int pieIndex) {
+			public String generateURL(PieDataset dataset, @SuppressWarnings("rawtypes") Comparable key, int pieIndex) {
 				return urls.get(key.toString());
 			}
 		});
@@ -57,7 +57,7 @@ public class JFreeChartPieDiagramObjectDrawer implements FSObjectDrawer {
 				new OutputDeviceGraphicsDrawer() {
 					@Override
 					public void render(Graphics2D graphics2D) {
-						chart1.draw(graphics2D, new Rectangle2D.Float((float) 0, (float) 0,
+						chart1.draw(graphics2D, new Rectangle2D.Float(0f, 0f,
 								(float) (width / dotsPerPixel), (float) (height / dotsPerPixel)), renderingInfo);
 					}
 				});

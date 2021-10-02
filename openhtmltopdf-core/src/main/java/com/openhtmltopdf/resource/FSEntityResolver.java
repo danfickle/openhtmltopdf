@@ -23,7 +23,6 @@ package com.openhtmltopdf.resource;
 import com.openhtmltopdf.util.LogMessageId;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import com.openhtmltopdf.util.XRLog;
 

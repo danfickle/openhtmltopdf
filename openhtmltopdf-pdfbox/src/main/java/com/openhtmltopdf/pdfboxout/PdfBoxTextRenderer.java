@@ -370,29 +370,7 @@ public class PdfBoxTextRenderer implements TextRenderer {
         }
     }
 
-    public void setFontScale(float scale) {
-        // TODO: Implement.
-        throw new UnsupportedOperationException();
-    }
-
-    public float getFontScale() {
-        return 1.0f;
-    }
-
-    public void setSmoothingThreshold(float fontsize) {
-    }
-
-    public int getSmoothingLevel() {
-        return 0;
-    }
-
-    @Deprecated
-    @Override
-    public void setSmoothingLevel(int level) {
-    }
-
     @Override
     public void setup(FontContext context) {
-        
     }
 }

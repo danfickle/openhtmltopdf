@@ -9,12 +9,12 @@ import java.util.logging.Level;
 import org.w3c.dom.Element;
 
 import com.openhtmltopdf.extend.*;
+import com.openhtmltopdf.java2d.image.AWTFSImage;
+import com.openhtmltopdf.java2d.image.ImageReplacedElement;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.outputdevice.helper.ExternalResourceType;
 import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.resource.ImageResource;
-import com.openhtmltopdf.swing.AWTFSImage;
-import com.openhtmltopdf.swing.ImageReplacedElement;
 import com.openhtmltopdf.util.LogMessageId;
 import com.openhtmltopdf.util.XRLog;
 

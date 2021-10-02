@@ -30,16 +30,16 @@ import com.openhtmltopdf.extend.OutputDeviceGraphicsDrawer;
 import com.openhtmltopdf.extend.ReplacedElement;
 import com.openhtmltopdf.extend.StructureType;
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilder;
+import com.openhtmltopdf.java2d.image.AWTFSImage;
+import com.openhtmltopdf.java2d.image.ImageReplacedElement;
 import com.openhtmltopdf.render.*;
-import com.openhtmltopdf.swing.AWTFSImage;
-import com.openhtmltopdf.swing.ImageReplacedElement;
+
 import java.awt.*;
 import java.awt.RenderingHints.Key;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
 
 public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDevice {
     private final Deque<Shape> _clipStack = new ArrayDeque<>();
@@ -52,6 +52,7 @@ public class Java2DOutputDevice extends AbstractOutputDevice implements OutputDe
     	this._graphics = layoutGraphics;
     }
 
+    @Override
     @Deprecated
     public void drawSelection(RenderingContext c, InlineText inlineText) {
     }

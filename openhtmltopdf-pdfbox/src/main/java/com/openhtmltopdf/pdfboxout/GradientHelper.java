@@ -41,9 +41,9 @@ public class GradientHelper {
         Point2D ptEndDevice = transform.transform(ptEnd, null);
 
         float startX = (float) ptStartDevice.getX();
-        float startY = (float) od.normalizeY((float) ptStartDevice.getY());
+        float startY = od.normalizeY((float) ptStartDevice.getY());
         float endX = (float) ptEndDevice.getX();
-        float endY = (float) od.normalizeY((float) ptEndDevice.getY());
+        float endY = od.normalizeY((float) ptEndDevice.getY());
 
         COSArray coords = new COSArray();
         coords.add(new COSFloat(startX));

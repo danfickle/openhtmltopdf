@@ -9,6 +9,8 @@ import java.util.logging.Level;
 
 import com.openhtmltopdf.java2d.api.Java2DRendererBuilderState;
 import com.openhtmltopdf.util.LogMessageId;
+import com.openhtmltopdf.util.OpenUtil;
+
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -46,7 +48,6 @@ import com.openhtmltopdf.render.simplepainter.SimplePainter;
 import com.openhtmltopdf.resource.XMLResource;
 import com.openhtmltopdf.simple.extend.XhtmlNamespaceHandler;
 import com.openhtmltopdf.swing.NaiveUserAgent;
-import com.openhtmltopdf.util.Configuration;
 import com.openhtmltopdf.util.ThreadCtx;
 import com.openhtmltopdf.util.XRLog;
 
@@ -92,7 +93,7 @@ public class Java2DRenderer implements Closeable {
         _objectDrawerFactory = state._objectDrawerFactory;
 		_outputDevice = new Java2DOutputDevice(state._layoutGraphics);
 		
-		NaiveUserAgent uac = new NaiveUserAgent();
+		NaiveUserAgent uac = new Java2DUserAgent();
 		
 		uac.setProtocolsStreamFactory(state._streamFactoryMap);
 		
@@ -323,7 +324,7 @@ public class Java2DRenderer implements Closeable {
 
         writePageImages(pages, c, firstPageSize);
     }
-    
+
     public void writePage(int zeroBasedPageNumber) throws IOException {
         List<PageBox> pages = _root.getLayer().getPages();
 
@@ -345,19 +346,21 @@ public class Java2DRenderer implements Closeable {
 
         FSPage pg = _pageProcessor.createPage(zeroBasedPageNumber, (int) pageSize.getWidth(), (int) pageSize.getHeight());
 
-        _outputDevice.initializePage(pg.getGraphics());
-        _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
+        try {
+            _outputDevice.initializePage(pg.getGraphics());
+            _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
 
-        c.setPageCount(pages.size());
-        c.setPage(zeroBasedPageNumber, page);
+            c.setPageCount(pages.size());
+            c.setPage(zeroBasedPageNumber, page);
 
-        DisplayListCollector boxCollector = new DisplayListCollector(pages);
-        DisplayListContainer displayList = boxCollector.collectRoot(c, _root.getLayer());
+            DisplayListCollector boxCollector = new DisplayListCollector(pages);
+            DisplayListContainer displayList = boxCollector.collectRoot(c, _root.getLayer());
 
-        paintPage(c, page, displayList.getPageInstructions(zeroBasedPageNumber));
-        _pageProcessor.finishPage(pg);
-
-        _outputDevice.finish(c, _root);
+            paintPage(c, page, displayList.getPageInstructions(zeroBasedPageNumber));
+        } finally {
+            _pageProcessor.finishPage(pg);
+            _outputDevice.finish(c, _root);
+        }
     }
 
     public void writeSinglePage(){
@@ -382,31 +385,33 @@ public class Java2DRenderer implements Closeable {
 
         FSPage pg = _pageProcessor.createPage(0, (int) pageSize.getWidth(), rootHeight + top + bottom);
 
-        _outputDevice.initializePage(pg.getGraphics());
-        _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
-        page.setPaintingBottom(rootHeight + top + bottom);
+        try {
+            _outputDevice.initializePage(pg.getGraphics());
+            _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
+            page.setPaintingBottom(rootHeight + top + bottom);
 
-        c.setPageCount(pages.size());
-        c.setPage(0, page);
+            c.setPageCount(pages.size());
+            c.setPage(0, page);
 
-        page.paintBackground(c, 0, _pagingMode);
-        page.paintMarginAreas(c, 0, _pagingMode);
-        page.paintBorder(c, 0, _pagingMode);
+            page.paintBackground(c, 0, _pagingMode);
+            page.paintMarginAreas(c, 0, _pagingMode);
+            page.paintBorder(c, 0, _pagingMode);
 
-        Rectangle printClip = page.getPrintClippingBounds(c);
-        Rectangle pageClip = new Rectangle(0, 0, printClip.width, rootHeight);
+            Rectangle printClip = page.getPrintClippingBounds(c);
+            Rectangle pageClip = new Rectangle(0, 0, printClip.width, rootHeight);
 
-        _outputDevice.pushTransformLayer(AffineTransform.getTranslateInstance(left, top));
-        _outputDevice.pushClip(pageClip);
+            _outputDevice.pushTransformLayer(AffineTransform.getTranslateInstance(left, top));
+            _outputDevice.pushClip(pageClip);
 
-        SimplePainter painter = new SimplePainter(0, 0);
-        painter.paintLayer(c, _root.getLayer());
+            SimplePainter painter = new SimplePainter(0, 0);
+            painter.paintLayer(c, _root.getLayer());
 
-        _outputDevice.popClip();
-        _outputDevice.popTransformLayer();
-
-        _pageProcessor.finishPage(pg);
-        _outputDevice.finish(c, _root);
+            _outputDevice.popClip();
+            _outputDevice.popTransformLayer();
+        } finally {
+            _pageProcessor.finishPage(pg);
+            _outputDevice.finish(c, _root);
+        }
     }
 
     public int getPageCount() {
@@ -417,14 +422,13 @@ public class Java2DRenderer implements Closeable {
             List<PageBox> pages,
             RenderingContext c,
             Rectangle2D firstPageSize) throws IOException {
+
         _outputDevice.setRoot(_root);
-        
-        FSPage pg = _pageProcessor.createPage(0, (int) firstPageSize.getWidth(), (int) firstPageSize.getHeight());
-        
-        _outputDevice.initializePage(pg.getGraphics());
+
         _root.getLayer().assignPagePaintingPositions(c, _pagingMode);
 
         int pageCount = _root.getLayer().getPages().size();
+
         c.setPageCount(pageCount);
 
         DisplayListCollector boxCollector = new DisplayListCollector(pages);
@@ -432,22 +436,40 @@ public class Java2DRenderer implements Closeable {
 
         for (int i = 0; i < pageCount; i++) {
             PageBox currentPage = pages.get(i);
-            
             c.setPage(i, currentPage);
-            paintPage(c, currentPage, displayList.getPageInstructions(i));
-            _pageProcessor.finishPage(pg);
-            
-            if (i != pageCount - 1) {
-                PageBox nextPage = pages.get(i + 1);
-                Rectangle2D nextPageSize = new Rectangle2D.Float(0, 0, nextPage.getWidth(c) / DEFAULT_DOTS_PER_PIXEL,
-                        nextPage.getHeight(c) / DEFAULT_DOTS_PER_PIXEL);
-                
-                pg = _pageProcessor.createPage(i + 1, (int) nextPageSize.getWidth(), (int) nextPageSize.getHeight());
-                _outputDevice.initializePage(pg.getGraphics());
+
+            Rectangle2D pageSize = (i == 0 ?
+                firstPageSize :
+                new Rectangle2D.Float(0, 0,
+                     currentPage.getWidth(c) / DEFAULT_DOTS_PER_PIXEL,
+                     currentPage.getHeight(c) / DEFAULT_DOTS_PER_PIXEL));
+
+            FSPage pg = initPage(pageSize, i);
+
+            try {
+                paintPage(c, currentPage, displayList.getPageInstructions(i));
+            } catch (Throwable e) {
+                _pageProcessor.finishPage(pg);
+                throw e;
             }
+
+            _pageProcessor.finishPage(pg);
         }
 
         _outputDevice.finish(c, _root);
+    }
+
+    private FSPage initPage(Rectangle2D pageSize, int idx) {
+        FSPage pg = _pageProcessor.createPage(idx, (int) pageSize.getWidth(), (int) pageSize.getHeight());
+
+        try {
+            _outputDevice.initializePage(pg.getGraphics());
+        } catch (Throwable e) {
+            _pageProcessor.finishPage(pg);
+            throw e;
+        }
+
+        return pg;
     }
 
     private void paintPage(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations) {
@@ -472,27 +494,11 @@ public class Java2DRenderer implements Closeable {
 
     @Override
     public void close() {
-        _sharedContext.removeFromThread();
-        ThreadCtx.cleanup();
+        OpenUtil.tryQuietly(_sharedContext::removeFromThread);
+        OpenUtil.tryQuietly(ThreadCtx::cleanup);
 
-        try {
-            diagnosticConsumer.close();
-        } catch (IOException e) {
-
-        }
-
-        if (_svgImpl != null) {
-            try {
-                _svgImpl.close();
-            } catch (IOException ignored) {
-            }
-        }
-
-        if (_mathMLImpl != null) {
-            try {
-                _mathMLImpl.close();
-            } catch (IOException ignored) {
-            }
-        }
+        OpenUtil.closeQuietly(diagnosticConsumer);
+        OpenUtil.closeQuietly(_svgImpl);
+        OpenUtil.closeQuietly(_mathMLImpl);
     }
 }

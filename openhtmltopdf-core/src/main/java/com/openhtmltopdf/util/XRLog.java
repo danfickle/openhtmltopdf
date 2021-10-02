@@ -133,7 +133,7 @@ public class XRLog {
             }
 
             if (loggingEnabled == null) {
-            	XRLog.setLoggingEnabled(Configuration.isTrue("xr.util-logging.loggingEnabled", true));
+            	XRLog.setLoggingEnabled(true);
             }
 
             if (loggerImpl == null) {

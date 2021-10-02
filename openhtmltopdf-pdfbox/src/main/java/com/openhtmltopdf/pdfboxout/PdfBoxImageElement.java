@@ -45,18 +45,22 @@ public class PdfBoxImageElement implements PdfBoxReplacedElement, IPdfBoxElement
         imageMap = ImageMapParser.findAndParseMap(e, c);
     }
 
+    @Override
     public int getIntrinsicWidth() {
         return _image.getWidth();
     }
 
+    @Override
     public int getIntrinsicHeight() {
         return _image.getHeight();
     }
 
+    @Override
     public Point getLocation() {
         return _location;
     }
 
+    @Override
     public void setLocation(int x, int y) {
         _location = new Point(x, y);
     }
@@ -70,9 +74,11 @@ public class PdfBoxImageElement implements PdfBoxReplacedElement, IPdfBoxElement
         return imageMap;
     }
 
+    @Override
     public void detach(LayoutContext c) {
     }
 
+    @Override
     public boolean isRequiresInteractivePaint() {
         // N/A
         return false;
@@ -90,10 +96,12 @@ public class PdfBoxImageElement implements PdfBoxReplacedElement, IPdfBoxElement
                 contentBounds.x, contentBounds.y, interpolate);
     }
 
+    @Override
     public int getBaseline() {
         return 0;
     }
 
+    @Override
     public boolean hasBaseline() {
         return false;
     }

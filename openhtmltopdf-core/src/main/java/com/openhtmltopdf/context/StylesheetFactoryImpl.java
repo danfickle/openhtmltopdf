@@ -82,24 +82,22 @@ public class StylesheetFactoryImpl implements StylesheetFactory {
      * @return Returns null if uri could not be loaded
      */
     private Stylesheet parse(StylesheetInfo info) {
-        CSSResource cr = _userAgentCallback.getCSSResource(info.getUri());
-        if (cr == null) {
-        	return null;
-        }
-        
-        Reader reader = cr.getResourceReader();
-        if (reader == null) {
-        	return null;
-        }
-        
-        try {
-            return parse(reader, info);
-        } finally {
-            try {
-               reader.close();
-            } catch (IOException e) {
-               // ignore
+        try (CSSResource cr = _userAgentCallback.getCSSResource(info.getUri())) {
+            if (cr == null) {
+                return null;
             }
+
+            try (Reader reader = cr.getResourceReader()) {
+                if (reader == null) {
+                    return null;
+                }
+
+                return parse(reader, info);
+            }
+
+        } catch (IOException e1) {
+            // Ignore IOException from close invocation.
+            return null;
         }
     }
 

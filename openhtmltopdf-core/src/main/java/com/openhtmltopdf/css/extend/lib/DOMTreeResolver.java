@@ -100,8 +100,6 @@ public class DOMTreeResolver implements TreeResolver {
 
         if (namespaceURI != null) {
             return name.equals(localName) && namespaceURI.equals(e.getNamespaceURI());
-        } else if (namespaceURI == TreeResolver.NO_NAMESPACE) {
-            return name.equals(eName) && e.getNamespaceURI() == null;
         } else /* if (namespaceURI == null) */ {
             return name.equals(eName);
         }
