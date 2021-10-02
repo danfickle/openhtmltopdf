@@ -51,6 +51,7 @@ import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.PersistentBFC;
 import com.openhtmltopdf.layout.Styleable;
+import com.openhtmltopdf.layout.LayoutContext.BlockBoxingState;
 import com.openhtmltopdf.newtable.TableRowBox;
 import com.openhtmltopdf.util.ThreadCtx;
 
@@ -2498,6 +2499,25 @@ public class BlockBox extends Box {
             }
 
             current++;
+        }
+    }
+
+    @Override
+    public void collectLayoutText(LayoutContext c, StringBuilder builder) {
+        if (_childrenContentType == BlockBox.ContentType.INLINE) {
+            for (Styleable s : getInlineContent()) {
+                if (s instanceof InlineBox) {
+                    builder.append(((InlineBox) s).getText());
+                } else if (s instanceof BlockBox) {
+                    ((BlockBox) s).collectLayoutText(c, builder);
+                }
+            }
+        } else if (_childrenContentType == BlockBox.ContentType.BLOCK) {
+            for (Box box : getChildren()) {
+                if (box instanceof BlockBox) {
+                    ((BlockBox) box).collectLayoutText(c, builder);
+                }
+            }
         }
     }
 

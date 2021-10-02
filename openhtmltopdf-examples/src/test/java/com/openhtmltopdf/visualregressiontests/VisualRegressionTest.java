@@ -1471,9 +1471,16 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-752-fs-border-rendering-property"));
     }
 
+    /**
+     * Tests the leader CSS function when the text exceeds the width of the page.
+     */
+    @Test
+    public void testIssue771LeaderFunction() throws IOException {
+        assertTrue(vt.runTest("issue-771-leader-function"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
-    // + Inline layers.
     // + vertical page overflow, page-break-inside, etc.
 }

@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.ParagraphSplitter.Paragraph;
+import com.openhtmltopdf.context.ContentFunctionFactory;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
@@ -160,9 +161,10 @@ public class InlineBoxing {
                 }
 
                 LineBreakContext lbContext = new LineBreakContext();
-                
+
                 if (inlineBox.isDynamicFunction()) {
-                    lbContext.setMaster(inlineBox.getContentFunction().getLayoutReplacementText());
+                    lbContext.setMaster(inlineBox.getContentFunction().getPostBoxingLayoutReplacementText(
+                            c, current.layoutBox.getParent().getElement()));
                 } else {
                     lbContext.setMaster(inlineBox.getText());
                 }
@@ -449,11 +451,14 @@ public class InlineBoxing {
             // We can use the inline text by adding it to the current inline layout box.
             // We also mark the text as consumed by the line break context and reduce the width
             // we have remaining on this line.
+
             if (inlineBox.isDynamicFunction()) {
-                inlineText.setFunctionData(new FunctionData(
+                if (!inlineBox.getContentFunction().isCalculableAtLayout()) {
+                    inlineText.setFunctionData(new FunctionData(
                         inlineBox.getContentFunction(), inlineBox.getFunction()));
+                }
             }
-            
+
             inlineText.setTrimmedLeadingSpace(trimmedLeadingSpace);
             current.line.setContainsDynamicFunction(inlineText.isDynamicFunction());
             current.layoutBox.addInlineChild(c, inlineText);

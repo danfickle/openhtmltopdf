@@ -1,0 +1,18 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+}
+#five::after {
+  content: target-text(attr(href)) leader(dotted) target-counter(attr(href), page);
+}
+</style>
+</head>
+<body>
+
+<a id="five" href="#title"></a>
+<h1 id="title">Some very long text that exceeds the width of the page</h1>
+
+</body>
+</html>

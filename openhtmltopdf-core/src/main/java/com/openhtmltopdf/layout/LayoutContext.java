@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.BidiSplitterFactory;
@@ -47,6 +49,7 @@ import com.openhtmltopdf.render.BlockBox;
 import com.openhtmltopdf.render.Box;
 import com.openhtmltopdf.render.FSFont;
 import com.openhtmltopdf.render.FSFontMetrics;
+import com.openhtmltopdf.render.InlineBox;
 import com.openhtmltopdf.render.MarkerData;
 import com.openhtmltopdf.render.PageBox;
 
@@ -108,6 +111,25 @@ public class LayoutContext implements CssContext {
     private int _footnoteIndex;
     private FootnoteManager _footnoteManager;
     private boolean _isFootnoteAllowed = true;
+
+    private final Map<String, Object> _boxMap = new HashMap<>();
+
+    public void addLayoutBoxId(Element elem, Object boxOrInlineBox) {
+        String id = elem.getAttribute("id");
+        if (!id.isEmpty()) {
+            _boxMap.put(id, boxOrInlineBox);
+        }
+    }
+
+    /**
+     * Returns null, an {@link InlineBox} or {@link BlockBox} with the given id.
+     * NOTE: This is for use pre-layout. Once layout has occurred and InlineBox
+     * objects have been transformed into one or more InlineLayoutBox objects, one
+     * can use _sharedContext::getBoxById.
+     */
+    public Object getLayoutBox(String id) {
+        return _boxMap.get(id);
+    }
 
     @Override
     public TextRenderer getTextRenderer() {

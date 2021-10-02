@@ -33,6 +33,7 @@ import com.openhtmltopdf.layout.CounterFunction;
 import com.openhtmltopdf.layout.InlineBoxing;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.Box;
+import com.openhtmltopdf.render.InlineBox;
 import com.openhtmltopdf.render.InlineLayoutBox;
 import com.openhtmltopdf.render.InlineText;
 import com.openhtmltopdf.render.LineBox;
@@ -250,6 +251,11 @@ public class ContentFunctionFactory {
         }
 
         @Override
+        public boolean isCalculableAtLayout() {
+            return true;
+        }
+
+        @Override
         public String calculate(RenderingContext c, FSFunction function, InlineText text) {
             // Due to how BoxBuilder::wrapGeneratedContent works, it is likely the immediate
             // parent of text is an anonymous InlineLayoutBox so we have to go up another
@@ -280,6 +286,34 @@ public class ContentFunctionFactory {
         @Override
         public String getLayoutReplacementText() {
             return "ABCABC";
+        }
+
+        @Override
+        public String getPostBoxingLayoutReplacementText(LayoutContext c, Element hrefElement) {
+            if (hrefElement == null) {
+                return getLayoutReplacementText();
+            }
+
+            String uri = hrefElement.getAttribute("href");
+
+            if (uri.startsWith("#")) {
+                String href = uri.substring(1);
+                Object target = c.getLayoutBox(href);
+
+                if (target == null) {
+                    return getLayoutReplacementText();
+                } else if (target instanceof Box) {
+                    Box box = (Box) target;
+                    StringBuilder strBuilder = new StringBuilder();
+                    box.collectLayoutText(c, strBuilder);
+                    return strBuilder.toString();
+                } else if (target instanceof InlineBox) {
+                    InlineBox ib = (InlineBox) target;
+                    return ib.getText();
+                }
+            }
+
+            return getLayoutReplacementText();
         }
 
         @Override
