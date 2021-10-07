@@ -243,7 +243,19 @@ public class ContentFunctionFactory {
         }
     }
 
-
+    /**
+     * https://www.w3.org/TR/css-gcpm-3/#target-text<br>
+     * https://www.w3.org/TR/css-values-3/#attr-notation
+     * <br><br>
+     * We support <code>target-text(attr(xxx))</code> and <code>target-text(attr(xxx url))</code>
+     * where xxx is an attribute name and url is the
+     * type returned (only url is supported as the second param).
+     * <br><br>
+     * Limitations:<br>
+     * The value returned from the attribute must start with hash (#), it
+     * is not resolved to an absolute url.<br>
+     * We only support returning the content of the target element, not a specific pseudo element.
+     */
     private static class TargetTextFunction implements ContentFunction {
         @Override
         public boolean isStatic() {
@@ -257,6 +269,9 @@ public class ContentFunctionFactory {
 
         @Override
         public String calculate(RenderingContext c, FSFunction function, InlineText text) {
+            // FIXME: Not sure this method is used any longer.
+            // Prefer getPostBoxingLayoutReplacementText below.
+
             // Due to how BoxBuilder::wrapGeneratedContent works, it is likely the immediate
             // parent of text is an anonymous InlineLayoutBox so we have to go up another
             // level to the wrapper box which contains the element.
@@ -264,7 +279,16 @@ public class ContentFunctionFactory {
                     text.getParent().getParent().getElement() :
                     text.getParent().getElement();
 
-            String uri = hrefElement.getAttribute("href");
+            // We want to get xxx in target-text(attr(xxx))
+            // Default to href.
+            String attribute =
+                  function.getParameters().isEmpty() ||
+                  function.getParameters().get(0).getFunction() == null ||
+                  !"attr".equals(function.getParameters().get(0).getFunction().getName()) ||
+                  function.getParameters().get(0).getFunction().getParameters().isEmpty() ?
+                     "href" : function.getParameters().get(0).getFunction().getParameters().get(0).getStringValue();
+
+            String uri = hrefElement.getAttribute(attribute);
 
             if (uri != null && uri.startsWith("#")) {
                 String anchor = uri.substring(1);
@@ -289,19 +313,30 @@ public class ContentFunctionFactory {
         }
 
         @Override
-        public String getPostBoxingLayoutReplacementText(LayoutContext c, Element hrefElement) {
+        public String getPostBoxingLayoutReplacementText(
+                LayoutContext c, Element hrefElement, FSFunction function) {
+
             if (hrefElement == null) {
-                return getLayoutReplacementText();
+                return "";
             }
 
-            String uri = hrefElement.getAttribute("href");
+            // We want to get xxx in target-text(attr(xxx))
+            // Default to href.
+            String attribute =
+                  function.getParameters().isEmpty() ||
+                  function.getParameters().get(0).getFunction() == null ||
+                  !"attr".equals(function.getParameters().get(0).getFunction().getName()) ||
+                  function.getParameters().get(0).getFunction().getParameters().isEmpty() ?
+                     "href" : function.getParameters().get(0).getFunction().getParameters().get(0).getStringValue();
+
+            String uri = hrefElement.getAttribute(attribute);
 
             if (uri.startsWith("#")) {
                 String href = uri.substring(1);
                 Object target = c.getLayoutBox(href);
 
                 if (target == null) {
-                    return getLayoutReplacementText();
+                    return "";
                 } else if (target instanceof Box) {
                     Box box = (Box) target;
                     StringBuilder strBuilder = new StringBuilder();
@@ -313,7 +348,7 @@ public class ContentFunctionFactory {
                 }
             }
 
-            return getLayoutReplacementText();
+            return "";
         }
 
         @Override
@@ -322,12 +357,10 @@ public class ContentFunctionFactory {
                 List<PropertyValue> parameters = function.getParameters();
                 if(parameters.size() == 1) {
                     FSFunction f = parameters.get(0).getFunction();
-                    if (f == null ||
-                            f.getParameters().size() != 1 ||
-                            ! f.getParameters().get(0).getStringValue().equals("href")) {
-                        return false;
-                    }
-                    return true;
+
+                    return "attr".equals(f.getName()) &&
+                              (f.getParameters().size() == 1 ||
+                                (f.getParameters().size() == 2 && "url".equals(f.getParameters().get(1).getStringValue())));
                 }
             }
             return false;
@@ -338,7 +371,7 @@ public class ContentFunctionFactory {
      * Partially implements leaders as specified here:
      * http://www.w3.org/TR/2007/WD-css3-gcpm-20070504/#leaders
      */
-    private static class LeaderFunction implements ContentFunction {
+    public static class LeaderFunction implements ContentFunction {
         @Override
         public boolean isStatic() {
             return false;
@@ -349,9 +382,10 @@ public class ContentFunctionFactory {
             InlineLayoutBox iB = text.getParent();
             LineBox lineBox = iB.getLineBox();
 
-            // There might be a target-counter function after this function.
+            // There might be a dynamic function (target-counter, counter, etc)
+            // after this function.
             // Because the leader should fill up the line, we need the correct
-            // width and must first compute the target-counter function.
+            // width and must first compute the dynamic function.
             boolean dynamic = false;
             boolean dynamic2 = false;
             Box wrapperBox = iB.getParent();
@@ -374,7 +408,11 @@ public class ContentFunctionFactory {
                     dynamic = true;
                 } else if (child instanceof InlineLayoutBox) {
                     // This forces the computation of dynamic functions.
-                    ((InlineLayoutBox)child).lookForDynamicFunctions(c);
+
+                    // NOTE: We do not evaluate other leaders as this would 
+                    // cause a battle with this leader and that leader ending in a
+                    // stack overflow or worse an endless loop.
+                    ((InlineLayoutBox)child).lookForDynamicFunctions(c, false);
                 }
             }
 
@@ -385,7 +423,7 @@ public class ContentFunctionFactory {
                     if (wrapperBox == child) {
                         dynamic2 = true;
                     } else if (dynamic2 && child instanceof InlineLayoutBox) {
-                        ((InlineLayoutBox)child).lookForDynamicFunctions(c);
+                        ((InlineLayoutBox)child).lookForDynamicFunctions(c, false);
                     }
                 }
             }

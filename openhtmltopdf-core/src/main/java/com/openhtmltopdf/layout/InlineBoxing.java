@@ -31,7 +31,6 @@ import org.w3c.dom.Element;
 
 import com.openhtmltopdf.bidi.BidiSplitter;
 import com.openhtmltopdf.bidi.ParagraphSplitter.Paragraph;
-import com.openhtmltopdf.context.ContentFunctionFactory;
 import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.style.CalculatedStyle;
@@ -163,8 +162,9 @@ public class InlineBoxing {
                 LineBreakContext lbContext = new LineBreakContext();
 
                 if (inlineBox.isDynamicFunction()) {
-                    lbContext.setMaster(inlineBox.getContentFunction().getPostBoxingLayoutReplacementText(
-                            c, current.layoutBox.getParent().getElement()));
+                    lbContext.setMaster(
+                         inlineBox.getContentFunction().getPostBoxingLayoutReplacementText(
+                            c, current.layoutBox.getParent().getElement(), inlineBox.getFunction()));
                 } else {
                     lbContext.setMaster(inlineBox.getText());
                 }

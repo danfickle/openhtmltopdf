@@ -20,6 +20,7 @@
  */
 package com.openhtmltopdf.render;
 
+import com.openhtmltopdf.context.ContentFunctionFactory.LeaderFunction;
 import com.openhtmltopdf.css.constants.IdentValue;
 import com.openhtmltopdf.css.parser.FSRGBColor;
 import com.openhtmltopdf.css.style.CalculatedStyle;
@@ -717,17 +718,27 @@ public class InlineLayoutBox extends Box implements InlinePaintable {
             } 
         }
     }
-    
-    public void lookForDynamicFunctions(RenderingContext c) {
+
+    /**
+     * This method will look for dynamic functions such as counter or target-counter
+     * and evaluate them.
+     * 
+     * @param evaluateLeaders whether to evaluate leader functions - we don't want to
+     * evaluate the two leaders on the one line.
+     */
+    public void lookForDynamicFunctions(RenderingContext c, boolean evaluateLeaders) {
         for (int i = 0; i < getInlineChildCount(); i++) {
             Object obj = getInlineChild(i);
             if (obj instanceof InlineText) {
                 InlineText iT = (InlineText)obj;
                 if (iT.isDynamicFunction()) {
-                    iT.updateDynamicValue(c);
+                    if (evaluateLeaders ||
+                        !(iT.getFunctionData().getContentFunction() instanceof LeaderFunction)) {
+                       iT.updateDynamicValue(c);
+                    }
                 }
             } else if (obj instanceof InlineLayoutBox) {
-                ((InlineLayoutBox)obj).lookForDynamicFunctions(c);
+                ((InlineLayoutBox)obj).lookForDynamicFunctions(c, evaluateLeaders);
             }
         } 
     }

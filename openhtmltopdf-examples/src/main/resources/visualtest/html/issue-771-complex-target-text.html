@@ -1,0 +1,121 @@
+<html>
+<head>
+<style>
+@page {
+  size: 300px 300px;
+  margin: 5px;
+}
+body {
+  margin: 5px;
+}
+div {
+  border: 1px solid black;
+}
+#c-one::after,
+#c-two::before,
+#c-three::after,
+#c-four::before {
+  content: target-text(attr(href));
+}
+
+#c-five::after,
+#c-six::before {
+  content: leader(dotted) target-text(attr(href));
+}
+
+#c-seven::after,
+#c-eight::before {
+  content: target-text(attr(href)) " -- " target-text(attr(href));
+}
+
+#c-nine::after {
+  content: target-text(attr(href url)) " ## " target-text(attr(text));
+}
+
+#c-ten::before,
+#c-eleven::after {
+  content: target-text(attr(href)) leader(dotted) target-text(attr(href));
+}
+
+#c-twelve::after,
+#c-thirteen::before {
+  content: leader(dotted) target-text(attr(href)) leader(solid);
+}
+
+#c-fourteen::after {
+  content: target-text(attr(href)) " %% " target-text(attr(not-exist));
+}
+</style>
+</head>
+<body>
+
+<div>
+<!-- More than one long target-text next to each other -->
+<a id="c-one" href="#one"></a> <a id="c-two" href="#two"></a>
+</div>
+
+<div>
+<!-- Two short target-text on the same line -->
+<a id="c-three" href="#three"></a> <a id="c-four" href="#four"></a>
+</div>
+
+<div>
+<!-- Long target-text after leader in content property -->
+<a id="c-five" href="#one"></a>
+</div>
+
+<div>
+<!-- Short target-text after leader in content property -->
+<a id="c-six" href="#four"></a>
+</div>
+
+<div>
+<!-- Two short target-text on the one element -->
+<a id="c-seven" href="#four"></a>
+</div>
+
+<div>
+<!-- Two long target-text on the one element -->
+<a id="c-eight" href="#one"></a>
+</div>
+
+<div>
+<!-- Two target-text with different attributes -->
+<a id="c-nine" href="#four" text="#three"></a>
+</div>
+
+<div>
+<!-- Leader between two short target-texts -->
+<a id="c-ten" href="#four"></a>
+</div>
+
+<div>
+<!-- Leader between two long target-texts -->
+<a id="c-eleven" href="#one"></a>
+</div>
+
+<div>
+<!-- Two short leaders surrounding target-text, first
+     leader wins and second is ignored  -->
+<a id="c-twelve" href="#four"></a>
+</div>
+
+<div>
+<!-- Two long leaders surrounding target-text, first
+     leader goes on first line and second on final line  -->
+<a id="c-thirteen" href="#one"></a>
+</div>
+
+<div>
+<!-- Invalid attribute and invalid href -->
+<a id="c-fourteen" href="#xxx"></a>
+</div>
+
+
+<div id="one">Some very long text that exceeds the width of the page</div>
+<div id="two">More text with a very long line</div>
+<div id="three">Short</div>
+<div id="four">More</div>
+
+</body>
+</html>

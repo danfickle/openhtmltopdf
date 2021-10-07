@@ -51,7 +51,8 @@ public interface ContentFunction {
      * Some content functions can provide a better replacement text after
      * boxing but before layout (ie. target-text).
      */
-    default public String getPostBoxingLayoutReplacementText(LayoutContext c, Element element) {
+    default public String getPostBoxingLayoutReplacementText(
+            LayoutContext c, Element element, FSFunction fsFunction) {
         return getLayoutReplacementText();
     }
 

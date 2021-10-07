@@ -1479,6 +1479,14 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-771-leader-function"));
     }
 
+    /**
+     * Complex target-text usage such as two in the one content property, etc.
+     */
+    @Test
+    public void testIssue771ComplexTargetText() throws IOException {
+        assertTrue(vt.runTest("issue-771-complex-target-text"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)

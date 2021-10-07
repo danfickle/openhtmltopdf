@@ -51,7 +51,6 @@ import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.layout.PaintingInfo;
 import com.openhtmltopdf.layout.PersistentBFC;
 import com.openhtmltopdf.layout.Styleable;
-import com.openhtmltopdf.layout.LayoutContext.BlockBoxingState;
 import com.openhtmltopdf.newtable.TableRowBox;
 import com.openhtmltopdf.util.ThreadCtx;
 
