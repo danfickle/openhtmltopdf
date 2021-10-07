@@ -118,6 +118,7 @@ public class BoxBuilder {
         result.setStyle(style);
         result.setElement(root);
 
+        c.addLayoutBoxId(root, result);
         c.resolveCounters(style);
 
         return result;
@@ -933,6 +934,8 @@ public class BoxBuilder {
                 iB.setStartsHere(true);
                 iB.setEndsHere(true);
 
+                c.addLayoutBoxId(element, iB);
+
                 result.add(iB);
             }
         }
@@ -1121,6 +1124,8 @@ public class BoxBuilder {
             pseudoStart.setStyle(style);
             pseudoStart.setElement(wrapperElement);
             pseudoStart.setPseudoElementOrClass(peName);
+            
+            c.addLayoutBoxId(wrapperElement, pseudoStart);
 
             pseudoInlines.add(pseudoStart);
 
@@ -1171,6 +1176,8 @@ public class BoxBuilder {
             if (! style.isLayedOutInInlineContext()) {
                 info.setContainsBlockLevelContent(true);
             }
+            
+            c.addLayoutBoxId(wrapperElement, result);
 
             return new ArrayList<>(Collections.singletonList(result));
         }
@@ -1466,6 +1473,8 @@ public class BoxBuilder {
 
         child.setStyle(style);
         child.setElement(element);
+
+        c.addLayoutBoxId(element, child);
 
         if (style.hasColumns() && c.isPrint()) {
             createColumnContainer(c, child, element, style);

@@ -1198,6 +1198,16 @@ public abstract class Box implements Styleable, DisplayListItem {
         }
     }
 
+    /**
+     * Similar to {@link #collectText(RenderingContext, StringBuilder)} but
+     * dynamic functions such as counter(pages) are not calculated.
+     */
+    public void collectLayoutText(LayoutContext c, StringBuilder builder) {
+        for (Box b : getChildren()) {
+            b.collectLayoutText(c, builder);
+        }
+    }
+
     public void exportText(RenderingContext c, Writer writer) throws IOException {
         if (c.isPrint() && isRoot()) {
             c.setPage(0, c.getRootLayer().getPages().get(0));

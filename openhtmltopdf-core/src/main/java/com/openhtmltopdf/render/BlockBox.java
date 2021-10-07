@@ -2501,6 +2501,25 @@ public class BlockBox extends Box {
         }
     }
 
+    @Override
+    public void collectLayoutText(LayoutContext c, StringBuilder builder) {
+        if (_childrenContentType == BlockBox.ContentType.INLINE) {
+            for (Styleable s : getInlineContent()) {
+                if (s instanceof InlineBox) {
+                    builder.append(((InlineBox) s).getText());
+                } else if (s instanceof BlockBox) {
+                    ((BlockBox) s).collectLayoutText(c, builder);
+                }
+            }
+        } else if (_childrenContentType == BlockBox.ContentType.BLOCK) {
+            for (Box box : getChildren()) {
+                if (box instanceof BlockBox) {
+                    ((BlockBox) box).collectLayoutText(c, builder);
+                }
+            }
+        }
+    }
+
     public static class MarginCollapseResult {
         private int maxPositive;
         private int maxNegative;
