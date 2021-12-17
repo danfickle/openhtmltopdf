@@ -204,7 +204,15 @@ public class ContentFunctionFactory {
                 Box target = c.getBoxById(anchor);
                 if (target != null) {
                     int pageNo = c.getRootLayer().getRelativePageNo(c, target.getAbsY());
-                    return CounterFunction.createCounterText(IdentValue.DECIMAL, pageNo + 1);
+                    IdentValue listStyle = IdentValue.DECIMAL;
+                    List<PropertyValue> params = function.getParameters();
+                    if (params.size() > 2) {
+                        IdentValue iValue = IdentValue.valueOf(params.get(2).getStringValue());
+                        if (iValue != null) {
+                            listStyle = iValue;
+                        }
+                    }
+                    return CounterFunction.createCounterText(listStyle, pageNo + 1);
                 }
             }
             return "";
