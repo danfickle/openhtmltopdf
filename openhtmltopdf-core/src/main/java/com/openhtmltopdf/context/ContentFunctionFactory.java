@@ -20,6 +20,7 @@
 package com.openhtmltopdf.context;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -204,15 +205,15 @@ public class ContentFunctionFactory {
                 Box target = c.getBoxById(anchor);
                 if (target != null) {
                     int pageNo = c.getRootLayer().getRelativePageNo(c, target.getAbsY());
-                    IdentValue listStyle = IdentValue.DECIMAL;
-                    List<PropertyValue> params = function.getParameters();
+                    IdentValue counterStyle = IdentValue.DECIMAL; // default type
+                    List<PropertyValue> params = function != null ? function.getParameters() : Collections.emptyList();
                     if (params.size() > 2) {
                         IdentValue iValue = IdentValue.valueOf(params.get(2).getStringValue());
                         if (iValue != null) {
-                            listStyle = iValue;
+                            counterStyle = iValue;
                         }
                     }
-                    return CounterFunction.createCounterText(listStyle, pageNo + 1);
+                    return CounterFunction.createCounterText(counterStyle, pageNo + 1);
                 }
             }
             return "";
