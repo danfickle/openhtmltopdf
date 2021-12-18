@@ -1487,6 +1487,11 @@ public class VisualRegressionTest {
         assertTrue(vt.runTest("issue-771-complex-target-text"));
     }
 
+    @Test
+    public void testIssue792TargetCounterStyle() throws IOException {
+        assertTrue(vt.runTest("issue-792-target-counter-style"));
+    }
+
     // TODO:
     // + Elements that appear just on generated overflow pages.
     // + content property (page counters, etc)
