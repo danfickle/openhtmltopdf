@@ -1,5 +1,13 @@
 [![build](https://github.com/danfickle/openhtmltopdf/workflows/build/badge.svg)](https://github.com/danfickle/openhtmltopdf/actions?query=workflow%3Abuild)
 
+**NOTE**: This is the PDFBOX 3.x.x-SNAPSHOT branch so we stay ready for when PDFBOX 3 is released.
+
+**TODO**:
++ Before release we will have to update to the latest version of pdfbox-graphics2d and PDFBOX.
++ This will also mean reverting commit b4ad8b270ee910602041742b46e3b3aa406f37e2 which was made for compatibility with pdfbox-graphics2d 3.0.0-alpha2
++ Update this readme.
+
+
 # OPEN HTML TO PDF
 
 ![PDF screenshot of OpenHTMLtoPDF](screenshot.png)
