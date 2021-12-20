@@ -19,6 +19,8 @@
  */
 package com.openhtmltopdf.css.extend;
 
+import org.w3c.dom.Element;
+
 import com.openhtmltopdf.css.parser.FSFunction;
 import com.openhtmltopdf.layout.LayoutContext;
 import com.openhtmltopdf.render.InlineText;
@@ -44,6 +46,23 @@ public interface ContentFunction {
      * use this text as an approximation at layout.
      */
     public String getLayoutReplacementText();
-    
+
+    /**
+     * Some content functions can provide a better replacement text after
+     * boxing but before layout (ie. target-text).
+     */
+    default public String getPostBoxingLayoutReplacementText(
+            LayoutContext c, Element element, FSFunction fsFunction) {
+        return getLayoutReplacementText();
+    }
+
     public boolean canHandle(LayoutContext c, FSFunction function);
+
+    /**
+     * Is the calculate method going to return valid results if called
+     * before or during layout as opposed to at render time.
+     */
+    default public boolean isCalculableAtLayout() {
+        return false;
+    }
 }

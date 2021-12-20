@@ -116,9 +116,9 @@ public class LineBox extends Box implements InlinePaintable {
         if (! getParent().getStyle().isVisible(c, this)) {
             return;
         }
-        
+
         if (isContainsDynamicFunction()) {
-            lookForDynamicFunctions(c);
+            lookForDynamicFunctions(c, true);
             int totalLineWidth;
 
             if (direction == BidiSplitter.RTL) {
@@ -143,18 +143,21 @@ public class LineBox extends Box implements InlinePaintable {
             c.getOutputDevice().drawDebugOutline(c, this, FSRGBColor.GREEN);
         }
     }
-    
-    private void lookForDynamicFunctions(RenderingContext c) {
+
+    /**
+     * See {@link InlineLayoutBox#lookForDynamicFunctions(RenderingContext, boolean)}
+     */
+    private void lookForDynamicFunctions(RenderingContext c, boolean evaluateLeaders) {
         if (getChildCount() > 0) {
             for (int i = 0; i < getChildCount(); i++) {
                 Box b = getChild(i);
                 if (b instanceof InlineLayoutBox) {
-                    ((InlineLayoutBox)b).lookForDynamicFunctions(c);
+                    ((InlineLayoutBox)b).lookForDynamicFunctions(c, evaluateLeaders);
                 }
             }
         }
     }
-    
+
     public boolean isFirstLine() {
         return super.isFirstChild();
     }
@@ -602,18 +605,18 @@ public class LineBox extends Box implements InlinePaintable {
         
         return false;
     }
-    
+
     @Override
     public void collectText(RenderingContext c, StringBuilder buffer) {
         for (Box b : getNonFlowContent()) {
             b.collectText(c, buffer);
         }
         if (isContainsDynamicFunction()) {
-            lookForDynamicFunctions(c);
+            lookForDynamicFunctions(c, true);
         }
         super.collectText(c, buffer);
     }
-    
+
     @Override
     public void exportText(RenderingContext c, Writer writer) throws IOException {
         int baselinePos = getAbsY() + getBaseline();

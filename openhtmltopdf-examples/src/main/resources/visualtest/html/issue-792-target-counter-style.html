@@ -1,0 +1,25 @@
+<html>
+<head>
+    <style>
+@page {
+    size: 250px 25px;
+    margin:0;padding:0;
+}
+body {margin:0;padding:0;font-size:10px}
+#zero::after {
+    content: "Go to page:" leader(dotted)
+        target-counter(attr(href), page, lower-latin)
+        " - " target-counter(attr(href), page, upper-latin)
+        " - " target-counter(attr(href), page, lower-roman)
+        " - " target-counter(attr(href), page, upper-roman)
+        " - " target-counter(attr(href), page, decimal-leading-zero)
+        " - " target-counter(attr(href), page, decimal)
+        " - " target-counter(attr(href), page);
+}
+</style>
+</head>
+<body>
+<a id="zero" href="#zero-href" style="display: inline-block;width: 100%;"></a>
+<div id="zero-href">zero</div>
+</body>
+</html>
