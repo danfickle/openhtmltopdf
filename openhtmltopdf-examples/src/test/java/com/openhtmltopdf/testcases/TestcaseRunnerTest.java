@@ -231,4 +231,12 @@ public class TestcaseRunnerTest {
         runTestCase(test);
         confirmPages(test, 3);
     }
+
+    @Test
+    public void testMultipageTable() throws IOException {
+        String test = "multipage-table";
+        runTestCase(test);
+        confirmPages(test, 4);
+    }
+    
 }
