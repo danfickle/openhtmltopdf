@@ -39,6 +39,7 @@ import com.openhtmltopdf.outputdevice.helper.FontResolverHelper;
 import com.openhtmltopdf.pdfboxout.PdfBoxFontResolver.FontDescription;
 import com.openhtmltopdf.pdfboxout.PdfBoxUtil.FontRun;
 import com.openhtmltopdf.pdfboxout.PdfBoxUtil.Metadata;
+import com.openhtmltopdf.pdfboxout.fontstore.FontNotFoundException;
 import com.openhtmltopdf.render.*;
 import com.openhtmltopdf.simple.extend.ReplacedElementScaleHelper;
 import com.openhtmltopdf.util.ArrayUtil;
@@ -381,6 +382,9 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     @Override
     public void setFont(FSFont font) {
         _font = ((PdfBoxFSFont) font);
+        if (_font.getFontDescription().isEmpty()) {
+            throw new FontNotFoundException(this.getFontSpecification());
+        }
     }
 
     /**
