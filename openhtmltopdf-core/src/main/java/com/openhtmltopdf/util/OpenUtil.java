@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Objects;
+import java.util.function.Function;
 
 public class OpenUtil {
 
@@ -124,6 +125,28 @@ public class OpenUtil {
         }
 
         return buffer.toString();
+    }
+
+    @FunctionalInterface
+    public interface ThrowableFunction<T, R> {
+        R apply(T arg) throws Exception;
+    }
+
+    /**
+     * Given a {@link ThrowableFunction} (which can throw checked exceptions) returns
+     * a standard {@link Function} (which can't throw checked exceptions).
+     * <br><br>
+     * In the returned function, checked exceptions are wrapped in {@link RuntimeException}
+     * and rethrown.
+     */
+    public static <T, R> Function<T, R> rethrowingFunction(ThrowableFunction<T, R> func) {
+        return arg -> {
+            try {
+                return func.apply(arg);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
 }
