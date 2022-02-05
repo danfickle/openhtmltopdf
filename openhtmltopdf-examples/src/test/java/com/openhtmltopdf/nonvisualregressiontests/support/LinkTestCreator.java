@@ -12,7 +12,6 @@ import java.util.stream.IntStream;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
@@ -28,19 +27,21 @@ public class LinkTestCreator {
 
         final PDRectangle area;
 
-        /** Zero based destination page number */
-        @SuppressWarnings("unused")
+        /** Zero based destination page number or -1 if not internal link */
         final int destinationPage;
 
         /** y destination of the link, page relative, bottom up units. */
-        @SuppressWarnings("unused")
         final int destinationTop;
 
-        LinkContainer(int annotIdx, PDRectangle area, int destinationPage, int destinationTop) {
+        /** If an external link contains uri, otherwise null */
+        final String destinationUri;
+
+        LinkContainer(int annotIdx, PDRectangle area, int destinationPage, int destinationTop, String destUri) {
             this.annotationIndex = annotIdx;
             this.area = area;
             this.destinationPage = destinationPage;
-            this.destinationTop = 0;
+            this.destinationTop = destinationTop;
+            this.destinationUri = destUri;
         }
     }
 
@@ -56,39 +57,58 @@ public class LinkTestCreator {
         }
     }
 
-    private static PDPageXYZDestination getLinkDestination(PDAnnotation link) throws IOException {
-        PDAnnotationLink link0 = (PDAnnotationLink) link;
-        PDActionGoTo goto0 = (PDActionGoTo) link0.getAction();
-        return (PDPageXYZDestination) goto0.getDestination();
+    private static final String LITERAL_REPLACE = "\n\r\t\'\"\\\b\f";
+    private static final String LITERAL_WITH = "nrt'\"\\bf";
+
+    public static String escapeJavaStringLiteral(String s) {
+        StringBuilder sb = new StringBuilder(s.length());
+
+        // None of the bad chars are valid trailing surrogates in UTF16 so
+        // we should be right in using chars here rather than codePoints.
+        s.chars().forEachOrdered(c -> {
+            int idx = LITERAL_REPLACE.indexOf(c);
+
+            if (idx != -1) {
+                sb.append('\\')
+                  .append(LITERAL_WITH.charAt(idx));
+            } else {
+                sb.append((char) c);
+            }
+        });
+
+        return sb.toString();
     }
 
-    private static Function<Integer, LinkContainer> linkExtractor(PDDocument doc, List<PDAnnotation> lst) {
-        return OpenUtil.rethrowingFunction((Integer annotIndex) -> {
-            PDAnnotationLink link = (PDAnnotationLink) lst.get(annotIndex);
+    private static Function<Integer, LinkContainer> linkExtractor(PDDocument doc, int pageNo) {
+        return OpenUtil.rethrowingFunction((annotIndex) -> {
+            PDAnnotationLink link = (PDAnnotationLink) doc.getPage(pageNo).getAnnotations().get(annotIndex);
 
             int destPage;
             int destTop;
+            String destUri;
 
-            if (link.getAction() instanceof PDActionGoTo) {
-                PDPageXYZDestination dest = getLinkDestination(link);
+            PDPageXYZDestination dest = LinkTestSupport.linkDestinationXYZ(doc, pageNo, annotIndex);
+            if (dest != null) {
                 destPage = doc.getPages().indexOf(dest.getPage());
                 destTop = dest.getTop();
+                destUri = null;
             } else {
                 destPage = -1;
                 destTop = -1;
+                destUri = LinkTestSupport.linkDestinationUri(doc, pageNo, annotIndex);
             }
 
-            return new LinkContainer(annotIndex, link.getRectangle(), destPage, destTop);
+            return new LinkContainer(annotIndex, link.getRectangle(), destPage, destTop, destUri);
         });
     }
 
-    private static List<LinkContainer> getPageLinks(PDDocument doc, int i) throws IOException {
-        List<PDAnnotation> lst = doc.getPage(i).getAnnotations();
+    private static List<LinkContainer> getPageLinks(PDDocument doc, int pageNo) throws IOException {
+        List<PDAnnotation> lst = doc.getPage(pageNo).getAnnotations();
 
-        return IntStream.range(0, doc.getPage(i).getAnnotations().size())
+        return IntStream.range(0, lst.size())
             .boxed()
             .filter(idx -> lst.get(idx) instanceof PDAnnotationLink)
-            .map(LinkTestCreator.linkExtractor(doc, lst))
+            .map(LinkTestCreator.linkExtractor(doc, pageNo))
             .collect(Collectors.toList());
     }
 
@@ -101,7 +121,7 @@ public class LinkTestCreator {
     }
 
     @SuppressWarnings("resource")
-    private static void createLinkAnnotationAreaTest(String filename) throws IOException {
+    private static void createLinkAnnotationTest(String filename) throws IOException {
         NonVisualTestSupport support = 
                 new NonVisualTestSupport(LinkRegressionTest.RES_PATH, LinkRegressionTest.OUT_PATH);
         try (TestDocument doc = support.run(filename, false)) {
@@ -127,6 +147,7 @@ public class LinkTestCreator {
           .append(String.format(Locale.ROOT, "    public void test%sLinkAreas() throws IOException {\n", testname))
           .append(String.format(Locale.ROOT, "        try (TestDocument doc = support.run(\"%s\")) {\n", filename));
 
+        // First output the link area assertions
         for (PageContainer page : pages) {
             for (LinkContainer link : page.links) {
                 PDRectangle r = link.area;
@@ -137,6 +158,27 @@ public class LinkTestCreator {
             }
         }
 
+        sb.append("\n");
+
+        // Now output the link destination assertions
+        for (PageContainer page : pages) {
+            for (LinkContainer link : page.links) {
+                if (link.destinationUri != null) {
+                    sb.append(
+                      String.format(Locale.ROOT, "            assertThat(linkDestinationUri(doc.doc(), %1$d, %2$d), equalTo(\"%3$s\"));\n",
+                        page.pageNo, link.annotationIndex,
+                        escapeJavaStringLiteral(link.destinationUri)));
+                } else if (link.destinationPage != -1) {
+                    sb.append(
+                      String.format(Locale.ROOT, "            assertThat(linkDestinationPageNo(doc.doc(), %1$d, %2$d), equalTo(%3$d));\n",
+                        page.pageNo, link.annotationIndex, link.destinationPage));
+                    sb.append(
+                      String.format(Locale.ROOT, "            assertThat(linkDestinationTop(doc.doc(), %1$d, %2$d), equalTo(%3$d));\n",
+                        page.pageNo, link.annotationIndex, link.destinationTop));
+                }
+            }
+        }
+
         sb.append("        }\n")
           .append("    }\n\n");
 
@@ -144,15 +186,14 @@ public class LinkTestCreator {
     }
 
     /**
-     * General process of creating a link area (and link destination test
-     * when implemented) is:
+     * General process of creating a link area (and destination) test is:
      * + Craft a minimal html file that demonstrates a broken or fixed problem.
      * + Place the html file in "/openhtmltopdf-examples/src/main/resources/visualtest/links/" folder.
      * + Replace the resource variable below with the filename (without .html extension).
      * + Run this main method.
      * + The PDF output will be in "/openhtmltopdf-examples/target/test/visual-tests/test-output/" folder.
      * + The console output will be a test that contains assertions on the position (x, y, width, height)
-     *   of each link in the document.
+     *   of each link in the document (plus link destination assertions).
      * + Once you have opened and manually verified the links are in the correct place (via mouse cursor
      *   changes for example) you can copy and paste the test into:
      *   /openhtmltopdf-examples/src/test/java/com/openhtmltopdf/nonvisualregressiontests/LinkRegressionTest.java
@@ -161,9 +202,6 @@ public class LinkTestCreator {
     public static void main(String[] args) throws IOException {
         String resource = "pr-798-multipage-table";
 
-        createLinkAnnotationAreaTest(resource);
-
-        // Not implemented yet:
-        // createLinkAnnotationDestinationTest(resource);
+        createLinkAnnotationTest(resource);
     }
 }

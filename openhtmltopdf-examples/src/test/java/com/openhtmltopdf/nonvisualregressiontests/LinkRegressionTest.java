@@ -12,8 +12,12 @@ import com.openhtmltopdf.testlistener.PrintingRunner;
 import com.openhtmltopdf.visualtest.TestSupport;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static com.openhtmltopdf.nonvisualregressiontests.support.LinkTestSupport.linkArea;
 import static com.openhtmltopdf.nonvisualregressiontests.support.LinkTestSupport.pdRectEquals;
+import static com.openhtmltopdf.nonvisualregressiontests.support.LinkTestSupport.linkDestinationUri;
+import static com.openhtmltopdf.nonvisualregressiontests.support.LinkTestSupport.linkDestinationTop;
+import static com.openhtmltopdf.nonvisualregressiontests.support.LinkTestSupport.linkDestinationPageNo;
 
 @RunWith(PrintingRunner.class)
 public class LinkRegressionTest {

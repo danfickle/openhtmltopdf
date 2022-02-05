@@ -6,6 +6,7 @@ import java.util.Locale;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.hamcrest.CustomTypeSafeMatcher;
@@ -72,6 +73,23 @@ public class LinkTestSupport {
             if (goto0.getDestination() instanceof PDPageXYZDestination) {
                 return (PDPageXYZDestination) goto0.getDestination();
             }
+        }
+        return null;
+    }
+
+    public static int linkDestinationPageNo(PDDocument doc, int page, int annotIdx) throws IOException {
+        return doc.getPages().indexOf(linkDestinationXYZ(doc, page, annotIdx).getPage());
+    }
+
+    public static int linkDestinationTop(PDDocument doc, int page, int annotIdx) throws IOException {
+        return linkDestinationXYZ(doc, page, annotIdx).getTop();
+    }
+
+    public static String linkDestinationUri(PDDocument doc, int page, int annotIndex) throws IOException {
+        PDAnnotationLink link0 = (PDAnnotationLink) doc.getPage(page).getAnnotations().get(annotIndex);
+        if (link0.getAction() instanceof PDActionURI) {
+            PDActionURI uriAction = (PDActionURI) link0.getAction();
+            return uriAction.getURI();
         }
         return null;
     }
