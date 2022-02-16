@@ -8,4 +8,4 @@ The following (and probably more) can be verfied:
 + External destination (uri)
 
 For instructions on creating such a test please see the main method in:
-`/openhtmltopdf-examples/src/test/java/com/openhtmltopdf/nonvisualregressiontests/support/LinkTestCreator.java`
+`src/test/java/com.openhtmltopdf.test.generators.LinkTestCreator`
