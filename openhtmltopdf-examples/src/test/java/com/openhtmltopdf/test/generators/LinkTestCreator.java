@@ -45,13 +45,21 @@ public class LinkTestCreator {
      * + Run the test and submit a pull-request!
      */
     public static void main(String[] args) throws IOException {
-        createSingleLinkTest("link-area-multiple-boxes");
+        createSingleLinkTest("link-area-overflow-page");
         //recreateAllLinkTests();
     }
 
     private static final List<String> ALL_TESTS = Arrays.asList(
             "pr-798-multipage-table",
-            "link-area-multiple-boxes"
+            "link-area-multiple-boxes",
+            "link-area-multiple-page",
+            "link-area-multiple-line",
+            "link-area-transform-nested",
+            "link-area-page-margin-transform",
+            "link-area-page-margin",
+            "link-external-url",
+            "link-area-after-overflow-page",
+            "link-area-overflow-page"
             );
 
     private static void createSingleLinkTest(String resource) throws IOException {
