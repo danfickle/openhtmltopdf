@@ -147,14 +147,13 @@ public class PdfBoxFastLinkManager {
 		return key.toString();
 	}
 
-	private Rectangle2D checkLinkArea(PDPage page, RenderingContext c, Box box, float pageHeight,
-			AffineTransform transform, Shape linkShape) {
-		Rectangle2D targetArea = calcTotalLinkArea(c, box, pageHeight, transform);
-		String key = createRectKey(targetArea, linkShape, transform);
-		Set<String> keys = _linkTargetAreas.get(page);
+	private Rectangle2D checkLinkArea(LinkDetails link, Shape linkShape) {
+		Rectangle2D targetArea = calcTotalLinkArea(link.c, link.box, link.pageHeight, link.transform);
+		String key = createRectKey(targetArea, linkShape, link.transform);
+		Set<String> keys = _linkTargetAreas.get(link.page);
 		if (keys == null) {
 			keys = new HashSet<>();
-			_linkTargetAreas.put(page, keys);
+			_linkTargetAreas.put(link.page, keys);
 		}
 		if (keys.contains(key)) {
 			return null;
@@ -163,17 +162,17 @@ public class PdfBoxFastLinkManager {
 		return targetArea;
 	}
 
-	private void processLink(RenderingContext c, Box box, PDPage page, float pageHeight, AffineTransform transform) {
-		Element elem = box.getElement();
+	private void processLink(LinkDetails linkDetails) {
+		Element elem = linkDetails.box.getElement();
 		if (elem != null) {
 			NamespaceHandler handler = _sharedContext.getNamespaceHandler();
 			String uri = handler.getLinkUri(elem);
 			if (uri != null) {
-				addUriAsLink(c, box, page, pageHeight, transform, elem, handler, uri, null);
+				addUriAsLink(linkDetails, elem, handler, uri, null);
 			}
 		}
-		if (box instanceof BlockBox) {
-			ReplacedElement element = ((BlockBox) box).getReplacedElement();
+		if (linkDetails.box instanceof BlockBox) {
+			ReplacedElement element = ((BlockBox) linkDetails.box).getReplacedElement();
 			if (element instanceof IPdfBoxElementWithShapedLinks) {
 				Map<Shape, String> linkMap = ((IPdfBoxElementWithShapedLinks) element).getLinkMap();
 				if (linkMap != null) {
@@ -181,7 +180,7 @@ public class PdfBoxFastLinkManager {
 						Shape shape = shapeStringEntry.getKey();
 						String shapeUri = shapeStringEntry.getValue();
 						NamespaceHandler handler = _sharedContext.getNamespaceHandler();
-						addUriAsLink(c, box, page, pageHeight, transform, elem, handler, shapeUri, shape);
+						addUriAsLink(linkDetails, elem, handler, shapeUri, shape);
 					}
 				}
 			}
@@ -223,13 +222,13 @@ public class PdfBoxFastLinkManager {
 		} while (rerun);
 	}
 
-	private void addUriAsLink(RenderingContext c, Box box, PDPage page, float pageHeight, AffineTransform transform,
+	private void addUriAsLink(LinkDetails linkDetails,
 			Element elem, NamespaceHandler handler, String uri, Shape linkShape) {
 		if (uri.length() > 1 && uri.charAt(0) == '#') {
 			String anchor = uri.substring(1);
 			Box target = _sharedContext.getBoxById(anchor);
 			if (target != null) {
-				PDPageXYZDestination dest = createDestination(c, target);
+				PDPageXYZDestination dest = createDestination(linkDetails.c, target);
 
 				PDAction action;
 				if (handler.getAttributeValue(elem, "onclick") != null
@@ -241,7 +240,7 @@ public class PdfBoxFastLinkManager {
 					action = go;
 				}
 
-				Rectangle2D targetArea = checkLinkArea(page, c, box, pageHeight, transform, linkShape);
+				Rectangle2D targetArea = checkLinkArea(linkDetails, linkShape);
 				if (targetArea == null) {
 					return;
 				}
@@ -251,10 +250,10 @@ public class PdfBoxFastLinkManager {
 
                 AnnotationContainer annotContainer = new AnnotationContainer.PDAnnotationLinkContainer(annot);
 
-				if (!placeAnnotation(transform, linkShape, targetArea, annotContainer))
+				if (!placeAnnotation(linkDetails.transform, linkShape, targetArea, annotContainer))
 					return;
 
-                addLinkToPage(page, annotContainer, box, target);
+                addLinkToPage(linkDetails.page, annotContainer, linkDetails.box, target);
 			} else {
 				XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_LINK, uri);
 			}
@@ -274,17 +273,15 @@ public class PdfBoxFastLinkManager {
             }
 
             if (annotContainer != null) {
-                Rectangle2D targetArea = checkLinkArea(page, c, box, pageHeight, transform, linkShape);
-
-                if (targetArea == null) {
+                if (linkDetails.targetArea == null) {
                     return;
                 }
 
-                if (!placeAnnotation(transform, linkShape, targetArea, annotContainer)) {
+                if (!placeAnnotation(linkDetails.transform, linkShape, linkDetails.targetArea, annotContainer)) {
                     return;
                 }
 
-                addLinkToPage(page, annotContainer, box, null);
+                addLinkToPage(linkDetails.page, annotContainer, linkDetails.box, null);
             }
         }
     }
@@ -578,6 +575,7 @@ public class PdfBoxFastLinkManager {
 
 		RenderingContext c;
 		Box box;
+		Rectangle2D targetArea;
 		PDPage page;
 		float pageHeight;
 		AffineTransform transform;
@@ -596,6 +594,7 @@ public class PdfBoxFastLinkManager {
 		link.page = page;
 		link.pageHeight = pageHeight;
 		link.transform = (AffineTransform) transform.clone();
+		link.targetArea = calcTotalLinkArea(c, box, pageHeight, transform);
 
 		_links.add(link);
 	    }
@@ -604,7 +603,7 @@ public class PdfBoxFastLinkManager {
 	public void processLinks(PdfBoxAccessibilityHelper pdfUa) {
 	    this._pdfUa = pdfUa;
 		for (LinkDetails link : _links) {
-			processLink(link.c, link.box, link.page, link.pageHeight, link.transform);
+			processLink(link);
 		}
 	}
 }

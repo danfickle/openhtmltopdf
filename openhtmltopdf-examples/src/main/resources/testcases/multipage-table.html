@@ -1,0 +1,70 @@
+<html>
+  <head>
+    <style>
+      @page {
+        size: 400px 350px;
+      }
+      table {
+        width: 100%;
+        font-size: 16px;
+        border-collapse: collapse;
+
+        /* The magical table pagination property. */
+        -fs-table-paginate: paginate;
+
+        /* Recommended to avoid leaving thead on a page by itself. */
+        -fs-page-break-min-height: 1.5cm;
+      }
+      tr, thead, tfoot {
+        page-break-inside: avoid;
+      }
+      td, th {
+        padding: 6px;
+        border: 1px solid gray;
+      }
+      tfoot td {
+        background-color: aqua;
+      }
+      thead th {
+        background-color: coral;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="test-table">
+      <caption>
+        <p>This example shows how to use table pagination.</p>
+        <p>The table header and footer are automatically reproduced on each page.</p>
+      </caption>
+
+      <thead>
+        <tr><th>Title 1 <a href="http://localhost" target="_blank">google</a></th><th>Title 2</th></tr>
+      </thead>
+      
+      <tbody>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+        <tr><td>Hello</td><td>World!</td></tr>
+      </tbody>
+
+      <tfoot>
+        <tr><td>Footer 1</td><td>Footer 2</td></tr>
+      </tfoot>
+    </table>
+  </body>
+</html>
