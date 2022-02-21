@@ -4,8 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,28 +12,25 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 
 import com.openhtmltopdf.nonvisualregressiontests.NonVisualRegressionTest;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import com.openhtmltopdf.testcases.TestcaseRunner;
 import com.openhtmltopdf.util.OpenUtil;
 import com.openhtmltopdf.visualtest.VisualTester.BuilderConfig;
 
 public class NonVisualTestSupport {
     public static class TestDocument implements Closeable {
         final Path filePath;
-        final PDDocument doc;
+        // This is a public field because Eclipse produces
+        // resource warnings for getter methods but not fields
+        public final PDDocument pd;
         boolean delete;
 
         TestDocument(Path filePath, PDDocument doc, boolean delete) {
             this.filePath = filePath;
-            this.doc = doc;
+            this.pd = doc;
             this.delete = delete;
         }
 
-        public PDDocument doc() {
-            return doc;
-        }
-
         public void close() throws IOException {
-            OpenUtil.closeQuietly(doc);
+            OpenUtil.closeQuietly(pd);
             if (this.delete) {
                 Files.delete(filePath);
                 this.delete = false;
@@ -73,10 +68,7 @@ public class NonVisualTestSupport {
 
     private String loadHtml(String fileName) throws IOException {
         String absResPath = baseResPath + fileName + ".html";
-
-        try (InputStream is = TestcaseRunner.class.getResourceAsStream(absResPath)) {
-            return new String(OpenUtil.readAll(is), StandardCharsets.UTF_8);
-        }
+        return OpenUtil.readString(NonVisualTestSupport.class, absResPath);
     }
 
     @SuppressWarnings("resource")

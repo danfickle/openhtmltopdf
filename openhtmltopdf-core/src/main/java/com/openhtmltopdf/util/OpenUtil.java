@@ -5,7 +5,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class OpenUtil {
@@ -127,9 +129,31 @@ public class OpenUtil {
         return buffer.toString();
     }
 
+    /**
+     * Reads a stream to a string using UTF-8 encoding.
+     */
+    public static String readString(InputStream is) throws IOException {
+        byte[] bytes = readAll(is);
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Reads a resource to a string using UTF-8.
+     */
+    public static String readString(Class<?> clazz, String resource) throws IOException {
+        try (InputStream is = clazz.getResourceAsStream(resource)) {
+            return readString(is);
+        }
+    }
+
     @FunctionalInterface
     public interface ThrowableFunction<T, R> {
         R apply(T arg) throws Exception;
+    }
+
+    @FunctionalInterface
+    public interface ThrowableConsumer<T> {
+        void accept(T arg) throws Exception;
     }
 
     /**
@@ -143,6 +167,19 @@ public class OpenUtil {
         return arg -> {
             try {
                 return func.apply(arg);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    /**
+     * Same as {@link #rethrowingFunction(ThrowableFunction)} for consumers.
+     */
+    public static <T> Consumer<T> rethrowingConsumer(ThrowableConsumer<T> consumer) {
+        return arg -> {
+            try {
+                consumer.accept(arg);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
