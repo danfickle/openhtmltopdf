@@ -217,6 +217,177 @@ public class LinkRegressionTest {
         }
     }
 
+    /**
+     * Tests that a simple block link successfully links to an element that is after an inserted overflow page.
+     */
+    @Test
+    public void testLinkAfterOverflowTarget() throws IOException {
+        try (TestDocument doc = support.run("link-after-overflow-target")) {
+            assertEquals(1, doc.pd.getPage(0).getAnnotations().size());
+
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 7.50f, 60.00f, 60.00f, 7.50f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(2));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(67));
+        }
+    }
+
+    /**
+     * Tests that link annotation area is correctly rotated.
+     */
+    @Test
+    public void testLinkAreaTransformRotate() throws IOException {
+        try (TestDocument doc = support.run("link-area-transform-rotate")) {
+            assertEquals(1, doc.pd.getPage(0).getAnnotations().size());
+
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 11.44f, 69.97f, 106.05f, 72.53f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(0));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(103));
+        }
+    }
+
+    /**
+     * Tests that link annotation area is correctly translated-y.
+     */
+    @Test
+    public void testLinkAreaTransformTranslateY() throws IOException {
+        try (TestDocument doc = support.run("link-area-transform-translatey")) {
+            assertEquals(1, doc.pd.getPage(0).getAnnotations().size());
+
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 8.25f, 66.75f, 112.50f, 37.50f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(0));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(103));
+        }
+    }
+
+    /**
+     * Tests that a link can successfully target a destination comprised of an inline element. 
+     */
+    @Test
+    public void testLinkInlineTarget() throws IOException {
+        try (TestDocument doc = support.run("link-inline-target")) {
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 0.00f, 67.50f, 75.00f, 7.50f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(75));
+        }
+    }
+
+    /**
+     * Tests that a simple block link successfully links to an element on an inserted overflow page.
+     */
+    @Test
+    public void testLinkOnOverflowTarget() throws IOException {
+        try (TestDocument doc = support.run("link-on-overflow-target")) {
+            assertEquals(1, doc.pd.getPage(0).getAnnotations().size());
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 7.50f, 60.00f, 60.00f, 7.50f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(2));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(66));
+        }
+    }
+
+    /**
+     * Tests that a simple block link successfully links to a simple block target on second page. 
+     */
+    @Test
+    public void testLinkSimpleBlock() throws IOException {
+        try (TestDocument doc = support.run("link-simple-block")) {
+            assertEquals(1, doc.pd.getPage(0).getAnnotations().size());
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 0.00f, 142.50f, 75.00f, 7.50f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(150));
+        }
+    }
+
+    /**
+     * Tests that a simple block link successfully links to an element that is transformed to top of third page.
+     */
+    @Test
+    public void testLinkTransformTarget() throws IOException {
+        try (TestDocument doc = support.run("link-transform-target")) {
+            assertEquals(1, doc.pd.getPage(0).getAnnotations().size());
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 0.00f, 67.50f, 75.00f, 7.50f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(2));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(75));
+        }
+    }
+
+    /**
+     * Tests that ::footnote-call links are placed correctly and link
+     * to the correct ::footnote-marker.
+     */
+    @Test
+    public void testIssue364FootnoteCallLink() throws IOException {
+        try (TestDocument doc = support.run("issue-364-footnote-call-link")) {
+            assertEquals(1, doc.pd.getPage(0).getAnnotations().size());
+            assertEquals(1, doc.pd.getPage(1).getAnnotations().size());
+
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 106.50f, 141.49f, 15.75f, 15.07f));
+            assertThat(linkArea(doc.pd, 1, 0), pdRectEquals(1, 0, 103.50f, 158.85f, 15.75f, 15.07f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(0));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(51));
+            assertThat(linkDestinationPageNo(doc.pd, 1, 0), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 1, 0), equalTo(81));
+        }
+    }
+
+    /**
+     * Tests using a link from in-flow content to an element inside a footnote.
+     */
+    @Test
+    public void testIssue364LinkToFootnoteContent() throws IOException {
+        try (TestDocument doc = support.run("issue-364-link-to-footnote-content")) {
+            assertEquals(2, doc.pd.getPage(0).getAnnotations().size());
+            assertEquals(2, doc.pd.getPage(1).getAnnotations().size());
+
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 133.31f, 149.48f, 42.56f, 16.76f));
+            assertThat(linkArea(doc.pd, 0, 1), pdRectEquals(0, 1, 42.00f, 132.71f, 97.95f, 16.76f));
+            assertThat(linkArea(doc.pd, 1, 0), pdRectEquals(1, 0, 171.60f, 155.48f, 0.00f, 16.76f));
+            assertThat(linkArea(doc.pd, 1, 1), pdRectEquals(1, 1, 42.00f, 138.71f, 22.50f, 16.76f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(52));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 1), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 0, 1), equalTo(52));
+
+            assertThat(linkDestinationPageNo(doc.pd, 1, 0), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 1, 0), equalTo(103));
+
+            assertThat(linkDestinationPageNo(doc.pd, 1, 1), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 1, 1), equalTo(103));
+        }
+    }
+
+    /**
+     * Tests using a link from footnote content to in-flow content.
+     */
+    @Test
+    public void testIssue364LinkToInFlowContent() throws IOException {
+        try (TestDocument doc = support.run("issue-364-link-to-in-flow-content")) {
+            assertEquals(3, doc.pd.getPage(0).getAnnotations().size());
+
+            assertThat(linkArea(doc.pd, 0, 0), pdRectEquals(0, 0, 42.00f, 166.24f, 91.76f, 16.76f));
+            assertThat(linkArea(doc.pd, 0, 1), pdRectEquals(0, 1, 72.00f, 115.95f, 22.50f, 16.76f));
+            assertThat(linkArea(doc.pd, 0, 2), pdRectEquals(0, 2, 42.00f, 36.00f, 97.58f, 16.76f));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 0), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 0, 0), equalTo(172));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 1), equalTo(0));
+            assertThat(linkDestinationTop(doc.pd, 0, 1), equalTo(103));
+
+            assertThat(linkDestinationPageNo(doc.pd, 0, 2), equalTo(1));
+            assertThat(linkDestinationTop(doc.pd, 0, 2), equalTo(172));
+        }
+    }
+
     // IMPORTANT: To create additional link tests, please see the Javadoc for this class above.
 
 }

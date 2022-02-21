@@ -45,7 +45,7 @@ public class LinkTestCreator {
      * + Run the test and submit a pull-request!
      */
     public static void main(String[] args) throws IOException {
-        createSingleLinkTest("link-area-overflow-page");
+        createSingleLinkTest("issue-364-link-to-in-flow-content");
         //recreateAllLinkTests();
     }
 
@@ -59,7 +59,17 @@ public class LinkTestCreator {
             "link-area-page-margin",
             "link-external-url",
             "link-area-after-overflow-page",
-            "link-area-overflow-page"
+            "link-area-overflow-page",
+            "link-after-overflow-target",
+            "link-area-transform-rotate",
+            "link-area-transform-translatey",
+            "link-inline-target",
+            "link-on-overflow-target",
+            "link-simple-block",
+            "link-transform-target",
+            "issue-364-footnote-call-link",
+            "issue-364-link-to-footnote-content",
+            "issue-364-link-to-in-flow-content"
             );
 
     private static void createSingleLinkTest(String resource) throws IOException {
@@ -194,8 +204,11 @@ public class LinkTestCreator {
         List<PageContainer> pages = getLinks(doc);
         String testname = TestGeneratorSupport.kebabToPascal(filename);
 
-        sb.append("    @Test\n")
-          .append(String.format(Locale.ROOT, "    public void test%sLinkAreas() throws IOException {\n", testname))
+        sb.append("    /**\n")
+          .append("     * TODO: Test description\n")
+          .append("     */\n")
+          .append("    @Test\n")
+          .append(String.format(Locale.ROOT, "    public void test%s() throws IOException {\n", testname))
           .append(String.format(Locale.ROOT, "        try (TestDocument doc = support.run(\"%s\")) {\n", filename));
 
         // First output the link area assertions
