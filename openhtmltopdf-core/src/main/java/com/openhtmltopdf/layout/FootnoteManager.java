@@ -75,6 +75,11 @@ public class FootnoteManager {
                          rootBox.getContentWidth(), rootBox.getWidth(),
                          footnoteCallPage.getContentWidth(c), footnoteCallPage.getWidth(c));
 
+        BlockBox footnoteArea = getFootNoteArea(me, containingBlockWidth, style);
+        return footnoteArea;
+    }
+
+    private BlockBox getFootNoteArea(Element me, int containingBlockWidth, CalculatedStyle style) {
         BlockBox footnoteArea = new BlockBox();
         footnoteArea.setContainingBlock(new ViewportBox(new Rectangle(0, 0, containingBlockWidth, 0)));
         footnoteArea.setStyle(style);
@@ -82,7 +87,6 @@ public class FootnoteManager {
         // For now we make sure all footnote bodies have block display.
         footnoteArea.setChildrenContentType(BlockBox.ContentType.BLOCK);
         footnoteArea.setElement(me);
-
         return footnoteArea;
     }
 
