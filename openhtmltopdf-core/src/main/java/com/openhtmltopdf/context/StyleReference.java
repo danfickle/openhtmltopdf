@@ -36,6 +36,7 @@ import com.openhtmltopdf.css.extend.AttributeResolver;
 import com.openhtmltopdf.css.extend.lib.DOMTreeResolver;
 import com.openhtmltopdf.css.newmatch.CascadedStyle;
 import com.openhtmltopdf.css.newmatch.PageInfo;
+import com.openhtmltopdf.css.newmatch.Selector;
 import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.Stylesheet;
@@ -83,6 +84,10 @@ public class StyleReference {
         } else {
             return null;
         }
+    }
+
+    public List<Selector> getSelectors() {
+        return _matcher.getSelectors();
     }
 
     /**

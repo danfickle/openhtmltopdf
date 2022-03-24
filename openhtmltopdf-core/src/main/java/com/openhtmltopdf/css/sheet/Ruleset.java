@@ -105,4 +105,11 @@ public class Ruleset {
     public List<InvalidPropertyDeclaration> getInvalidPropertyDeclarations() {
         return _invalidProperties == null ? Collections.emptyList() : _invalidProperties;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder b=new StringBuilder();
+        toCSS(b);
+        return b.toString();
+    }
 }

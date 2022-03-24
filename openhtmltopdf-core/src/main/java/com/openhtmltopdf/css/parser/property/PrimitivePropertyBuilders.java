@@ -184,7 +184,24 @@ public class PrimitivePropertyBuilders {
             return BORDER_STYLES;
         }
     }
-    
+
+    private static class GenericString extends AbstractPropertyBuilder {
+        @Override
+        public List<PropertyDeclaration> buildDeclarations(CSSName cssName,
+                List<PropertyValue> values, int origin, boolean important,
+                boolean inheritAllowed) {
+            if (values.size() > 1)
+                throw new CSSParseException("Single value expected", -1);
+
+            PropertyValue value = values.get(0);
+            if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_STRING)
+                return Collections.singletonList(
+                        new PropertyDeclaration(cssName, value, important, origin));
+
+            return Collections.emptyList();
+        }
+    }
+
     public static class Direction extends SingleIdent {
 		@Override
 		protected BitSet getAllowed() {
@@ -1007,6 +1024,53 @@ public class PrimitivePropertyBuilders {
         // none | create
         private static final BitSet ALLOWED = setFor(
                 new IdentValue[] { IdentValue.NONE, IdentValue.CREATE });
+
+        @Override
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
+
+    public static class FSOcId extends GenericString {
+    }
+
+    public static class FSOcgLabel extends GenericString {
+    }
+
+    public static class FSOcgVisibility extends SingleIdent {
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] {
+                        IdentValue.VISIBLE, IdentValue.HIDDEN });
+
+        @Override
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
+
+    public static class FSOcmOcgs extends AbstractPropertyBuilder {
+        @Override
+        public List<PropertyDeclaration> buildDeclarations(CSSName cssName,
+                List<PropertyValue> values, int origin, boolean important,
+                boolean inheritAllowed) {
+            if (values.isEmpty())
+                throw new CSSParseException("Undefined value (should be at least one OCG identifier)", -1);
+
+            List<PropertyDeclaration> declarations = new ArrayList<>();
+            for(PropertyValue value : values) {
+                if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_STRING) {
+                    declarations.add(new PropertyDeclaration(cssName, value, important, origin));
+                }
+            }
+            return Collections.unmodifiableList(declarations);
+        }
+    }
+
+    public static class FSOcmVisible extends SingleIdent {
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] {
+                        IdentValue.ALL_HIDDEN, IdentValue.ALL_VISIBLE, IdentValue.ANY_HIDDEN,
+                        IdentValue.ANY_VISIBLE });
 
         @Override
         protected BitSet getAllowed() {

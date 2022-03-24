@@ -573,7 +573,7 @@ public class CalculatedStyle {
                     throw new XRRuntimeException("Property '" + cssName + "' has no initial values assigned. " +
                             "Check CSSName declarations.");
                 }
-                if (initialValue.charAt(0) == '=') {
+                if (initialValue.length() > 0 && initialValue.charAt(0) == '=') {
                     CSSName ref = CSSName.getByPropertyName(initialValue.substring(1));
                     val = valueByName(ref);
                 } else {

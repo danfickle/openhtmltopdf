@@ -20,14 +20,21 @@
  */
 package com.openhtmltopdf.css.constants;
 
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 
+import com.openhtmltopdf.css.parser.CSSParseException;
 import com.openhtmltopdf.css.parser.CSSParser;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
+import com.openhtmltopdf.css.parser.property.AbstractPropertyBuilder;
 import com.openhtmltopdf.css.parser.property.BackgroundPropertyBuilder;
 import com.openhtmltopdf.css.parser.property.PrimitiveBackgroundPropertyBuilders;
 import com.openhtmltopdf.css.parser.property.BorderPropertyBuilders;
@@ -41,6 +48,7 @@ import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders;
 import com.openhtmltopdf.css.parser.property.PropertyBuilder;
 import com.openhtmltopdf.css.parser.property.QuotesPropertyBuilder;
 import com.openhtmltopdf.css.parser.property.SizePropertyBuilder;
+import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.DerivedValueFactory;
@@ -301,6 +309,87 @@ public final class CSSName implements Comparable<CSSName> {
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSKeepWithInline()
             );
+
+    /**
+     * Layer identifier (document-scoped).
+     */
+    public final static CSSName FS_OCG_ID =
+            addProperty(
+                    "-fs-ocg-id",
+                    PRIMITIVE,
+                    "",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcId()
+                    );
+    /**
+     * Layer name, suitable for UI presentation (see {@code Name} entry in optional content group
+     * dictionary [PDF:1.7:8.11.2.1]).
+     */
+    public final static CSSName FS_OCG_LABEL =
+            addProperty(
+                    "-fs-ocg-label",
+                    PRIMITIVE,
+                    "",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcgLabel()
+                    );
+    /**
+     * Layer parent {@link #FS_OCG_ID reference}.
+     */
+    public final static CSSName FS_OCG_PARENT =
+            addProperty(
+                    "-fs-ocg-parent",
+                    PRIMITIVE,
+                    "",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcId()
+                    );
+    /**
+     * Layer visibility.
+     */
+    public final static CSSName FS_OCG_VISIBILITY =
+            addProperty(
+                    "-fs-ocg-visibility",
+                    PRIMITIVE,
+                    IdentValue.VISIBLE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcgVisibility()
+            );
+    /**
+     * Layer membership identifier (document-scoped).
+     */
+    public final static CSSName FS_OCM_ID =
+            addProperty(
+                    "-fs-ocm-id",
+                    PRIMITIVE,
+                    "",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcId()
+            );
+    /**
+     * Layer visibility policy (see {@code BaseState}, {@code ON}, {@code OFF} entries in {@code D}
+     * entry in optional content configuration dictionary [PDF:1.7:8.11.4.3]).
+     */
+    public final static CSSName FS_OCM_VISIBLE =
+            addProperty(
+                    "-fs-ocm-visible",
+                    PRIMITIVE,
+                    IdentValue.ANY_VISIBLE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcmVisible()
+            );
+    /**
+     * Layers belonging to the membership.
+     *
+     * <p>Value: list of {@link #FS_OCG_ID layer references}.</p>
+     */
+    public final static CSSName FS_OCM_OCGS =
+            addProperty(
+                    "-fs-ocm-ocgs",
+                    PRIMITIVE,
+                    "",
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcmOcgs());
 
     /**
      * Unique CSSName instance for CSS2 property.
@@ -1981,7 +2070,8 @@ public final class CSSName implements Comparable<CSSName> {
         });
         for (Iterator<CSSName> i = ALL_PRIMITIVE_PROPERTY_NAMES.values().iterator(); i.hasNext(); ) {
             CSSName cssName = i.next();
-            if (cssName.initialValue.charAt(0) != '=' && cssName.implemented) {
+            if ((cssName.initialValue.length() == 0 || cssName.initialValue.charAt(0) != '=')
+                    && cssName.implemented) {
                 PropertyValue value = parser.parsePropertyValue(
                         cssName, StylesheetInfo.USER_AGENT, cssName.initialValue);
 

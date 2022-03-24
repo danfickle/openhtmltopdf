@@ -231,6 +231,11 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         paintBackground0(c, box.getStyle(), backgroundBounds, backgroundBounds, border);
     }
 
+    protected void onPaintBackground(RenderingContext c, CalculatedStyle style,
+            Rectangle backgroundBounds, Rectangle bgImageContainer,
+            BorderPropertySet border) {
+    }
+
     private void paintBackground0(
             RenderingContext c, CalculatedStyle style,
             Rectangle backgroundBounds, Rectangle bgImageContainer,
@@ -239,6 +244,8 @@ public abstract class AbstractOutputDevice implements OutputDevice {
         if (!style.isHasBackground()) {
             return;
         }
+
+        onPaintBackground(c, style, backgroundBounds, bgImageContainer, border);
 
         FSColor backgroundColor = style.getBackgroundColor();
         List<BackgroundContainer> bgImages = style.getBackgroundImages();

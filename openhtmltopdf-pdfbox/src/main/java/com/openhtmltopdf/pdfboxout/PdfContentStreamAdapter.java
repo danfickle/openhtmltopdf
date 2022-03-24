@@ -356,8 +356,12 @@ public class PdfContentStreamAdapter {
     }
     
     public void beginMarkedContent(COSName tag, COSDictionary dict) {
+        beginMarkedContent(tag, PDPropertyList.create(dict));
+    }
+
+    public void beginMarkedContent(COSName tag, PDPropertyList propertyList) {
         try {
-            cs.beginMarkedContent(tag, PDPropertyList.create(dict));
+            cs.beginMarkedContent(tag, propertyList);
         } catch (IOException e) {
             logAndThrow("beginMarkedContent", e);
         }

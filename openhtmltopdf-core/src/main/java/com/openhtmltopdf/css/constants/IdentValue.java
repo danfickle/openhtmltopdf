@@ -60,7 +60,11 @@ public class IdentValue implements FSDerivedValue {
     public final int FS_ID;
 
     public final static IdentValue ABSOLUTE = addValue("absolute");
+    public final static IdentValue ALL_HIDDEN = addValue("all-hidden");
+    public final static IdentValue ALL_VISIBLE = addValue("all-visible");
     public final static IdentValue ALWAYS = addValue("always");
+    public final static IdentValue ANY_HIDDEN = addValue("any-hidden");
+    public final static IdentValue ANY_VISIBLE = addValue("any-visible");
     public final static IdentValue ARMENIAN = addValue("armenian");
     public final static IdentValue AUTO = addValue("auto");
     public final static IdentValue AVOID = addValue("avoid");
