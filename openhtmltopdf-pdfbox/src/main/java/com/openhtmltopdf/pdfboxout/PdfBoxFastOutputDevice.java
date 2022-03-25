@@ -105,7 +105,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      * Optional content manager [PDF:1.7:8.11].
      *
      * <p>Optional content rendering is CSS-driven. In the source HTML document, each content
-     * fragment can be marked by a CSS class defining a layer through the following properties:</p>
+     * fragment can be marked by a CSS class defining a <b>layer</b> through the following
+     * properties:</p>
      * <ul>
      *   <li>group:
      *     <ul>
@@ -124,6 +125,24 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      *   </li>
      * </ul>
      *
+     * <p>During page painting, structural operations on layer-marked contents (represented by
+     * {@link Box} objects) are wrapped inside possibly-nested <b>layer fragments</b>, keeping track of
+     * them in a stack. While inside the stack, layer fragments are <i>alive</i> (open/begun);
+     * conversely, once popped out of the stack, they are <i>dead</i> (closed/ended).
+     * Whenever possible (that is, when PDF/UA is disabled and no out-of-sequence operation occurs),
+     * dying fragments are kept alive until the next box is evaluated for contiguity, thus avoiding
+     * unnecessary fragmentation. Furthermore, new layer fragments are kept pending until
+     * {@link #ensure()} is called. This lazy mechanism ensures that layers are rendered inside the
+     * content stream only when effectively needed (otherwise, the content stream would be polluted
+     * by tons of empty layer fragments!). To recap, layer fragments may be in any of the following
+     * states:</p>
+     * <ul>
+     *   <li><i>alive</i>: inside the stack</li>
+     *   <li><i>dead</i>: removed from the stack</li>
+     *   <li><i>dying</i>: inside the stack, but candidate to removal</li>
+     *   <li><i>pending</i>: outside the stack, but candidate to insertion</li>
+     * </ul>
+     * 
      * @apiNote For example, consider we want to define two layers ("OCG 1" and "OCG2"):
      * <pre>
 &lt;style>
@@ -149,7 +168,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      * </pre>
      */
     private static final class OptionalContentManager {
-        private static class GroupDeclaration extends LayerDeclaration<PDOptionalContentGroup> {
+        private static final class GroupDeclaration extends LayerDeclaration<PDOptionalContentGroup> {
             public final String label;
             @SuppressWarnings("unused")
             public final String parent;
@@ -176,9 +195,10 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
                          *
                          * Should map parent property to configuration (that is, Order entry of D
                          * entry of PDOptionalContentProperties) but, unfortunately, arbitrary group
-                         * nesting seems not to be natively supported by currently used PDFBox
-                         * (version 2.0), as adding a group via PDOptionalContentProperties.addGroup(..)
-                         * automatically builds a flat list inside Order entry instead.
+                         * nesting seems not to be natively supported by currently-used PDFBox
+                         * version (2.0), as adding a group via
+                         * PDOptionalContentProperties.addGroup(..) automatically builds a flat list
+                         * inside Order entry instead.
                          */
                     }
                     configuration.addGroup(group);
@@ -198,7 +218,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             public abstract T build(OptionalContentManager manager);
         }
 
-        private static class MembershipDeclaration extends LayerDeclaration<PDOptionalContentMembershipDictionary> {
+        private static final class MembershipDeclaration extends LayerDeclaration<PDOptionalContentMembershipDictionary> {
             public final List<String> ocgs;
             public final COSName visibilityPolicy;
 
@@ -223,16 +243,20 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             }
         }
 
+        /**
+         * Layer fragment.
+         */
         private static class StackLayer {
-            PDPropertyList base;
+            public final PDPropertyList base;
             /**
-             * Whether this OCG fragment is at block level.
+             * Whether this layer fragment is at block level.
              */
-            boolean blocked;
+            public final boolean blocked;
+
             /**
-             * Structural depth (non-positive values mean this OCG fragment ended).
+             * Structural depth (non-positive values mean this layer fragment ended).
              */
-            int level;
+            private int level;
 
             public StackLayer(PDPropertyList base, boolean blocked) {
                 this.base = base;
@@ -249,7 +273,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
             @Override
             public String toString() {
-                return "Layer '" + base + "'";
+                return OptionalContentManager.toString(base);
             }
         }
 
@@ -261,6 +285,34 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             @Override public float getFloatValue(short unitType) { return 0; }
         };
         private static final PropertyDeclaration EmptyPropertyDeclaration = new PropertyDeclaration(null, CSSEmptyValue, false, 0);
+
+        private static String toString(PDPropertyList layer) {
+            StringBuilder b = new StringBuilder();
+            toString(layer, b);
+            return b.toString();
+        }
+
+        private static void toString(PDPropertyList layer, StringBuilder b) {
+            if (layer instanceof PDOptionalContentGroup) {
+                b.append("Layer '").append(((PDOptionalContentGroup)layer).getName()).append("'");
+            } else if (layer instanceof PDOptionalContentMembershipDictionary) {
+                b.append("Membership [");
+                List<PDPropertyList> ocgs = ((PDOptionalContentMembershipDictionary)layer).getOCGs();
+                for (int i = 0; i < ocgs.size(); i++) {
+                    if (i > 0) {
+                        b.append(", ");
+                    }
+                    toString(ocgs.get(i), b);
+                }
+                b.append("]");
+            } else
+                throw new UnsupportedOperationException(layer.toString());
+        }
+
+        private static String toString(Box box) {
+            Object obj = box instanceof InlineLayoutBox ? ((InlineLayoutBox)box).getInlineChildren() : box.getElement();
+            return obj != null ? obj.toString() : null;
+        }
 
         /**
          * Current box.
@@ -281,14 +333,18 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          */
         private Map<String, PDPropertyList> layers = new HashMap<>();
         /**
-         * Layer definitions.
+         * Layer definitions (CSS-based).
          */
         private Map<String,LayerDeclaration<?>> layerDeclarations;
 
         /**
-         * Layers currently open in content stream.
+         * Layer fragments currently open in content stream.
          */
         private LinkedList<StackLayer> stack = new LinkedList<>();
+        /**
+         * Whether there are layers associated to the {@link #box current box} which are waiting to
+         * be opened in content stream in case of actual content fragments.
+         */
         private boolean pending;
 
         private final PdfBoxFastOutputDevice out;
@@ -298,14 +354,15 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
 
         /**
-         * Closes any layer up to the given one inside the content stream.
+         * Closes any layer fragment up to the given one inside the content stream.
          *
-         * @param ocgName
-         *          {@code null}, to end all OCG fragments.
+         * @param layer
+         *          Upper limit (inclusive) of layer fragments stack closure ({@code null}, to end
+         *          all layer fragments).
          */
         public void end(PDPropertyList layer) {
             while (!stack.isEmpty()) {
-                XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.GENERAL_PDF_OCG_END, stack.peek().base);
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.GENERAL_PDF_LAYER_END, stack.peek());
 
                 out._cp.endMarkedContent();
 
@@ -361,9 +418,6 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          * polluted by tons of empty layer fragments!).</p>
          *
          * <p>To ensure proper nesting, it MUST be called BEFORE opening the pending structure.</p>
-         *
-         * @param type
-         * @param box
          */
         public void onStructureStart(StructureType type, Box box) {
             /*-
@@ -397,19 +451,27 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
                 }
                 parentBox = parentBox.getParent();
             }
-            // Closing dead layers...
+            // Closing dead layer fragments...
             for (int i = 0; i < stack.size(); i++) {
                 if (i >= boxLayers.size() || stack.get(i).base != boxLayers.get(i)) {
                     end(stack.get(i).base);
                     break;
                 }
             }
-            if (pending = (this.stack.size() != boxLayers.size())) {
+            if (!stack.isEmpty()) {
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_LAYER_CONTINUE, stack, structureType, toString(box));
+            }
+            if (pending = (stack.size() != boxLayers.size())) {
                 this.box = box;
                 this.structureType = type;
             }
         }
 
+        /**
+         * Layer configuration in the output document.
+         * 
+         * <p>Created on the fly if missing.</p>
+         */
         private PDOptionalContentProperties getConfiguration() {
             if (configuration == null) {
                 PDDocumentCatalog catalog = out._writer.getDocumentCatalog();
@@ -424,20 +486,22 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         /**
          * Gets the CSS-based declaration associated to the given ID.
          *
-         * @apiNote Layer declarations are lazily harvested from the CSS rulesets available in the
-         * current context.
+         * <p>Layer declarations are lazily harvested from the CSS rulesets available in the
+         * current context.</p>
          *
          * @param id
          *          Layer ID (either {@link CSSName#FS_OCG_ID group} or
          *          {@link CSSName#FS_OCM_ID membership}).
+         * @return
+         *          {@code null}, if no match found.
          */
         @SuppressWarnings("unchecked")
         private <T extends LayerDeclaration<?>> T getDeclaration(String id) {
             if (layerDeclarations == null) {
                 /*-
                  * TODO: This could be strengthened if extension at-rules were implemented (@-fs-ocg
-                 * for an optional content group and @-fs-ocm for an optional content membership)
-                 * beside existing standard at-rules (such as fontFaceRules) in
+                 * for optional content groups and @-fs-ocm for optional content memberships) beside
+                 * existing standard at-rules (such as fontFaceRules) in
                  * com.openhtmltopdf.css.sheet.Stylesheet).
                  */
                 layerDeclarations = new HashMap<>();
@@ -491,7 +555,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
                                         ocgs,
                                         visibilityPolicy);
                     } else
-                        throw new UnsupportedOperationException("Unknown OC layer property set: " + layerProperties);
+                        throw new UnsupportedOperationException("Broken layer property set: " + layerProperties);
 
                     layerDeclarations.put(layerIdProperty.getValue().getStringValue(), layerDeclaration);
                     layerProperties.clear();
@@ -500,10 +564,23 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             return (T)layerDeclarations.get(id);
         }
 
+        /**
+         * Gets the layer associated to the given ID, ensuring its existence in the output
+         * document.
+         * 
+         * @throws NullPointerException if no match found.
+         */
         private PDPropertyList getLayer(String id) {
             return layers.computeIfAbsent(id, k -> getDeclaration(k).build(this));
         }
 
+        /**
+         * Gets the layer directly associated to the given box, ensuring its existence in the output
+         * document.
+         * 
+         * <p>Boxes can be directly associated to at most one layer through CSS class mechanism;
+         * they also inherit any layer associated to their ancestor boxes.</p>
+         */
         private PDPropertyList getLayer(Box box) {
             FSDerivedValue layerIdObj;
             {
@@ -536,7 +613,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             for (int i = stack.size(); i < boxLayers.size(); i++) {
                 PDPropertyList layer = boxLayers.get(i);
 
-                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_OCG_BEGIN, layer, structureType, box instanceof InlineLayoutBox ? ((InlineLayoutBox)box).getInlineChildren() : box.getElement());
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_LAYER_BEGIN, toString(layer), structureType, toString(box));
 
                 out._cp.beginMarkedContent(COSName.OC, layer);
 

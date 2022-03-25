@@ -144,7 +144,7 @@ public interface LogMessageId {
         GENERAL_PDF_ACCESSIBILITY_NO_TITLE_TEXT_PROVIDED_FOR(XRLog.GENERAL, "PDF/UA - No title text provided for {}."),
         GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_BOOKMARK(XRLog.GENERAL, "Could not find valid target for bookmark. Bookmark href = {}"),
         GENERAL_PDF_COULD_NOT_FIND_VALID_TARGET_FOR_LINK(XRLog.GENERAL, "Could not find valid target for link. Link href = {}"),
-        GENERAL_PDF_OCG_END(XRLog.GENERAL, "Optional content layer '{}' ended"),
+        GENERAL_PDF_LAYER_END(XRLog.GENERAL, "OC: {} END"),
         GENERAL_PDF_URI_IN_HREF_IS_NOT_A_VALID_URI(XRLog.GENERAL, "'{}' in href is not a valid URI, will be skipped"),
         GENERAL_PDF_FOUND_FORM_CONTROL_WITH_NO_ENCLOSING_FORM(XRLog.GENERAL, "Found form control ({}) with no enclosing form. Ignoring."),
         GENERAL_PDF_A_ELEMENT_DOES_NOT_HAVE_OPTION_CHILDREN(XRLog.GENERAL, "A <{}> element does not have <option> children"),
@@ -279,10 +279,10 @@ public interface LogMessageId {
                 ", parent type={}" +
                 ", expected child type={}" +
                 ". Document will not be PDF/UA compliant."),
-        GENERAL_PDF_OCG_BEGIN(XRLog.GENERAL, "Optional content layer '{}' begun (" +
+        GENERAL_PDF_LAYER_BEGIN(XRLog.GENERAL, "OC: {} BEGIN (" +
                 "box type={}" +
                 ", element={})"),
-        GENERAL_PDF_OCG_CONTINUE(XRLog.GENERAL, "Optional content layer '{}' continued (" +
+        GENERAL_PDF_LAYER_CONTINUE(XRLog.GENERAL, "OC: {} CONTINUE (" +
                 "box type={}" +
                 ", element={})"),
 
