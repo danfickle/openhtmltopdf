@@ -20,21 +20,14 @@
  */
 package com.openhtmltopdf.css.constants;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 
-import com.openhtmltopdf.css.parser.CSSParseException;
 import com.openhtmltopdf.css.parser.CSSParser;
-import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.PropertyValue;
-import com.openhtmltopdf.css.parser.property.AbstractPropertyBuilder;
 import com.openhtmltopdf.css.parser.property.BackgroundPropertyBuilder;
 import com.openhtmltopdf.css.parser.property.PrimitiveBackgroundPropertyBuilders;
 import com.openhtmltopdf.css.parser.property.BorderPropertyBuilders;
@@ -48,7 +41,6 @@ import com.openhtmltopdf.css.parser.property.PrimitivePropertyBuilders;
 import com.openhtmltopdf.css.parser.property.PropertyBuilder;
 import com.openhtmltopdf.css.parser.property.QuotesPropertyBuilder;
 import com.openhtmltopdf.css.parser.property.SizePropertyBuilder;
-import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.sheet.StylesheetInfo;
 import com.openhtmltopdf.css.style.FSDerivedValue;
 import com.openhtmltopdf.css.style.derived.DerivedValueFactory;

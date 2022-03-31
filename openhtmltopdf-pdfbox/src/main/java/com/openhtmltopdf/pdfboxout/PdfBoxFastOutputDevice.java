@@ -126,16 +126,16 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      * </ul>
      *
      * <p>During page painting, structural operations on layer-marked contents (represented by
-     * {@link Box} objects) are wrapped inside possibly-nested <b>layer fragments</b>, keeping track of
-     * them in a stack. While inside the stack, layer fragments are <i>alive</i> (open/begun);
+     * {@link Box} objects) are wrapped inside possibly-nested <b>layer fragments</b>, keeping track
+     * of them in a stack. While inside the stack, layer fragments are <i>alive</i> (open/begun);
      * conversely, once popped out of the stack, they are <i>dead</i> (closed/ended).
      * Whenever possible (that is, when PDF/UA is disabled and no out-of-sequence operation occurs),
      * dying fragments are kept alive until the next box is evaluated for contiguity, thus avoiding
      * unnecessary fragmentation. Furthermore, new layer fragments are kept pending until
-     * {@link #ensure()} is called. This lazy mechanism ensures that layers are rendered inside the
-     * content stream only when effectively needed (otherwise, the content stream would be polluted
-     * by tons of empty layer fragments!). To recap, layer fragments may be in any of the following
-     * states:</p>
+     * {@link #onContentRender()} is called. This lazy mechanism ensures that layers are rendered
+     * inside the content stream only when effectively needed (otherwise, the content stream would
+     * be polluted by tons of empty layer fragments!). To recap, layer fragments may be in any of
+     * the following states:</p>
      * <ul>
      *   <li><i>alive</i>: inside the stack</li>
      *   <li><i>dead</i>: removed from the stack</li>
@@ -374,12 +374,11 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
 
         /**
-         * Ensures that pending layers are opened inside the content stream.
-         *
-         * <p>In case of multiple layers, they are recursively nested.</p>
+         * Notifies content rendering.
          */
-        public void ensure() {
+        public void onContentRender() {
             if (pending) {
+                // Open pending layers inside the content stream!
                 start();
             }
         }
@@ -413,9 +412,9 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          * Notifies the start of pending structure.
          *
          * <p>Dead layer fragments are closed, while new layer fragments are kept pending until
-         * {@link #ensure()} is called. This lazy mechanism ensures that layers are rendered inside
-         * the content stream only when effectively needed (otherwise, the content stream would be
-         * polluted by tons of empty layer fragments!).</p>
+         * {@link #onContentRender()} is called. This lazy mechanism ensures that layers are
+         * rendered inside the content stream only when effectively needed (otherwise, the content
+         * stream would be polluted by tons of empty layer fragments!).</p>
          *
          * <p>To ensure proper nesting, it MUST be called BEFORE opening the pending structure.</p>
          */
@@ -811,9 +810,9 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     @Override
-    protected void onPaintBackground(RenderingContext c, CalculatedStyle style,
+    protected void onBackgroundPaint(RenderingContext c, CalculatedStyle style,
             Rectangle backgroundBounds, Rectangle bgImageContainer, BorderPropertySet border) {
-        ocManager.ensure();
+        ocManager.onContentRender();
     }
 
     /**
@@ -986,7 +985,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         if (s.length() == 0)
             return;
 
-        ocManager.ensure();
+        ocManager.onContentRender();
 
         ensureFillColor();
         AffineTransform at = new AffineTransform(getTransform());
@@ -1123,7 +1122,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         if (s == null)
             return;
 
-        ocManager.ensure();
+        ocManager.onContentRender();
 
         if (drawType == GraphicsOperation.STROKE) {
             if (!(_stroke instanceof BasicStroke)) {
@@ -1342,7 +1341,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     @Override
     public void drawLinearGradient(FSLinearGradient backgroundLinearGradient, Shape bounds) {
-        ocManager.ensure();
+        ocManager.onContentRender();
 
         PDShading shading = GradientHelper.createLinearGradient(this, getTransform(), backgroundLinearGradient, bounds);
         _cp.paintGradient(shading);
@@ -1350,7 +1349,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     @Override
     public void drawImage(FSImage fsImage, int x, int y, boolean interpolate) {
-        ocManager.ensure();
+        ocManager.onContentRender();
 
         PdfBoxImage img = (PdfBoxImage) fsImage;
 
@@ -1396,7 +1395,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     
     @Override
     public void drawPdfAsImage(PDFormXObject _srcObject, Rectangle contentBounds, float intrinsicWidth, float intrinsicHeight) {
-        ocManager.ensure();
+        ocManager.onContentRender();
 
         // We start with the page margins...
         AffineTransform af = AffineTransform.getTranslateInstance(
@@ -1618,7 +1617,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     @Override
     public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer) {
-        ocManager.ensure();
+        ocManager.onContentRender();
 
         try {
             PdfBoxGraphics2D pdfBoxGraphics2D = new PdfBoxGraphics2D(_writer, (int) width, (int) height);
