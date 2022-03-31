@@ -143,6 +143,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
      *   <li><i>pending</i>: outside the stack, but candidate to insertion</li>
      * </ul>
      * 
+     * <p>This class is NOT thread-safe.</p>
+     * 
      * @apiNote For example, consider we want to define two layers ("OCG 1" and "OCG2"):
      * <pre>
 &lt;style>
@@ -317,40 +319,40 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         /**
          * Current box.
          */
-        private Box box;
+        private Box _box;
         /**
          * Current box's layers.
          */
-        private LinkedList<PDPropertyList> boxLayers = new LinkedList<>();
+        private LinkedList<PDPropertyList> _boxLayers = new LinkedList<>();
         /**
          * Current structure.
          */
-        private StructureType structureType;
+        private StructureType _structureType;
 
-        private PDOptionalContentProperties configuration;
+        private PDOptionalContentProperties _configuration;
         /**
          * Layers mapped in the output document.
          */
-        private Map<String, PDPropertyList> layers = new HashMap<>();
+        private Map<String, PDPropertyList> _layers = new HashMap<>();
         /**
          * Layer definitions (CSS-based).
          */
-        private Map<String,LayerDeclaration<?>> layerDeclarations;
+        private Map<String,LayerDeclaration<?>> _layerDeclarations;
 
         /**
          * Layer fragments currently open in content stream.
          */
-        private LinkedList<StackLayer> stack = new LinkedList<>();
+        private LinkedList<StackLayer> _stack = new LinkedList<>();
         /**
          * Whether there are layers associated to the {@link #box current box} which are waiting to
          * be opened in content stream in case of actual content fragments.
          */
-        private boolean pending;
+        private boolean _pending;
 
-        private final PdfBoxFastOutputDevice out;
+        private final PdfBoxFastOutputDevice _od;
 
-        public OptionalContentManager(PdfBoxFastOutputDevice out) {
-            this.out = out;
+        public OptionalContentManager(PdfBoxFastOutputDevice od){
+            _od = od;
         }
 
         /**
@@ -361,23 +363,23 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          *          all layer fragments).
          */
         public void end(PDPropertyList layer) {
-            while (!stack.isEmpty()) {
-                XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.GENERAL_PDF_LAYER_END, stack.peek());
+            while (!_stack.isEmpty()) {
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.GENERAL_PDF_LAYER_END, _stack.peek());
 
-                out._cp.endMarkedContent();
+                _od._cp.endMarkedContent();
 
-                if (stack.pop().base == layer) {
+                if (_stack.pop().base == layer) {
                     break;
                 }
             }
-            pending = false;
+            _pending = false;
         }
 
         /**
          * Notifies content rendering.
          */
         public void onContentRender() {
-            if (pending) {
+            if (_pending) {
                 // Open pending layers inside the content stream!
                 start();
             }
@@ -401,9 +403,9 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
              * interfering out-of-sequence graphical operations (for example, table border is
              * painted between cells' background and cells' content drawing).
              */
-            if(!stack.isEmpty() && (
-                    (stack.peek().out() && stack.peek().blocked)
-                    || out._pdfUa != null)) {
+            if(!_stack.isEmpty() && (
+                    (_stack.peek().out() && _stack.peek().blocked)
+                    || _od._pdfUa != null)) {
                 end(null);
             }
         }
@@ -441,28 +443,28 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
              * levels.
              */
             // Extracting box layer hierarchy...
-            boxLayers.clear();
+            _boxLayers.clear();
             Box parentBox = box;
             while (parentBox != null) {
                 PDPropertyList layer = getLayer(parentBox);
-                if (layer != null && (boxLayers.isEmpty() || boxLayers.getLast() != layer)) {
-                    boxLayers.add(layer);
+                if (layer != null && (_boxLayers.isEmpty() || _boxLayers.getLast() != layer)) {
+                    _boxLayers.add(layer);
                 }
                 parentBox = parentBox.getParent();
             }
             // Closing dead layer fragments...
-            for (int i = 0; i < stack.size(); i++) {
-                if (i >= boxLayers.size() || stack.get(i).base != boxLayers.get(i)) {
-                    end(stack.get(i).base);
+            for (int i = 0; i < _stack.size(); i++) {
+                if (i >= _boxLayers.size() || _stack.get(i).base != _boxLayers.get(i)) {
+                    end(_stack.get(i).base);
                     break;
                 }
             }
-            if (!stack.isEmpty()) {
-                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_LAYER_CONTINUE, stack, structureType, toString(box));
+            if (!_stack.isEmpty()) {
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_LAYER_CONTINUE, _stack, _structureType, toString(box));
             }
-            if (pending = (stack.size() != boxLayers.size())) {
-                this.box = box;
-                this.structureType = type;
+            if (_pending = (_stack.size() != _boxLayers.size())) {
+                _box = box;
+                _structureType = type;
             }
         }
 
@@ -472,14 +474,14 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          * <p>Created on the fly if missing.</p>
          */
         private PDOptionalContentProperties getConfiguration() {
-            if (configuration == null) {
-                PDDocumentCatalog catalog = out._writer.getDocumentCatalog();
-                configuration = catalog.getOCProperties();
-                if (configuration == null) {
-                    catalog.setOCProperties(configuration = new PDOptionalContentProperties());
+            if (_configuration == null) {
+                PDDocumentCatalog catalog = _od._writer.getDocumentCatalog();
+                _configuration = catalog.getOCProperties();
+                if (_configuration == null) {
+                    catalog.setOCProperties(_configuration = new PDOptionalContentProperties());
                 }
             }
-            return configuration;
+            return _configuration;
         }
 
         /**
@@ -496,16 +498,16 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          */
         @SuppressWarnings("unchecked")
         private <T extends LayerDeclaration<?>> T getDeclaration(String id) {
-            if (layerDeclarations == null) {
+            if (_layerDeclarations == null) {
                 /*-
                  * TODO: This could be strengthened if extension at-rules were implemented (@-fs-ocg
                  * for optional content groups and @-fs-ocm for optional content memberships) beside
                  * existing standard at-rules (such as fontFaceRules) in
                  * com.openhtmltopdf.css.sheet.Stylesheet).
                  */
-                layerDeclarations = new HashMap<>();
+                _layerDeclarations = new HashMap<>();
                 Map<CSSName, PropertyDeclaration> layerProperties = new HashMap<>();
-                for (Selector selector : out._sharedContext.getCss().getSelectors()) {
+                for (Selector selector : _od._sharedContext.getCss().getSelectors()) {
                     for (PropertyDeclaration property : selector.getRuleset().getPropertyDeclarations()) {
                         CSSName propertyName = property.getCSSName();
                         if (propertyName == CSSName.FS_OCG_ID
@@ -556,11 +558,11 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
                     } else
                         throw new UnsupportedOperationException("Broken layer property set: " + layerProperties);
 
-                    layerDeclarations.put(layerIdProperty.getValue().getStringValue(), layerDeclaration);
+                    _layerDeclarations.put(layerIdProperty.getValue().getStringValue(), layerDeclaration);
                     layerProperties.clear();
                 }
             }
-            return (T)layerDeclarations.get(id);
+            return (T)_layerDeclarations.get(id);
         }
 
         /**
@@ -570,7 +572,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          * @throws NullPointerException if no match found.
          */
         private PDPropertyList getLayer(String id) {
-            return layers.computeIfAbsent(id, k -> getDeclaration(k).build(this));
+            return _layers.computeIfAbsent(id, k -> getDeclaration(k).build(this));
         }
 
         /**
@@ -604,20 +606,20 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          * <p>In case of multiple layers, they are recursively nested.</p>
          */
         private void start() {
-            if (!pending)
+            if (!_pending)
                 return;
 
-            pending = false;
+            _pending = false;
 
-            for (int i = stack.size(); i < boxLayers.size(); i++) {
-                PDPropertyList layer = boxLayers.get(i);
+            for (int i = _stack.size(); i < _boxLayers.size(); i++) {
+                PDPropertyList layer = _boxLayers.get(i);
 
-                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_LAYER_BEGIN, toString(layer), structureType, toString(box));
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_LAYER_BEGIN, toString(layer), _structureType, toString(_box));
 
-                out._cp.beginMarkedContent(COSName.OC, layer);
+                _od._cp.beginMarkedContent(COSName.OC, layer);
 
-                stack.push(new StackLayer(layer, box instanceof BlockBox));
-                stack.peek().in();
+                _stack.push(new StackLayer(layer, _box instanceof BlockBox));
+                _stack.peek().in();
             }
         }
     }
