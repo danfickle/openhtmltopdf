@@ -900,6 +900,10 @@ public abstract class Box implements Styleable, DisplayListItem {
         return getParent() != null && getParent().isRoot();
     }
 
+    public static boolean isBody(Box child) {
+        return child.getElement() != null && child.getElement().getNodeName().equals("body");
+    }
+
     public Element getElement() {
         return _element;
     }

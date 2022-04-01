@@ -29,17 +29,13 @@ public class BoxUtil {
         return body != null ? body : root;
     }
 
-    private static boolean isBody(Box child) {
-        return child.getElement() != null && child.getElement().getNodeName().equals("body");
-    }
-
     /**
      * @return body box, last child of root or root in order of preference.
      */
     public static Box getBodyBoxOrSomething(Box root) {
         Box secondBest = null;
         for (Box child : root.getChildren()) {
-            if (isBody(child)) {
+            if (Box.isBody(child)) {
                 return child;
             }
             secondBest = child;
@@ -54,7 +50,7 @@ public class BoxUtil {
      */
     public static Box getBodyOrNull(Box root) {
         for (Box child : root.getChildren()) {
-            if (isBody(child)) {
+            if (Box.isBody(child)) {
                 return child;
             }
         }

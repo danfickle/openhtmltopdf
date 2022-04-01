@@ -67,11 +67,7 @@ public class ContentFunctionFactory {
      * Example:
      *   <code>content: "Page " counter(page) -fs-if-cut-off(" continued") " of " counter(pages);</code> 
      */
-    private static class FsIfCutOffFunction implements ContentFunction {
-        @Override
-        public boolean isStatic() {
-            return false;
-        }
+    private static class FsIfCutOffFunction extends ContentFunctionAbstract {
 
         @Override
         public String calculate(LayoutContext c, FSFunction function) {
@@ -99,11 +95,7 @@ public class ContentFunctionFactory {
         }
     }
     
-    private static abstract class PageNumberFunction implements ContentFunction {
-        @Override
-        public boolean isStatic() {
-            return false;
-        }
+    private static abstract class PageNumberFunction extends ContentFunctionAbstract {
         
         @Override
         public String calculate(LayoutContext c, FSFunction function) {
@@ -153,7 +145,7 @@ public class ContentFunctionFactory {
         }
     }
     
-    private static class PageCounterFunction extends PageNumberFunction implements ContentFunction {
+    private static class PageCounterFunction extends PageNumberFunction {
         @Override
         public String calculate(RenderingContext c, FSFunction function, InlineText text) {
             int value = c.getRootLayer().getRelativePageNo(c) + 1;
@@ -166,7 +158,7 @@ public class ContentFunctionFactory {
         }
     }
     
-    private static class PagesCounterFunction extends PageNumberFunction implements ContentFunction {
+    private static class PagesCounterFunction extends PageNumberFunction {
         @Override
         public String calculate(RenderingContext c, FSFunction function, InlineText text) {
             int value = c.getRootLayer().getRelativePageCount(c);
@@ -183,11 +175,7 @@ public class ContentFunctionFactory {
      * Partially implements target counter as specified here:
      * http://www.w3.org/TR/2007/WD-css3-gcpm-20070504/#cross-references
      */
-    private static class TargetCounterFunction implements ContentFunction {
-        @Override
-        public boolean isStatic() {
-            return false;
-        }
+    private static class TargetCounterFunction extends ContentFunctionAbstract {
 
         @Override
         public String calculate(RenderingContext c, FSFunction function, InlineText text) {
@@ -265,11 +253,7 @@ public class ContentFunctionFactory {
      * is not resolved to an absolute url.<br>
      * We only support returning the content of the target element, not a specific pseudo element.
      */
-    private static class TargetTextFunction implements ContentFunction {
-        @Override
-        public boolean isStatic() {
-            return false;
-        }
+    private static class TargetTextFunction extends ContentFunctionAbstract {
 
         @Override
         public boolean isCalculableAtLayout() {
@@ -380,11 +364,7 @@ public class ContentFunctionFactory {
      * Partially implements leaders as specified here:
      * http://www.w3.org/TR/2007/WD-css3-gcpm-20070504/#leaders
      */
-    public static class LeaderFunction implements ContentFunction {
-        @Override
-        public boolean isStatic() {
-            return false;
-        }
+    public static class LeaderFunction extends ContentFunctionAbstract {
 
         @Override
         public String calculate(RenderingContext c, FSFunction function, InlineText text) {
