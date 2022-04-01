@@ -128,17 +128,17 @@ public class FSRGBColor implements FSColor {
     }
     
     // Taken from java.awt.Color to avoid dependency on it
-    private static float[] RGBtoHSB(int r, int g, int b, float[] hsbvals) {
+    private static float[] RGBtoHSB(int red, int green, int blue, float[] hsbvals) {
         float hue, saturation, brightness;
         if (hsbvals == null) {
             hsbvals = new float[3];
         }
-        int cmax = (r > g) ? r : g;
-        if (b > cmax)
-            cmax = b;
-        int cmin = (r < g) ? r : g;
-        if (b < cmin)
-            cmin = b;
+        int cmax = (red > green) ? red : green;
+        if (blue > cmax)
+            cmax = blue;
+        int cmin = (red < green) ? red : green;
+        if (blue < cmin)
+            cmin = blue;
 
         brightness = (cmax) / 255.0f;
         if (cmax != 0)
@@ -148,12 +148,12 @@ public class FSRGBColor implements FSColor {
         if (saturation == 0)
             hue = 0;
         else {
-            float redc = ((float) (cmax - r)) / ((float) (cmax - cmin));
-            float greenc = ((float) (cmax - g)) / ((float) (cmax - cmin));
-            float bluec = ((float) (cmax - b)) / ((float) (cmax - cmin));
-            if (r == cmax)
+            float redc = ((float) (cmax - red)) / ((float) (cmax - cmin));
+            float greenc = ((float) (cmax - green)) / ((float) (cmax - cmin));
+            float bluec = ((float) (cmax - blue)) / ((float) (cmax - cmin));
+            if (red == cmax)
                 hue = bluec - greenc;
-            else if (g == cmax)
+            else if (green == cmax)
                 hue = 2.0f + redc - bluec;
             else
                 hue = 4.0f + greenc - redc;
@@ -169,9 +169,9 @@ public class FSRGBColor implements FSColor {
     
     // Taken from java.awt.Color to avoid dependency on it
     private static int[] HSBtoRGB(float hue, float saturation, float brightness) {
-        int r = 0, g = 0, b = 0;
+        int red = 0, green = 0, blue = 0;
         if (saturation == 0) {
-            r = g = b = (int) (brightness * 255.0f + 0.5f);
+            red = green = blue = (int) (brightness * 255.0f + 0.5f);
         } else {
             float h = (hue - (float) Math.floor(hue)) * 6.0f;
             float f = h - (float) java.lang.Math.floor(h);
@@ -180,37 +180,37 @@ public class FSRGBColor implements FSColor {
             float t = brightness * (1.0f - (saturation * (1.0f - f)));
             switch ((int) h) {
                 case 0:
-                    r = (int) (brightness * 255.0f + 0.5f);
-                    g = (int) (t * 255.0f + 0.5f);
-                    b = (int) (p * 255.0f + 0.5f);
+                    red = (int) (brightness * 255.0f + 0.5f);
+                    green = (int) (t * 255.0f + 0.5f);
+                    blue = (int) (p * 255.0f + 0.5f);
                     break;
                 case 1:
-                    r = (int) (q * 255.0f + 0.5f);
-                    g = (int) (brightness * 255.0f + 0.5f);
-                    b = (int) (p * 255.0f + 0.5f);
+                    red = (int) (q * 255.0f + 0.5f);
+                    green = (int) (brightness * 255.0f + 0.5f);
+                    blue = (int) (p * 255.0f + 0.5f);
                     break;
                 case 2:
-                    r = (int) (p * 255.0f + 0.5f);
-                    g = (int) (brightness * 255.0f + 0.5f);
-                    b = (int) (t * 255.0f + 0.5f);
+                    red = (int) (p * 255.0f + 0.5f);
+                    green = (int) (brightness * 255.0f + 0.5f);
+                    blue = (int) (t * 255.0f + 0.5f);
                     break;
                 case 3:
-                    r = (int) (p * 255.0f + 0.5f);
-                    g = (int) (q * 255.0f + 0.5f);
-                    b = (int) (brightness * 255.0f + 0.5f);
+                    red = (int) (p * 255.0f + 0.5f);
+                    green = (int) (q * 255.0f + 0.5f);
+                    blue = (int) (brightness * 255.0f + 0.5f);
                     break;
                 case 4:
-                    r = (int) (t * 255.0f + 0.5f);
-                    g = (int) (p * 255.0f + 0.5f);
-                    b = (int) (brightness * 255.0f + 0.5f);
+                    red = (int) (t * 255.0f + 0.5f);
+                    green = (int) (p * 255.0f + 0.5f);
+                    blue = (int) (brightness * 255.0f + 0.5f);
                     break;
                 case 5:
-                    r = (int) (brightness * 255.0f + 0.5f);
-                    g = (int) (p * 255.0f + 0.5f);
-                    b = (int) (q * 255.0f + 0.5f);
+                    red = (int) (brightness * 255.0f + 0.5f);
+                    green = (int) (p * 255.0f + 0.5f);
+                    blue = (int) (q * 255.0f + 0.5f);
                     break;
             }
         }
-        return new int[] { r, g, b };
+        return new int[] { red, green, blue };
     }
 }
