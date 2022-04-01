@@ -309,7 +309,7 @@ public final class CSSName implements Comparable<CSSName> {
             addProperty(
                     "-fs-ocg-id",
                     PRIMITIVE,
-                    "",
+                    IdentValue.NONE.asString(),
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSOcId()
                     );
@@ -321,7 +321,7 @@ public final class CSSName implements Comparable<CSSName> {
             addProperty(
                     "-fs-ocg-label",
                     PRIMITIVE,
-                    "",
+                    IdentValue.NONE.asString(),
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSOcgLabel()
                     );
@@ -332,7 +332,7 @@ public final class CSSName implements Comparable<CSSName> {
             addProperty(
                     "-fs-ocg-parent",
                     PRIMITIVE,
-                    "",
+                    IdentValue.NONE.asString(),
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSOcId()
                     );
@@ -354,7 +354,7 @@ public final class CSSName implements Comparable<CSSName> {
             addProperty(
                     "-fs-ocm-id",
                     PRIMITIVE,
-                    "",
+                    IdentValue.NONE.asString(),
                     NOT_INHERITED,
                     new PrimitivePropertyBuilders.FSOcId()
             );
@@ -379,9 +379,9 @@ public final class CSSName implements Comparable<CSSName> {
             addProperty(
                     "-fs-ocm-ocgs",
                     PRIMITIVE,
-                    "",
+                    IdentValue.NONE.asString(),
                     NOT_INHERITED,
-                    new PrimitivePropertyBuilders.FSOcmOcgs());
+                    new PrimitivePropertyBuilders.FSOcIds());
 
     /**
      * Unique CSSName instance for CSS2 property.
@@ -2062,8 +2062,7 @@ public final class CSSName implements Comparable<CSSName> {
         });
         for (Iterator<CSSName> i = ALL_PRIMITIVE_PROPERTY_NAMES.values().iterator(); i.hasNext(); ) {
             CSSName cssName = i.next();
-            if ((cssName.initialValue.length() == 0 || cssName.initialValue.charAt(0) != '=')
-                    && cssName.implemented) {
+            if (cssName.initialValue.charAt(0) != '=' && cssName.implemented) {
                 PropertyValue value = parser.parsePropertyValue(
                         cssName, StylesheetInfo.USER_AGENT, cssName.initialValue);
 

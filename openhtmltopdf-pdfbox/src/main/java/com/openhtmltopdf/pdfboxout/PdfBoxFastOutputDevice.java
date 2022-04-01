@@ -587,11 +587,11 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
             {
                 CalculatedStyle style = box.getStyle();
                 layerIdObj = style.valueByName(CSSName.FS_OCG_ID);
-                if(layerIdObj == null) {
+                if(layerIdObj.isIdent()) {
                     layerIdObj = style.valueByName(CSSName.FS_OCM_ID);
                 }
             }
-            return layerIdObj != null ? getLayer(layerIdObj.asString()) : null;
+            return !layerIdObj.isIdent() ? getLayer(layerIdObj.asString()) : null;
         }
 
         private static IdentValue getPropertyValue(Map<CSSName, PropertyDeclaration> properties, CSSName propertyName) {

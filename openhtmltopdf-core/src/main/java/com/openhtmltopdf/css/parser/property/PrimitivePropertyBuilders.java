@@ -186,19 +186,46 @@ public class PrimitivePropertyBuilders {
     }
 
     private static class GenericString extends AbstractPropertyBuilder {
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] { IdentValue.NONE });
+
         @Override
-        public List<PropertyDeclaration> buildDeclarations(CSSName cssName,
-                List<PropertyValue> values, int origin, boolean important,
-                boolean inheritAllowed) {
-            if (values.size() > 1)
-                throw new CSSParseException("Single value expected", -1);
+        public List<PropertyDeclaration> buildDeclarations(
+                CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
+            checkValueCount(cssName, 1, values.size());
+            return Collections.singletonList(
+                    checkDeclaration(cssName, values.get(0), origin, important, inheritAllowed));
+        }
 
-            PropertyValue value = values.get(0);
-            if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_STRING)
-                return Collections.singletonList(
-                        new PropertyDeclaration(cssName, value, important, origin));
+        protected PropertyDeclaration checkDeclaration(
+                CSSName cssName, CSSPrimitiveValue value, int origin, boolean important, boolean inheritAllowed) {
+            checkInheritAllowed(value, inheritAllowed);
+            if (value.getCssValueType() != CSSValue.CSS_INHERIT) {
+                switch (value.getPrimitiveType()) {
+                    case CSSPrimitiveValue.CSS_STRING:
+                        /* NOOP: Any custom string value accepted. */
+                        break;
+                    case CSSPrimitiveValue.CSS_IDENT:
+                        IdentValue ident = checkIdent(cssName, value);
+                        checkValidity(cssName, ALLOWED, ident);
+                        break;
+                    default:
+                        throw new CSSParseException("Value '" + value + "' is invalid for " + cssName, -1);
+                }
+            }
+            return new PropertyDeclaration(cssName, value, important, origin);
+        }
+    }
 
-            return Collections.emptyList();
+    private static class GenericStrings extends GenericString {
+        @Override
+        public List<PropertyDeclaration> buildDeclarations(
+                CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
+            List<PropertyDeclaration> declarations = new ArrayList<>();
+            for (PropertyValue value : values) {
+                declarations.add(checkDeclaration(cssName, value, origin, important, inheritAllowed));
+            }
+            return Collections.unmodifiableList(declarations);
         }
     }
 
@@ -1031,9 +1058,6 @@ public class PrimitivePropertyBuilders {
         }
     }
 
-    public static class FSOcId extends GenericString {
-    }
-
     public static class FSOcgLabel extends GenericString {
     }
 
@@ -1048,23 +1072,11 @@ public class PrimitivePropertyBuilders {
         }
     }
 
-    public static class FSOcmOcgs extends AbstractPropertyBuilder {
-        @Override
-        public List<PropertyDeclaration> buildDeclarations(CSSName cssName,
-                List<PropertyValue> values, int origin, boolean important,
-                boolean inheritAllowed) {
-            if (values.isEmpty())
-                throw new CSSParseException("Undefined value (should be at least one OCG identifier)", -1);
-
-            List<PropertyDeclaration> declarations = new ArrayList<>();
-            for(PropertyValue value : values) {
-                if (value.getPrimitiveType() == CSSPrimitiveValue.CSS_STRING) {
-                    declarations.add(new PropertyDeclaration(cssName, value, important, origin));
-                }
-            }
-            return Collections.unmodifiableList(declarations);
-        }
+    public static class FSOcId extends GenericString {
     }
+
+    public static class FSOcIds extends GenericStrings {
+    };
 
     public static class FSOcmVisible extends SingleIdent {
         private static final BitSet ALLOWED = setFor(
