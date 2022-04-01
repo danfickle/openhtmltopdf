@@ -303,6 +303,87 @@ public final class CSSName implements Comparable<CSSName> {
             );
 
     /**
+     * Layer identifier (document-scoped).
+     */
+    public final static CSSName FS_OCG_ID =
+            addProperty(
+                    "-fs-ocg-id",
+                    PRIMITIVE,
+                    IdentValue.NONE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcId()
+                    );
+    /**
+     * Layer name, suitable for UI presentation (see {@code Name} entry in optional content group
+     * dictionary [ISO:32000-1:8.11.2.1]).
+     */
+    public final static CSSName FS_OCG_LABEL =
+            addProperty(
+                    "-fs-ocg-label",
+                    PRIMITIVE,
+                    IdentValue.NONE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcgLabel()
+                    );
+    /**
+     * Layer parent {@link #FS_OCG_ID reference}.
+     */
+    public final static CSSName FS_OCG_PARENT =
+            addProperty(
+                    "-fs-ocg-parent",
+                    PRIMITIVE,
+                    IdentValue.NONE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcId()
+                    );
+    /**
+     * Layer visibility.
+     */
+    public final static CSSName FS_OCG_VISIBILITY =
+            addProperty(
+                    "-fs-ocg-visibility",
+                    PRIMITIVE,
+                    IdentValue.VISIBLE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcgVisibility()
+            );
+    /**
+     * Layer membership identifier (document-scoped).
+     */
+    public final static CSSName FS_OCM_ID =
+            addProperty(
+                    "-fs-ocm-id",
+                    PRIMITIVE,
+                    IdentValue.NONE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcId()
+            );
+    /**
+     * Layer visibility policy (see {@code BaseState}, {@code ON}, {@code OFF} entries in {@code D}
+     * entry in optional content configuration dictionary [ISO:32000-1:8.11.4.3]).
+     */
+    public final static CSSName FS_OCM_VISIBLE =
+            addProperty(
+                    "-fs-ocm-visible",
+                    PRIMITIVE,
+                    IdentValue.ANY_VISIBLE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcmVisible()
+            );
+    /**
+     * Layers belonging to the membership.
+     *
+     * <p>Value: list of {@link #FS_OCG_ID layer references}.</p>
+     */
+    public final static CSSName FS_OCM_OCGS =
+            addProperty(
+                    "-fs-ocm-ocgs",
+                    PRIMITIVE,
+                    IdentValue.NONE.asString(),
+                    NOT_INHERITED,
+                    new PrimitivePropertyBuilders.FSOcIds());
+
+    /**
      * Unique CSSName instance for CSS2 property.
      */
     public final static CSSName FS_PAGE_WIDTH =

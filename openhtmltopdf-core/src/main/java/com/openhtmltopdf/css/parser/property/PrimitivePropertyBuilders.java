@@ -184,7 +184,51 @@ public class PrimitivePropertyBuilders {
             return BORDER_STYLES;
         }
     }
-    
+
+    private static class GenericString extends AbstractPropertyBuilder {
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] { IdentValue.NONE });
+
+        @Override
+        public List<PropertyDeclaration> buildDeclarations(
+                CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
+            checkValueCount(cssName, 1, values.size());
+            return Collections.singletonList(
+                    checkDeclaration(cssName, values.get(0), origin, important, inheritAllowed));
+        }
+
+        protected PropertyDeclaration checkDeclaration(
+                CSSName cssName, CSSPrimitiveValue value, int origin, boolean important, boolean inheritAllowed) {
+            checkInheritAllowed(value, inheritAllowed);
+            if (value.getCssValueType() != CSSValue.CSS_INHERIT) {
+                switch (value.getPrimitiveType()) {
+                    case CSSPrimitiveValue.CSS_STRING:
+                        /* NOOP: Any custom string value accepted. */
+                        break;
+                    case CSSPrimitiveValue.CSS_IDENT:
+                        IdentValue ident = checkIdent(cssName, value);
+                        checkValidity(cssName, ALLOWED, ident);
+                        break;
+                    default:
+                        throw new CSSParseException("Value '" + value + "' is invalid for " + cssName, -1);
+                }
+            }
+            return new PropertyDeclaration(cssName, value, important, origin);
+        }
+    }
+
+    private static class GenericStrings extends GenericString {
+        @Override
+        public List<PropertyDeclaration> buildDeclarations(
+                CSSName cssName, List<PropertyValue> values, int origin, boolean important, boolean inheritAllowed) {
+            List<PropertyDeclaration> declarations = new ArrayList<>();
+            for (PropertyValue value : values) {
+                declarations.add(checkDeclaration(cssName, value, origin, important, inheritAllowed));
+            }
+            return Collections.unmodifiableList(declarations);
+        }
+    }
+
     public static class Direction extends SingleIdent {
 		@Override
 		protected BitSet getAllowed() {
@@ -1007,6 +1051,38 @@ public class PrimitivePropertyBuilders {
         // none | create
         private static final BitSet ALLOWED = setFor(
                 new IdentValue[] { IdentValue.NONE, IdentValue.CREATE });
+
+        @Override
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
+
+    public static class FSOcgLabel extends GenericString {
+    }
+
+    public static class FSOcgVisibility extends SingleIdent {
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] {
+                        IdentValue.VISIBLE, IdentValue.HIDDEN });
+
+        @Override
+        protected BitSet getAllowed() {
+            return ALLOWED;
+        }
+    }
+
+    public static class FSOcId extends GenericString {
+    }
+
+    public static class FSOcIds extends GenericStrings {
+    };
+
+    public static class FSOcmVisible extends SingleIdent {
+        private static final BitSet ALLOWED = setFor(
+                new IdentValue[] {
+                        IdentValue.ALL_HIDDEN, IdentValue.ALL_VISIBLE, IdentValue.ANY_HIDDEN,
+                        IdentValue.ANY_VISIBLE });
 
         @Override
         protected BitSet getAllowed() {

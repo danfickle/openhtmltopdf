@@ -75,6 +75,9 @@ public class DisplayListPainter {
 				box.paintBackground(c);
 				box.paintBorder(c);
 
+                c.getOutputDevice().endStructure(innerToken);
+                c.getOutputDevice().endStructure(outerToken);
+
 				if (collapsedTableBorders != null && box instanceof TableCellBox) {
 					TableCellBox cell = (TableCellBox) box;
 
@@ -88,9 +91,6 @@ public class DisplayListPainter {
 						}
 					}
 				}
-
-				c.getOutputDevice().endStructure(innerToken);
-				c.getOutputDevice().endStructure(outerToken);
 			}
 		}
 	}

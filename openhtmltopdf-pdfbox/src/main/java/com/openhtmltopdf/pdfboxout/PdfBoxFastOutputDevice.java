@@ -21,12 +21,18 @@ package com.openhtmltopdf.pdfboxout;
 
 import com.openhtmltopdf.bidi.BidiReorderer;
 import com.openhtmltopdf.bidi.SimpleBidiReorderer;
+import com.openhtmltopdf.css.constants.CSSName;
 import com.openhtmltopdf.css.constants.IdentValue;
+import com.openhtmltopdf.css.newmatch.Selector;
+import com.openhtmltopdf.css.parser.CSSPrimitiveValue;
 import com.openhtmltopdf.css.parser.FSCMYKColor;
 import com.openhtmltopdf.css.parser.FSColor;
 import com.openhtmltopdf.css.parser.FSRGBColor;
+import com.openhtmltopdf.css.sheet.PropertyDeclaration;
 import com.openhtmltopdf.css.style.CalculatedStyle;
 import com.openhtmltopdf.css.style.CssContext;
+import com.openhtmltopdf.css.style.FSDerivedValue;
+import com.openhtmltopdf.css.style.derived.BorderPropertySet;
 import com.openhtmltopdf.css.style.derived.FSLinearGradient;
 import com.openhtmltopdf.css.value.FontSpecification;
 import com.openhtmltopdf.extend.FSImage;
@@ -51,11 +57,16 @@ import de.rototor.pdfbox.graphics2d.PdfBoxGraphics2DFontTextDrawer;
 
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.optionalcontent.PDOptionalContentGroup;
+import org.apache.pdfbox.pdmodel.graphics.optionalcontent.PDOptionalContentMembershipDictionary;
+import org.apache.pdfbox.pdmodel.graphics.optionalcontent.PDOptionalContentProperties;
 import org.apache.pdfbox.pdmodel.graphics.shading.PDShading;
 import org.apache.pdfbox.pdmodel.graphics.state.RenderingMode;
 import org.w3c.dom.Document;
@@ -88,6 +99,529 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         FILL,
         STROKE,
         CLIP;
+    }
+
+    /**
+     * Optional content manager [ISO:32000-1:8.11].
+     *
+     * <p>Optional content rendering is CSS-driven. In the source HTML document, each content
+     * fragment can be marked by a CSS class defining a <b>layer</b> through the following
+     * properties:</p>
+     * <ul>
+     *   <li>group:
+     *     <ul>
+     *       <li>{@link CSSName#FS_OCG_ID}</li>
+     *       <li>{@link CSSName#FS_OCG_LABEL}</li>
+     *       <li>{@link CSSName#FS_OCG_PARENT}</li>
+     *       <li>{@link CSSName#FS_OCG_VISIBILITY}</li>
+     *     </ul>
+     *   </li>
+     *   <li>membership:
+     *     <ul>
+     *       <li>{@link CSSName#FS_OCM_ID}</li>
+     *       <li>{@link CSSName#FS_OCM_OCGS}</li>
+     *       <li>{@link CSSName#FS_OCM_VISIBLE}</li>
+     *     </ul>
+     *   </li>
+     * </ul>
+     *
+     * <p>During page painting, structural operations on layer-marked contents (represented by
+     * {@link Box} objects) are wrapped inside possibly-nested <b>layer fragments</b>, keeping track
+     * of them in a stack. While inside the stack, layer fragments are <i>alive</i> (open/begun);
+     * conversely, once popped out of the stack, they are <i>dead</i> (closed/ended).
+     * Whenever possible (that is, when PDF/UA is disabled and no out-of-sequence operation occurs),
+     * dying fragments are kept alive until the next box is evaluated for contiguity, thus avoiding
+     * unnecessary fragmentation. Furthermore, new layer fragments are kept pending until
+     * {@link #onContentRender()} is called. This lazy mechanism ensures that layers are rendered
+     * inside the content stream only when effectively needed (otherwise, the content stream would
+     * be polluted by tons of empty layer fragments!). To recap, layer fragments may be in any of
+     * the following states:</p>
+     * <ul>
+     *   <li><i>alive</i>: inside the stack</li>
+     *   <li><i>dead</i>: removed from the stack</li>
+     *   <li><i>dying</i>: inside the stack, but candidate to removal</li>
+     *   <li><i>pending</i>: outside the stack, but candidate to insertion</li>
+     * </ul>
+     * 
+     * <p>This class is NOT thread-safe.</p>
+     * 
+     * @apiNote For example, consider we want to define two layers ("OCG 1" and "OCG2"):
+     * <pre>
+&lt;style>
+    .ocg1 {
+        -fs-ocg-id: "ocg1";
+        -fs-ocg-label: "OCG 1";
+    }
+
+    .ocg2 {
+        -fs-ocg-id: "ocg2";
+        -fs-ocg-label: "OCG 2";
+        -fs-ocg-parent: "ocg1";
+        -fs-ocg-visibility: hidden;
+    }
+&lt;/style>
+     * </pre>
+     * and then use them to mark our contents:
+     * <pre>
+&lt;body>
+    &lt;p class="ocg1">(OCG 1) This is a layered content block.&lt;/p>
+    &lt;p class="ocg2">(OCG 2) This is another layered content block.&lt;/p>
+&lt;/body>
+     * </pre>
+     */
+    private static final class OptionalContentManager {
+        private static final class GroupDeclaration extends LayerDeclaration<PDOptionalContentGroup> {
+            public final String label;
+            @SuppressWarnings("unused")
+            public final String parent;
+            public final boolean visible;
+
+            public GroupDeclaration(String id, String label, String parent, boolean visible) {
+                super(id);
+                this.label = label;
+                this.parent = parent;
+                this.visible = visible;
+            }
+
+            @Override
+            public PDOptionalContentGroup build(OptionalContentManager manager) {
+                PDOptionalContentProperties configuration = manager.getConfiguration();
+                if (configuration.hasGroup(label)) {
+                    return configuration.getGroup(label);
+                } else {
+                    PDOptionalContentGroup group = new PDOptionalContentGroup(label);
+                    {
+                        configuration.setGroupEnabled(group, visible);
+                        /*-
+                         * TODO: configure parent (hierarchical UI presentation)!
+                         *
+                         * Should map parent property to configuration (that is, Order entry of D
+                         * entry of PDOptionalContentProperties) but, unfortunately, arbitrary group
+                         * nesting seems not to be natively supported by currently-used PDFBox
+                         * version (2.0), as adding a group via
+                         * PDOptionalContentProperties.addGroup(..) automatically builds a flat list
+                         * inside Order entry instead.
+                         */
+                    }
+                    configuration.addGroup(group);
+                    return group;
+                }
+            }
+        }
+
+        private static abstract class LayerDeclaration<T extends PDPropertyList> {
+            @SuppressWarnings("unused")
+            public final String id;
+
+            public LayerDeclaration(String id) {
+                this.id = id;
+            }
+
+            public abstract T build(OptionalContentManager manager);
+        }
+
+        private static final class MembershipDeclaration extends LayerDeclaration<PDOptionalContentMembershipDictionary> {
+            public final List<String> ocgs;
+            public final COSName visibilityPolicy;
+
+            public MembershipDeclaration(String id, List<String> ocgs, COSName visibilityPolicy) {
+                super(id);
+                this.ocgs = Collections.unmodifiableList(ocgs);
+                this.visibilityPolicy = visibilityPolicy;
+            }
+
+            @Override
+            public PDOptionalContentMembershipDictionary build(OptionalContentManager manager) {
+                PDOptionalContentMembershipDictionary membership = new PDOptionalContentMembershipDictionary();
+                {
+                    List<PDPropertyList> ocgs = new ArrayList<>();
+                    for (String ocg : this.ocgs) {
+                        ocgs.add(manager.getLayer(ocg));
+                    }
+                    membership.setOCGs(ocgs);
+                    membership.setVisibilityPolicy(visibilityPolicy);
+                }
+                return membership;
+            }
+        }
+
+        /**
+         * Layer fragment.
+         */
+        private static final class StackLayer {
+            public final PDPropertyList base;
+            /**
+             * Whether this layer fragment is at block level.
+             */
+            public final boolean blocked;
+
+            /**
+             * Structural depth (non-positive values mean this layer fragment ended).
+             */
+            private int level;
+
+            public StackLayer(PDPropertyList base, boolean blocked) {
+                this.base = base;
+                this.blocked = blocked;
+            }
+
+            public boolean out() {
+                return --level <= 0;
+            }
+
+            public void in() {
+                level++;
+            }
+
+            @Override
+            public String toString() {
+                return OptionalContentManager.toString(base);
+            }
+        }
+
+        private static final CSSPrimitiveValue CSSEmptyValue = new CSSPrimitiveValue() {
+            @Override public short getCssValueType() { return 0; }
+            @Override public String getCssText() { return null; }
+            @Override public String getStringValue() { return null; }
+            @Override public short getPrimitiveType() { return 0; }
+            @Override public float getFloatValue(short unitType) { return 0; }
+        };
+        private static final PropertyDeclaration EmptyPropertyDeclaration = new PropertyDeclaration(null, CSSEmptyValue, false, 0);
+
+        private static String toString(PDPropertyList layer) {
+            StringBuilder b = new StringBuilder();
+            toString(layer, b);
+            return b.toString();
+        }
+
+        private static void toString(PDPropertyList layer, StringBuilder b) {
+            if (layer instanceof PDOptionalContentGroup) {
+                b.append("Layer '").append(((PDOptionalContentGroup)layer).getName()).append("'");
+            } else if (layer instanceof PDOptionalContentMembershipDictionary) {
+                b.append("Membership [");
+                List<PDPropertyList> ocgs = ((PDOptionalContentMembershipDictionary)layer).getOCGs();
+                for (int i = 0; i < ocgs.size(); i++) {
+                    if (i > 0) {
+                        b.append(", ");
+                    }
+                    toString(ocgs.get(i), b);
+                }
+                b.append("]");
+            } else
+                throw new UnsupportedOperationException(layer.toString());
+        }
+
+        private static String toString(Box box) {
+            Object obj = box instanceof InlineLayoutBox ? ((InlineLayoutBox)box).getInlineChildren() : box.getElement();
+            return obj != null ? obj.toString() : null;
+        }
+
+        /**
+         * Current box.
+         */
+        private Box _box;
+        /**
+         * Current box's layers.
+         */
+        private LinkedList<PDPropertyList> _boxLayers = new LinkedList<>();
+        /**
+         * Current structure.
+         */
+        private StructureType _structureType;
+
+        private PDOptionalContentProperties _configuration;
+        /**
+         * Layers mapped in the output document.
+         */
+        private Map<String, PDPropertyList> _layers = new HashMap<>();
+        /**
+         * Layer definitions (CSS-based).
+         */
+        private Map<String,LayerDeclaration<?>> _layerDeclarations;
+
+        /**
+         * Layer fragments currently open in content stream.
+         */
+        private LinkedList<StackLayer> _stack = new LinkedList<>();
+        /**
+         * Whether there are layers associated to the {@link #box current box} which are waiting to
+         * be opened in content stream in case of actual content fragments.
+         */
+        private boolean _pending;
+
+        private final PdfBoxFastOutputDevice _od;
+
+        public OptionalContentManager(PdfBoxFastOutputDevice od){
+            _od = od;
+        }
+
+        /**
+         * Closes any layer fragment up to the given one inside the content stream.
+         *
+         * @param layer
+         *          Upper limit (inclusive) of layer fragments stack closure ({@code null}, to end
+         *          all layer fragments).
+         */
+        public void end(PDPropertyList layer) {
+            while (!_stack.isEmpty()) {
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId1Param.GENERAL_PDF_LAYER_END, _stack.peek());
+
+                _od._cp.endMarkedContent();
+
+                if (_stack.pop().base == layer) {
+                    break;
+                }
+            }
+            _pending = false;
+        }
+
+        /**
+         * Notifies content rendering.
+         */
+        public void onContentRender() {
+            if (_pending) {
+                // Open pending layers inside the content stream!
+                start();
+            }
+        }
+
+        /**
+         * Notifies the end of current structure.
+         *
+         * <p>In case of an unstructured document, dying layer fragments are kept alive to possibly
+         * merge with contiguous fragments.</p>
+         *
+         * <p>To ensure proper nesting, it MUST be called BEFORE closing the current structure.</p>
+         */
+        public void onStructureEnd() {
+            /*
+             * NOTE: As recommended by the PDF spec [ISO:32000-1:8.11.3.2], layer fragments SHOULD
+             * be nested inside other marked content; therefore, if PDF/UA is active, current layer
+             * fragments are immediately ended. Otherwise, layer fragments can continue across
+             * contiguous inline boxes only; on the contrary, layer fragments at block level are
+             * always immediately ended, because block-painting operations may be intermingled with
+             * interfering out-of-sequence graphical operations (for example, table border is
+             * painted between cells' background and cells' content drawing).
+             */
+            if(!_stack.isEmpty() && (
+                    (_stack.peek().out() && _stack.peek().blocked)
+                    || _od._pdfUa != null)) {
+                end(null);
+            }
+        }
+
+        /**
+         * Notifies the start of pending structure.
+         *
+         * <p>Dead layer fragments are closed, while new layer fragments are kept pending until
+         * {@link #onContentRender()} is called. This lazy mechanism ensures that layers are
+         * rendered inside the content stream only when effectively needed (otherwise, the content
+         * stream would be polluted by tons of empty layer fragments!).</p>
+         *
+         * <p>To ensure proper nesting, it MUST be called BEFORE opening the pending structure.</p>
+         */
+        public void onStructureStart(StructureType type, Box box) {
+            /*-
+             * NOTE: For optional content [ISO:32000-1:8.11.3.2], to avoid conflict with other
+             * features that used marked content (such as logical structure), the following strategy
+             * is recommended:
+             * - where content is to be tagged with optional content markers as well as other
+             *   markers, the optional content markers should be nested INSIDE the other marked
+             *   content.
+             * - where optional content and the other markers would overlap but there is not strict
+             *   containment, the optional content should be BROKEN UP into two or more BDC/EMC
+             *   sections, nesting the optional content sections inside the others as necessary.
+             *   Breaking up optional content spans does not damage the nature of the visibility of
+             *   the content, whereas the same guarantee cannot be made for all other uses of marked
+             *   content.
+             *
+             * Since the painting phase deals with imperative operations instead of declarative
+             * boxes, a box associated to a layer may be rendered through multiple (possibly
+             * non-contiguous) operations, each one described by one or more nested structures. In
+             * order to merge contiguous contents belonging to the same layer, current layer stack
+             * is compared to the layer hierarchy of the next box, closing their non-matching
+             * levels.
+             */
+            // Extracting box layer hierarchy...
+            _boxLayers.clear();
+            Box parentBox = box;
+            while (parentBox != null) {
+                PDPropertyList layer = getLayer(parentBox);
+                if (layer != null && (_boxLayers.isEmpty() || _boxLayers.getLast() != layer)) {
+                    _boxLayers.add(layer);
+                }
+                parentBox = parentBox.getParent();
+            }
+            // Closing dead layer fragments...
+            for (int i = 0; i < _stack.size(); i++) {
+                if (i >= _boxLayers.size() || _stack.get(i).base != _boxLayers.get(i)) {
+                    end(_stack.get(i).base);
+                    break;
+                }
+            }
+            if (!_stack.isEmpty()) {
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_LAYER_CONTINUE, _stack, _structureType, toString(box));
+            }
+            if (_pending = (_stack.size() != _boxLayers.size())) {
+                _box = box;
+                _structureType = type;
+            }
+        }
+
+        /**
+         * Layer configuration in the output document.
+         * 
+         * <p>Created on the fly if missing.</p>
+         */
+        private PDOptionalContentProperties getConfiguration() {
+            if (_configuration == null) {
+                PDDocumentCatalog catalog = _od._writer.getDocumentCatalog();
+                _configuration = catalog.getOCProperties();
+                if (_configuration == null) {
+                    catalog.setOCProperties(_configuration = new PDOptionalContentProperties());
+                }
+            }
+            return _configuration;
+        }
+
+        /**
+         * Gets the CSS-based declaration associated to the given ID.
+         *
+         * <p>Layer declarations are lazily harvested from the CSS rulesets available in the
+         * current context.</p>
+         *
+         * @param id
+         *          Layer ID (either {@link CSSName#FS_OCG_ID group} or
+         *          {@link CSSName#FS_OCM_ID membership}).
+         * @return
+         *          {@code null}, if no match found.
+         */
+        @SuppressWarnings("unchecked")
+        private <T extends LayerDeclaration<?>> T getDeclaration(String id) {
+            if (_layerDeclarations == null) {
+                /*-
+                 * TODO: This could be strengthened if extension at-rules were implemented (@-fs-ocg
+                 * for optional content groups and @-fs-ocm for optional content memberships) beside
+                 * existing standard at-rules (such as fontFaceRules) in
+                 * com.openhtmltopdf.css.sheet.Stylesheet).
+                 */
+                _layerDeclarations = new HashMap<>();
+                Map<CSSName, PropertyDeclaration> layerProperties = new HashMap<>();
+                for (Selector selector : _od._sharedContext.getCss().getSelectors()) {
+                    for (PropertyDeclaration property : selector.getRuleset().getPropertyDeclarations()) {
+                        CSSName propertyName = property.getCSSName();
+                        if (propertyName == CSSName.FS_OCG_ID
+                                || propertyName == CSSName.FS_OCG_LABEL
+                                || propertyName == CSSName.FS_OCG_PARENT
+                                || propertyName == CSSName.FS_OCG_VISIBILITY
+                                || propertyName == CSSName.FS_OCM_ID
+                                || propertyName == CSSName.FS_OCM_OCGS
+                                || propertyName == CSSName.FS_OCM_VISIBLE) {
+                            layerProperties.put(propertyName, property);
+                        }
+                    }
+                    if (layerProperties.isEmpty())
+                        continue;
+
+                    PropertyDeclaration layerIdProperty;
+                    LayerDeclaration<?> layerDeclaration;
+                    if ((layerIdProperty = layerProperties.get(CSSName.FS_OCG_ID)) != null) {
+                        layerDeclaration = new GroupDeclaration(layerIdProperty.getValue().getStringValue(),
+                                        layerProperties.get(CSSName.FS_OCG_LABEL).getValue().getStringValue(),
+                                        layerProperties.getOrDefault(CSSName.FS_OCG_PARENT, EmptyPropertyDeclaration).getValue().getStringValue(),
+                                        getPropertyValue(layerProperties, CSSName.FS_OCG_VISIBILITY).equals(IdentValue.VISIBLE));
+                    } else if ((layerIdProperty = layerProperties.get(CSSName.FS_OCM_ID)) != null) {
+                        List<String> ocgs = new ArrayList<>();
+                        {
+                            PropertyDeclaration ocgsProperty = layerProperties.get(CSSName.FS_OCM_OCGS);
+                            if(ocgsProperty == null)
+                                throw new RuntimeException(CSSName.FS_OCM_OCGS + " property undefined (" + layerIdProperty + ")");
+
+                            ocgs = Arrays.asList(ocgsProperty.getValue().getStringValue().split(" "));
+                        }
+                        COSName visibilityPolicy;
+                        {
+                            IdentValue rawVisibilityPolicy = getPropertyValue(layerProperties, CSSName.FS_OCM_VISIBLE);
+                            if (rawVisibilityPolicy == IdentValue.ALL_HIDDEN) {
+                                visibilityPolicy = COSName.ALL_OFF;
+                            } else if (rawVisibilityPolicy == IdentValue.ALL_VISIBLE) {
+                                    visibilityPolicy = COSName.ALL_ON;
+                            } else if (rawVisibilityPolicy == IdentValue.ANY_HIDDEN) {
+                                visibilityPolicy = COSName.ANY_OFF;
+                            } else {
+                                visibilityPolicy = COSName.ANY_ON;
+                            }
+                        }
+                        layerDeclaration = new MembershipDeclaration(layerIdProperty.getValue().getStringValue(),
+                                        ocgs,
+                                        visibilityPolicy);
+                    } else
+                        throw new UnsupportedOperationException("Broken layer property set: " + layerProperties);
+
+                    _layerDeclarations.put(layerIdProperty.getValue().getStringValue(), layerDeclaration);
+                    layerProperties.clear();
+                }
+            }
+            return (T)_layerDeclarations.get(id);
+        }
+
+        /**
+         * Gets the layer associated to the given ID, ensuring its existence in the output
+         * document.
+         * 
+         * @throws NullPointerException if no match found.
+         */
+        private PDPropertyList getLayer(String id) {
+            return _layers.computeIfAbsent(id, k -> getDeclaration(k).build(this));
+        }
+
+        /**
+         * Gets the layer directly associated to the given box, ensuring its existence in the output
+         * document.
+         * 
+         * <p>Boxes can be directly associated to at most one layer through CSS class mechanism;
+         * they also inherit any layer associated to their ancestor boxes.</p>
+         */
+        private PDPropertyList getLayer(Box box) {
+            FSDerivedValue layerIdObj;
+            {
+                CalculatedStyle style = box.getStyle();
+                layerIdObj = style.valueByName(CSSName.FS_OCG_ID);
+                if(layerIdObj.isIdent()) {
+                    layerIdObj = style.valueByName(CSSName.FS_OCM_ID);
+                }
+            }
+            return !layerIdObj.isIdent() ? getLayer(layerIdObj.asString()) : null;
+        }
+
+        private static IdentValue getPropertyValue(Map<CSSName, PropertyDeclaration> properties, CSSName propertyName) {
+            return properties.containsKey(propertyName)
+                    ? properties.get(propertyName).asIdentValue()
+                    : IdentValue.getByIdentString(CSSName.initialValue(propertyName));
+        }
+
+        /**
+         * Opens pending layers inside the content stream.
+         *
+         * <p>In case of multiple layers, they are recursively nested.</p>
+         */
+        private void start() {
+            if (!_pending)
+                return;
+
+            _pending = false;
+
+            for (int i = _stack.size(); i < _boxLayers.size(); i++) {
+                PDPropertyList layer = _boxLayers.get(i);
+
+                XRLog.log(Level.FINE, LogMessageId.LogMessageId3Param.GENERAL_PDF_LAYER_BEGIN, toString(layer), _structureType, toString(_box));
+
+                _od._cp.beginMarkedContent(COSName.OC, layer);
+
+                _stack.push(new StackLayer(layer, _box instanceof BlockBox));
+                _stack.peek().in();
+            }
+        }
     }
 
     private static class PageState {
@@ -198,7 +732,9 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private final boolean _pdfUaConform;
     
     private final boolean _pdfAConform;
-    
+
+    private OptionalContentManager ocManager = new OptionalContentManager(this);
+
     public PdfBoxFastOutputDevice(float dotsPerPoint, boolean testMode, boolean pdfUaConform, boolean pdfAConform) {
         _dotsPerPoint = dotsPerPoint;
         _testMode = testMode;
@@ -259,6 +795,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     @Override
     public void finishPage() {
+        ocManager.end(null) /* Ensures that any pending layer is closed */;
+
         _cp.closeContent();
         popState();
         
@@ -271,6 +809,12 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     public void paintReplacedElement(RenderingContext c, BlockBox box) {
         PdfBoxReplacedElement element = (PdfBoxReplacedElement) box.getReplacedElement();
         element.paint(c, this, box);
+    }
+
+    @Override
+    protected void onBackgroundPaint(RenderingContext c, CalculatedStyle style,
+            Rectangle backgroundBounds, Rectangle bgImageContainer, BorderPropertySet border) {
+        ocManager.onContentRender();
     }
 
     /**
@@ -443,6 +987,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         if (s.length() == 0)
             return;
 
+        ocManager.onContentRender();
+
         ensureFillColor();
         AffineTransform at = new AffineTransform(getTransform());
         at.translate(x, y);
@@ -577,7 +1123,9 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     private void followPath(Shape s, GraphicsOperation drawType) {
         if (s == null)
             return;
-        
+
+        ocManager.onContentRender();
+
         if (drawType == GraphicsOperation.STROKE) {
             if (!(_stroke instanceof BasicStroke)) {
                 s = _stroke.createStrokedShape(s);
@@ -795,12 +1343,16 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     @Override
     public void drawLinearGradient(FSLinearGradient backgroundLinearGradient, Shape bounds) {
+        ocManager.onContentRender();
+
         PDShading shading = GradientHelper.createLinearGradient(this, getTransform(), backgroundLinearGradient, bounds);
         _cp.paintGradient(shading);
     }
 
     @Override
     public void drawImage(FSImage fsImage, int x, int y, boolean interpolate) {
+        ocManager.onContentRender();
+
         PdfBoxImage img = (PdfBoxImage) fsImage;
 
         PDImageXObject xobject = img.getXObject();
@@ -845,6 +1397,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     
     @Override
     public void drawPdfAsImage(PDFormXObject _srcObject, Rectangle contentBounds, float intrinsicWidth, float intrinsicHeight) {
+        ocManager.onContentRender();
+
         // We start with the page margins...
         AffineTransform af = AffineTransform.getTranslateInstance(
                 getTransform().getTranslateX(),
@@ -1065,6 +1619,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     @Override
     public void drawWithGraphics(float x, float y, float width, float height, OutputDeviceGraphicsDrawer renderer) {
+        ocManager.onContentRender();
+
         try {
             PdfBoxGraphics2D pdfBoxGraphics2D = new PdfBoxGraphics2D(_writer, (int) width, (int) height);
 			/*
@@ -1250,14 +1806,15 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
 
     @Override
     public Object startStructure(StructureType type, Box box) {
-        if (_pdfUa != null) {
-            return _pdfUa.startStructure(type, box);
-        }
-        return null;
+        ocManager.onStructureStart(type, box);
+
+        return _pdfUa != null ? _pdfUa.startStructure(type, box) : null;
     }
 
     @Override
     public void endStructure(Object token) {
+        ocManager.onStructureEnd();
+
         if (_pdfUa != null) {
             _pdfUa.endStructure(token);
         }

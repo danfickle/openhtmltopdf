@@ -139,6 +139,10 @@ public class Matcher {
     public List<FontFaceRule> getFontFaceRules() {
         return _fontFaceRules;
     }
+
+    public List<Selector> getSelectors() {
+        return docMapper.axes;
+    }
     
     public boolean isVisitedStyled(Object e) {
         return _visitElements.contains(e);
