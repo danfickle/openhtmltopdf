@@ -315,7 +315,7 @@ public final class CSSName implements Comparable<CSSName> {
                     );
     /**
      * Layer name, suitable for UI presentation (see {@code Name} entry in optional content group
-     * dictionary [PDF:1.7:8.11.2.1]).
+     * dictionary [ISO:32000-1:8.11.2.1]).
      */
     public final static CSSName FS_OCG_LABEL =
             addProperty(
@@ -360,7 +360,7 @@ public final class CSSName implements Comparable<CSSName> {
             );
     /**
      * Layer visibility policy (see {@code BaseState}, {@code ON}, {@code OFF} entries in {@code D}
-     * entry in optional content configuration dictionary [PDF:1.7:8.11.4.3]).
+     * entry in optional content configuration dictionary [ISO:32000-1:8.11.4.3]).
      */
     public final static CSSName FS_OCM_VISIBLE =
             addProperty(

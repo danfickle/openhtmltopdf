@@ -102,7 +102,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
     }
 
     /**
-     * Optional content manager [PDF:1.7:8.11].
+     * Optional content manager [ISO:32000-1:8.11].
      *
      * <p>Optional content rendering is CSS-driven. In the source HTML document, each content
      * fragment can be marked by a CSS class defining a <b>layer</b> through the following
@@ -248,7 +248,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         /**
          * Layer fragment.
          */
-        private static class StackLayer {
+        private static final class StackLayer {
             public final PDPropertyList base;
             /**
              * Whether this layer fragment is at block level.
@@ -395,8 +395,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          */
         public void onStructureEnd() {
             /*
-             * NOTE: As recommended by the PDF spec [PDF:1.7:8.11.3.2], layer fragments SHOULD be
-             * nested inside other marked content; therefore, if PDF/UA is active, current layer
+             * NOTE: As recommended by the PDF spec [ISO:32000-1:8.11.3.2], layer fragments SHOULD
+             * be nested inside other marked content; therefore, if PDF/UA is active, current layer
              * fragments are immediately ended. Otherwise, layer fragments can continue across
              * contiguous inline boxes only; on the contrary, layer fragments at block level are
              * always immediately ended, because block-painting operations may be intermingled with
@@ -422,9 +422,9 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
          */
         public void onStructureStart(StructureType type, Box box) {
             /*-
-             * NOTE: For optional content [PDF:1.7:8.11.3.2], to avoid conflict with other features
-             * that used marked content (such as logical structure), the following strategy is
-             * recommended:
+             * NOTE: For optional content [ISO:32000-1:8.11.3.2], to avoid conflict with other
+             * features that used marked content (such as logical structure), the following strategy
+             * is recommended:
              * - where content is to be tagged with optional content markers as well as other
              *   markers, the optional content markers should be nested INSIDE the other marked
              *   content.
