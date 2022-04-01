@@ -41,30 +41,16 @@ public class CounterFunction {
         _listStyleType = listStyleType;
     }
 
-    private static String toRoman(int val) {
-        int[] ints = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
-        String[] nums = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < ints.length; i++) {
-            int count = val / ints[i];
-            for (int j = 0; j < count; j++) {
-                sb.append(nums[i]);
-            }
-            val -= ints[i] * count;
-        }
-        return sb.toString();
-    }
-
     public static String createCounterText(IdentValue listStyle, int listCounter) {
         String text;
         if (listStyle == IdentValue.LOWER_LATIN || listStyle == IdentValue.LOWER_ALPHA) {
-            text = toLatin(listCounter).toLowerCase();
+            text = CounterLanguage.toLatin(listCounter).toLowerCase();
         } else if (listStyle == IdentValue.UPPER_LATIN || listStyle == IdentValue.UPPER_ALPHA) {
-            text = toLatin(listCounter).toUpperCase();
+            text = CounterLanguage.toLatin(listCounter).toUpperCase();
         } else if (listStyle == IdentValue.LOWER_ROMAN) {
-            text = toRoman(listCounter).toLowerCase();
+            text = CounterLanguage.toRoman(listCounter).toLowerCase();
         } else if (listStyle == IdentValue.UPPER_ROMAN) {
-            text = toRoman(listCounter).toUpperCase();
+            text = CounterLanguage.toRoman(listCounter).toUpperCase();
         } else if (listStyle == IdentValue.DECIMAL_LEADING_ZERO) {
             text = (listCounter >= 10 ? "" : "0") + listCounter;
         } else { // listStyle == IdentValue.DECIMAL or anything else
@@ -74,16 +60,6 @@ public class CounterFunction {
     }
 
 
-    private static String toLatin(int val) {
-        String result = "";
-        val -= 1;
-        while (val >= 0) {
-            int letter = val % 26;
-            val = val / 26 - 1;
-            result = ((char) (letter + 65)) + result;
-        }
-        return result;
-    }
     public String evaluate() {
         if (_counterValues == null) {
             return createCounterText(_listStyleType, _counterValue);
