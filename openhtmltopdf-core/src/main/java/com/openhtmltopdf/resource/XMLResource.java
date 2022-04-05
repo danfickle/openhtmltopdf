@@ -194,8 +194,13 @@ public class XMLResource extends AbstractResource {
         private void setTranformerFactorySecurityFeatures(TransformerFactory xformFactory) {
             boolean b = true;
 
-            b &= trySetFeature(XMLConstants.ACCESS_EXTERNAL_DTD, "", xformFactory::setAttribute);
-            b &= trySetFeature(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "", xformFactory::setAttribute);
+            boolean isAccessExternalDtdFeature = xformFactory.getFeature(XMLConstants.ACCESS_EXTERNAL_DTD);
+            boolean isAccessExternalStylesheet = xformFactory.getFeature(XMLConstants.ACCESS_EXTERNAL_STYLESHEET);
+            boolean isFeatureSecureProcessing = xformFactory.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING);
+
+            b &= (isAccessExternalDtdFeature ? trySetFeature(XMLConstants.ACCESS_EXTERNAL_DTD, "", xformFactory::setAttribute) : true);
+            b &= (isAccessExternalStylesheet ? trySetFeature(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "", xformFactory::setAttribute) : true);
+            b &= (isFeatureSecureProcessing ? trySetFeature(XMLConstants.FEATURE_SECURE_PROCESSING, "", xformFactory::setAttribute) : true);
 
             if (!b) {
                 XRLog.log(Level.SEVERE, LogMessageId.LogMessageId0Param.LOAD_UNABLE_TO_DISABLE_XML_EXTERNAL_ENTITIES);
