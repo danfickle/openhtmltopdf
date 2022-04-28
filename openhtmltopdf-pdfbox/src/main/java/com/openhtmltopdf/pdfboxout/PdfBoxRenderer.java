@@ -820,23 +820,25 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
      * Sets the document information dictionary values from html metadata
      */
     private void setDidValues(PDDocument doc) {
-        PDDocumentInformation info = new PDDocumentInformation();
+        if(doc.getDocumentInformation() == null) {
+            doc.setDocumentInformation(new PDDocumentInformation());
+        }
+        final PDDocumentInformation info = doc.getDocumentInformation();
 
-        info.setCreationDate(Calendar.getInstance());
-
-        if (_producer == null) {
-            info.setProducer("openhtmltopdf.com");
-        } else {
-            info.setProducer(_producer);
+        if(info.getCreationDate() == null) {
+            info.setCreationDate(Calendar.getInstance());
+        }
+        if(info.getProducer() == null) {
+            info.setProducer(_producer == null ? "openhtmltopdf.com": _producer);
         }
 
         for (Metadata metadata : _outputDevice.getMetadata()) {
-        	String name = metadata.getName();
-			if (name.isEmpty())
-				continue;
-        	String content = metadata.getContent();
-        	if( content == null )
-        	    continue;
+            String name = metadata.getName();
+            if (name.isEmpty())
+                continue;
+            String content = metadata.getContent();
+            if( content == null )
+                continue;
             if( name.equals("title"))
                 info.setTitle(content);
             else if( name.equals("author"))
@@ -848,8 +850,6 @@ public class PdfBoxRenderer implements Closeable, PageSupplier {
             else
                 info.setCustomMetadataValue(name,content);
         }
-
-        doc.setDocumentInformation(info);
     }
     
     private void paintPageFast(RenderingContext c, PageBox page, DisplayListPageContainer pageOperations, int additionalTranslateX) {
