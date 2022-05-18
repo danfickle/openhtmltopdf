@@ -481,7 +481,8 @@ public class PdfBoxAccessibilityHelper {
             if (child instanceof TableBodyStructualElement) {
                 this.tbodies.add((TableBodyStructualElement) child);
             } else {
-                logIncompatibleChild(parent, child, TableBodyStructualElement.class);
+//              logIncompatibleChild(parent, child, TableBodyStructualElement.class);  //TODO: temp fix
+          	System.out.println("logIncompatibleChild() skip for temp error");
             }
         }
 
@@ -854,7 +855,8 @@ public class PdfBoxAccessibilityHelper {
             COSArray mcidParentReferences = new COSArray();
             
             for (GenericContentItem contentItem : pageItems) {
-                mcidParentReferences.add(contentItem.parentElem);
+            	if(contentItem.parentElem != null)//TODO: temp fix
+            		mcidParentReferences.add(contentItem.parentElem);
             }
         
             numTree.add(COSInteger.get(i));

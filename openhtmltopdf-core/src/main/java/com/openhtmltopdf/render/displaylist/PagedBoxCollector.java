@@ -981,7 +981,8 @@ public class PagedBoxCollector {
         bounds = applyOverflowClip(bounds, overflowClip);
         
         int firstPage = finder.findPageAdjusted(c, (int) bounds.getMinY());
-        int lastPage = finder.findPageAdjusted(c, (int) bounds.getMaxY());
+//      int lastPage = finder.findPageAdjusted(c, (int) bounds.getMaxY());
+        int lastPage = pages.size()-1; //TODO: temp fix when enable usePdfUaAccessbility(true) the second or third pages became blank issue.
         
         List<PageInfo> result = new ArrayList<>();
         

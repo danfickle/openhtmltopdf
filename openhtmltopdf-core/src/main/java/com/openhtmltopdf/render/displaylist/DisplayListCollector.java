@@ -117,7 +117,9 @@ public class DisplayListCollector {
 
 		List<PageInfo> layerPages = PagedBoxCollector.findLayerPages(c, layer, _pages);
 		int layerPageStart = findStartPage(c, layer);
-		int layerPageEnd = findEndPage(c, layer);
+//		int layerPageEnd = findEndPage(c, layer);   //the Y value calculate wrong when usePdfUaAccessbility(true)
+		int layerPageEnd = layerPages.size()-1; //TODO: temp fix when enable usePdfUaAccessbility(true) the second or third pages became blank issue.
+		
 		boolean pushedClip = false;
 
 		Rectangle parentClip = layer.getMaster().getParentClipBox(c, layer.getParent());
