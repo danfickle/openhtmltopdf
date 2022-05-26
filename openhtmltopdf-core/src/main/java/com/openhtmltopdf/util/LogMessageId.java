@@ -30,7 +30,7 @@ public interface LogMessageId {
         LAYOUT_ERROR_PARSING_SHAPE_COORDS(XRLog.LAYOUT, "Error while parsing shape coords"),
         LAYOUT_NO_CONTENT_LIMIT_FOUND(XRLog.LAYOUT, "No content limit found"),
         LAYOUT_BOX_HAS_NO_PAGE(XRLog.LAYOUT, "Box has no page"),
-        LAYOUT_NO_INLINE_LAYERS(XRLog.LAYOUT, "Boxes with display: inline can not be positioned or transformed, try using inline-block"),
+		LAYOUT_NO_INLINE_LAYERS(XRLog.LAYOUT, "Boxes with display: inline can not be positioned or transformed, try using inline-block"),
 
         CASCADE_IS_ABSOLUTE_CSS_UNKNOWN_GIVEN(XRLog.CASCADE, "Asked whether type was absolute, given CSS_UNKNOWN as the type. " +
                 "Might be one of those funny values like background-position."),
@@ -47,6 +47,7 @@ public interface LogMessageId {
         GENERAL_PDF_USING_GET_REQUEST_FOR_FORM(XRLog.GENERAL, "Using GET request method for form. You probably meant to add a method=\"post\" attribute to your form"),
         GENERAL_PDF_ACROBAT_READER_DOES_NOT_SUPPORT_FORMS_WITH_FILE_INPUT(XRLog.GENERAL, "Acrobat Reader does not support forms with file input controls"),
 
+        EXCEPTION_IMAGE_METADATA_COULD_NOT_BE_FOUND(XRLog.EXCEPTION, "Image metadata could not be found."),
         EXCEPTION_SVG_COULD_NOT_DRAW(XRLog.EXCEPTION, "Couldn't draw SVG."),
         EXCEPTION_SVG_COULD_NOT_READ_FONT(XRLog.EXCEPTION, "Couldn't read font"),
         EXCEPTION_MATHML_COULD_NOT_REGISTER_FONT(XRLog.EXCEPTION, "Could not register font correctly"),
