@@ -102,6 +102,11 @@
 		  <artifactId>graphics2d</artifactId>
 		  <version>0.34</version>
 	  </dependency>
+     <dependency>
+       <groupId>org.apache.commons</groupId>
+       <artifactId>commons-imaging</artifactId>
+       <version>1.0-alpha3</version>
+     </dependency>     
   </dependencies>
 
   <build>

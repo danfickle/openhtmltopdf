@@ -1,6 +1,10 @@
 package com.openhtmltopdf.pdfboxout;
 
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -10,6 +14,12 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 import com.openhtmltopdf.util.LogMessageId;
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.tiff.TiffField;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 import com.openhtmltopdf.extend.FSImage;
@@ -36,16 +46,28 @@ public class PdfBoxImage implements FSImage {
             if (readers.hasNext()) {
                 reader = readers.next();
                 reader.setInput(in);
-                _intrinsicWidth = reader.getWidth(0);
-                _intrinsicHeight = reader.getHeight(0);
+                
+                int rotation = getImageRotation(image);
+                if (rotation != 0) {
+                    BufferedImage newimg = rotateImage(reader.read(0), rotation);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ImageIO.write(newimg, "jpg", baos);
+                    _bytes = baos.toByteArray();
+                    _intrinsicWidth = newimg.getWidth();
+                    _intrinsicHeight = newimg.getHeight();
+                } else {
+                    _intrinsicWidth = reader.getWidth(0);
+                    _intrinsicHeight = reader.getHeight(0);
+                }
             } else {
                 XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.LOAD_UNRECOGNIZED_IMAGE_FORMAT_FOR_URI, uri);
                 // TODO: Avoid throw here.
                 throw new IOException("Unrecognized Image format");
             }
         } finally {
-            if (reader != null)
+            if (reader != null) {
                 reader.dispose();
+            }
         }
     }
 
@@ -132,4 +154,77 @@ public class PdfBoxImage implements FSImage {
     public String getUri() {
         return _uri;
     }
+    
+    private int getImageRotation( byte[] image ) {
+        // Get image rotation from the metadata
+        int rotation = 0;
+
+        final ImageMetadata metadata;
+        try {
+            metadata = Imaging.getMetadata(image);
+            if (metadata instanceof JpegImageMetadata) {
+                final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+                TiffField orientation = jpegMetadata.findEXIFValueWithExactMatch(TiffTagConstants.TIFF_TAG_ORIENTATION);
+                if (orientation != null) {
+                    switch ((Short) orientation.getValue()) {
+                        case TiffTagConstants.ORIENTATION_VALUE_ROTATE_180:
+                            rotation = 180;
+                            break;
+                        case TiffTagConstants.ORIENTATION_VALUE_ROTATE_270_CW:
+                            rotation = 270;
+                            break;
+                        case TiffTagConstants.ORIENTATION_VALUE_ROTATE_90_CW:
+                            rotation = 90;
+                            break;
+                        default:
+                            // No need.  We default the setting to 0...
+                            break;
+                    }
+                }
+            }
+        } catch (ImageReadException | IOException ex) {
+            XRLog.log(Level.WARNING, LogMessageId.LogMessageId0Param.EXCEPTION_IMAGE_METADATA_COULD_NOT_BE_FOUND, ex);            
+        }
+        
+        return rotation;
+    }
+
+    private static BufferedImage rotateImage(BufferedImage img, int angle) {  
+        int iw = img.getWidth();  
+        int ih = img.getHeight();
+        int rotx, roty;
+        BufferedImage rimg;
+
+        // Create a rotated image buffer and establish the center of rotation 
+        // from the rotation angle.
+        switch (angle) {
+            case 90:
+                rimg = new BufferedImage(ih, iw, img.getType());
+                rotx = roty = ih/2;
+                break;
+            case 180:
+                rimg = new BufferedImage(iw, ih, img.getType());
+                rotx = iw/2;
+                roty = ih/2;
+                break;
+            case 270:
+                rimg = new BufferedImage(ih, iw, img.getType());
+                rotx = roty = iw/2;
+                break;
+            default: 
+                // Any other angle: take no action
+                return img;
+        }
+        
+        // Perform the rotation by drawing a rotated version of the original
+        // image into the new (rotated) image buffer.
+        Graphics2D g2d = rimg.createGraphics();
+        AffineTransform transformer = new AffineTransform();
+        transformer.rotate(Math.toRadians(angle), rotx, roty);
+        g2d.drawRenderedImage(img, transformer);
+        g2d.dispose();
+        
+        return rimg;  
+    }
+
 }
