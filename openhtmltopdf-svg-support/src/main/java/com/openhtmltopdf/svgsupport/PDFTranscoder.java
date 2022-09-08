@@ -115,10 +115,11 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 		
 		private Float getStyle(IdentValue fontStyle) {
 			if (fontStyle == IdentValue.ITALIC ||
-				fontStyle == IdentValue.OBLIQUE)
+				fontStyle == IdentValue.OBLIQUE) {
 				return TextAttribute.POSTURE_OBLIQUE;
-			
-			return null;
+			}
+
+			return 0f;
 		}
 
         private Float getStyle(FontStyle style) {
@@ -171,7 +172,7 @@ public class PDFTranscoder extends SVGAbstractTranscoder {
 	        } else if (weight == IdentValue.FONT_WEIGHT_300) {
 	            return TextAttribute.WEIGHT_LIGHT;
 	        } else if (weight == IdentValue.FONT_WEIGHT_400) {
-	            return TextAttribute.WEIGHT_MEDIUM;
+	            return TextAttribute.WEIGHT_REGULAR;
 	        } else if (weight == IdentValue.FONT_WEIGHT_500) {
 	            return TextAttribute.WEIGHT_SEMIBOLD;
 	        } else if (weight == IdentValue.FONT_WEIGHT_600) {
