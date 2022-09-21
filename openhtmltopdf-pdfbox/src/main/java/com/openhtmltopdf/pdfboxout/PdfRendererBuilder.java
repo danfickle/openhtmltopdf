@@ -191,7 +191,7 @@ public class PdfRendererBuilder extends BaseRendererBuilder<PdfRendererBuilder, 
 	 * @param pdfUaAccessibility
 	 * @return this for method chaining
 	 */
-	public PdfRendererBuilder usePdfUaAccessbility(boolean pdfUaAccessibility) {
+	public PdfRendererBuilder usePdfUaAccessibility(boolean pdfUaAccessibility) {
 	    this.state._pdfUaConform = pdfUaAccessibility;
 	    return this;
 	}

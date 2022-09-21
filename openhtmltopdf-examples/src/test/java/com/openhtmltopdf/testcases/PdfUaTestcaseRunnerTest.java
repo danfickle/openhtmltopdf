@@ -47,7 +47,7 @@ public class PdfUaTestcaseRunnerTest {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
             builder.testMode(true);
-            builder.usePdfUaAccessbility(true);
+            builder.usePdfUaAccessibility(true);
             builder.useFont(new File("target/test/visual-tests/Karla-Bold.ttf"), "TestFont");
             builder.withHtmlContent(html, PdfUaTestcaseRunnerTest.class.getResource("/testcases/pdfua/").toString());
             builder.toStream(os);
