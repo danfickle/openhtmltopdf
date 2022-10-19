@@ -650,6 +650,9 @@ public class TableBox extends BlockBox {
                 RectPropertySet padding = getPadding(c);
                 result -= (int)padding.left() + (int)padding.right();
             }
+            
+            RectPropertySet margin = getMargin(c);
+            result -= (int)margin.left() + (int)margin.right();
 
             return result >= 0 ? result : -1;
         }
