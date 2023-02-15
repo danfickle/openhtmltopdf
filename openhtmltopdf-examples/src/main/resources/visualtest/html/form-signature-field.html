@@ -1,0 +1,41 @@
+<html>
+<head>
+    <style>
+        @page {
+            size: 500px 250px;
+            margin:0;padding:20px;
+        }
+        body {margin:0;padding:0;font-size:10px; font-famliy: TestFont, serif, sans-serif; }
+        div {border: 0px}
+        input[name="signature"] {
+            height: 80px;
+            width: 150px;
+            border: 0;
+            background-color: lightgrey;
+        }
+        input[name="another-signature"] {
+            width: 400px;
+            height: 2.5em;
+            border: 0;
+            border-bottom: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+<div>
+    <form>
+        <div>
+            Required signature please:
+            <input type="text" name="signature1" required="required" class="signature"/>
+        </div>
+        <div>
+
+            <input type="text" name="another-signature" title="Alternate Field Name" alt="Partial Nameeee" class="signature"/>
+            <div>Another one</div>
+        </div>
+
+    </form>
+</div>
+</body>
+</html>
