@@ -95,8 +95,8 @@ public class PdfBoxPerDocumentFormState {
         }
     }
     
-    private String getControlFont(SharedContext sharedContext, PdfBoxForm.Control ctrl) {
-        PDFont fnt = ((PdfBoxFSFont) sharedContext.getFont(ctrl.box.getStyle().getFontSpecification())).getFontDescription().get(0).getFont();
+    private String getControlFont(SharedContext sharedContext, PdfBoxForm.Control ctrl, RenderingContext renderingContext) {
+        PDFont fnt = ((PdfBoxFSFont) sharedContext.getFont(ctrl.box.getStyle().getFont(renderingContext))).getFontDescription().get(0).getFont();
         String fontName;
         
         if (!controlFonts.containsKey(fnt)) {
@@ -139,14 +139,14 @@ public class PdfBoxPerDocumentFormState {
         }
     }
     
-    public void processControls(SharedContext sharedContext, PDDocument writer, Box root) {
+    public void processControls(SharedContext sharedContext, PDDocument writer, Box root, RenderingContext renderingContext) {
         for (PdfBoxForm.Control ctrl : controls) {
             PdfBoxForm frm = findEnclosingForm(ctrl.box.getElement());
             String fontName = null;
             
             if (!ArrayUtil.isOneOf(ctrl.box.getElement().getAttribute("type"), "checkbox", "radio", "hidden")) {
                 // Need to embed a font for every control other than checkbox, radio and hidden.
-                fontName = getControlFont(sharedContext, ctrl);
+                fontName = getControlFont(sharedContext, ctrl, renderingContext);
             } else if (ctrl.box.getElement().getAttribute("type").equals("checkbox")) {
                 createCheckboxFontResource();
                 createCheckboxAppearanceStreams(writer, ctrl);
