@@ -1,11 +1,10 @@
 package com.openhtmltopdf.nonvisualregressiontests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.junit.Assert.*;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
@@ -29,6 +28,7 @@ import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -74,14 +74,14 @@ public class NonVisualRegressionTest {
 
     private static void render(String fileName, String html, BuilderConfig config) throws IOException {
         ByteArrayOutputStream actual = new ByteArrayOutputStream();
-        
+
         PdfRendererBuilder builder = new PdfRendererBuilder();
         builder.withHtmlContent(html, NonVisualRegressionTest.class.getResource(RES_PATH).toString());
         builder.toStream(actual);
         builder.useFastMode();
         builder.testMode(true);
         config.configure(builder);
-        
+
         try {
             builder.run();
         } catch (Exception e) {
@@ -101,7 +101,7 @@ public class NonVisualRegressionTest {
 
         try (InputStream is = TestcaseRunner.class.getResourceAsStream(absResPath)) {
             byte[] htmlBytes = IOUtils
-                      .toByteArray(is);
+                    .toByteArray(is);
 
             return new String(htmlBytes, StandardCharsets.UTF_8);
         }
@@ -116,7 +116,8 @@ public class NonVisualRegressionTest {
     }
 
     private static PDDocument run(String filename) throws IOException {
-        return run(filename, b -> {});
+        return run(filename, b -> {
+        });
     }
 
     private static PDDocument load(String filename) throws IOException {
@@ -131,7 +132,15 @@ public class NonVisualRegressionTest {
     private static double cssPixelsToPdfPoints(double cssPixels) {
         return cssPixels * 72d / 96d;
     }
-    
+
+    private static double cssPixelsYToPdfPoints(double cssPixels, double cssPixelsPageHeight) {
+        return cssPixelsPageHeight - cssPixelsToPdfPoints(cssPixels);
+    }
+
+    private static double pdfPointsToCssPixels(double pdfPoints) {
+        return pdfPoints * 96d / 72d;
+    }
+
     private static double cssPixelYToPdfPoints(double cssPixelsY, double cssPixelsPageHeight) {
         return cssPixelsToPdfPoints(cssPixelsPageHeight - cssPixelsY);
     }
@@ -139,22 +148,25 @@ public class NonVisualRegressionTest {
     private static class RectangleCompare extends CustomTypeSafeMatcher<PDRectangle> {
         private final PDRectangle expec;
         private final double pageHeight;
-        
+
         private RectangleCompare(PDRectangle expected, double pageHeight) {
             super("Compare Rectangles");
             this.expec = expected;
             this.pageHeight = pageHeight;
         }
-        
+
         @Override
         protected boolean matchesSafely(PDRectangle item) {
-            assertEquals(cssPixelsToPdfPoints(this.expec.getLowerLeftX()), item.getLowerLeftX(), 1.0d);
-            assertEquals(cssPixelsToPdfPoints(this.expec.getUpperRightX()), item.getUpperRightX(), 1.0d);
-            
+            String actualInCssPixels = "[" + pdfPointsToCssPixels(item.getLowerLeftX()) + "," + cssPixelsYToPdfPoints(item.getLowerLeftY(), pageHeight) + "," +
+                    pdfPointsToCssPixels(item.getUpperRightX()) + "," + cssPixelsYToPdfPoints(item.getUpperRightY(), pageHeight) + "]";
+            String message = "Dimensions do not match expected: " + this.expec.toString() + " actual: " + actualInCssPixels;
+            assertEquals(message, cssPixelsToPdfPoints(this.expec.getLowerLeftX()), item.getLowerLeftX(), 1.0d);
+            assertEquals(message, cssPixelsToPdfPoints(this.expec.getUpperRightX()), item.getUpperRightX(), 1.0d);
+
             // Note: We swap the Ys here because PDFBOX returns a rect in bottom up units while expected is in topdown units.
-            assertEquals(cssPixelYToPdfPoints(this.expec.getUpperRightY(), pageHeight), item.getLowerLeftY(), 1.0d);
-            assertEquals(cssPixelYToPdfPoints(this.expec.getLowerLeftY(), pageHeight), item.getUpperRightY(), 1.0d);
-            
+            assertEquals(message, cssPixelYToPdfPoints(this.expec.getUpperRightY(), pageHeight), item.getLowerLeftY(), 1.0d);
+            assertEquals(message, cssPixelYToPdfPoints(this.expec.getLowerLeftY(), pageHeight), item.getUpperRightY(), 1.0d);
+
             return true;
         }
     }
@@ -184,7 +196,7 @@ public class NonVisualRegressionTest {
     }
 
     /**
-     * Tests that a simple head bookmark linking to top of the second page works. 
+     * Tests that a simple head bookmark linking to top of the second page works.
      */
     @Test
     public void testBookmarkHeadSimple() throws IOException {
@@ -226,7 +238,7 @@ public class NonVisualRegressionTest {
     }
 
     /**
-     * Tests that a head bookmark linking to transformed element (by way of transform) on third page works. 
+     * Tests that a head bookmark linking to transformed element (by way of transform) on third page works.
      */
     @Test
     public void testBookmarkHeadTransform() throws IOException {
@@ -245,9 +257,9 @@ public class NonVisualRegressionTest {
             remove("bookmark-head-transform", doc);
         }
     }
-    
+
     /**
-     * Tests that a head bookmark linking to element (on overflow page). 
+     * Tests that a head bookmark linking to element (on overflow page).
      */
     @Test
     public void testBookmarkHeadOnOverflowPage() throws IOException {
@@ -268,7 +280,7 @@ public class NonVisualRegressionTest {
     }
 
     /**
-     * Tests that a head bookmark linking to an inline element (on page after overflow page) works. 
+     * Tests that a head bookmark linking to an inline element (on page after overflow page) works.
      */
     @Test
     public void testBookmarkHeadAfterOverflowPage() throws IOException {
@@ -287,9 +299,9 @@ public class NonVisualRegressionTest {
             remove("bookmark-head-after-overflow-page", doc);
         }
     }
-    
+
     /**
-     * Tests that a nested head bookmark linking to top of the third page works. 
+     * Tests that a nested head bookmark linking to top of the third page works.
      */
     @Test
     public void testBookmarkHeadNested() throws IOException {
@@ -338,7 +350,7 @@ public class NonVisualRegressionTest {
      * + Pseudos (::footnote-call, ::footnote-marker, ::before, ::after) with float: footnote.
      * + Pseudos in footnotes with position: fixed.
      * + Invalid styles in the footnote at-rule such as position: fixed.
-     * 
+     * <p>
      * Primarily to check that these scenarios do not cause infinite loop
      * or out-of-memory and ideally don't throw exceptions.
      * Bad footnote content is not supported and will not produce expected results.
@@ -381,7 +393,7 @@ public class NonVisualRegressionTest {
             remove("form-control-text", doc);
         }
     }
-    
+
     /**
      * Tests the positioning, size, name and value of a form control on an overflow page.
      */
@@ -404,10 +416,51 @@ public class NonVisualRegressionTest {
             assertEquals("text-input", field.getFullyQualifiedName());
             assertEquals("Hello World!", field.getValue());
 
+
             remove("form-control-overflow-page", doc);
         }
     }
-    
+
+    /**
+     * Tests the positioning, size, name and value of a form control on an overflow page.
+     */
+    @Test
+    public void testFormControlOnSecondPage() throws IOException {
+        try (PDDocument doc = run("form-control-on-second-page")) {
+
+            PDPage page0 = doc.getPage(0);
+            PDPage page1 = doc.getPage(1);
+            PDPage page2 = doc.getPage(2);
+
+            assertEquals(1, page0.getAnnotations().size());
+            assertEquals(1, page1.getAnnotations().size());
+            assertEquals(0, page2.getAnnotations().size());
+
+            assertThat(page0.getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
+            assertThat(page1.getAnnotations().get(0), instanceOf(PDAnnotationWidget.class));
+
+            PDRectangle rectangle0 = page0.getAnnotations().get(0).getRectangle();
+            assertTrue(page0.getMediaBox().contains(rectangle0.getLowerLeftX(), rectangle0.getLowerLeftY()));
+            assertTrue(page0.getMediaBox().contains(rectangle0.getUpperRightX(), rectangle0.getUpperRightY()));
+
+            PDRectangle rectangle1 = page1.getAnnotations().get(0).getRectangle();
+            assertTrue(page1.getMediaBox().contains(rectangle1.getLowerLeftX(), rectangle1.getLowerLeftY()));
+            assertTrue(page1.getMediaBox().contains(rectangle1.getUpperRightX(), rectangle1.getUpperRightY()));
+
+            PDAcroForm form = doc.getDocumentCatalog().getAcroForm();
+            assertEquals(2, form.getFields().size());
+            assertThat(form.getFields().get(0), instanceOf(PDTextField.class));
+            assertThat(form.getFields().get(1), instanceOf(PDTextField.class));
+
+            PDTextField field = (PDTextField) form.getFields().get(0);
+            assertEquals("Hello World!", field.getValue());
+            PDTextField field2 = (PDTextField) form.getFields().get(1);
+            assertEquals("Hello Second World!", field2.getValue());
+
+            remove("form-control-on-second-page", doc);
+        }
+    }
+
     /**
      * Tests the positioning, size, name and value of a form control appearing after an overflow page.
      */
@@ -439,7 +492,7 @@ public class NonVisualRegressionTest {
      * Check that an input without name attribute does not launch a NPE.
      * Will now log a warning message.
      * See issue: https://github.com/danfickle/openhtmltopdf/issues/151
-     *
+     * <p>
      * Additionally, check that a select element without options will not launch a NPE too.
      */
     @Test
@@ -485,6 +538,7 @@ public class NonVisualRegressionTest {
     }
 
     private static final float QUAD_DELTA = 0.5f;
+
     private static boolean qAssert(List<float[]> expectedList, float[] actual, StringBuilder sb, int pg, int linkIndex) {
         sb.append("PAGE: " + pg + ", LINK: " + linkIndex + "\n");
         sb.append("   ACT(" + actual.length + "): " + print(actual) + "\n");
@@ -524,24 +578,24 @@ public class NonVisualRegressionTest {
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(doc);
 
-            String expected = 
-               IntStream.rangeClosed(1, 9)
-                        .mapToObj(i -> "Line " + i + "\r\n")
-                        .collect(Collectors.joining()) +
-            "This is \r\n" + 
-            "some \r\n" + 
-            "flowing \r\n" + 
-            "text that \r\n" + 
-            "should not \r\n" + 
-            "repeat in \r\n" + 
-            "page \r\n" + 
-            "margins.\r\n" +
-            "1.  \r\n" + 
-            "2.  \r\n" + 
-            "3.  \r\n" + 
-            "One\r\n" + 
-            "Two\r\n" + 
-            "Three";
+            String expected =
+                    IntStream.rangeClosed(1, 9)
+                            .mapToObj(i -> "Line " + i + "\r\n")
+                            .collect(Collectors.joining()) +
+                            "This is \r\n" +
+                            "some \r\n" +
+                            "flowing \r\n" +
+                            "text that \r\n" +
+                            "should not \r\n" +
+                            "repeat in \r\n" +
+                            "page \r\n" +
+                            "margins.\r\n" +
+                            "1.  \r\n" +
+                            "2.  \r\n" +
+                            "3.  \r\n" +
+                            "One\r\n" +
+                            "Two\r\n" +
+                            "Three";
 
             String normalizedExpected = expected.replaceAll("(\\r|\\n)", "");
             String normalizedActual = text.replaceAll("(\\r|\\n)", "");
@@ -577,12 +631,12 @@ public class NonVisualRegressionTest {
             List<float[]> page1 = new ArrayList<>();
             boolean failure = false;
 
-            page0.add(new float[] { 486.75f, 251.25f, 468.0f, 213.75f, 486.75f, 213.75f, 505.5f, 213.75f, 486.75f, 251.25f, 505.5f, 213.75f, 496.125f, 232.5f, 486.75f, 251.25f });
-            page0.add(new float[] { 449.25f, 270.0f, 449.25f, 251.25f, 458.625f, 251.25f, 468.0f, 251.25f, 449.25f, 270.0f, 468.0f, 251.25f, 468.0f, 260.625f, 468.0f, 270.0f });
-            page0.add(new float[] { 505.5f, 213.75f, 505.5f, 195.0f, 514.875f, 195.0f, 524.25f, 195.0f, 505.5f, 213.75f, 524.25f, 195.0f, 524.25f, 204.375f, 524.25f, 213.75f });
-            page0.add(new float[] { 243.0f, 203.25f, 243.0f, 128.25f, 280.5f, 128.25f, 318.0f, 128.25f, 243.0f, 203.25f, 318.0f, 128.25f, 318.0f, 165.75f, 318.0f, 203.25f });
-            page0.add(new float[] { 168.0f, 353.25f, 93.0f, 203.25f, 168.0f, 203.25f, 243.0f, 203.25f, 168.0f, 353.25f, 243.0f, 203.25f, 205.5f, 278.25f, 168.0f, 353.25f });
-            page0.add(new float[] { 18.0f, 428.25f, 18.0f, 353.25f, 55.5f, 353.25f, 93.0f, 353.25f, 18.0f, 428.25f, 93.0f, 353.25f, 93.0f, 390.75f, 93.0f, 428.25f });
+            page0.add(new float[]{486.75f, 251.25f, 468.0f, 213.75f, 486.75f, 213.75f, 505.5f, 213.75f, 486.75f, 251.25f, 505.5f, 213.75f, 496.125f, 232.5f, 486.75f, 251.25f});
+            page0.add(new float[]{449.25f, 270.0f, 449.25f, 251.25f, 458.625f, 251.25f, 468.0f, 251.25f, 449.25f, 270.0f, 468.0f, 251.25f, 468.0f, 260.625f, 468.0f, 270.0f});
+            page0.add(new float[]{505.5f, 213.75f, 505.5f, 195.0f, 514.875f, 195.0f, 524.25f, 195.0f, 505.5f, 213.75f, 524.25f, 195.0f, 524.25f, 204.375f, 524.25f, 213.75f});
+            page0.add(new float[]{243.0f, 203.25f, 243.0f, 128.25f, 280.5f, 128.25f, 318.0f, 128.25f, 243.0f, 203.25f, 318.0f, 128.25f, 318.0f, 165.75f, 318.0f, 203.25f});
+            page0.add(new float[]{168.0f, 353.25f, 93.0f, 203.25f, 168.0f, 203.25f, 243.0f, 203.25f, 168.0f, 353.25f, 243.0f, 203.25f, 205.5f, 278.25f, 168.0f, 353.25f});
+            page0.add(new float[]{18.0f, 428.25f, 18.0f, 353.25f, 55.5f, 353.25f, 93.0f, 353.25f, 18.0f, 428.25f, 93.0f, 353.25f, 93.0f, 390.75f, 93.0f, 428.25f});
 
             failure |= qAssert(page0, getQuadPoints(doc, 0, 0), sb, 0, 0);
             failure |= qAssert(page0, getQuadPoints(doc, 0, 1), sb, 0, 1);
@@ -591,12 +645,12 @@ public class NonVisualRegressionTest {
             failure |= qAssert(page0, getQuadPoints(doc, 0, 4), sb, 0, 4);
             failure |= qAssert(page0, getQuadPoints(doc, 0, 5), sb, 0, 5);
 
-            page1.add(new float[] { 486.75f, 251.25f, 468.0f, 213.75f, 486.75f, 213.75f, 505.5f, 213.75f, 486.75f, 251.25f, 505.5f, 213.75f, 496.125f, 232.5f, 486.75f, 251.25f });
-            page1.add(new float[] { 449.25f, 270.0f, 449.25f, 251.25f, 458.625f, 251.25f, 468.0f, 251.25f, 449.25f, 270.0f, 468.0f, 251.25f, 468.0f, 260.625f, 468.0f, 270.0f });
-            page1.add(new float[] { 505.5f, 213.75f, 505.5f, 195.0f, 514.875f, 195.0f, 524.25f, 195.0f, 505.5f, 213.75f, 524.25f, 195.0f, 524.25f, 204.375f, 524.25f, 213.75f });
-            page1.add(new float[] { 243.0f, 209.25f, 243.0f, 134.25f, 280.5f, 134.25f, 318.0f, 134.25f, 243.0f, 209.25f, 318.0f, 134.25f, 318.0f, 171.75f, 318.0f, 209.25f });
-            page1.add(new float[] { 168.0f, 359.25f, 93.0f, 209.25f, 168.0f, 209.25f, 243.0f, 209.25f, 168.0f, 359.25f, 243.0f, 209.25f, 205.5f, 284.25f, 168.0f, 359.25f });
-            page1.add(new float[] { 18.0f, 434.25f, 18.0f, 359.25f, 55.5f, 359.25f, 93.0f, 359.25f, 18.0f, 434.25f, 93.0f, 359.25f, 93.0f, 396.75f, 93.0f, 434.25f });
+            page1.add(new float[]{486.75f, 251.25f, 468.0f, 213.75f, 486.75f, 213.75f, 505.5f, 213.75f, 486.75f, 251.25f, 505.5f, 213.75f, 496.125f, 232.5f, 486.75f, 251.25f});
+            page1.add(new float[]{449.25f, 270.0f, 449.25f, 251.25f, 458.625f, 251.25f, 468.0f, 251.25f, 449.25f, 270.0f, 468.0f, 251.25f, 468.0f, 260.625f, 468.0f, 270.0f});
+            page1.add(new float[]{505.5f, 213.75f, 505.5f, 195.0f, 514.875f, 195.0f, 524.25f, 195.0f, 505.5f, 213.75f, 524.25f, 195.0f, 524.25f, 204.375f, 524.25f, 213.75f});
+            page1.add(new float[]{243.0f, 209.25f, 243.0f, 134.25f, 280.5f, 134.25f, 318.0f, 134.25f, 243.0f, 209.25f, 318.0f, 134.25f, 318.0f, 171.75f, 318.0f, 209.25f});
+            page1.add(new float[]{168.0f, 359.25f, 93.0f, 209.25f, 168.0f, 209.25f, 243.0f, 209.25f, 168.0f, 359.25f, 243.0f, 209.25f, 205.5f, 284.25f, 168.0f, 359.25f});
+            page1.add(new float[]{18.0f, 434.25f, 18.0f, 359.25f, 55.5f, 359.25f, 93.0f, 359.25f, 18.0f, 434.25f, 93.0f, 359.25f, 93.0f, 396.75f, 93.0f, 434.25f});
 
             failure |= qAssert(page1, getQuadPoints(doc, 1, 0), sb, 1, 0);
             failure |= qAssert(page1, getQuadPoints(doc, 1, 1), sb, 1, 1);
@@ -651,16 +705,16 @@ public class NonVisualRegressionTest {
     @Test
     public void testIssue364FootnotesDeepNesting() throws IOException {
         Function<String, String> deeper = (tag) ->
-          IntStream.range(0, 50)
-            .mapToObj(u -> tag)
-            .collect(Collectors.joining());
+                IntStream.range(0, 50)
+                        .mapToObj(u -> tag)
+                        .collect(Collectors.joining());
 
-        String[][] tags = new String[][] {
-            { "<div>", "</div>" },
-            { "<span>", "</span>" },
-            { "<div style=\"position: absolute;\">", "</div>" },
-            { "<td>", "</td>" },
-            { "<div style=\"float: left;\">", "</div>" },
+        String[][] tags = new String[][]{
+                {"<div>", "</div>"},
+                {"<span>", "</span>"},
+                {"<div style=\"position: absolute;\">", "</div>"},
+                {"<td>", "</td>"},
+                {"<div style=\"float: left;\">", "</div>"},
         };
 
         StringBuilder sb = new StringBuilder();
@@ -710,7 +764,7 @@ public class NonVisualRegressionTest {
      */
     private static void createCombinationTest(
             StringBuilder sb, int widthPx, String whiteSpace, String wordWrap, List<char[]> all, Random rndm, int testCharCount) {
-        String start = String.format(Locale.US, "<div style=\"white-space: %s; word-wrap: %s; width: %dpx;\">", 
+        String start = String.format(Locale.US, "<div style=\"white-space: %s; word-wrap: %s; width: %dpx;\">",
                 whiteSpace, wordWrap, widthPx);
         String end = "</div>";
 
@@ -738,34 +792,34 @@ public class NonVisualRegressionTest {
      * which have special meaning to the line breaking algorithms.
      */
     private static List<char[]> createAllCombinations() {
-        char[] chars = new char[] { 'x', '\u00ad', '\n', '\r', ' ' };
+        char[] chars = new char[]{'x', '\u00ad', '\n', '\r', ' '};
         int[] loopIndices = new int[chars.length];
         int totalCombinations = (int) Math.pow(loopIndices.length, loopIndices.length);
 
         List<char[]> ret = new ArrayList<>(totalCombinations);
 
         for (int i = 0; i < totalCombinations; i++) {
-                char[] result = new char[loopIndices.length];
+            char[] result = new char[loopIndices.length];
 
-                for (int k = 0; k < loopIndices.length; k++) {
-                    char ch = chars[loopIndices[k]];
-                    result[k] = ch;
+            for (int k = 0; k < loopIndices.length; k++) {
+                char ch = chars[loopIndices[k]];
+                result[k] = ch;
+            }
+
+            ret.add(result);
+
+            boolean carry = true;
+            for (int j = loopIndices.length - 1; j >= 0; j--) {
+                if (carry) {
+                    loopIndices[j]++;
+                    carry = false;
                 }
 
-                ret.add(result);
-
-                boolean carry = true;
-                for (int j = loopIndices.length - 1; j >= 0; j--) {
-                    if (carry) {
-                        loopIndices[j]++;
-                        carry = false;
-                    }
-
-                    if (loopIndices[j] >= chars.length) {
-                        loopIndices[j] = 0;
-                        carry = true;
-                    }
+                if (loopIndices[j] >= chars.length) {
+                    loopIndices[j] = 0;
+                    carry = true;
                 }
+            }
         }
 
         return ret;
@@ -777,14 +831,14 @@ public class NonVisualRegressionTest {
      */
     @Test
     public void testPr492InfiniteLoopBugsInLineBreakingFuzz() throws IOException {
-        final String[] whiteSpace = new String[] { "normal", "pre", "nowrap", "pre-wrap", "pre-line" };
-        final String[] wordWrap = new String[] { "normal", "break-word" };
+        final String[] whiteSpace = new String[]{"normal", "pre", "nowrap", "pre-wrap", "pre-line"};
+        final String[] wordWrap = new String[]{"normal", "break-word"};
         final List<char[]> all = createAllCombinations();
         final Random rndm = new Random();
         long seed = rndm.nextLong();
 
         System.out.println("For NonVisualRegressionTest::testPr492InfiniteLoopBugsInLineBreakingFuzz " +
-              "using a random seed of " + seed + " for Random instance.");
+                "using a random seed of " + seed + " for Random instance.");
         rndm.setSeed(seed);
 
         List<Integer> lengths = new ArrayList<>();
@@ -800,7 +854,7 @@ public class NonVisualRegressionTest {
             for (int j = 0; j < whiteSpace.length; j++) {
                 for (int k = 0; k < wordWrap.length; k++) {
                     for (Integer len : lengths) {
-                         createCombinationTest(sb, i, whiteSpace[j], wordWrap[k], all, rndm, len);
+                        createCombinationTest(sb, i, whiteSpace[j], wordWrap[k], all, rndm, len);
                     }
                 }
             }
@@ -828,16 +882,16 @@ public class NonVisualRegressionTest {
         }
 
         Assert.assertTrue(
-             logs.stream()
-                 .noneMatch(diag -> diag.getLogMessageId() == LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI));
+                logs.stream()
+                        .noneMatch(diag -> diag.getLogMessageId() == LogMessageId.LogMessageId1Param.EXCEPTION_CANT_READ_IMAGE_FILE_FOR_URI));
 
         Assert.assertTrue(
-             logs.stream()
-                 .anyMatch(diag -> diag.getLogMessageId() == LogMessageId.LogMessageId2Param.CSS_PARSE_GENERIC_MESSAGE));
+                logs.stream()
+                        .anyMatch(diag -> diag.getLogMessageId() == LogMessageId.LogMessageId2Param.CSS_PARSE_GENERIC_MESSAGE));
 
         Assert.assertTrue(
-              logs.stream()
-                  .allMatch(diag -> !diag.getFormattedMessage().isEmpty()));
+                logs.stream()
+                        .allMatch(diag -> !diag.getFormattedMessage().isEmpty()));
     }
 
     @Test
