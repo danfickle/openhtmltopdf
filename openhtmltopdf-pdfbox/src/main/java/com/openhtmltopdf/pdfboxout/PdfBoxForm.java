@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.openhtmltopdf.render.PageBox;
 import com.openhtmltopdf.util.LogMessageId;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -100,6 +101,7 @@ public class PdfBoxForm {
     public static class Control {
         public final Box box;
         private final PDPage page;
+        private final PageBox pageBox;
         private final AffineTransform transform;
         private final RenderingContext c;
         private final float pageHeight;
@@ -110,6 +112,7 @@ public class PdfBoxForm {
             this.transform = transform;
             this.c = c;
             this.pageHeight = pageHeight;
+            this.pageBox = c.getPage();
         }
     }
 
@@ -187,45 +190,45 @@ public class PdfBoxForm {
      * It should be called after all the PDField objects are created.
      */
     private void createNonTerminalFields(Field f, PDAcroForm form) {
-            if (!f.isTerminal) {
-                COSArray kids = new COSArray();
+        if (!f.isTerminal) {
+            COSArray kids = new COSArray();
 
-                for (Field f2 : allFieldMap.values()) {
-                    if (f2.qualifiedName.indexOf(f.qualifiedName) == 0 &&                          // Its a descendant or identical.
+            for (Field f2 : allFieldMap.values()) {
+                if (f2.qualifiedName.indexOf(f.qualifiedName) == 0 &&                          // Its a descendant or identical.
                         f2.qualifiedName.length() > f.qualifiedName.length() + 1 &&                // Its not identical.
                         !f2.qualifiedName.substring(f.qualifiedName.length() + 1).contains(".")) { // Its a direct child.
 
-                        kids.add(f2.field.getCOSObject());
-                        f2.field.getCOSObject().setItem(COSName.PARENT, f.field.getCOSObject());
-                        createNonTerminalFields(f2, form);
-                    }
+                    kids.add(f2.field.getCOSObject());
+                    f2.field.getCOSObject().setItem(COSName.PARENT, f.field.getCOSObject());
+                    createNonTerminalFields(f2, form);
                 }
-
-
-                f.field.getCOSObject().setItem(COSName.KIDS, kids);
             }
-      }
 
-      /**
-       * Calls createNonTerminalFields on all root non-terminal fields.
-       * Otherwise, root fields are added to the acro form field collection.
-       */
-      private void createNonTerminalFields(PDAcroForm form) {
-          for (Field f : allFieldMap.values()) {
-              if (!f.isTerminal) {
-                  PDNonTerminalField nonTerminal = new PDNonTerminalField(form);
-                  nonTerminal.setPartialName(f.partialName);
-                  f.field = nonTerminal;
-              }
-          }
 
-          for (Field f : allFieldMap.values()) {
-              if (!f.qualifiedName.contains(".")) {
-                  createNonTerminalFields(f, form);
-                  form.getFields().add(f.field);
-              }
-          }
-      }
+            f.field.getCOSObject().setItem(COSName.KIDS, kids);
+        }
+    }
+
+    /**
+     * Calls createNonTerminalFields on all root non-terminal fields.
+     * Otherwise, root fields are added to the acro form field collection.
+     */
+    private void createNonTerminalFields(PDAcroForm form) {
+        for (Field f : allFieldMap.values()) {
+            if (!f.isTerminal) {
+                PDNonTerminalField nonTerminal = new PDNonTerminalField(form);
+                nonTerminal.setPartialName(f.partialName);
+                f.field = nonTerminal;
+            }
+        }
+
+        for (Field f : allFieldMap.values()) {
+            if (!f.qualifiedName.contains(".")) {
+                createNonTerminalFields(f, form);
+                form.getFields().add(f.field);
+            }
+        }
+    }
 
     /**
      * Get a PDF graphics operator for a specific color.
@@ -241,9 +244,9 @@ public class PdfBoxForm {
 
             colorOperator =
                     String.format(Locale.US, "%.4f", r) + ' ' +
-                    String.format(Locale.US, "%.4f", g) + ' ' +
-                    String.format(Locale.US, "%.4f", b) + ' ' +
-                    "rg";
+                            String.format(Locale.US, "%.4f", g) + ' ' +
+                            String.format(Locale.US, "%.4f", b) + ' ' +
+                            "rg";
         } else if (color instanceof FSCMYKColor) {
             FSCMYKColor cmyk = (FSCMYKColor) color;
             float c = cmyk.getCyan();
@@ -253,10 +256,10 @@ public class PdfBoxForm {
 
             colorOperator =
                     String.format(Locale.US, "%.4f", c) + ' ' +
-                    String.format(Locale.US, "%.4f", m) + ' ' +
-                    String.format(Locale.US, "%.4f", y) + ' ' +
-                    String.format(Locale.US, "%.4f", k) + ' ' +
-                    "k";
+                            String.format(Locale.US, "%.4f", m) + ' ' +
+                            String.format(Locale.US, "%.4f", y) + ' ' +
+                            String.format(Locale.US, "%.4f", k) + ' ' +
+                            "k";
         }
 
         return colorOperator;
@@ -338,10 +341,10 @@ public class PdfBoxForm {
 
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-		Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
-				root, od);
-		PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
-				(float) rect2D.getWidth(), (float) rect2D.getHeight());
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
+                ctrl.pageBox, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
+                (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
         widget.setPage(ctrl.page);
@@ -353,8 +356,8 @@ public class PdfBoxForm {
     /**
      * Processes select controls and the custom openhtmltopdf-combo control.
      */
-	private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root)
-			throws IOException {
+    private void processSelectControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root)
+            throws IOException {
         PDComboBox field = new PDComboBox(acro);
 
         setPartialNameToField(ctrl, field);
@@ -392,10 +395,10 @@ public class PdfBoxForm {
 
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-		Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
-				root, od);
-		PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
-				(float) rect2D.getWidth(), (float) rect2D.getHeight());
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
+                ctrl.pageBox, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
+                (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
         widget.setPage(ctrl.page);
@@ -404,8 +407,8 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widget);
     }
 
-	private void processHiddenControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root)
-			throws IOException {
+    private void processHiddenControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root)
+            throws IOException {
         PDTextField field = new PDTextField(acro);
 
         setPartialNameToField(ctrl, field);
@@ -423,8 +426,8 @@ public class PdfBoxForm {
         ctrl.page.getAnnotations().add(widgy);
     }
 
-	private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root)
-			throws IOException {
+    private void processTextControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root)
+            throws IOException {
         PDTextField field = new PDTextField(acro);
 
         setPartialNameToField(ctrl, field);
@@ -459,8 +462,8 @@ public class PdfBoxForm {
         } else if (ctrl.box.getElement().getAttribute("type").equals("password")) {
             field.setPassword(true);
         } else if (ctrl.box.getElement().getAttribute("type").equals("file")) {
-			XRLog.log(Level.WARNING,
-					LogMessageId.LogMessageId0Param.GENERAL_PDF_ACROBAT_READER_DOES_NOT_SUPPORT_FORMS_WITH_FILE_INPUT);
+            XRLog.log(Level.WARNING,
+                    LogMessageId.LogMessageId0Param.GENERAL_PDF_ACROBAT_READER_DOES_NOT_SUPPORT_FORMS_WITH_FILE_INPUT);
             field.setFileSelect(true);
         }
 
@@ -470,46 +473,46 @@ public class PdfBoxForm {
 
         PDAnnotationWidget widget = field.getWidgets().get(0);
 
-		Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
-				root, od);
-		PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
-				(float) rect2D.getWidth(), (float) rect2D.getHeight());
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
+                ctrl.pageBox, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
+                (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
-		widget.setRectangle(rect);
-		widget.setPage(ctrl.page);
-		widget.setPrinted(true);
+        widget.setRectangle(rect);
+        widget.setPage(ctrl.page);
+        widget.setPrinted(true);
 
-		ctrl.page.getAnnotations().add(widget);
-	}
+        ctrl.page.getAnnotations().add(widget);
+    }
 
-	private void processSignatureControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root)
-			throws IOException {
-		PDSignatureField field = new PDSignatureField(acro);
+    private void processSignatureControl(ControlFontPair pair, Control ctrl, PDAcroForm acro, int i, Box root)
+            throws IOException {
+        PDSignatureField field = new PDSignatureField(acro);
 
-		setPartialNameToField(ctrl, field);
+        setPartialNameToField(ctrl, field);
 
+        if (ctrl.box.getElement().hasAttribute("required")) {
+            field.setRequired(true);
+        }
 
-		if (ctrl.box.getElement().hasAttribute("required")) {
-			field.setRequired(true);
-		}
+        if (ctrl.box.getElement().hasAttribute("readonly")) {
+            field.setReadOnly(true);
+        }
 
-		if (ctrl.box.getElement().hasAttribute("readonly")) {
-			field.setReadOnly(true);
-		}
+        if (ctrl.box.getElement().hasAttribute("title")) {
+            field.setAlternateFieldName(ctrl.box.getElement().getAttribute("title"));
+        }
+        if (ctrl.box.getElement().hasAttribute("alt")) {
+            field.setPartialName(ctrl.box.getElement().getAttribute("alt"));
+        }
 
-		if (ctrl.box.getElement().hasAttribute("title")) {
-			field.setAlternateFieldName(ctrl.box.getElement().getAttribute("title"));
-		}
-		if (ctrl.box.getElement().hasAttribute("alt")) {
-			field.setPartialName(ctrl.box.getElement().getAttribute("alt"));
-		}
+        PDAnnotationWidget widget = field.getWidgets().get(0);
 
-		PDAnnotationWidget widget = field.getWidgets().get(0);
-
-		Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
-				root, od);
-		PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
-				(float) rect2D.getWidth(), (float) rect2D.getHeight());
+        RenderingContext renderingContext = ctrl.c;
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(renderingContext, ctrl.box, ctrl.pageHeight, ctrl.transform,
+                ctrl.pageBox, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
+                (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
         widget.setPage(ctrl.page);
@@ -563,10 +566,10 @@ public class PdfBoxForm {
     /**
      * Creates a checkbox appearance stream. Uses an ordinal of the zapf dingbats font for the check mark.
      */
-	public static PDAppearanceStream createCheckboxAppearance(CheckboxStyle style, PDDocument doc,
-			PDResources resources) {
-		String appear = "q\n" + "BT\n" + "1 0 0 1 15 20 Tm\n" + "/OpenHTMLZap 100 Tf\n" + "(" + (char) style.caption
-				+ ") Tj\n" + "ET\n" + "Q\n";
+    public static PDAppearanceStream createCheckboxAppearance(CheckboxStyle style, PDDocument doc,
+                                                              PDResources resources) {
+        String appear = "q\n" + "BT\n" + "1 0 0 1 15 20 Tm\n" + "/OpenHTMLZap 100 Tf\n" + "(" + (char) style.caption
+                + ") Tj\n" + "ET\n" + "Q\n";
 
         return createCheckboxAppearance(appear, doc, resources);
     }
@@ -574,7 +577,7 @@ public class PdfBoxForm {
     public static PDAppearanceStream createCheckboxAppearance(String appear, PDDocument doc, PDResources resources) {
         PDAppearanceStream s = new PDAppearanceStream(doc);
         s.setBBox(new PDRectangle(100f, 100f));
-        try (OutputStream os = s.getContentStream().createOutputStream()){
+        try (OutputStream os = s.getContentStream().createOutputStream()) {
             os.write(appear.getBytes(StandardCharsets.US_ASCII));
         } catch (IOException e) {
             throw new PdfContentStreamAdapter.PdfException("createCheckboxAppearance", e);
@@ -589,9 +592,9 @@ public class PdfBoxForm {
         ByteArrayOutputStream out = new ByteArrayOutputStream(data.length + 2);
         out.write(0xFE); // BOM
         out.write(0xFF); // BOM
-		try {
+        try {
             out.write(data);
-		} catch (IOException e) {
+        } catch (IOException e) {
             // should never happen
             throw new RuntimeException(e);
         }
@@ -600,8 +603,8 @@ public class PdfBoxForm {
         return valueEncoded;
     }
 
-	private void processCheckboxControl(ControlFontPair pair, PDAcroForm acro, int i, Control ctrl, Box root)
-			throws IOException {
+    private void processCheckboxControl(ControlFontPair pair, PDAcroForm acro, int i, Control ctrl, Box root)
+            throws IOException {
         PDCheckBox field = new PDCheckBox(acro);
 
         setPartialNameToField(ctrl, field);
@@ -633,15 +636,15 @@ public class PdfBoxForm {
             field.getCOSObject().setItem(COSName.V, zero);
             field.getCOSObject().setItem(COSName.DV, zero);
         } else {
-           field.getCOSObject().setItem(COSName.AS, COSName.Off);
-           field.getCOSObject().setItem(COSName.V, COSName.Off);
-           field.getCOSObject().setItem(COSName.DV, COSName.Off);
+            field.getCOSObject().setItem(COSName.AS, COSName.Off);
+            field.getCOSObject().setItem(COSName.V, COSName.Off);
+            field.getCOSObject().setItem(COSName.DV, COSName.Off);
         }
 
-		Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
-				root, od);
-		PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
-				(float) rect2D.getWidth(), (float) rect2D.getHeight());
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
+                ctrl.pageBox, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
+                (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         PDAnnotationWidget widget = field.getWidgets().get(0);
         widget.setRectangle(rect);
@@ -650,8 +653,8 @@ public class PdfBoxForm {
 
         CheckboxStyle style = CheckboxStyle.fromIdent(ctrl.box.getStyle().getIdent(CSSName.FS_CHECKBOX_STYLE));
 
-		PDAppearanceCharacteristicsDictionary appearanceCharacteristics = new PDAppearanceCharacteristicsDictionary(
-				new COSDictionary());
+        PDAppearanceCharacteristicsDictionary appearanceCharacteristics = new PDAppearanceCharacteristicsDictionary(
+                new COSDictionary());
         appearanceCharacteristics.setNormalCaption(String.valueOf((char) style.caption));
         widget.setAppearanceCharacteristics(appearanceCharacteristics);
 
@@ -672,13 +675,13 @@ public class PdfBoxForm {
         Field fObj = allFieldMap.get(groupName);
         setPartialNameToField(group.get(0).box.getElement(), fObj, field);
 
-		List<String> values = group.stream().map(ctrl -> ctrl.box.getElement().getAttribute("value"))
-                     .collect(Collectors.toList());
+        List<String> values = group.stream().map(ctrl -> ctrl.box.getElement().getAttribute("value"))
+                .collect(Collectors.toList());
         field.setExportValues(values);
 
         // We can not make individual members of the group readonly so only make
         // all radio buttons in group readonly if they are all marked readonly.
-		boolean readonly = group.stream().allMatch(ctrl -> ctrl.box.getElement().hasAttribute("readonly"));
+        boolean readonly = group.stream().allMatch(ctrl -> ctrl.box.getElement().hasAttribute("readonly"));
         field.setReadOnly(readonly);
 
         List<PDAnnotationWidget> widgets = new ArrayList<>(group.size());
@@ -686,10 +689,10 @@ public class PdfBoxForm {
         int radioCnt = 0;
 
         for (Control ctrl : group) {
-			Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight,
-					ctrl.transform, root, od);
-			PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
-					(float) rect2D.getWidth(), (float) rect2D.getHeight());
+            Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight,
+                    ctrl.transform, ctrl.pageBox, od);
+            PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
+                    (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
             PDAnnotationWidget widget = new PDAnnotationWidget();
 
@@ -721,7 +724,7 @@ public class PdfBoxForm {
 
         for (Control ctrl : group) {
             if (ctrl.box.getElement().hasAttribute("checked")) {
-               field.setValue(ctrl.box.getElement().getAttribute("value"));
+                field.setValue(ctrl.box.getElement().getAttribute("value"));
             }
         }
     }
@@ -759,10 +762,10 @@ public class PdfBoxForm {
 
         PDAnnotationWidget widget = btn.getWidgets().get(0);
 
-		Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
-				root, od);
-		PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
-				(float) rect2D.getWidth(), (float) rect2D.getHeight());
+        Rectangle2D rect2D = PdfBoxFastLinkManager.createTargetArea(ctrl.c, ctrl.box, ctrl.pageHeight, ctrl.transform,
+                ctrl.pageBox, od);
+        PDRectangle rect = new PDRectangle((float) rect2D.getMinX(), (float) rect2D.getMinY(),
+                (float) rect2D.getWidth(), (float) rect2D.getHeight());
 
         widget.setRectangle(rect);
         widget.setPage(ctrl.page);
@@ -777,8 +780,8 @@ public class PdfBoxForm {
         if (ctrl.box.getElement().getAttribute("type").equals("reset")) {
             PDActionResetForm reset = new PDActionResetForm();
             reset.setFields(fieldsToInclude.getCOSArray());
-			widget.setAction(reset);
-			;
+            widget.setAction(reset);
+            ;
         } else {
             PDFileSpecification fs = PDFileSpecification.createFS(new COSString(element.getAttribute("action")));
             PDActionSubmitForm submit = new PDActionSubmitForm();
@@ -826,7 +829,7 @@ public class PdfBoxForm {
     public int process(PDAcroForm acro, int startId, Box root) throws IOException {
         processControlNames();
 
-        int  i = startId;
+        int i = startId;
 
         for (ControlFontPair pair : controls) {
             i++;
@@ -835,37 +838,37 @@ public class PdfBoxForm {
             Element e = ctrl.box.getElement();
 
 
-			if ((e.getNodeName().equals("input") && e.getAttribute("type").equals("text")
-					&& e.getAttribute("class").contains("signature"))) {
+            if ((e.getNodeName().equals("input") && e.getAttribute("type").equals("text")
+                    && e.getAttribute("class").contains("signature"))) {
 
-				processSignatureControl(pair, ctrl, acro, i, root);
+                processSignatureControl(pair, ctrl, acro, i, root);
 
-			} else if ((e.getNodeName().equals("input") && e.getAttribute("type").equals("text"))
-					|| (e.getNodeName().equals("textarea"))
-					|| (e.getNodeName().equals("input") && e.getAttribute("type").equals("password"))
-					|| (e.getNodeName().equals("input") && e.getAttribute("type").equals("file"))) {
+            } else if ((e.getNodeName().equals("input") && e.getAttribute("type").equals("text"))
+                    || (e.getNodeName().equals("textarea"))
+                    || (e.getNodeName().equals("input") && e.getAttribute("type").equals("password"))
+                    || (e.getNodeName().equals("input") && e.getAttribute("type").equals("file"))) {
 
                 // Start with the text controls (text, password, file and textarea).
                 processTextControl(pair, ctrl, acro, i, root);
             } else if ((e.getNodeName().equals("select") &&
-                        !e.hasAttribute("multiple")) ||
-                       (e.getNodeName().equals("openhtmltopdf-combo"))) {
+                    !e.hasAttribute("multiple")) ||
+                    (e.getNodeName().equals("openhtmltopdf-combo"))) {
 
                 processSelectControl(pair, ctrl, acro, i, root);
             } else if (e.getNodeName().equals("select") &&
-                       e.hasAttribute("multiple")) {
+                    e.hasAttribute("multiple")) {
 
                 processMultiSelectControl(pair, ctrl, acro, i, root);
             } else if (e.getNodeName().equals("input") &&
-                       e.getAttribute("type").equals("checkbox")) {
+                    e.getAttribute("type").equals("checkbox")) {
 
                 processCheckboxControl(pair, acro, i, ctrl, root);
             } else if (e.getNodeName().equals("input") &&
-                       e.getAttribute("type").equals("hidden")) {
+                    e.getAttribute("type").equals("hidden")) {
 
                 processHiddenControl(pair, ctrl, acro, i, root);
             } else if (e.getNodeName().equals("input") &&
-                       e.getAttribute("type").equals("radio")) {
+                    e.getAttribute("type").equals("radio")) {
                 // We have to do radio button groups in one hit so add them to a map of list keyed on name.
                 List<Control> radioGroup = radioGroups.get(e.getAttribute("name"));
 
@@ -876,11 +879,11 @@ public class PdfBoxForm {
 
                 radioGroup.add(ctrl);
             } else if ((e.getNodeName().equals("input") &&
-                      e.getAttribute("type").equals("submit")) ||
-                     (e.getNodeName().equals("button") &&
-                      !e.getAttribute("type").equals("button")) ||
-                     (e.getNodeName().equals("input") &&
-                      e.getAttribute("type").equals("reset"))) {
+                    e.getAttribute("type").equals("submit")) ||
+                    (e.getNodeName().equals("button") &&
+                            !e.getAttribute("type").equals("button")) ||
+                    (e.getNodeName().equals("input") &&
+                            e.getAttribute("type").equals("reset"))) {
 
                 // We've got a submit or reset control for this form.
                 submits.add(ctrl);

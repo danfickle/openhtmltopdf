@@ -1496,6 +1496,10 @@ public class VisualRegressionTest {
     public void testSignatureField() throws IOException {
         assertTrue(vt.runTest("form-signature-field"));
     }
+    @Test
+    public void testFormFieldOnSecondPage() throws IOException {
+        assertTrue(vt.runTest("form-control-on-second-page"));
+    }
 
     // TODO:
     // + Elements that appear just on generated overflow pages.
