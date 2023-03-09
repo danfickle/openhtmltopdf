@@ -913,7 +913,9 @@ public class PdfBoxAccessibilityHelper {
     
     private void ensureAncestorTree(AbstractTreeItem child, Box parent) {
         // Walk up the ancestor tree making sure they all have accessibility objects.
+        boolean newAccessibilityObjectCreated=false;
         while (parent != null && parent.getAccessibilityObject() == null) {
+            newAccessibilityObjectCreated=true;
             AbstractStructualElement parentItem = createStructureItem(null, parent);
             parent.setAccessiblityObject(parentItem);
             
@@ -922,6 +924,11 @@ public class PdfBoxAccessibilityHelper {
             child.parent = parentItem;
             child = parentItem;
             parent = parent.getParent();
+        }
+        if(newAccessibilityObjectCreated) {
+            AbstractStructualElement alreadyExistingAccessibilityObject = (AbstractStructualElement) parent.getAccessibilityObject();
+            child.parent = alreadyExistingAccessibilityObject;
+            alreadyExistingAccessibilityObject.addChild(child);
         }
     }
     
