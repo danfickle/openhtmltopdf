@@ -11,6 +11,7 @@ import java.util.Arrays;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.io.MemoryUsageSetting;
+import org.apache.pdfbox.io.ScratchFile;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class ConcateOutputTest {
         File targetFile = new File("target/test/concatoutput/concated.pdf");
         targetFile.getParentFile().mkdirs();
 
-        try (PDDocument doc = new PDDocument(MemoryUsageSetting.setupMixed(1_000_000))) {
+        try (PDDocument doc = new PDDocument(() -> new ScratchFile(MemoryUsageSetting.setupMixed(1_000_000)))) {
             for (String testCaseFile : Arrays.asList(
                     "color", "background-color", "FSPageBreakMinHeightSample",
                     "math-ml", "multi-column-layout", "simplerotate", "svg-inline", "svg-sizes", "transform",

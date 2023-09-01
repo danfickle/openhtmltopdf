@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 import org.apache.pdfbox.io.MemoryUsageSetting;
+import org.apache.pdfbox.io.ScratchFile;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import com.openhtmltopdf.bidi.support.ICUBidiReorderer;
@@ -88,7 +89,7 @@ public class FreeMarkerGenerator {
 		builder.useSVGDrawer(new BatikSVGDrawer());
 		builder.useMathMLDrawer(new MathMLDrawer());
 		builder.addDOMMutator(LaTeXDOMMutator.INSTANCE);
-		builder.usePDDocument(new PDDocument(MemoryUsageSetting.setupMixed(1000000)));
+		builder.usePDDocument(new PDDocument(() -> new ScratchFile(MemoryUsageSetting.setupMixed(1000000))));
 		builder.useUriResolver(new DefaultUriResolver() {
 			@Override
 			public String resolveURI(String baseUri, String uri) {

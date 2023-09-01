@@ -35,7 +35,7 @@ public abstract class PdfDrawerBase implements FSObjectDrawer
         {
             try (InputStream inputStream = new URL(url).openStream())
             {
-                PDDocument document = Loader.loadPDF(inputStream);
+                PDDocument document = Loader.loadPDF(inputStream.readAllBytes());
                 pdFormXObject = layerUtility
                         .importPageAsForm(document, pdfpage - 1);
             }
