@@ -16,6 +16,7 @@ import org.w3c.dom.Element;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.logging.Level;
@@ -61,7 +62,7 @@ public class ForegroundPdfDrawer extends PdfDrawerBase
             watermarkOutputStream.write("Q\n".getBytes(StandardCharsets.US_ASCII));
             watermarkOutputStream.close();
         }
-        catch (IOException e1)
+        catch (IOException | URISyntaxException e1)
         {
             XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_MESSAGE, "Error while drawing with the ForegroundPdfDrawer ", e1);
         }
