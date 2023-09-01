@@ -9,10 +9,11 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.w3c.dom.Element;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +23,7 @@ public abstract class PdfDrawerBase implements FSObjectDrawer
     private final Map<PDFBoxDeviceReference, SoftReference<Map<String, PDFormXObject>>> formMap = new HashMap<PDFBoxDeviceReference, SoftReference<Map<String, PDFormXObject>>>();
 
     protected PDFormXObject importPageAsXForm(RenderingContext ctx, Element e,
-            PdfBoxOutputDevice pdfBoxOutputDevice, LayerUtility layerUtility) throws IOException
+            PdfBoxOutputDevice pdfBoxOutputDevice, LayerUtility layerUtility) throws IOException, URISyntaxException
     {
 
         Map<String, PDFormXObject> map = getFormCacheMap(pdfBoxOutputDevice);
@@ -33,12 +34,10 @@ public abstract class PdfDrawerBase implements FSObjectDrawer
         PDFormXObject pdFormXObject = map.get(url);
         if (pdFormXObject == null)
         {
-            try (InputStream inputStream = new URL(url).openStream())
-            {
-                PDDocument document = Loader.loadPDF(inputStream);
-                pdFormXObject = layerUtility
-                        .importPageAsForm(document, pdfpage - 1);
-            }
+            File file = new File(new URL(url).toURI());
+            PDDocument document = Loader.loadPDF(file);
+            pdFormXObject = layerUtility
+                    .importPageAsForm(document, pdfpage - 1);
             map.put(url, pdFormXObject);
         }
         return pdFormXObject;

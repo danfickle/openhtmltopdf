@@ -3,6 +3,7 @@ package com.openhtmltopdf.objects.pdf;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.logging.Level;
@@ -65,7 +66,7 @@ public class MergeBackgroundPdfDrawer extends PdfDrawerBase
             saveAndPlaceStream.close();
 
         }
-        catch (IOException e1)
+        catch (IOException | URISyntaxException e1)
         {
             XRLog.log(Level.WARNING, LogMessageId.LogMessageId1Param.GENERAL_MESSAGE, "Error while drawing with the MergeBackgroundPdfDrawer ", e1);
         }
