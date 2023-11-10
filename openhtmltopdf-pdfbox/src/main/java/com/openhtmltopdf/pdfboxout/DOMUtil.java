@@ -21,7 +21,9 @@ package com.openhtmltopdf.pdfboxout;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -31,7 +33,7 @@ public class DOMUtil {
         for (int i = 0; i < children.getLength(); i++) {
             Node n = children.item(i);
             if (n.getNodeType() == Node.ELEMENT_NODE) {
-                Element elem = (Element)n;
+                Element elem = (Element) n;
                 if (elem.getTagName().equals(name)) {
                     return elem;
                 }
@@ -39,14 +41,14 @@ public class DOMUtil {
         }
         return null;
     }
-    
+
     public static List<Element> getChildren(Element parent, String name) {
         List<Element> result = new ArrayList<>();
         NodeList children = parent.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node n = children.item(i);
             if (n.getNodeType() == Node.ELEMENT_NODE) {
-                Element elem = (Element)n;
+                Element elem = (Element) n;
                 if (elem.getTagName().equals(name)) {
                     result.add(elem);
                 }
@@ -54,7 +56,7 @@ public class DOMUtil {
         }
         return result.size() == 0 ? null : result;
     }
-    
+
     /**
      * Helper function to find an enclosing element with given node name. Returns null on failure.
      */
@@ -62,14 +64,14 @@ public class DOMUtil {
         Node parent;
         while ((parent = e.getParentNode()) != null) {
             if (parent.getNodeType() == Node.ELEMENT_NODE &&
-                parent.getNodeName().equals(nodeName)) {
+                    parent.getNodeName().equals(nodeName)) {
                 return (Element) parent;
             }
             e = parent;
         }
         return null;
     }
-    
+
     /**
      * Loads all of the text content in all offspring of an element.
      * Ignores all attributes, comments and processing instructions.
@@ -77,11 +79,11 @@ public class DOMUtil {
      * @return a String with the text content of an element (may be an empty string but will not be null).
      */
     public static String getText(Element parent) {
-    	StringBuilder sb = new StringBuilder();
-    	getText(parent, sb);
+        StringBuilder sb = new StringBuilder();
+        getText(parent, sb);
         return sb.toString();
     }
-    
+
     /**
      * Appends all text content in all offspring of an element to a StringBuffer.
      * Ignores all attributes, comments and processing instructions.
@@ -93,10 +95,28 @@ public class DOMUtil {
         for (int i = 0; i < children.getLength(); i++) {
             Node n = children.item(i);
             if (n.getNodeType() == Node.ELEMENT_NODE) {
-            	getText((Element)n, sb);
+                getText((Element) n, sb);
             } else if (n.getNodeType() == Node.TEXT_NODE) {
                 sb.append(n.getNodeValue());
             }
         }
+    }
+
+    public static String toDebugInfo(Element element) {
+        if (element == null)
+            return "null";
+        StringBuilder elementString = new StringBuilder();
+        elementString.append('<');
+        elementString.append(element.getNodeName());
+        NamedNodeMap attributes = element.getAttributes();
+        for (int i = 0; i < attributes.getLength(); i++) {
+            Node attribute = attributes.item(i);
+            elementString.append(' ');
+            elementString.append(attribute.getNodeName());
+            elementString.append("=\"");
+            elementString.append(attribute.getNodeValue());
+            elementString.append('"');
+        }
+        return elementString.toString();
     }
 }
