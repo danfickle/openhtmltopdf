@@ -293,8 +293,8 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         }
     }
 
-    private void processControls() {
-        _formState.processControls(_sharedContext, _writer, _root);
+	private void processControls(RenderingContext renderingContext) {
+		_formState.processControls(_sharedContext, _writer, _root, renderingContext);
     }
 
     /**
@@ -898,7 +898,7 @@ public class PdfBoxFastOutputDevice extends AbstractOutputDevice implements Outp
         _bmManager.writeOutline(c, root);
 
         // Also need access to the structure tree.
-        processControls();
+		processControls(c);
         _linkManager.processLinks(_pdfUa);
         
         if (_pdfUa != null) {
